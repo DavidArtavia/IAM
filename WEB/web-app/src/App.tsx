@@ -1,14 +1,13 @@
+// App.tsx
 import { BrowserRouter as Router } from "react-router-dom";
-import { IProps } from "@/types/IProps";
 import { AppRouter } from "@/routers/AppRouter";
-import { Layout } from "@/components/Layout/Layout";
 
-export const App = ({}: IProps) => {
+export const App = () => {
   return (
-    <Router>
-      <Layout>
+    <>
+      <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         <AppRouter />
-      </Layout>
-    </Router>
+      </Router>
+    </>
   );
 };
