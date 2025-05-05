@@ -1,6 +1,5 @@
 // LayoutMain.tsx
 import { ROUTES } from "@/constants/routes";
-import { IProps } from "@/types/IProps";
 import TallerLogo from "@/assets/img/TallerLogo.png";
 import { Outlet } from "react-router-dom";
 import "./LayoutMain.css";
