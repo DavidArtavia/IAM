@@ -1,0 +1,309 @@
+/* Estructura principal */
+.statistics-column {
+    flex: 0 0 33.333333%;
+    max-width: 45%;
+    padding: 0 0.5rem;
+}
+
+.statistics-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    word-wrap: break-word;
+    background-color: #ffffff;
+    background-clip: border-box;
+    border: 1px solid #e4e6ef;
+    border-radius: 0.475rem;
+    box-shadow: 0px 0px 20px 0px rgba(76, 87, 125, 0.02);
+    height: 100%;
+}
+
+/* Header del card */
+.statistics-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 1.25rem 1.25rem;
+    border-bottom: 0;
+}
+
+.statistics-card-title {
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.statistics-title-label {
+    font-weight: 700;
+    font-size: 1.25rem;
+    color: #181c32;
+    margin-bottom: 0.25rem;
+}
+
+.statistics-title-subtitle {
+    color: #a1a5b7;
+    font-weight: 500;
+    font-size: 0.9rem;
+}
+
+/* Toolbar y botón de menú */
+.statistics-card-toolbar {
+    position: relative;
+}
+
+.statistics-menu-button {
+    border: none;
+    background-color: transparent;
+    padding: 0.5rem;
+    border-radius: 0.475rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.3s;
+}
+
+.statistics-menu-button:hover {
+    background-color: #f5f8fa;
+}
+
+.statistics-svg-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 24px;
+    width: 24px;
+}
+
+/* Menu de filtros */
+.statistics-menu {
+    position: absolute;
+    right: 0;
+    top: 100%;
+    z-index: 105;
+    display: none;
+    /* Por defecto oculto, se mostraría con JS */
+    width: 250px;
+    padding: 0;
+    background-color: #ffffff;
+    box-shadow: 0px 0px 50px 0px rgba(82, 63, 105, 0.15);
+    border-radius: 0.475rem;
+    margin-top: 0.5rem;
+}
+
+.statistics-menu-header {
+    padding: 0.75rem 1rem;
+}
+
+.statistics-menu-title {
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: #181c32;
+}
+
+.statistics-separator {
+    height: 1px;
+    background-color: #e4e6ef;
+}
+
+.statistics-form {
+    padding: 0.75rem 1rem;
+}
+
+.statistics-input-group {
+    margin-bottom: 1.25rem;
+}
+
+.statistics-label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+    color: #3f4254;
+}
+
+.statistics-select {
+    display: block;
+    width: 100%;
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+    font-weight: 500;
+    line-height: 1.5;
+    color: #181c32;
+    background-color: #f5f8fa;
+    background-clip: padding-box;
+    border: 1px solid #e4e6ef;
+    border-radius: 0.475rem;
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.statistics-checkbox-group {
+    display: flex;
+}
+
+.statistics-checkbox-label {
+    display: flex;
+    align-items: center;
+    margin-right: 1.25rem;
+    cursor: pointer;
+}
+
+.statistics-checkbox-input {
+    margin-right: 0.5rem;
+}
+
+.statistics-checkbox-text {
+    font-size: 0.9rem;
+    color: #7e8299;
+}
+
+.statistics-switch {
+    display: flex;
+    align-items: center;
+}
+
+.statistics-switch-input {
+    margin-right: 0.5rem;
+}
+
+.statistics-switch-label {
+    font-size: 0.9rem;
+    color: #7e8299;
+}
+
+.statistics-actions {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.statistics-reset-button {
+    padding: 0.55rem 1rem;
+    font-size: 0.85rem;
+    background-color: #f5f8fa;
+    border: 1px solid #e4e6ef;
+    color: #a1a5b7;
+    border-radius: 0.475rem;
+    margin-right: 0.5rem;
+    cursor: pointer;
+    transition: color 0.15s ease, background-color 0.15s ease;
+}
+
+.statistics-reset-button:hover {
+    background-color: #eef3f7;
+    color: #7e8299;
+}
+
+.statistics-apply-button {
+    padding: 0.55rem 1rem;
+    font-size: 0.85rem;
+    background-color: #009ef7;
+    border: 1px solid #009ef7;
+    color: #ffffff;
+    border-radius: 0.475rem;
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+}
+
+.statistics-apply-button:hover {
+    background-color: #0095e8;
+}
+
+/* Cuerpo del card */
+.statistics-card-body {
+    flex: 1 1 auto;
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+}
+
+.statistics-chart-container {
+    flex-grow: 1;
+    position: relative;
+    height: 225px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Gráfico circular */
+.statistics-radial-chart {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.statistics-progress-circle {
+    position: relative;
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    background: conic-gradient(#009ef7 0% 74%, #f1faff 74% 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.statistics-progress-circle::before {
+    content: "";
+    position: absolute;
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background-color: white;
+}
+
+.statistics-progress-value {
+    position: relative;
+    font-size: 30px;
+    font-weight: 700;
+    color: #5e6278;
+}
+
+/* Footer */
+.statistics-footer {
+    padding-top: 1.25rem;
+}
+
+.statistics-note {
+    text-align: center;
+    font-size: 0.85rem;
+    padding-bottom: 1.25rem;
+    color: #7e8299;
+    margin-bottom: 1rem;
+}
+
+.statistics-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: auto;
+    padding: 0.15rem 0.5rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: #f1416c;
+    background-color: #fff5f8;
+    border-radius: 0.475rem;
+}
+
+.statistics-action-button {
+    display: block;
+    width: 100%;
+    padding: 0.75rem 1.5rem;
+    background-color: #009ef7;
+    color: #ffffff;
+    text-align: center;
+    font-weight: 500;
+    font-size: 1rem;
+    border-radius: 0.475rem;
+    text-decoration: none;
+    transition: background-color 0.15s ease;
+}
+
+.statistics-action-button:hover {
+    background-color: #0095e8;
+    color: #ffffff;
+    text-decoration: none;
+}
