@@ -1,7 +1,7 @@
-import { Input, Button, Typography } from "antd";
-import { UserOutlined, LockOutlined } from "@ant-design/icons";
+import { Input, Button, Typography, Card, Divider, Space } from "antd";
+import { UserOutlined, LockOutlined, GoogleOutlined, FacebookOutlined, AppleOutlined } from "@ant-design/icons";
 import { useState, useContext } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { AuthContext } from "@/context/AuthContext";
 import { ROUTES } from "@/constants/routes";
 import { LoadingModal } from "@/components/Modals/LoadingModal/LoadingModal";
@@ -90,12 +90,12 @@ export const Login = () => {
   };
 
   return (
-    <div
+    <Card
       style={{
         maxWidth: 400,
         margin: "10% auto",
         padding: 24,
-        boxShadow: "0 0 10px rgba(0,0,0,0.1)",
+        boxShadow: "0 0 10px rgba(0,0,0,0.075)",
         borderRadius: 8,
       }}
     >
@@ -105,6 +105,15 @@ export const Login = () => {
       <Title level={3} style={{ textAlign: "center" }}>
         Iniciar Sesión
       </Title>
+      <div style={{ textAlign: "center", marginBottom: "24px" }}>
+        <Typography.Text type="secondary" style={{ fontSize: "16px" }}>
+          Nuevo aqui?
+          <Link to="/sign-up" style={{ marginLeft: "5px" }}>
+            Crear una cuenta
+          </Link>
+        </Typography.Text>
+      </div>
+      <span>Email</span>
       <Input
         size="large"
         placeholder="example@gmail.com"
@@ -113,6 +122,18 @@ export const Login = () => {
         onChange={(e) => setEmail(e.target.value)}
         style={{ marginBottom: 16 }}
       />
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          width: "100%",
+        }}
+      >
+        <span>Password</span>
+        <Link to="/password-reset" style={{ fontSize: "14px" }}>
+          Forgot Password?
+        </Link>
+      </div>
       <Input.Password
         size="large"
         placeholder="Contraseña"
@@ -130,26 +151,73 @@ export const Login = () => {
       >
         Iniciar Sesión
       </Button>
+      <Divider plain>or</Divider>
+      <Space direction="vertical" size="middle" style={{ width: "100%" }}>
+        <Button
+          icon={<GoogleOutlined />}
+          style={{
+            width: "100%",
+            height: "48px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          Continue with Google
+        </Button>
+
+        <Button
+          icon={<FacebookOutlined />}
+          style={{
+            width: "100%",
+            height: "48px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          Continue with Facebook
+        </Button>
+
+        <Button
+          icon={<AppleOutlined />}
+          style={{
+            width: "100%",
+            height: "48px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          Continue with Apple
+        </Button>
+      </Space>
 
       <hr style={{ margin: "2rem 0" }} />
 
       {/* 🔧 Botón de desarrollo */}
-      <Button
-        onClick={handleQuickLogin}
-        style={{
-          padding: "1rem 2rem",
-          backgroundColor: "#4CAF50",
-          color: "#000",
-          border: "none",
-          borderRadius: "5px",
-          cursor: "pointer",
-          fontSize: "1rem",
-          
-        }}
-      >
-        🔓 Saltar Login (Modo Dev)
-      </Button>
-    </div>
+      {process.env.NODE_ENV === "development" && (
+        <div>
+          <span style={{ display: "block", textAlign: "center", marginBottom: "1rem", color: "#888" }}>
+            Visible solo en modo dev
+          </span>
+          <Button
+            onClick={handleQuickLogin}
+            style={{
+              padding: "1rem 2rem",
+              backgroundColor: "#4CAF50",
+              color: "#000",
+              border: "none",
+              borderRadius: "5px",
+              cursor: "pointer",
+              fontSize: "1rem",
+            }}
+          >
+            🔓 Saltar Login (Modo Dev)
+          </Button>
+        </div>
+      )}
+    </Card>
   );
 };
 
