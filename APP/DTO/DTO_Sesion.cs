@@ -7,7 +7,7 @@ namespace DTO
         #region Atributos
 
         private int id_Sesion;
-        private int id_Usuario;  
+        private int id_Usuario;
         private string refreshToken;
         private DateTime fechaCreacion;
         private DateTime fechaExpiracion;

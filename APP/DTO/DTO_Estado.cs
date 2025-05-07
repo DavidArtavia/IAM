@@ -11,8 +11,8 @@ namespace DTO
         #region Atributos
 
         private int iD_Estado;
-        private String nombre;
-        private String tabla;
+        private string nombre;
+        private string tabla;
 
         #endregion
 

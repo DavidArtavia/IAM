@@ -1,0 +1,16 @@
+C:\Desarrollo\IAM\APP\BLL\bin\Debug\net8.0\BLL.deps.json
+C:\Desarrollo\IAM\APP\BLL\bin\Debug\net8.0\BLL.dll
+C:\Desarrollo\IAM\APP\BLL\bin\Debug\net8.0\BLL.pdb
+C:\Desarrollo\IAM\APP\BLL\bin\Debug\net8.0\DTO.dll
+C:\Desarrollo\IAM\APP\BLL\bin\Debug\net8.0\DTO.pdb
+C:\Desarrollo\IAM\APP\BLL\obj\Debug\net8.0\BLL.csproj.AssemblyReference.cache
+C:\Desarrollo\IAM\APP\BLL\obj\Debug\net8.0\BLL.GeneratedMSBuildEditorConfig.editorconfig
+C:\Desarrollo\IAM\APP\BLL\obj\Debug\net8.0\BLL.AssemblyInfoInputs.cache
+C:\Desarrollo\IAM\APP\BLL\obj\Debug\net8.0\BLL.AssemblyInfo.cs
+C:\Desarrollo\IAM\APP\BLL\obj\Debug\net8.0\BLL.csproj.CoreCompileInputs.cache
+C:\Desarrollo\IAM\APP\BLL\obj\Debug\net8.0\BLL.sourcelink.json
+C:\Desarrollo\IAM\APP\BLL\obj\Debug\net8.0\BLL.csproj.Up2Date
+C:\Desarrollo\IAM\APP\BLL\obj\Debug\net8.0\BLL.dll
+C:\Desarrollo\IAM\APP\BLL\obj\Debug\net8.0\refint\BLL.dll
+C:\Desarrollo\IAM\APP\BLL\obj\Debug\net8.0\BLL.pdb
+C:\Desarrollo\IAM\APP\BLL\obj\Debug\net8.0\ref\BLL.dll

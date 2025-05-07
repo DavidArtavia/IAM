@@ -1,6 +1,0 @@
-C:\Desarrollo\IAM\APP\DTO\bin\Debug\DTO.dll
-C:\Desarrollo\IAM\APP\DTO\bin\Debug\DTO.pdb
-C:\Desarrollo\IAM\APP\DTO\obj\Debug\DTO.csproj.AssemblyReference.cache
-C:\Desarrollo\IAM\APP\DTO\obj\Debug\DTO.csproj.CoreCompileInputs.cache
-C:\Desarrollo\IAM\APP\DTO\obj\Debug\DTO.dll
-C:\Desarrollo\IAM\APP\DTO\obj\Debug\DTO.pdb

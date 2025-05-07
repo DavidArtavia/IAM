@@ -1,48 +1,10 @@
 {
-  "openapi": "3.0.1",
+  "openapi": "3.0.4",
   "info": {
     "title": "API",
     "version": "1.0"
   },
   "paths": {
-    "/api/Usuario": {
-      "get": {
-        "tags": [
-          "Usuario"
-        ],
-        "responses": {
-          "200": {
-            "description": "Success",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
-                }
-              },
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
-                }
-              },
-              "text/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/api/Usuario/registrarUsuario": {
       "post": {
         "tags": [
@@ -69,43 +31,49 @@
         },
         "responses": {
           "200": {
-            "description": "Success"
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DTO_Respuesta"
+                }
+              }
+            }
           }
         }
       }
     },
-    "/WeatherForecast": {
-      "get": {
+    "/api/Usuario/autenticarUsuario": {
+      "post": {
         "tags": [
-          "WeatherForecast"
+          "Usuario"
         ],
-        "operationId": "GetWeatherForecast",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DTO_Usuario"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DTO_Usuario"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/DTO_Usuario"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
-            "description": "Success",
+            "description": "OK",
             "content": {
-              "text/plain": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/WeatherForecast"
-                  }
-                }
-              },
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/WeatherForecast"
-                  }
-                }
-              },
-              "text/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/WeatherForecast"
-                  }
+                  "$ref": "#/components/schemas/DTO_Respuesta"
                 }
               }
             }
@@ -116,6 +84,68 @@
   },
   "components": {
     "schemas": {
+      "DTO_Estado": {
+        "type": "object",
+        "properties": {
+          "iD_Estado": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "nombre": {
+            "type": "string",
+            "nullable": true
+          },
+          "tabla": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "DTO_Respuesta": {
+        "type": "object",
+        "properties": {
+          "tipoRespuesta": {
+            "type": "boolean"
+          },
+          "mensaje": {
+            "type": "string",
+            "nullable": true
+          },
+          "resultado": {
+            "type": "array",
+            "items": { },
+            "nullable": true
+          },
+          "codigo": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "DTO_Rol": {
+        "type": "object",
+        "properties": {
+          "iD_Rol": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "iD_Usuario": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "nombreRol": {
+            "type": "string",
+            "nullable": true
+          },
+          "descripcionRol": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
       "DTO_Usuario": {
         "type": "object",
         "properties": {
@@ -142,72 +172,12 @@
           "pass": {
             "type": "string",
             "nullable": true
-          }
-        },
-        "additionalProperties": false
-      },
-      "DateOnly": {
-        "type": "object",
-        "properties": {
-          "year": {
-            "type": "integer",
-            "format": "int32"
           },
-          "month": {
-            "type": "integer",
-            "format": "int32"
+          "estado": {
+            "$ref": "#/components/schemas/DTO_Estado"
           },
-          "day": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "dayOfWeek": {
-            "$ref": "#/components/schemas/DayOfWeek"
-          },
-          "dayOfYear": {
-            "type": "integer",
-            "format": "int32",
-            "readOnly": true
-          },
-          "dayNumber": {
-            "type": "integer",
-            "format": "int32",
-            "readOnly": true
-          }
-        },
-        "additionalProperties": false
-      },
-      "DayOfWeek": {
-        "enum": [
-          0,
-          1,
-          2,
-          3,
-          4,
-          5,
-          6
-        ],
-        "type": "integer",
-        "format": "int32"
-      },
-      "WeatherForecast": {
-        "type": "object",
-        "properties": {
-          "date": {
-            "$ref": "#/components/schemas/DateOnly"
-          },
-          "temperatureC": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "temperatureF": {
-            "type": "integer",
-            "format": "int32",
-            "readOnly": true
-          },
-          "summary": {
-            "type": "string",
-            "nullable": true
+          "rol": {
+            "$ref": "#/components/schemas/DTO_Rol"
           }
         },
         "additionalProperties": false

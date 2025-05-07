@@ -13,6 +13,7 @@ namespace DTO
         private String telefonoUsuario;
         private String correoUsuario;
         private String pass;
+        private DTO_Rol rol;
 
         #endregion
 
@@ -30,6 +31,7 @@ namespace DTO
             CorreoUsuario = String.Empty;
             Pass = String.Empty;
             Estado = new DTO_Estado();
+            Rol = new DTO_Rol();
 
         }
 
@@ -43,7 +45,8 @@ namespace DTO
         public string TelefonoUsuario { get => telefonoUsuario; set => telefonoUsuario = value; }
         public string CorreoUsuario { get => correoUsuario; set => correoUsuario = value; }
         public string Pass { get => pass; set => pass = value; }
-        internal DTO_Estado Estado { get => estado; set => estado = value; }
+        public DTO_Estado Estado { get => estado; set => estado = value; }
+        public DTO_Rol Rol { get => rol; set => rol = value; }
 
 
         #endregion
