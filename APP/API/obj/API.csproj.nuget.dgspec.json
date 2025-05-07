@@ -31,7 +31,11 @@
         "frameworks": {
           "net8.0": {
             "targetAlias": "net8.0",
-            "projectReferences": {}
+            "projectReferences": {
+              "C:\\Desarrollo\\IAM\\APP\\DTO\\DTO.csproj": {
+                "projectPath": "C:\\Desarrollo\\IAM\\APP\\DTO\\DTO.csproj"
+              }
+            }
           }
         },
         "warningProperties": {
@@ -76,6 +80,22 @@
           },
           "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.203/PortableRuntimeIdentifierGraph.json"
         }
+      }
+    },
+    "C:\\Desarrollo\\IAM\\APP\\DTO\\DTO.csproj": {
+      "restore": {
+        "projectUniqueName": "C:\\Desarrollo\\IAM\\APP\\DTO\\DTO.csproj",
+        "projectName": "DTO",
+        "projectPath": "C:\\Desarrollo\\IAM\\APP\\DTO\\DTO.csproj",
+        "UsingMicrosoftNETSdk": false,
+        "frameworks": {
+          "net48": {
+            "projectReferences": {}
+          }
+        }
+      },
+      "frameworks": {
+        "net48": {}
       }
     }
   }
