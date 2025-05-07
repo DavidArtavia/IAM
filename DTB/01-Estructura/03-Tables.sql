@@ -31,7 +31,7 @@ CREATE TABLE CORE.TBL_NEGOCIOS
     TelefonoNegocio NVARCHAR (20) NULL,
     CorreoNegocio NVARCHAR(100) NULL,
     FechaRegistro DATETIME DEFAULT GETDATE() NOT NULL,
-	ReferenciaJSON NVARCHAR(MAX) CHECK (ISJSON(ReferenciaJSON) > 0) NULL --Parámetros que la IA le va a solicitar cuando se haga una orden de servicio para este negocio
+	ReferenciaJSON NVARCHAR(MAX) CHECK (ISJSON(ReferenciaJSON) > 0) NULL --Parï¿½metros que la IA le va a solicitar cuando se haga una orden de servicio para este negocio
 )
 GO
 
@@ -57,7 +57,7 @@ CREATE TABLE CORE.TBL_ORDENES_SERVICIO
 	FechaInicio DATETIME NULL, --Fecha en la que se inicia el trabajo
 	FechaFinal DATETIME NULL, --Fecha en la que se termina el trabajo
 	FechaEntrega DATETIME NULL, --Fecha en la que se entrega el trabajo
-	ReferenciaJSON NVARCHAR(MAX) CHECK (ISJSON(ReferenciaJSON) > 0) NULL, --Referencias adicionales que se piden según lo configurado para el negocio (Placa, año, marca)
+	ReferenciaJSON NVARCHAR(MAX) CHECK (ISJSON(ReferenciaJSON) > 0) NULL, --Referencias adicionales que se piden segï¿½n lo configurado para el negocio (Placa, aï¿½o, marca)
 	NotaOrdenServicio VARCHAR(255) NULL
 )
 GO
@@ -81,7 +81,7 @@ CREATE TABLE CORE.TBL_ITEMS_ORDEN_SERVICIO
 	ID_OrdenServicio INT NOT NULL, --FK
 	ID_Estado INT NOT NULL, --FK
 	NombreItemOrdenServicio VARCHAR(100) NOT NULL,
-	Descripción VARCHAR(255) NULL,
+	Descripcion VARCHAR(255) NULL,
 	Monto DECIMAL(16,3) NOT NULL,
 	Avance INT NULL
 )
@@ -110,7 +110,6 @@ CREATE TABLE CORE.TBL_CHAT_IA
     FechaInicial DATETIME DEFAULT GETDATE() NOT NULL,
     FechaFinal DATETIME NULL,
 )
-GO
 
 CREATE TABLE CORE.TBL_MENSAJES_CHAT 
 (
@@ -124,17 +123,17 @@ CREATE TABLE CORE.TBL_MENSAJES_CHAT
 )
 GO
 --La siguiente tabla tiene por fin guardar lo que se identifica que el usuario quiere hacer en un determinado chat con la IA
---en el momento que se detecte lo que quiere hacer dentro de una conversación, se guarda un registro acá para darle seguinmiento
---además dentro del sistema se valida una lógica (CAPA APP) para entender todos los parámetros que son requeridos y guardarlos en otra tabla
---para darle seguimiento hasta tener todos los parámetros y ejecutar la acción
+--en el momento que se detecte lo que quiere hacer dentro de una conversaciï¿½n, se guarda un registro acï¿½ para darle seguinmiento
+--ademï¿½s dentro del sistema se valida una lï¿½gica (CAPA APP) para entender todos los parï¿½metros que son requeridos y guardarlos en otra tabla
+--para darle seguimiento hasta tener todos los parï¿½metros y ejecutar la acciï¿½n
 CREATE TABLE CORE.TBL_INTENCIONES_DETECTADAS (
     ID_Intencion INT IDENTITY(1,1) NOT NULL,
     ID_ChatIA INT NOT NULL, --FK
 	ID_Estado INT NOT NULL, --FK -- En progreso, completada, cancelada
-    NombreIntencion NVARCHAR(100), --Mismo nombre que el método que realiza la intención en el API
+    NombreIntencion NVARCHAR(100), --Mismo nombre que el mï¿½todo que realiza la intenciï¿½n en el API
     FechaDeteccion DATETIME DEFAULT GETDATE() NOT NULL,
 	FechaEjecucion DATETIME DEFAULT GETDATE() NULL,
-	Resultado NVARCHAR(255) NULL-- Éxito, error, validación fallida y cualquier otra vara que salga (si es error se ampliara en los LOGs
+	Resultado NVARCHAR(255) NULL-- ï¿½xito, error, validaciï¿½n fallida y cualquier otra vara que salga (si es error se ampliara en los LOGs
 )
 GO
 

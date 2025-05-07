@@ -1,11 +1,13 @@
-import { Input, Button, Typography, Card, Divider, Space } from "antd";
-import { UserOutlined, LockOutlined, GoogleOutlined, FacebookOutlined, AppleOutlined } from "@ant-design/icons";
+import { Input, Button, Typography, Card } from "antd";
+import { UserOutlined, LockOutlined } from "@ant-design/icons";
 import { useState, useContext } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { AuthContext } from "@/context/AuthContext";
 import { ROUTES } from "@/constants/routes";
 import { LoadingModal } from "@/components/Modals/LoadingModal/LoadingModal";
 import { useNotificationContext } from "@/context/NotificationContext";
+import TallerLogo from "@/assets/img/TallerLogo.png";
+
 
 const { Title } = Typography;
 
@@ -90,134 +92,142 @@ export const Login = () => {
   };
 
   return (
-    <Card
-      style={{
-        maxWidth: 400,
-        margin: "10% auto",
-        padding: 24,
-        boxShadow: "0 0 10px rgba(0,0,0,0.075)",
-        borderRadius: 8,
-      }}
-    >
-      {loadingModal && (
-        <LoadingModal loadingMessage="Verificando credenciales..." />
-      )}
-      <Title level={3} style={{ textAlign: "center" }}>
-        Iniciar Sesión
-      </Title>
-      <div style={{ textAlign: "center", marginBottom: "24px" }}>
-        <Typography.Text type="secondary" style={{ fontSize: "16px" }}>
-          Nuevo aqui?
-          <Link to="/sign-up" style={{ marginLeft: "5px" }}>
-            Crear una cuenta
-          </Link>
-        </Typography.Text>
-      </div>
-      <span>Email</span>
-      <Input
-        size="large"
-        placeholder="example@gmail.com"
-        prefix={<UserOutlined />}
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        style={{ marginBottom: 16 }}
-      />
+    <>
       <div
         style={{
-          display: "flex",
-          justifyContent: "space-between",
+          position: "relative",
           width: "100%",
+          height: "100vh", // ocupa toda la pantalla
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          flexDirection: "column",
         }}
       >
-        <span>Password</span>
-        <Link to="/password-reset" style={{ fontSize: "14px" }}>
-          Forgot Password?
-        </Link>
-      </div>
-      <Input.Password
-        size="large"
-        placeholder="Contraseña"
-        prefix={<LockOutlined />}
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        style={{ marginBottom: 24 }}
-      />
-      <Button
-        type="primary"
-        block
-        size="large"
-        loading={buttonLoading}
-        onClick={handleLogin}
-      >
-        Iniciar Sesión
-      </Button>
-      <Divider plain>or</Divider>
-      <Space direction="vertical" size="middle" style={{ width: "100%" }}>
-        <Button
-          icon={<GoogleOutlined />}
+        {/* Logo y título fuera del card */}
+        <div
           style={{
-            width: "100%",
-            height: "48px",
             display: "flex",
             alignItems: "center",
-            justifyContent: "center",
+            marginBottom: "1rem",
           }}
         >
-          Continue with Google
-        </Button>
-
-        <Button
-          icon={<FacebookOutlined />}
-          style={{
-            width: "100%",
-            height: "48px",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          Continue with Facebook
-        </Button>
-
-        <Button
-          icon={<AppleOutlined />}
-          style={{
-            width: "100%",
-            height: "48px",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          Continue with Apple
-        </Button>
-      </Space>
-
-      <hr style={{ margin: "2rem 0" }} />
-
-      {/* 🔧 Botón de desarrollo */}
-      {process.env.NODE_ENV === "development" && (
-        <div>
-          <span style={{ display: "block", textAlign: "center", marginBottom: "1rem", color: "#888" }}>
-            Visible solo en modo dev
-          </span>
-          <Button
-            onClick={handleQuickLogin}
+          <img
+            alt="Logo"
+            src={TallerLogo}
             style={{
-              padding: "1rem 2rem",
-              backgroundColor: "#4CAF50",
-              color: "#000",
-              border: "none",
-              borderRadius: "5px",
-              cursor: "pointer",
-              fontSize: "1rem",
+              width: "80px",
+              maxHeight: "64px",
+              objectFit: "contain",
+              marginRight: "1rem",
+            }}
+          />
+          <span style={{ fontSize: "1.5rem", fontWeight: "bold" }}>
+            MAIK TALLER
+          </span>
+        </div>
+
+        {/* Card debajo del logo y título */}
+        <Card
+          style={{
+            width: "100%",
+            maxWidth: 400,
+            padding: 24,
+            boxShadow: "0 0 10px rgba(0,0,0,0.075)",
+            borderRadius: 8,
+          }}
+        >
+          {loadingModal && (
+            <LoadingModal loadingMessage="Verificando credenciales..." />
+          )}
+
+          <Title level={3} style={{ textAlign: "center" }}>
+            Iniciar Sesión
+          </Title>
+          <div style={{ textAlign: "center", marginBottom: "24px" }}>
+            <Typography.Text type="secondary" style={{ fontSize: "16px" }}>
+              Nuevo aqui?
+              <Link to={ROUTES.SIGNUP} style={{ marginLeft: "5px" }}>
+                Crear una cuenta
+              </Link>
+            </Typography.Text>
+          </div>
+
+          <span>Email</span>
+          <Input
+            size="large"
+            placeholder="example@gmail.com"
+            prefix={<UserOutlined />}
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            style={{ marginBottom: 16 }}
+          />
+
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              width: "100%",
             }}
           >
-            🔓 Saltar Login (Modo Dev)
+            <span>Password</span>
+            <Link to="/password-reset" style={{ fontSize: "14px" }}>
+              Forgot Password?
+            </Link>
+          </div>
+
+          <Input.Password
+            size="large"
+            placeholder="Contraseña"
+            prefix={<LockOutlined />}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            style={{ marginBottom: 24 }}
+          />
+
+          <Button
+            type="primary"
+            block
+            size="large"
+            loading={buttonLoading}
+            onClick={handleLogin}
+          >
+            Iniciar Sesión
           </Button>
-        </div>
-      )}
-    </Card>
+
+          <hr style={{ margin: "2rem 0" }} />
+
+          {process.env.NODE_ENV === "development" && (
+            <div>
+              <span
+                style={{
+                  display: "block",
+                  textAlign: "center",
+                  marginBottom: "1rem",
+                  color: "#888",
+                }}
+              >
+                Visible solo en modo dev
+              </span>
+              <Button
+                onClick={handleQuickLogin}
+                style={{
+                  padding: "1rem 2rem",
+                  backgroundColor: "#4CAF50",
+                  color: "#000",
+                  border: "none",
+                  borderRadius: "5px",
+                  cursor: "pointer",
+                  fontSize: "1rem",
+                }}
+              >
+                🔓 Saltar Login (Modo Dev)
+              </Button>
+            </div>
+          )}
+        </Card>
+      </div>
+    </>
   );
 };
 

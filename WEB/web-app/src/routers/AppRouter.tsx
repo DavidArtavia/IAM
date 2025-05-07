@@ -3,6 +3,7 @@ import { Statistics } from "@/components/Statistics/Statistics";
 import { ROUTES } from "@/constants/routes";
 import { Home } from "@/screens/Home/Home";
 import { Login } from "@/screens/Login/Login";
+import { SignUp } from "@/screens/SignUp/SignUp";
 import RequireAuth from "@/utils/RequireAuth ";
 import {
   Routes,
@@ -16,6 +17,7 @@ export const AppRouter = () => {
     <Routes>
       <Route path="/" element={<Navigate to={ROUTES.LOGIN} replace />} />
       <Route path={ROUTES.LOGIN} element={<Login />} />
+      <Route path={ROUTES.SIGNUP} element={<SignUp />} />
 
       {/* ✅ Rutas protegidas */}
       <Route element={<RequireAuth />}>

@@ -1,7 +1,8 @@
+import { API_ENDPOINTS } from "@/constants/apiEndPoints";
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: "http://localhost:3002/api",
+  baseURL: API_ENDPOINTS.BASE_URL,
   withCredentials: true,
 });
 
