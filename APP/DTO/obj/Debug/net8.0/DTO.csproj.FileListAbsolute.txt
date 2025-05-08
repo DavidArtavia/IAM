@@ -1,6 +1,7 @@
 C:\Desarrollo\IAM\APP\DTO\bin\Debug\net8.0\DTO.deps.json
 C:\Desarrollo\IAM\APP\DTO\bin\Debug\net8.0\DTO.dll
 C:\Desarrollo\IAM\APP\DTO\bin\Debug\net8.0\DTO.pdb
+C:\Desarrollo\IAM\APP\DTO\obj\Debug\net8.0\DTO.csproj.AssemblyReference.cache
 C:\Desarrollo\IAM\APP\DTO\obj\Debug\net8.0\DTO.GeneratedMSBuildEditorConfig.editorconfig
 C:\Desarrollo\IAM\APP\DTO\obj\Debug\net8.0\DTO.AssemblyInfoInputs.cache
 C:\Desarrollo\IAM\APP\DTO\obj\Debug\net8.0\DTO.AssemblyInfo.cs
@@ -10,4 +11,3 @@ C:\Desarrollo\IAM\APP\DTO\obj\Debug\net8.0\DTO.dll
 C:\Desarrollo\IAM\APP\DTO\obj\Debug\net8.0\refint\DTO.dll
 C:\Desarrollo\IAM\APP\DTO\obj\Debug\net8.0\DTO.pdb
 C:\Desarrollo\IAM\APP\DTO\obj\Debug\net8.0\ref\DTO.dll
-C:\Desarrollo\IAM\APP\DTO\obj\Debug\net8.0\DTO.csproj.AssemblyReference.cache
