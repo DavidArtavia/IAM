@@ -4,3 +4,9 @@
 /APP/DAL/bin
 /APP/DTO/bin
 /APP/UTL/bin
+/APP/API/obj
+/APP/BLL/obj
+/APP/DAL/obj
+/APP/DLL/obj
+/APP/DTO/obj
+/APP/UTL/obj
