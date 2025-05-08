@@ -14,12 +14,6 @@ namespace API.Controllers
     public class UsuarioController : ControllerBase
     {
         DTO_Respuesta respuesta = new DTO_Respuesta();
-        private readonly IConfiguration _config;
-
-        public UsuarioController(IConfiguration config) {
-            _config = config;
-        }
-
 
         [AllowAnonymous]
         [Produces("application/json")]
@@ -31,10 +25,7 @@ namespace API.Controllers
             try
             {
                 BLL_Usuario bLL_Usuario = new BLL_Usuario();
-                bLL_Usuario.registrarUsuario(usuario);
-                respuesta.Codigo = "200";
-                respuesta.TipoRespuesta = true;
-                respuesta.Mensaje = "Usuario registrado correctamente";
+                respuesta = bLL_Usuario.registrarUsuario(usuario);
             }
             catch (Exception ex) 
             {
@@ -53,7 +44,7 @@ namespace API.Controllers
         [HttpPost]
         public DTO_Respuesta autenticarUsuario([FromBody] DTO_Usuario usuario)
         {
-            UTL_Cipher uTL_Cipher = new UTL_Cipher(_config);
+            UTL_Cipher uTL_Cipher = new UTL_Cipher();
             DTO.DTO_Sesion sesion = new DTO_Sesion();
             String accesToken = uTL_Cipher.generarAccessToken(usuario);
                 

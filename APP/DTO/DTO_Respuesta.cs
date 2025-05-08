@@ -13,6 +13,7 @@ namespace DTO
         private bool tipoRespuesta;
         private String mensaje;
         private String codigo;
+        private String tipo;
         private List<object> resultado;
 
 
@@ -26,6 +27,7 @@ namespace DTO
             Mensaje = String.Empty;
             Codigo = String.Empty;
             Resultado = new List<object>();
+            Tipo = String.Empty;    
         }
 
 
@@ -38,6 +40,7 @@ namespace DTO
         public string Mensaje { get => mensaje; set => mensaje = value; }
         public List<object> Resultado { get => resultado; set => resultado = value; }
         public string Codigo { get => codigo; set => codigo = value; }
+        public string Tipo { get => tipo; set => tipo = value; }
 
 
         #endregion

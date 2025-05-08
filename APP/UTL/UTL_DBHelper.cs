@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace UTL
 {
-    internal class UTL_DBHelper
+    public class UTL_DBHelper
 
     {
         public static System.DateTime EMPTY_DATETIME; // DateTime.Parse("0001/01/01")

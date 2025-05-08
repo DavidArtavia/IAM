@@ -1,6 +1,7 @@
 ﻿using DTO;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
+using System.Configuration;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
@@ -11,32 +12,14 @@ namespace UTL
     public class UTL_Cipher
     {
 
-        #region Atributos
-
-        public String encryptKey = ""; // ConfigurationManager.AppSettings["EncryptKey"];
-        public String desEncryptKey = ""; // ConfigurationManager.AppSettings["DesEncryptKey"];
-        public String tokenKey = ""; // ConfigurationManager.AppSettings["TokenKey"];
-
-        public String Jwt = ""; // ConfigurationManager.AppSettings["TokenKey"];
-        private readonly IConfiguration? _config;
-
-        #endregion
-
         #region Constructor
-        public UTL_Cipher(IConfiguration config)
-        {
-            _config = config;
-        }
-
-        public UTL_Cipher() { }
+        public UTL_Cipher(){}
         #endregion
 
-        #region Set´s y Get's
-
-        public string Encriptar(string plainText)
+        public string encriptar(string plainText)
         {
             using var aes = Aes.Create();
-            aes.Key = Encoding.UTF8.GetBytes(_config["AES:Key"]);
+            aes.Key = Encoding.UTF8.GetBytes(ConfigurationManager.AppSettings["AesKey"] ?? "");
             aes.Mode = CipherMode.CBC;
             aes.Padding = PaddingMode.PKCS7;
 
@@ -56,7 +39,7 @@ namespace UTL
             return Convert.ToBase64String(resultBytes);
         }
 
-        public string Desencriptar(string encryptedText)
+        public string desEncriptar(string encryptedText)
         {
             var fullCipher = Convert.FromBase64String(encryptedText);
 
@@ -67,7 +50,7 @@ namespace UTL
             Buffer.BlockCopy(fullCipher, iv.Length, cipher, 0, cipher.Length);
 
             using var aes = Aes.Create();
-            aes.Key = Encoding.UTF8.GetBytes(_config["AES:Key"]);
+            aes.Key = Encoding.UTF8.GetBytes(ConfigurationManager.AppSettings["AesKey"] ?? "");
             aes.IV = iv;
             aes.Mode = CipherMode.CBC;
             aes.Padding = PaddingMode.PKCS7;
@@ -78,9 +61,6 @@ namespace UTL
             return Encoding.UTF8.GetString(decryptedBytes);
         }
 
-
-
-
         public String generarAccessToken(DTO_Usuario usuario)
         {
             var claims = new[]
@@ -90,13 +70,13 @@ namespace UTL
             new Claim(ClaimTypes.Role, usuario.Rol.ID_Usuario.ToString())
         };
 
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]));
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(ConfigurationManager.AppSettings["JwtKey"] ?? ""));
 
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
             var token = new JwtSecurityToken(
-                 issuer: _config["Jwt:Issuer"],
-                    audience: _config["Jwt:Audience"],
+                issuer: ConfigurationManager.AppSettings["JwtIssuer"] ?? "",
+                audience: ConfigurationManager.AppSettings["JwtAudience"] ?? "",
                 claims: claims,
                 expires: DateTime.UtcNow.AddMinutes(15),
                 signingCredentials: creds);
@@ -104,7 +84,5 @@ namespace UTL
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
 
-
-        #endregion
     }
 }

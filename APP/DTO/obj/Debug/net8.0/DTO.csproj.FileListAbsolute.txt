@@ -10,3 +10,4 @@ C:\Desarrollo\IAM\APP\DTO\obj\Debug\net8.0\DTO.dll
 C:\Desarrollo\IAM\APP\DTO\obj\Debug\net8.0\refint\DTO.dll
 C:\Desarrollo\IAM\APP\DTO\obj\Debug\net8.0\DTO.pdb
 C:\Desarrollo\IAM\APP\DTO\obj\Debug\net8.0\ref\DTO.dll
+C:\Desarrollo\IAM\APP\DTO\obj\Debug\net8.0\DTO.csproj.AssemblyReference.cache
