@@ -21,7 +21,8 @@ namespace API.Controllers
         [HttpPost]
         public DTO_Respuesta registrarUsuario([FromBody] DTO_Usuario usuario)
         {
-                
+            Console.WriteLine(usuario);
+
             try
             {
                 BLL_Usuario bLL_Usuario = new BLL_Usuario();

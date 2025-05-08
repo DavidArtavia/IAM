@@ -27,9 +27,9 @@ namespace DAL
                     sqlcmd.CommandType = CommandType.StoredProcedure;
                     sqlcmd.Parameters.Add("@NombreUsuario", SqlDbType.NVarChar).Value = usuario.NombreUsuario;
                     sqlcmd.Parameters.Add("@Apellido", SqlDbType.NVarChar).Value = usuario.Apellido;
-                    sqlcmd.Parameters.Add("@TelefonoUsuario", SqlDbType.NVarChar).Value = usuario.CorreoUsuario;
-                    sqlcmd.Parameters.Add("@CorreoUsuario", SqlDbType.NVarChar).Value = usuario.Pass;
-                    sqlcmd.Parameters.Add("@Pass", SqlDbType.NVarChar).Value = usuario.TelefonoUsuario;
+                    sqlcmd.Parameters.Add("@TelefonoUsuario", SqlDbType.NVarChar).Value = usuario.TelefonoUsuario;
+                    sqlcmd.Parameters.Add("@CorreoUsuario", SqlDbType.NVarChar).Value = usuario.CorreoUsuario;
+                    sqlcmd.Parameters.Add("@Pass", SqlDbType.NVarChar).Value = usuario.Pass;
 
                     // Establecer la dirección de los parámetros
                     foreach (SqlParameter param in sqlcmd.Parameters)
@@ -58,7 +58,7 @@ namespace DAL
                                 respuesta.TipoRespuesta = true;
                                 respuesta.Codigo = "200";
                             }
-
+                         
                             respuesta.Mensaje = UTL.UTL_DBHelper.ReadNullSafeString(reader["Mensaje"]);
                         }
                     }

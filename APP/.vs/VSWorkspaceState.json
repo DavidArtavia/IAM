@@ -2,8 +2,8 @@
   "ExpandedNodes": [
     "",
     "\\API",
-    "\\DLL\\Properties",
-    "\\UTL\\Properties"
+    "\\DTO"
   ],
+  "SelectedNode": "\\API\\API.sln",
   "PreviewInSolutionExplorer": false
 }
