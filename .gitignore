@@ -1,1 +1,6 @@
 /APP/API/.vs
+/APP/BLL/bin
+/APP/API/bin
+/APP/DAL/bin
+/APP/DTO/bin
+/APP/UTL/bin

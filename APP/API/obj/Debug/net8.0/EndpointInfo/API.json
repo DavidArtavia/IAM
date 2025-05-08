@@ -120,10 +120,6 @@
           "codigo": {
             "type": "string",
             "nullable": true
-          },
-          "tipo": {
-            "type": "string",
-            "nullable": true
           }
         },
         "additionalProperties": false
