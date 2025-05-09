@@ -17,7 +17,6 @@ namespace DTO
 
         #endregion
 
-
         #region Constructor
 
         public DTO_Usuario()

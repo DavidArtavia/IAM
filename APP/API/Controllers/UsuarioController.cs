@@ -1,8 +1,11 @@
-﻿using BLL;
+﻿using Azure;
+using BLL;
+using DAL;
 using DTO;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 using UTL;
 
 
@@ -47,34 +50,45 @@ namespace API.Controllers
         {
             UTL_Cipher uTL_Cipher = new UTL_Cipher();
             DTO.DTO_Sesion sesion = new DTO_Sesion();
-            String accesToken = uTL_Cipher.generarAccessToken(usuario);
+            DAL_Sesion dAL_Sesion = new DAL_Sesion();
+            
                 
             try
             {
                 //Validamos la cuestión
                 BLL_Usuario bLL_Usuario = new BLL_Usuario();
-                bLL_Usuario.registrarUsuario(usuario);
+                respuesta = bLL_Usuario.autenticarUsuario(usuario);
 
-                //Creamos el accesToken
-                sesion.RefreshToken = Guid.NewGuid().ToString();
-                sesion.ID_Usuario = usuario.ID_Usuario;
-
-                //Guardar el refreshToken
-
-
-                //Agregamos el refreshToken a una Cookie HttpOnly
-                var cookieOptions = new CookieOptions
+                //Si autentica correctamente procedemos
+                if (respuesta.TipoRespuesta)
                 {
-                    HttpOnly = true,
-                    Secure = true,
-                    SameSite = SameSiteMode.Strict,
-                    Expires = DateTime.UtcNow.AddDays(7)
-                };
-                Response.Cookies.Append("refreshToken", accesToken, cookieOptions);
+                    usuario = (DTO_Usuario)respuesta.Resultado[0];
 
-                respuesta.Codigo = "200";
-                respuesta.TipoRespuesta = true;
-                respuesta.Mensaje = "Usuario registrado correctamente";
+                    //Creamos el accesToken
+                    String accesToken = uTL_Cipher.generarAccessToken((DTO_Usuario)respuesta.Resultado[0]);
+                    sesion.RefreshToken = Guid.NewGuid().ToString();
+                    sesion.ID_Usuario = usuario.ID_Usuario;
+                    respuesta.Resultado.Add(new { accesToken = accesToken });
+                    //Guardar el refreshToken y obtenemos la respuesta
+                    DTO_Respuesta respuestaRefreshToken = dAL_Sesion.guardarRefreshToken(sesion);
+                    if (respuestaRefreshToken.TipoRespuesta)
+                    {
+                        //Agregamos el refreshToken a una Cookie HttpOnly
+                        var cookieOptions = new CookieOptions
+                        {
+                            HttpOnly = true,
+                            Secure = true,
+                            SameSite = SameSiteMode.Strict,
+                            Expires = DateTime.UtcNow.AddDays(7)
+                        };
+                        Response.Cookies.Append("refreshToken", sesion.RefreshToken, cookieOptions);
+                    }
+                    else
+                    {
+                        respuesta = respuestaRefreshToken;
+                    }
+
+                }
             }
             catch (Exception ex) 
             {
@@ -82,8 +96,6 @@ namespace API.Controllers
                 respuesta.TipoRespuesta = false;
                 respuesta.Mensaje = ex.Message;
             }
-
-
 
 
             return respuesta;
