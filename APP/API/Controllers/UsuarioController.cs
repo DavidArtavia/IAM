@@ -46,34 +46,38 @@ namespace API.Controllers
         {
             UTL_Cipher uTL_Cipher = new UTL_Cipher();
             DTO.DTO_Sesion sesion = new DTO_Sesion();
-            String accesToken = uTL_Cipher.generarAccessToken(usuario);
+
+            
                 
             try
             {
                 //Validamos la cuestión
                 BLL_Usuario bLL_Usuario = new BLL_Usuario();
-                bLL_Usuario.registrarUsuario(usuario);
+                respuesta = bLL_Usuario.autenticarUsuario(usuario);
 
-                //Creamos el accesToken
-                sesion.RefreshToken = Guid.NewGuid().ToString();
-                sesion.ID_Usuario = usuario.ID_Usuario;
-
-                //Guardar el refreshToken
-
-
-                //Agregamos el refreshToken a una Cookie HttpOnly
-                var cookieOptions = new CookieOptions
+                //Si autentica correctamente procedemos
+                if (respuesta.TipoRespuesta)
                 {
-                    HttpOnly = true,
-                    Secure = true,
-                    SameSite = SameSiteMode.Strict,
-                    Expires = DateTime.UtcNow.AddDays(7)
-                };
-                Response.Cookies.Append("refreshToken", accesToken, cookieOptions);
 
-                respuesta.Codigo = "200";
-                respuesta.TipoRespuesta = true;
-                respuesta.Mensaje = "Usuario registrado correctamente";
+                    //Creamos el accesToken
+                    String accesToken = uTL_Cipher.generarAccessToken((DTO_Usuario)respuesta.Resultado[0]);
+                    sesion.RefreshToken = Guid.NewGuid().ToString();
+                    sesion.ID_Usuario = usuario.ID_Usuario;
+                    respuesta.Resultado.Add(sesion);
+                    //Guardar el refreshToken
+
+
+                    //Agregamos el refreshToken a una Cookie HttpOnly
+                    var cookieOptions = new CookieOptions
+                    {
+                        HttpOnly = true,
+                        Secure = true,
+                        SameSite = SameSiteMode.Strict,
+                        Expires = DateTime.UtcNow.AddDays(7)
+                    };
+                    Response.Cookies.Append("refreshToken", sesion.RefreshToken, cookieOptions);
+
+                }
             }
             catch (Exception ex) 
             {

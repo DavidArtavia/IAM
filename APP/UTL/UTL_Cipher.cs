@@ -1,5 +1,4 @@
 ﻿using DTO;
-using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using System.Configuration;
 using System.IdentityModel.Tokens.Jwt;
@@ -67,7 +66,7 @@ namespace UTL
             {
             new Claim(ClaimTypes.NameIdentifier, usuario.ID_Usuario.ToString()),
             new Claim(ClaimTypes.Email, usuario.CorreoUsuario),
-            new Claim(ClaimTypes.Role, usuario.Rol.ID_Usuario.ToString())
+            new Claim(ClaimTypes.Role, usuario.Rol.ID_Rol.ToString())
         };
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(ConfigurationManager.AppSettings["JwtKey"] ?? ""));

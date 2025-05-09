@@ -11,7 +11,6 @@ namespace DTO
         #region Atributos
 
         private int id_Rol;
-        private int id_Usuario;  // Este es el ID de usuario que es clave foránea
         private string nombreRol;
         private string descripcionRol;
 
@@ -23,7 +22,6 @@ namespace DTO
         {
             // Inicializamos valores por defecto
             ID_Rol = 0;
-            ID_Usuario = 0;
             NombreRol = string.Empty;
             DescripcionRol = string.Empty;
         }
@@ -33,7 +31,6 @@ namespace DTO
         #region Propiedades
 
         public int ID_Rol { get => id_Rol; set => id_Rol = value; }
-        public int ID_Usuario { get => id_Usuario; set => id_Usuario = value; }
         public string NombreRol { get => nombreRol; set => nombreRol = value; }
         public string DescripcionRol { get => descripcionRol; set => descripcionRol = value; }
 

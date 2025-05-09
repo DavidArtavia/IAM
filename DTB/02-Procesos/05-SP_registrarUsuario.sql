@@ -1,8 +1,8 @@
 USE [IAMDB]
 GO
-IF NOT EXISTS (SELECT 1 FROM sys.procedures WHERE name = 'CORE.SP_registrarUsuario')
+IF NOT EXISTS (SELECT 1 FROM sys.procedures WHERE name = 'SECU.SP_registrarUsuario')
 BEGIN
-	EXEC('CREATE PROCEDURE CORE.SP_registrarUsuario AS BEGIN SET NOCOUNT ON; END ')
+	EXEC('CREATE PROCEDURE SECU.SP_registrarUsuario AS BEGIN SET NOCOUNT ON; END ')
 END
 GO
 -- =============================================
@@ -10,7 +10,7 @@ GO
 -- Creación: 07/05/2025
 -- Descripción: Procedimiento para registrar un usuario (se utiliza en la página de registro del sistema)
 -- =============================================
-ALTER PROCEDURE CORE.SP_registrarUsuario
+ALTER PROCEDURE SECU.SP_registrarUsuario
            @NombreUsuario VARCHAR(100),
            @Apellido VARCHAR(100),
            @TelefonoUsuario VARCHAR(15),

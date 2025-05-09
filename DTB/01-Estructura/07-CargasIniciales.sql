@@ -7,8 +7,8 @@ INSERT INTO [UTIL].[TBL_ESTADOS]
            ([Nombre]
            ,[Tabla])
      VALUES
-           ('Activo'
-           ,'TBL_USUARIOS')
+           ('Activo','TBL_USUARIOS'),
+		   ('Inactivo','TBL_USUARIOS')
 GO
 
 INSERT INTO [UTIL].[TBL_ALERTAS]
@@ -18,7 +18,12 @@ INSERT INTO [UTIL].[TBL_ALERTAS]
 		   ,Tipo)
      VALUES
            ('A001','Registro de usuario', 'Usuario registrado correctamente', 'I'),
-		   ('A002','Registro de usuario', 'Ya existe un usuario con ese correo', 'E')
+		   ('A002','Registro de usuario', 'Ya existe un usuario con ese correo', 'E'),
+		   ('A003','Obtener usuario', 'Correo no encontrado', 'E'),
+		   ('A004','Autenticación de usuario', 'Inicio de sesión satisfactorio', 'I'),
+		   ('A005','Autenticación de usuario', 'Usuario en estado inactivo', 'I'),
+		   ('A006','Autenticación de usuario', 'Correo y contraseña no coinciden', 'E')
+		   
 GO
 
 INSERT INTO [SECU].[TBL_ROLES]
@@ -29,4 +34,4 @@ INSERT INTO [SECU].[TBL_ROLES]
            ,'Rol Temporal Mientras se completa las funciones por rol dentro de un negocio, de primera instancia se le asignara directamente al usuario')
 
 
-
+--delete from [UTIL].[TBL_ALERTAS]

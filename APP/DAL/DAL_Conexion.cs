@@ -1,5 +1,7 @@
-﻿using Microsoft.Data.SqlClient;
+﻿using DTO;
+using Microsoft.Data.SqlClient;
 using System.Configuration;
+using System.Reflection.PortableExecutable;
 namespace DAL
 {
     public class DAL_Conexion
@@ -52,6 +54,25 @@ namespace DAL
             {
                 throw e;
             }
+        }
+
+        protected DTO_Respuesta manejarRespuesta(SqlDataReader reader) 
+        {   
+            DTO_Respuesta respuesta = new DTO_Respuesta();
+            //Validar si hay error controlado
+            if (UTL.UTL_DBHelper.ReadNullSafeString(reader["Tipo"]) == "E")
+            {
+                respuesta.TipoRespuesta = false;
+                respuesta.Codigo = "400";
+            }
+            else
+            {
+                respuesta.TipoRespuesta = true;
+                respuesta.Codigo = "200";
+            }
+            respuesta.Mensaje = UTL.UTL_DBHelper.ReadNullSafeString(reader["Mensaje"]);
+
+            return respuesta;
         }
     }
 }
