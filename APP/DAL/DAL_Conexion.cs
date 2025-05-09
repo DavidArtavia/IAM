@@ -13,7 +13,7 @@ namespace DAL
         protected DAL_Conexion()
         {
             // Se asegura de utilizar la cadena de conexión de la configuración
-            Conn = new SqlConnection(ConfigurationManager.AppSettings["SqlConexionQA"] ?? "");
+            Conn = new SqlConnection(ConfigurationManager.AppSettings["SqlConexion"] ?? "");
         }
 
         protected SqlConnection GetObjConexion()

@@ -27,9 +27,9 @@ namespace DAL
                 using (SqlCommand sqlcmd = new SqlCommand(query, this.GetObjConexion()))
                 {
                     sqlcmd.CommandType = CommandType.StoredProcedure;
-                    sqlcmd.Parameters.Add("@NombreUsuario", SqlDbType.NVarChar).Value = usuario.NombreUsuario;
-                    sqlcmd.Parameters.Add("@Apellido", SqlDbType.NVarChar).Value = usuario.Apellido;
-                    sqlcmd.Parameters.Add("@TelefonoUsuario", SqlDbType.NVarChar).Value = usuario.TelefonoUsuario;
+                    sqlcmd.Parameters.Add("@NombreUsuario", SqlDbType.VarChar).Value = usuario.NombreUsuario;
+                    sqlcmd.Parameters.Add("@Apellido", SqlDbType.VarChar).Value = usuario.Apellido;
+                    sqlcmd.Parameters.Add("@TelefonoUsuario", SqlDbType.VarChar).Value = usuario.TelefonoUsuario;
                     sqlcmd.Parameters.Add("@CorreoUsuario", SqlDbType.NVarChar).Value = usuario.CorreoUsuario;
                     sqlcmd.Parameters.Add("@Pass", SqlDbType.NVarChar).Value = usuario.Pass;
 

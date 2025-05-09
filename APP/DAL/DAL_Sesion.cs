@@ -2,6 +2,7 @@
 using Microsoft.Data.SqlClient;
 using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Data;
 using System.Linq;
 using System.Text;
@@ -9,22 +10,26 @@ using System.Threading.Tasks;
 
 namespace DAL
 {
-    public class DAL_Alerta : DAL_Conexion
+    public class DAL_Sesion : DAL_Conexion
     {
 
-        public DTO_Respuesta obtenerAlerta(string COD_Alerta)
+        public DTO_Respuesta guardarRefreshToken(DTO_Sesion sesion)
         {
             DTO_Respuesta respuesta = new DTO_Respuesta();
             try
             {
 
-                string query = "UTIL.SP_obtenerAlerta";
+                string query = "SECU.SP_guardarRefreshToken";
 
                 // Usar Microsoft.Data.SqlClient.SqlCommand en lugar de System.Data.SqlClient.SqlCommand
                 using (SqlCommand sqlcmd = new SqlCommand(query, this.GetObjConexion()))
                 {
                     sqlcmd.CommandType = CommandType.StoredProcedure;
-                    sqlcmd.Parameters.Add("@COD_Alerta", SqlDbType.VarChar).Value = COD_Alerta;
+                    sqlcmd.Parameters.Add("@ID_Usuario", SqlDbType.Int).Value = sesion.ID_Usuario;
+                    sqlcmd.Parameters.Add("@RefreshToken", SqlDbType.NVarChar).Value = sesion.RefreshToken;
+                    sqlcmd.Parameters.Add("@FechaExpiracion", SqlDbType.DateTime).Value = DateTime.Now.AddDays(Convert.ToInt32(ConfigurationManager.AppSettings["SesionDaysExpiration"]));
+                    sqlcmd.Parameters.Add("@UserAgent", SqlDbType.NVarChar).Value = sesion.UserAgent;
+                    sqlcmd.Parameters.Add("@IPUsuario", SqlDbType.NVarChar).Value = sesion.IPUsuario;
 
                     // Establecer la dirección de los parámetros
                     foreach (SqlParameter param in sqlcmd.Parameters)

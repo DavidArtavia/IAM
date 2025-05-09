@@ -22,7 +22,8 @@ INSERT INTO [UTIL].[TBL_ALERTAS]
 		   ('A003','Obtener usuario', 'Correo no encontrado', 'E'),
 		   ('A004','Autenticación de usuario', 'Inicio de sesión satisfactorio', 'I'),
 		   ('A005','Autenticación de usuario', 'Usuario en estado inactivo', 'I'),
-		   ('A006','Autenticación de usuario', 'Correo y contraseña no coinciden', 'E')
+		   ('A006','Autenticación de usuario', 'Correo y contraseña no coinciden', 'E'),
+		   ('A007','Autenticación de usuario', 'Refresh token guardado correctamente', 'I')
 		   
 GO
 

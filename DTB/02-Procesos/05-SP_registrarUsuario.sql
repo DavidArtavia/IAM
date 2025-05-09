@@ -1,6 +1,6 @@
 USE [IAMDB]
 GO
-IF NOT EXISTS (SELECT 1 FROM sys.procedures WHERE name = 'SECU.SP_registrarUsuario')
+IF NOT EXISTS (SELECT 1 FROM sys.procedures WHERE name = 'SP_registrarUsuario')
 BEGIN
 	EXEC('CREATE PROCEDURE SECU.SP_registrarUsuario AS BEGIN SET NOCOUNT ON; END ')
 END

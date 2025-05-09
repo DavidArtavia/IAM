@@ -1,8 +1,11 @@
-﻿using BLL;
+﻿using Azure;
+using BLL;
+using DAL;
 using DTO;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 using UTL;
 
 
@@ -46,7 +49,7 @@ namespace API.Controllers
         {
             UTL_Cipher uTL_Cipher = new UTL_Cipher();
             DTO.DTO_Sesion sesion = new DTO_Sesion();
-
+            DAL_Sesion dAL_Sesion = new DAL_Sesion();
             
                 
             try
@@ -58,24 +61,31 @@ namespace API.Controllers
                 //Si autentica correctamente procedemos
                 if (respuesta.TipoRespuesta)
                 {
+                    usuario = (DTO_Usuario)respuesta.Resultado[0];
 
                     //Creamos el accesToken
                     String accesToken = uTL_Cipher.generarAccessToken((DTO_Usuario)respuesta.Resultado[0]);
                     sesion.RefreshToken = Guid.NewGuid().ToString();
                     sesion.ID_Usuario = usuario.ID_Usuario;
-                    respuesta.Resultado.Add(sesion);
-                    //Guardar el refreshToken
-
-
-                    //Agregamos el refreshToken a una Cookie HttpOnly
-                    var cookieOptions = new CookieOptions
+                    respuesta.Resultado.Add(new { accesToken = accesToken });
+                    //Guardar el refreshToken y obtenemos la respuesta
+                    DTO_Respuesta respuestaRefreshToken = dAL_Sesion.guardarRefreshToken(sesion);
+                    if (respuestaRefreshToken.TipoRespuesta)
                     {
-                        HttpOnly = true,
-                        Secure = true,
-                        SameSite = SameSiteMode.Strict,
-                        Expires = DateTime.UtcNow.AddDays(7)
-                    };
-                    Response.Cookies.Append("refreshToken", sesion.RefreshToken, cookieOptions);
+                        //Agregamos el refreshToken a una Cookie HttpOnly
+                        var cookieOptions = new CookieOptions
+                        {
+                            HttpOnly = true,
+                            Secure = true,
+                            SameSite = SameSiteMode.Strict,
+                            Expires = DateTime.UtcNow.AddDays(7)
+                        };
+                        Response.Cookies.Append("refreshToken", sesion.RefreshToken, cookieOptions);
+                    }
+                    else
+                    {
+                        respuesta = respuestaRefreshToken;
+                    }
 
                 }
             }
@@ -85,8 +95,6 @@ namespace API.Controllers
                 respuesta.TipoRespuesta = false;
                 respuesta.Mensaje = ex.Message;
             }
-
-
 
 
             return respuesta;
