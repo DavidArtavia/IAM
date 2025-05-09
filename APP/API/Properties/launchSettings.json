@@ -31,6 +31,7 @@
     },
     "IIS Express": {
       "commandName": "IISExpress",
+      "commandLineArgs": "--console",
       "launchBrowser": true,
       "launchUrl": "swagger",
       "environmentVariables": {

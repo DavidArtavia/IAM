@@ -1,7 +1,8 @@
 export const API_ENDPOINTS = {
-    BASE_URL: "http://localhost:3002/api",
+    BASE_URL: "https://localhost:44330/api",
     USERS: {
-        CREATE: "/users/create",
+        
+        CREATE: "/Usuario/registrarUsuario",
         UPDATE: "/users/update",
     },
     AUTH: {

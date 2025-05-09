@@ -6,7 +6,8 @@ import { Button, Form, Input } from "antd";
 import { ROUTES } from "@/constants/routes";
 import api from "@/api/api";
 import { API_ENDPOINTS } from "@/constants/apiEndPoints";
-import Users from "@/models/Users";
+import { DTO_Usuario } from "@/models/DTO_Usuario";
+import { validatorNotify } from "@/utils/validators";
 
 const formItemLayout = {
   labelCol: {
@@ -32,105 +33,80 @@ const tailFormItemLayout = {
   },
 };
 
+
 export const SignUp = () => {
   const [form] = Form.useForm();
   const { notify } = useNotificationContext();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const dto_usuario: DTO_Usuario = new DTO_Usuario();
 
-  const validatorNotify = (values: Users) => {
-     const {
-       NombreUsuario,
-       Apellido,
-       TelefonoUsuario,
-       CorreoUsuario,
-       Pass,
-     } = values;
-    if (!/^[a-zA-Z\s]+$/.test(NombreUsuario)) {
-      return notify.error({
-        message: "Error",
-        description: "El nombre solo debe contener letras y espacios.",
-        placement: "bottomRight",
-      });
-    }
+  const sleep = (ms: number) =>
+    new Promise((resolve) => setTimeout(resolve, ms));
 
-    if (!/^[a-zA-Z\s]+$/.test(Apellido)) {
-      return notify.error({
-        message: "Error",
-        description: "El apellido solo debe contener letras y espacios.",
-        placement: "bottomRight",
-      });
-    }
-
-    if (!/^\d{8}$/.test(TelefonoUsuario)) {
-      return notify.error({
-        message: "Error",
-        description:
-          "El teléfono debe contener exactamente 8 dígitos numéricos.",
-        placement: "bottomRight",
-      });
-    }
-
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(CorreoUsuario)) {
-      return notify.error({
-        message: "Error",
-        description: "Por favor, ingresa un correo electrónico válido.",
-        placement: "bottomRight",
-      });
-    }
-
-    if (Pass.length < 6) {
-      return notify.error({
-        message: "Error",
-        description: "La contraseña debe tener al menos 6 caracteres.",
-        placement: "bottomRight",
-      });
-    }
-  };
-
-  const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
-
-  const onFinish = async (values: Users) => {
-        
+  const onFinish = async (values: DTO_Usuario) => {
     try {
-      
-      validatorNotify(values); // Llamar a la función de validación
-      const user: Users = {
-        ID_Usuario: values?.ID_Usuario,
-        ID_Estado: values?.ID_Estado,
-        NombreUsuario: values.NombreUsuario,
-        Apellido: values.Apellido,
-        TelefonoUsuario: values.TelefonoUsuario,
-        CorreoUsuario: values.CorreoUsuario,
-        Pass: values.Pass,
-      };
-      
-      setLoading(true);
-      const response = await api.post(API_ENDPOINTS.USERS.CREATE, user);
+      validatorNotify(values);
 
-      if (response.status === 200) {
-        
-        notify.success({ message: "Éxito", description: "Usuario creado con éxito.", placement: "bottomRight", });
-        sleep(2000);
-        setLoading(false); 
-        navigate(ROUTES.LOGIN); 
-        
+      // Se mandan vacíos por de mantener la estructura de la API
+      values.Estado = { ID_Estado: 0, Nombre: "", Tabla: "" };
+      values.Rol = {
+        ID_Rol: 0,
+        ID_Usuario: 0,
+        NombreRol: "",
+        DescripcionRol: "",
+      };
+
+      setLoading(true);
+      const response = await api.post(API_ENDPOINTS.USERS.CREATE, values);
+
+      if (response.data.codigo === "200") {
+        notify.success({
+          message: "Éxito",
+          description: response.data.mensaje,
+          placement: "bottomRight",
+        });
+        await sleep(2000);
+        setLoading(false);
+        navigate(ROUTES.LOGIN);
       } else {
         notify.warning({
           message: "Advertencia",
-          description: "No se pudo crear el usuario. Verifique los datos ingresados.",
+          description: response.data.mensaje,
           placement: "bottomRight",
         });
-        setLoading(false); 
+        setLoading(false);
       }
-
-
     } catch (error) {
-      console.error("Error al crear usuario:", error);
-      notify.error({ message: "Error", description: "Error al conectar con el servidor.", placement: "bottomRight", });
+      if (error instanceof Error) {
+        const errorMessage = error.message;
+
+        if (errorMessage.startsWith("ValidationError:")) {
+          const cleanMessage = errorMessage.replace("ValidationError: ", "");
+
+          notify.error({
+            message: "Error de Validación",
+            description: cleanMessage,
+            placement: "bottomRight",
+          });
+        } else {
+          console.error("Error al crear usuario:", error);
+          notify.error({
+            message: "Error",
+            description: "Error al conectar con el servidor.",
+            placement: "bottomRight",
+          });
+        }
+      } else {
+        console.error("Error desconocido:", error);
+        notify.error({
+          message: "Error",
+          description: "Ha ocurrido un error inesperado.",
+          placement: "bottomRight",
+        });
+      }
       setLoading(false);
     }
-
   };
 
   return (
@@ -139,14 +115,13 @@ export const SignUp = () => {
         style={{
           position: "relative",
           width: "100%",
-          height: "100vh", // ocupa toda la pantalla
+          height: "100vh",
           display: "flex",
           justifyContent: "center",
           alignItems: "center",
           flexDirection: "column",
         }}
       >
-        {/* Logo y título */}
         <div
           style={{
             display: "flex",
@@ -169,12 +144,12 @@ export const SignUp = () => {
           </span>
         </div>
 
-        {/* Formulario centrado */}
         <Form
           {...formItemLayout}
           form={form}
           name="signUp"
           onFinish={onFinish}
+          initialValues={dto_usuario}
           style={{
             width: "35%",
             maxWidth: 600,
@@ -215,7 +190,6 @@ export const SignUp = () => {
             Complete el formulario para registrar un nuevo usuario.
           </p>
 
-          {/* Tus campos del formulario */}
           <Form.Item
             name="NombreUsuario"
             label="Nombre"
@@ -279,6 +253,14 @@ export const SignUp = () => {
             hasFeedback
           >
             <Input.Password placeholder="Contraseña" />
+          </Form.Item>
+
+          {/* Campos no visibles para Estado y Rol */}
+          <Form.Item name="Estado" hidden>
+            <Input type="hidden" />
+          </Form.Item>
+          <Form.Item name="Rol" hidden>
+            <Input type="hidden" />
           </Form.Item>
 
           <Form.Item {...tailFormItemLayout}>
