@@ -14,49 +14,51 @@ namespace API.Controllers
     //[ApiController] //quitamos de forma global y lo ponemos de forma independiente para que en este caso no aplique validaciones
     public class ChatIAController : Controller
     {
-        private readonly UTL_FileHandler _fileHandler;
-
-        public ChatIAController()
-        {
-            _fileHandler = new UTL_FileHandler();
-        }
+        BLL_ChatIA chatIA = new BLL_ChatIA();
 
         [AllowAnonymous]
         [Produces("application/json")]
         [Route("enviarMensaje")]
         [HttpPost]
-         public async Task<DTO_Respuesta> enviarMensaje([FromForm] DTO_Mensaje mensaje)
+        public async Task<DTO_Respuesta> enviarMensaje([FromForm] DTO_Mensaje mensaje)
         {
             DTO_Respuesta respuesta = new DTO_Respuesta();
-
-
-
             try
             {
-                // Leer el archivo como byte[]
-                byte[] fileData;
-                using (var memoryStream = new MemoryStream())
+                //Verificamos si el cliente mandó un audio o más bien un texto escrito
+                if (mensaje.Audio.Length > 0)
                 {
-                    await mensaje.Audio.CopyToAsync(memoryStream);
-                    fileData = memoryStream.ToArray();  // Obtener los bytes del archivo
+
+                    //guardamos el audio de forma temporal
+                    respuesta = await chatIA.guardarAudioTemp(mensaje);
+                    
+
+                    //si lo logró guardar correctamente entonces procedemos a trasncribirlo
+                    if (respuesta.TipoRespuesta)
+                    {
+                        // reasignamos el nuevo mensaje procesado
+                        mensaje = (DTO_Mensaje) respuesta.Resultado[0];
+                        respuesta = await chatIA.transcribirAudio(mensaje);
+                    }
+
+
+
+
+                }//si no mandó audio nos ahorramos toda la lógica de guardare temporalmente, transcribir y subir a la nuve
+                else
+                {
+
                 }
 
-                // Obtener el nombre del archivo
-                string fileName = Path.GetFileName(mensaje.Audio.FileName);
-
-
-                // Devolver la ruta del archivo guardado
-                mensaje.RutaAudio = _fileHandler.SaveFileToTempDirectory(fileData, fileName);
-                await BLL_ChatIA.transcribirAudio(mensaje);
             }
             catch (Exception ex)
             {
 
             }
-
-
             return respuesta;
         }
 
     }
+
+
 }
