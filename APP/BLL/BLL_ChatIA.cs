@@ -1,4 +1,5 @@
-﻿using Microsoft.CognitiveServices.Speech;
+﻿using DTO;
+using Microsoft.CognitiveServices.Speech;
 using Microsoft.CognitiveServices.Speech.Audio;
 using System.Configuration;
 
@@ -7,19 +8,34 @@ namespace BLL
     public class BLL_ChatIA
     {
 
-        public async static Task Transcribir()
+        public async static Task transcribirAudio(DTO_Mensaje mensaje)
         {
+            //Definimos los parametros de l allave, el idioma del audio y la región del servicio de azure
             var speechConfig = SpeechConfig.FromSubscription(ConfigurationManager.AppSettings["AzureKey"] ?? "", ConfigurationManager.AppSettings["AzureRegion"] ?? "");
             speechConfig.SpeechRecognitionLanguage = "es-ES";
 
-            //using var audioConfig = AudioConfig.FromWavFileInput("C:\\Users\\danny\\Downloads\\test.wav");
-            //using var audioConfig = AudioConfig.FromWavFileInput("https://iamhub7185441083.blob.core.windows.net/audios/test.wav");
-            using var audioConfig = AudioConfig.FromWavFileInput("https://iamhub7185441083.blob.core.windows.net/audios/test.wav?sp=r&st=2025-05-10T04:34:54Z&se=2025-05-10T12:34:54Z&sv=2024-11-04&sr=b&sig=O%2B7SlssdacL%2FTE%2FxvwJOfQFWPi5nMdShSQ3FPk%2FtcA0%3D");
+            //preparamos la configuración del audio y le asigamos la ruta temporal donde se encuentra el audio que mandó el cliente
+            using var audioConfig = AudioConfig.FromWavFileInput(mensaje.RutaAudio);
             using var speechRecognizer = new SpeechRecognizer(speechConfig, audioConfig);
 
-            Console.WriteLine("Speak into your microphone.");
+            //aguantamos a que el servicio haga el brete de vos a texto
             var speechRecognitionResult = await speechRecognizer.RecognizeOnceAsync();
+            //gestionamos la respuesta para saber si falló o lo consiguió
             OutputSpeechRecognitionResult(speechRecognitionResult);
+        }
+
+
+        public string obtenerRutaTemporal(byte[] fileData, string fileName) {
+            // Obtener la ruta de la carpeta temporal
+            string tempDirectory = Path.GetTempPath();
+
+            // Crear la ruta completa para el archivo
+            string filePath = Path.Combine(tempDirectory, fileName);
+
+            // Guardar el archivo en la ruta temporal
+            File.WriteAllBytes(filePath, fileData);
+
+            return filePath;
         }
 
         public static void OutputSpeechRecognitionResult(SpeechRecognitionResult speechRecognitionResult)
