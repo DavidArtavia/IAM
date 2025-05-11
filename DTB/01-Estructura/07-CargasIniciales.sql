@@ -24,7 +24,10 @@ INSERT INTO [UTIL].[TBL_ALERTAS]
 		   ('A005','Autenticación de usuario', 'Usuario en estado inactivo', 'I'),
 		   ('A006','Autenticación de usuario', 'Correo y contraseña no coinciden', 'E'),
 		   ('A007','Autenticación de usuario', 'Refresh token guardado correctamente', 'I'),
-		   ('A008','ChatIA', 'Audio guardado temporalemnte', 'I')
+		   ('A008','ChatIA', 'Audio guardado temporalemnte', 'I'),
+		   ('A009','ChatIA', 'Transcrito correctamente', 'I'),
+		   ('A0010','ChatIA', 'El audio no se pudo entender', 'E'),
+		   ('A0011','ChatIA', 'Transcripcion cancelada', 'E')
 		   
 GO
 

@@ -21,5 +21,13 @@ namespace UTL
 
             return filePath;  // Devuelve la ruta completa donde se guardó el archivo
         }
+
+        public void DeleteFileInToTempDirectory(string filePath)
+        {
+            if (File.Exists(filePath))
+            {
+                File.Delete(filePath); // Elimina el archivo de la ruta especificada
+            }
+        }
     }
 }

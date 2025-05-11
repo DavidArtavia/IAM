@@ -11,10 +11,11 @@ using System.Text;
 namespace API.Controllers
 {
     [Route("api/[controller]")]
-    //[ApiController] //quitamos de forma global y lo ponemos de forma independiente para que en este caso no aplique validaciones
+    //[ApiController] //quitamos de forma global y lo ponemos de forma independiente para que en este caso no aplique validaciones a las estructuras del modelo
     public class ChatIAController : Controller
     {
-        BLL_ChatIA chatIA = new BLL_ChatIA();
+        BLL_ChatIA bll_chatIA = new BLL_ChatIA();
+        UTL_ManejoError manejoError = new UTL_ManejoError();
 
         [AllowAnonymous]
         [Produces("application/json")]
@@ -26,22 +27,30 @@ namespace API.Controllers
             try
             {
                 //Verificamos si el cliente mandó un audio o más bien un texto escrito
-                if (mensaje.Audio.Length > 0)
+                if (mensaje.Audio != null)
                 {
 
                     //guardamos el audio de forma temporal
-                    respuesta = await chatIA.guardarAudioTemp(mensaje);
+                    respuesta = await bll_chatIA.guardarAudioTemp(mensaje);
                     
 
-                    //si lo logró guardar correctamente entonces procedemos a trasncribirlo
+                    //verificamos si lo logró guardar correctamente entonces procedemos a trasncribirlo
                     if (respuesta.TipoRespuesta)
                     {
                         // reasignamos el nuevo mensaje procesado
                         mensaje = (DTO_Mensaje) respuesta.Resultado[0];
-                        respuesta = await chatIA.transcribirAudio(mensaje);
+                        respuesta = await bll_chatIA.transcribirAudio(mensaje);
                     }
 
+                    //si lo logró trasncribirlo correctamente
+                    if (respuesta.TipoRespuesta)
+                    {
+                        // reasignamos el nuevo mensaje procesado
+                        mensaje = (DTO_Mensaje)respuesta.Resultado[0];
 
+                        //Aqui la lógica para subir el archivo a la nuve y eliminarlo de la ruta temporall
+                        respuesta = await bll_chatIA.guardarAudioBLOB(mensaje);
+                    }
 
 
                 }//si no mandó audio nos ahorramos toda la lógica de guardare temporalmente, transcribir y subir a la nuve
@@ -53,7 +62,7 @@ namespace API.Controllers
             }
             catch (Exception ex)
             {
-
+                respuesta = manejoError.errorNoControlado(ex);
             }
             return respuesta;
         }

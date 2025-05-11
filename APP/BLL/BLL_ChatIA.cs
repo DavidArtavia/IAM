@@ -11,8 +11,9 @@ namespace BLL
     {
         private readonly UTL_FileHandler _fileHandler;
         DAL_Alerta alerta = new DAL_Alerta();
-        UTL_ManejoError manejoError =  new UTL_ManejoError();
+        UTL_ManejoError manejoError = new UTL_ManejoError();
         DTO_Respuesta respuesta = new DTO_Respuesta();
+        UTL_Cipher uTL_Cipher = new UTL_Cipher();
 
         public BLL_ChatIA()
         {
@@ -32,18 +33,16 @@ namespace BLL
                     fileData = memoryStream.ToArray();  // Obtener los bytes del archivo
                 }
 
-                // Obtener el nombre del archivo
-                string fileName = Path.GetFileName(mensaje.Audio.FileName);
-
+                
 
                 // Devolver la ruta del archivo guardado
-                mensaje.RutaAudio = _fileHandler.SaveFileToTempDirectory(fileData, fileName);
+                mensaje.RutaAudio = _fileHandler.SaveFileToTempDirectory(fileData,uTL_Cipher.generarCodigoFecha() + ".WAV");
 
                 respuesta = alerta.obtenerAlerta("A008");
 
                 respuesta.Resultado.Add(mensaje);
             }
-            catch (Exception ex) 
+            catch (Exception ex)
             {
                 respuesta = manejoError.errorNoControlado(ex);
             }
@@ -70,7 +69,6 @@ namespace BLL
 
         }
 
-
         public DTO_Respuesta gestionarResultadoTranscripcion(SpeechRecognitionResult speechRecognitionResult, DTO_Mensaje mensaje)
         {
             switch (speechRecognitionResult.Reason)
@@ -90,6 +88,45 @@ namespace BLL
                     break;
             }
             return respuesta;
+        }
+
+        public async Task<DTO_Respuesta> guardarAudioBLOB(DTO_Mensaje mensaje)
+        {
+            try
+            {
+                var client = new HttpClient();
+                String url = ConfigurationManager.AppSettings["AzureBlobURL"] + "/"
+                            + ConfigurationManager.AppSettings["AzureBlobContainer"] + "/" +
+                            uTL_Cipher.generarCodigoFecha() + ".WAV" +
+                            ConfigurationManager.AppSettings["AzureBlobSV"];
+                var request = new HttpRequestMessage(HttpMethod.Put, url);
+                request.Headers.Add("x-ms-blob-type", "BlockBlob");
+                request.Content = new StreamContent(File.OpenRead(mensaje.RutaAudio));
+                var response = await client.SendAsync(request);
+                response.EnsureSuccessStatusCode();
+                if (response.IsSuccessStatusCode)
+                {
+                    request.Dispose();
+                    respuesta = alerta.obtenerAlerta("A0012");
+                    //Eliminamos el audio de la carpeta temporal
+                    _fileHandler.DeleteFileInToTempDirectory(mensaje.RutaAudio);
+                    mensaje.RutaAudio = url;
+                    respuesta.Resultado.Add(mensaje);
+
+                }
+                else
+                {
+                    respuesta = alerta.obtenerAlerta("A0013");
+                }
+            }
+            catch (Exception ex)
+            {
+
+                manejoError.errorNoControlado(ex);
+            }
+
+            return respuesta;
+
         }
     }
 }
