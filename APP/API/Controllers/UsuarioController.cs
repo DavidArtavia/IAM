@@ -17,6 +17,7 @@ namespace API.Controllers
     public class UsuarioController : ControllerBase
     {
         DTO_Respuesta respuesta = new DTO_Respuesta();
+        UTL_ManejoError manejoError = new UTL_ManejoError();
 
         [AllowAnonymous]
         [Produces("application/json")]
@@ -33,9 +34,7 @@ namespace API.Controllers
             }
             catch (Exception ex) 
             {
-                respuesta.Codigo = ex.HResult.ToString();
-                respuesta.TipoRespuesta = false;
-                respuesta.Mensaje = ex.Message;
+                respuesta = manejoError.errorNoControlado(ex);
             }
 
             return respuesta;
@@ -92,9 +91,7 @@ namespace API.Controllers
             }
             catch (Exception ex) 
             {
-                respuesta.Codigo = ex.HResult.ToString();
-                respuesta.TipoRespuesta = false;
-                respuesta.Mensaje = ex.Message;
+                respuesta = manejoError.errorNoControlado(ex);
             }
 
 
