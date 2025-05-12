@@ -20,12 +20,12 @@ export const AppRouter = () => {
       <Route path={ROUTES.SIGNUP} element={<SignUp />} />
 
       {/* ✅ Rutas protegidas */}
-      <Route element={<RequireAuth />}>
+      {/* <Route element={<RequireAuth />}> */}
         <Route element={<LayoutMain />}>
           <Route path={ROUTES.HOME} element={<Home />} />
           <Route path={ROUTES.STATISTICS} element={<Statistics />} />
         </Route>
-      </Route>
+      {/* </Route> */}
 
       <Route path="*" element={<Navigate to={ROUTES.LOGIN} replace />} />
     </Routes>

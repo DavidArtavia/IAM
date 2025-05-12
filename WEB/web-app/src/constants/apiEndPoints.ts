@@ -6,8 +6,9 @@ export const API_ENDPOINTS = {
         UPDATE: "/users/update",
     },
     AUTH: {
-        LOGIN: "/auth/login",
+        LOGIN: "/Usuario/autenticarUsuario",
         LOGOUT: "/auth/logout",
+        FORGOT_PASSWORD: "/auth/forgot-password",
     },
     PRODUCTS: {
         GET_ALL: "/products",

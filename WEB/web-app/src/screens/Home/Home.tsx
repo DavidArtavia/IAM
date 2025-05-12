@@ -1,8 +1,8 @@
 import { Watermark } from "antd";
-import { IProps } from "../../types/IProps";
+// import { IProps } from "../../types/IProps";
 
 
-export const Home = ({}: IProps) => {
+export const Home = () => {
   return (
     <div style={{ padding: "20px" }}>
       <Watermark content={["David", "Developing.."]}>
