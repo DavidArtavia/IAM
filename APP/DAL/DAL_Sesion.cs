@@ -30,6 +30,53 @@ namespace DAL
                     sqlcmd.Parameters.Add("@FechaExpiracion", SqlDbType.DateTime).Value = DateTime.Now.AddDays(Convert.ToInt32(ConfigurationManager.AppSettings["SesionDaysExpiration"]));
                     sqlcmd.Parameters.Add("@UserAgent", SqlDbType.NVarChar).Value = sesion.UserAgent;
                     sqlcmd.Parameters.Add("@IPUsuario", SqlDbType.NVarChar).Value = sesion.IPUsuario;
+                    sqlcmd.Parameters.Add("@ReemplazadoPorToken", SqlDbType.NVarChar).Value = sesion.ReemplazadoPorToken;
+
+                    // Establecer la dirección de los parámetros
+                    foreach (SqlParameter param in sqlcmd.Parameters)
+                    {
+                        param.Direction = ParameterDirection.Input;
+                    }
+
+                    // Asegurarse de abrir la conexión
+                    this.Open();
+
+                    // Ejecutar el comando y obtener el lector de datos
+                    using (SqlDataReader reader = sqlcmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            respuesta = manejarRespuesta(reader);
+                        }
+                    }
+                    return respuesta;
+                }
+            }
+            catch (Exception e)
+            {
+                this.Close();
+                throw e;  // Luego se guardan las ecepciones en un log
+            }
+            finally
+            {
+                this.Close();
+            }
+        }
+
+        public DTO_Respuesta validarRefreshToken(DTO_Sesion sesion)
+        {
+            DTO_Respuesta respuesta = new DTO_Respuesta();
+            try
+            {
+
+                string query = "SECU.SP_validarRefreshToken";
+
+                // Usar Microsoft.Data.SqlClient.SqlCommand en lugar de System.Data.SqlClient.SqlCommand
+                using (SqlCommand sqlcmd = new SqlCommand(query, this.GetObjConexion()))
+                {
+                    sqlcmd.CommandType = CommandType.StoredProcedure;
+                    sqlcmd.Parameters.Add("@ID_Usuario", SqlDbType.Int).Value = sesion.ID_Usuario;
+                    sqlcmd.Parameters.Add("@RefreshToken", SqlDbType.NVarChar).Value = sesion.RefreshToken;
 
                     // Establecer la dirección de los parámetros
                     foreach (SqlParameter param in sqlcmd.Parameters)

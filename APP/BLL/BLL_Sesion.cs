@@ -13,9 +13,34 @@ namespace BLL
     {
 
         DAL_Sesion dAL_Sesion = new DAL_Sesion();
-        public DTO_Respuesta registrarUsuario(DTO_Sesion sesion)
+        DTO_Respuesta respuesta = new DTO_Respuesta();
+        public DTO_Respuesta guardarRefreshToken(DTO_Sesion sesion)
         {
             return dAL_Sesion.guardarRefreshToken(sesion);
+        }
+
+        public DTO_Respuesta validarRefreshToken(DTO_Sesion sesion)
+        {
+            respuesta = dAL_Sesion.validarRefreshToken(sesion);
+
+            if (respuesta.TipoRespuesta)
+            {
+                //Refresh token es válido
+                respuesta.Resultado.Add(sesion);
+            } else 
+            {
+                //Verificamos si la razón de que el código no sea válido es únicamente la fecha d evencimiento
+                if (respuesta.Codigo == "A0018")
+                {
+                    //Si es por vencimiento toca guardar un nuevo refresh token
+                    sesion.ReemplazadoPorToken = sesion.RefreshToken;
+                    respuesta = dAL_Sesion.guardarRefreshToken(sesion);
+                }
+
+                    //Si es por otro motivo, devolvemos al usuario al LOGIN
+            }
+
+            return respuesta;
         }
     }
 }

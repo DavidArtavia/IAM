@@ -40,21 +40,13 @@ namespace DTO
         #region Propiedades
 
 
-        [SwaggerSchema(Description = "opcional")]
         public int ID_Mensaje { get => id_Mensaje; set => id_Mensaje = value; }
-        [SwaggerSchema(Description = "opcional")]
         public int ID_ChatIA { get => id_ChatIA; set => id_ChatIA = value; }
-        [SwaggerSchema(Description = "opcional")]
         public string Tipo { get => tipo; set => tipo = value; }
-        [SwaggerSchema(Description = "opcional")]
         public string TextoMensaje { get => textoMensaje; set => textoMensaje = value; }
-        [SwaggerSchema(Description = "opcional")]
         public string TranscripcionAudio { get => transcripcionAudio; set => transcripcionAudio = value; }
-        [SwaggerSchema(Description = "opcional")]
         public string RutaAudio { get => rutaAudio; set => rutaAudio = value; }
-        [SwaggerSchema(Description = "opcional")]
         public DateTime FechaMensaje { get => fechaMensaje; set => fechaMensaje = value; }
-        [SwaggerSchema(Description = "opcional")]
         public IFormFile Audio { get => audio; set => audio = value; }
 
         #endregion

@@ -63,13 +63,14 @@ namespace DAL
             if (UTL.UTL_DBHelper.ReadNullSafeString(reader["Tipo"]) == "E")
             {
                 respuesta.TipoRespuesta = false;
-                respuesta.Codigo = "400";
+                respuesta.Codigo = UTL.UTL_DBHelper.ReadNullSafeString(reader["COD_ALERTA"]);
             }
             else
             {
                 respuesta.TipoRespuesta = true;
-                respuesta.Codigo = "200";
+                respuesta.Codigo = UTL.UTL_DBHelper.ReadNullSafeString(reader["COD_ALERTA"]);
             }
+
             respuesta.Mensaje = UTL.UTL_DBHelper.ReadNullSafeString(reader["Mensaje"]);
 
             return respuesta;

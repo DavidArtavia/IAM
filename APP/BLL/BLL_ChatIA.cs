@@ -1,4 +1,7 @@
-﻿using DAL;
+﻿using AutoGen.AzureAIInference;
+using Azure;
+using Azure.AI.Inference;
+using DAL;
 using DTO;
 using Microsoft.CognitiveServices.Speech;
 using Microsoft.CognitiveServices.Speech.Audio;
@@ -33,10 +36,10 @@ namespace BLL
                     fileData = memoryStream.ToArray();  // Obtener los bytes del archivo
                 }
 
-                
+
 
                 // Devolver la ruta del archivo guardado
-                mensaje.RutaAudio = _fileHandler.SaveFileToTempDirectory(fileData,uTL_Cipher.generarCodigoFecha() + ".WAV");
+                mensaje.RutaAudio = _fileHandler.SaveFileToTempDirectory(fileData, uTL_Cipher.generarCodigoFecha() + ".WAV");
 
                 respuesta = alerta.obtenerAlerta("A008");
 
@@ -90,6 +93,55 @@ namespace BLL
             return respuesta;
         }
 
+        public async Task<DTO_Respuesta> enviarMensajeIA(DTO_Mensaje mensaje)
+        {
+            try
+            {
+
+
+                var endpoint = new Uri(ConfigurationManager.AppSettings["AzureAIServiceURL"] ?? "");
+                var credential = new AzureKeyCredential(ConfigurationManager.AppSettings["AzureKey"] ?? "");
+                var model = ConfigurationManager.AppSettings["AzureAIServiceModel"] ?? "";
+
+                var client = new ChatCompletionsClient(
+                    endpoint,
+                    credential,
+                    new ChatCompletionsClientOptions()
+                );
+
+                // Create an initial request to the chatbot.
+                var requestOptions = new ChatCompletionsOptions()
+                {
+                    Messages =
+                    {
+                        //new ChatRequestSystemMessage("Usted es un asistente para preparar cafés en pocos pasos, debe contestar en máximo 5 pasos y todas las respuestas deben ser en español"),
+                        new ChatRequestUserMessage("Hola como puedo hacer un café?")
+                    
+                    },
+                    MaxTokens = 2048,
+                    Model = model
+
+                };
+                Response<ChatCompletions> response = client.Complete(requestOptions);
+                //System.Console.WriteLine(response.Value);
+                // Append the model response to the chat history.
+                //requestOptions.Messages.Add(new ChatRequestAssistantMessage(response.Value.Content));
+                // Append new user question.
+               // requestOptions.Messages.Add(new ChatRequestUserMessage("What is so great about #1?"));
+
+                //response = client.Complete(requestOptions);
+                // System.Console.WriteLine(response.Value.Content);
+            }
+            catch (Exception ex)
+            {
+
+                manejoError.errorNoControlado(ex);
+            }
+
+            return respuesta;
+
+        }
+
         public async Task<DTO_Respuesta> guardarAudioBLOB(DTO_Mensaje mensaje)
         {
             try
@@ -128,5 +180,7 @@ namespace BLL
             return respuesta;
 
         }
+
+
     }
 }
