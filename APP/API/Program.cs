@@ -37,6 +37,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                     if (context.HttpContext.Request.Cookies.TryGetValue("refreshToken", out var refreshToken))
                     {
                         DTO_Sesion sesion = new DTO_Sesion();
+
                         var authHeader = context.Request.Headers["Authorization"].ToString();
                         var token = authHeader.StartsWith("Bearer ") ? authHeader.Substring(7) : authHeader;
 
@@ -57,6 +58,10 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                         BLL_Sesion bLL_Sesion = new BLL_Sesion();
                         respuesta = bLL_Sesion.validarRefreshToken(sesion);
 
+
+                        //Generar nuevo acces token
+
+
                         //Validamos si todo bien con el token y solo debe reintentar o si es un 401 definitivo que lo lleva al login
                         if (respuesta.TipoRespuesta)
                         {
@@ -68,7 +73,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                         }
                         else
                         {
-                            context.Response.StatusCode = 403;
+                            context.Response.StatusCode = 401;
                             context.Response.ContentType = "application/json";
                             var result = JsonSerializer.Serialize(new DTO_Respuesta
                             {
