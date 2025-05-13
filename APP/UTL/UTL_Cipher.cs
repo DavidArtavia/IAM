@@ -83,5 +83,10 @@ namespace UTL
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
 
+        public String generarCodigoFecha()
+        {
+            return DateTime.UtcNow.ToString("ddMMyyyyHHmmssfff");
+        }
+
     }
 }

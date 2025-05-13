@@ -15,7 +15,8 @@ ALTER PROCEDURE SECU.SP_guardarRefreshToken
 			@RefreshToken NVARCHAR(255),
 			@FechaExpiracion DATETIME,
 			@UserAgent NVARCHAR(255) = NULL, 
-			@IPUsuario NVARCHAR(45) = NULL
+			@IPUsuario NVARCHAR(45) = NULL,
+			@ReemplazadoPorToken NVARCHAR(255) = NULL
 AS
 BEGIN
 

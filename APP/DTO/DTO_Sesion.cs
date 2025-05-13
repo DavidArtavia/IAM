@@ -13,7 +13,7 @@ namespace DTO
         private DateTime fechaExpiracion;
         private bool revocado;
         private DateTime? fechaRevocado;
-        private string reemplazadoPorToken;
+        private string? reemplazadoPorToken;
         private string userAgent;
         private string ipUsuario;
 
@@ -31,7 +31,7 @@ namespace DTO
             FechaExpiracion = DateTime.Now;
             Revocado = false;
             FechaRevocado = null;
-            ReemplazadoPorToken = string.Empty;
+            ReemplazadoPorToken = null;
             UserAgent = string.Empty;
             IPUsuario = string.Empty;
         }
@@ -47,7 +47,7 @@ namespace DTO
         public DateTime FechaExpiracion { get => fechaExpiracion; set => fechaExpiracion = value; }
         public bool Revocado { get => revocado; set => revocado = value; }
         public DateTime? FechaRevocado { get => fechaRevocado; set => fechaRevocado = value; }
-        public string ReemplazadoPorToken { get => reemplazadoPorToken; set => reemplazadoPorToken = value; }
+        public string? ReemplazadoPorToken { get => reemplazadoPorToken; set => reemplazadoPorToken = value; }
         public string UserAgent { get => userAgent; set => userAgent = value; }
         public string IPUsuario { get => ipUsuario; set => ipUsuario = value; }
 
