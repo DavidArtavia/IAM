@@ -17,15 +17,18 @@ namespace API.Controllers
         BLL_ChatIA bll_chatIA = new BLL_ChatIA();
         UTL_ManejoError manejoError = new UTL_ManejoError();
 
-        [AllowAnonymous]
+        [Authorize(Roles = "1")]
         [Produces("application/json")]
         [Route("enviarMensaje")]
         [HttpPost]
         public async Task<DTO_Respuesta> enviarMensaje([FromForm] DTO_Mensaje mensaje)
         {
             DTO_Respuesta respuesta = new DTO_Respuesta();
+            //PRUEBA 
+            await bll_chatIA.enviarMensajeIA(mensaje);
             try
             {
+                
                 //Verificamos si el cliente mandó un audio o más bien un texto escrito
                 if (mensaje.Audio != null)
                 {

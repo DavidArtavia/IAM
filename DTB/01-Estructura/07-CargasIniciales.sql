@@ -8,7 +8,8 @@ INSERT INTO [UTIL].[TBL_ESTADOS]
            ,[Tabla])
      VALUES
            ('Activo','TBL_USUARIOS'),
-		   ('Inactivo','TBL_USUARIOS')
+		   ('Inactivo','TBL_USUARIOS'),
+		   ('Activo','TBL_CHAT_IA')
 GO
 
 INSERT INTO [UTIL].[TBL_ALERTAS]
@@ -27,7 +28,14 @@ INSERT INTO [UTIL].[TBL_ALERTAS]
 		   ('A008','ChatIA', 'Audio guardado temporalemnte', 'I'),
 		   ('A009','ChatIA', 'Transcrito correctamente', 'I'),
 		   ('A0010','ChatIA', 'El audio no se pudo entender', 'E'),
-		   ('A0011','ChatIA', 'Transcripcion cancelada', 'E')
+		   ('A0011','ChatIA', 'Transcripcion cancelada', 'E'),
+		   ('A0012','ChatIA', 'Audio guardado en la nuve', 'I'),
+		   ('A0013','ChatIA', 'El audio no se pudo guardar en la nuve', 'E'),
+		   ('A0014','ChatIA', 'Mensaje guardado correctamente', 'I'),
+		   ('A0015','Autenticación de usuario', 'El refresh token no coincide con el usuario', 'E'),
+		   ('A0016','Autenticación de usuario', 'El refresh token se encuentra revocado', 'E'),
+		   ('A0017','Autenticación de usuario', 'El refresh token se validó correctamente', 'I'),
+		   ('A0018','Autenticación de usuario', 'El refresh token se encuentra vencido', 'E'),
 		   
 GO
 
