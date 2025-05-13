@@ -98,7 +98,14 @@ namespace API.Controllers
             return respuesta;
         }
 
-
+        [Authorize(Roles = "1")]
+        [Produces("application/json")]
+        [Route("pruebasSesion")]
+        [HttpPost]
+        public DTO_Respuesta pruebasSesion()
+        {
+            return new DTO_Respuesta();
+        }
 
     }
 }
