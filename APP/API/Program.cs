@@ -23,6 +23,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateAudience = true,
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
+            ClockSkew = TimeSpan.Zero,
             ValidIssuer = System.Configuration.ConfigurationManager.AppSettings["JwtIssuer"],
             ValidAudience = System.Configuration.ConfigurationManager.AppSettings["JwtAudience"],
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(System.Configuration.ConfigurationManager.AppSettings["JwtKey"] ?? ""))
@@ -32,13 +33,21 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         {
             OnAuthenticationFailed = context =>
             {
+                
+                UTL_Cipher uTL_Cipher = new UTL_Cipher();
+                BLL_Usuario bLL_Usuario = new BLL_Usuario();
+                BLL_Sesion bLL_Sesion = new BLL_Sesion();
+
+                DTO_Usuario usuario = new DTO_Usuario();
+                DTO_Sesion sesion = new DTO_Sesion();
                 DTO_Respuesta respuesta = new DTO_Respuesta();
+
 
                 if (context.Exception is SecurityTokenExpiredException)
                 {
                     if (context.HttpContext.Request.Cookies.TryGetValue("refreshToken", out var refreshToken))
                     {
-                        DTO_Sesion sesion = new DTO_Sesion();
+                        
 
                         var authHeader = context.Request.Headers["Authorization"].ToString();
                         var token = authHeader.StartsWith("Bearer ") ? authHeader.Substring(7) : authHeader;
@@ -57,28 +66,30 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                         sesion.ID_Usuario = Convert.ToInt32(userId);
 
                         //Aqui mandamos a validar el refreshToken y si es válido entonces creamos un nuevo acces token
-                        BLL_Sesion bLL_Sesion = new BLL_Sesion();
+                        
                         respuesta = bLL_Sesion.validarRefreshToken(sesion);
 
-                        //Agregamos el refreshToken a una Cookie HttpOnly
-                        var cookieOptions = new CookieOptions
-                        {
-                            HttpOnly = true,
-                            Secure = true,
-                            SameSite = SameSiteMode.Strict,
-                            Expires = DateTime.UtcNow.AddDays(7)
-                        };
-                        context.Response.Cookies.Append("refreshToken", sesion.RefreshToken, cookieOptions);
 
-                        //Generar nuevo acces token
-                       UTL_Cipher uTL_Cipher = new UTL_Cipher();    
-
-                        String accesToken = uTL_Cipher.generarAccessToken((DTO_Usuario)respuesta.Resultado[1]);
-                        respuesta.Resultado.Add(new { accesToken = accesToken });
 
                         //Validamos si todo bien con el token y solo debe reintentar o si es un 401 definitivo que lo lleva al login
                         if (respuesta.TipoRespuesta)
                         {
+                            sesion = (DTO_Sesion) respuesta.Resultado[0];
+
+                            //Agregamos el refreshToken a una Cookie HttpOnly
+                            var cookieOptions = uTL_Cipher.cookieOptions();
+                            context.Response.Cookies.Append("refreshToken", sesion.RefreshToken, cookieOptions);
+
+
+                            usuario.ID_Usuario = sesion.ID_Usuario;
+                            usuario = (DTO_Usuario) bLL_Usuario.obtenerUsuarioPorId(usuario).Resultado[0];
+
+                            //Generar nuevo acces token
+                            String accesToken = uTL_Cipher.generarAccessToken(usuario);
+                            //quitamos el refresh token de la respuesta
+                            respuesta.Resultado.Clear();
+                            respuesta.Resultado.Add(new { accesToken = accesToken });
+
                             //403
                             context.Response.StatusCode = 403;
                             context.Response.ContentType = "application/json";

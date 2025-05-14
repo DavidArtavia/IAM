@@ -75,13 +75,7 @@ namespace API.Controllers
                     if (respuestaRefreshToken.TipoRespuesta)
                     {
                         //Agregamos el refreshToken a una Cookie HttpOnly
-                        var cookieOptions = new CookieOptions
-                        {
-                            HttpOnly = true,
-                            Secure = true,
-                            SameSite = SameSiteMode.Strict,
-                            Expires = DateTime.UtcNow.AddDays(7)
-                        };
+                        var cookieOptions = uTL_Cipher.cookieOptions();
                         Response.Cookies.Append("refreshToken", sesion.RefreshToken, cookieOptions);
                     }
                     else

@@ -38,19 +38,15 @@ namespace BLL
                     sesion.ReemplazadoPorToken = sesion.RefreshToken;
                     sesion.RefreshToken = Guid.NewGuid().ToString();
                     respuesta = dAL_Sesion.guardarRefreshToken(sesion);
+                    respuesta.Resultado.Add(sesion);
+                }
+                else
+                {
+                    //sino metemos la misma sesion
+                    respuesta.Resultado.Add(sesion);
                 }
 
                     //Si es por otro motivo, devolvemos al usuario al LOGIN
-            }
-
-
-            if (respuesta.TipoRespuesta)
-            {
-                usuario.ID_Usuario = sesion.ID_Usuario;
-                usuario = (DTO_Usuario)bLL_Usuario.obtenerUsuarioPorId(usuario).Resultado[0];
-                respuesta.Resultado.Add(sesion);
-                respuesta.Resultado.Add(usuario);
-
             }
 
             return respuesta;
