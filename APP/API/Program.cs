@@ -1,3 +1,4 @@
+using Azure;
 using BLL;
 using DTO;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -7,6 +8,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using System.Text.Json;
+using UTL;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -58,9 +60,21 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                         BLL_Sesion bLL_Sesion = new BLL_Sesion();
                         respuesta = bLL_Sesion.validarRefreshToken(sesion);
 
+                        //Agregamos el refreshToken a una Cookie HttpOnly
+                        var cookieOptions = new CookieOptions
+                        {
+                            HttpOnly = true,
+                            Secure = true,
+                            SameSite = SameSiteMode.Strict,
+                            Expires = DateTime.UtcNow.AddDays(7)
+                        };
+                        context.Response.Cookies.Append("refreshToken", sesion.RefreshToken, cookieOptions);
 
                         //Generar nuevo acces token
+                       UTL_Cipher uTL_Cipher = new UTL_Cipher();    
 
+                        String accesToken = uTL_Cipher.generarAccessToken((DTO_Usuario)respuesta.Resultado[1]);
+                        respuesta.Resultado.Add(new { accesToken = accesToken });
 
                         //Validamos si todo bien con el token y solo debe reintentar o si es un 401 definitivo que lo lleva al login
                         if (respuesta.TipoRespuesta)

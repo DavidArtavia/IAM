@@ -48,6 +48,9 @@ BEGIN
 			--Si pasó todos los filtros es porque es un token válido
 			SELECT [COD_ALERTA],[Nombre],[Mensaje],[Tipo] FROM [UTIL].[TBL_ALERTAS] WHERE [COD_ALERTA] = 'A0017'
 		END
+
+
+	
     
 END
 

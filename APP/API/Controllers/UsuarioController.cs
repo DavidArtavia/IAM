@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
+using System.Security.Claims;
 using UTL;
 
 
@@ -18,6 +19,7 @@ namespace API.Controllers
     {
         DTO_Respuesta respuesta = new DTO_Respuesta();
         UTL_ManejoError manejoError = new UTL_ManejoError();
+        BLL_Usuario bLL_Usuario = new BLL_Usuario();
 
         [AllowAnonymous]
         [Produces("application/json")]
@@ -105,6 +107,18 @@ namespace API.Controllers
         public DTO_Respuesta pruebasSesion()
         {
             return new DTO_Respuesta();
+        }
+
+
+        [Authorize(Roles = "1")]
+        [Produces("application/json")]
+        [Route("obtenerUsuarioPorId")]
+        [HttpPost]
+        public DTO_Respuesta obtenerUsuarioPorId()
+        {
+            DTO_Usuario usuario = new DTO_Usuario();
+            usuario.ID_Usuario = usuario.ID_Usuario = Convert.ToInt32(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+            return bLL_Usuario.obtenerUsuarioPorId(usuario);
         }
 
     }
