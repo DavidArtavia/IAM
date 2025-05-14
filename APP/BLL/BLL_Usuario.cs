@@ -57,5 +57,10 @@ namespace BLL
 
             return respuesta;
         }
+
+        public DTO_Respuesta obtenerUsuarioPorId(DTO_Usuario usuario)
+        {
+            return dal_Usuario.obtenerUsuarioPorId(usuario);
+        }
     }
 }

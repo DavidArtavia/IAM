@@ -17,6 +17,8 @@ namespace BLL
         UTL_ManejoError manejoError = new UTL_ManejoError();
         DTO_Respuesta respuesta = new DTO_Respuesta();
         UTL_Cipher uTL_Cipher = new UTL_Cipher();
+        DAL_ChatIA chatIA = new DAL_ChatIA();
+
 
         public BLL_ChatIA()
         {
@@ -179,6 +181,11 @@ namespace BLL
 
             return respuesta;
 
+        }
+
+        public DTO_Respuesta obtenerChats(DTO_Negocio negocio)
+        {
+            return chatIA.obtenerChats(negocio);
         }
 
 

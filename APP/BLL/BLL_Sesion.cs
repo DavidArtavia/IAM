@@ -14,6 +14,8 @@ namespace BLL
 
         DAL_Sesion dAL_Sesion = new DAL_Sesion();
         DTO_Respuesta respuesta = new DTO_Respuesta();
+        BLL_Usuario bLL_Usuario = new BLL_Usuario();
+        DTO_Usuario usuario = new DTO_Usuario();    
         public DTO_Respuesta guardarRefreshToken(DTO_Sesion sesion)
         {
             return dAL_Sesion.guardarRefreshToken(sesion);
@@ -34,10 +36,21 @@ namespace BLL
                 {
                     //Si es por vencimiento toca guardar un nuevo refresh token
                     sesion.ReemplazadoPorToken = sesion.RefreshToken;
+                    sesion.RefreshToken = Guid.NewGuid().ToString();
                     respuesta = dAL_Sesion.guardarRefreshToken(sesion);
                 }
 
                     //Si es por otro motivo, devolvemos al usuario al LOGIN
+            }
+
+
+            if (respuesta.TipoRespuesta)
+            {
+                usuario.ID_Usuario = sesion.ID_Usuario;
+                usuario = (DTO_Usuario)bLL_Usuario.obtenerUsuarioPorId(usuario).Resultado[0];
+                respuesta.Resultado.Add(sesion);
+                respuesta.Resultado.Add(usuario);
+
             }
 
             return respuesta;

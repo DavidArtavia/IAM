@@ -133,5 +133,74 @@ namespace DAL
                 this.Close();
             }
         }
+
+        public DTO_Respuesta obtenerUsuarioPorId(DTO_Usuario usuario)
+        {
+            DTO_Respuesta respuesta = new DTO_Respuesta();
+            try
+            {
+
+                string query = "SECU.SP_obtenerUsuarioPorId";
+
+
+                using (SqlCommand sqlcmd = new SqlCommand(query, this.GetObjConexion()))
+                {
+                    sqlcmd.CommandType = CommandType.StoredProcedure;
+                    sqlcmd.Parameters.Add("@ID_Usuario", SqlDbType.NVarChar).Value = usuario.ID_Usuario;
+
+                    // Establecer la dirección de los parámetros
+                    foreach (SqlParameter param in sqlcmd.Parameters)
+                    {
+                        param.Direction = ParameterDirection.Input;
+                    }
+
+                    // Asegurarse de abrir la conexión
+                    this.Open();
+
+                    // Ejecutar el comando y obtener el lector de datos
+                    using (SqlDataReader reader = sqlcmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            usuario = new DTO_Usuario();
+      
+                                usuario.ID_Usuario = UTL_DBHelper.ReadNullSafeInt(reader["ID_Usuario"]);
+                                usuario.NombreUsuario = UTL_DBHelper.ReadNullSafeString(reader["NombreUsuario"]);
+                                usuario.Apellido = UTL_DBHelper.ReadNullSafeString(reader["Apellido"]);
+                                usuario.TelefonoUsuario = UTL_DBHelper.ReadNullSafeString(reader["TelefonoUsuario"]);
+                                usuario.CorreoUsuario = UTL_DBHelper.ReadNullSafeString(reader["CorreoUsuario"]);
+                                usuario.Pass = UTL_DBHelper.ReadNullSafeString(reader["Pass"]);
+                                usuario.Estado.ID_Estado = UTL_DBHelper.ReadNullSafeInt(reader["ID_Estado"]);
+                                usuario.Estado.Nombre = UTL_DBHelper.ReadNullSafeString(reader["Nombre"]);
+                                usuario.Rol.ID_Rol = UTL_DBHelper.ReadNullSafeInt(reader["ID_Rol"]);
+                                usuario.Rol.NombreRol = UTL_DBHelper.ReadNullSafeString(reader["NombreRol"]);
+                                usuario.Rol.DescripcionRol = UTL_DBHelper.ReadNullSafeString(reader["DescripcionRol"]);
+                           
+                        }
+
+                        if (reader.NextResult())
+                        {
+                            while (reader.Read())
+                            {
+                                respuesta = manejarRespuesta(reader);
+                            }
+                        }
+
+                        respuesta.Resultado.Add(usuario);
+
+                    }
+                    return respuesta;
+                }
+            }
+            catch (Exception e)
+            {
+                this.Close();
+                throw e;  // Luego se guardan las ecepciones en un log
+            }
+            finally
+            {
+                this.Close();
+            }
+        }
     }
 }

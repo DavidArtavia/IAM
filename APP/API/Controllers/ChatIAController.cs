@@ -16,6 +16,7 @@ namespace API.Controllers
     {
         BLL_ChatIA bll_chatIA = new BLL_ChatIA();
         UTL_ManejoError manejoError = new UTL_ManejoError();
+        BLL_Mensaje bLL_Mensaje = new BLL_Mensaje();    
 
         [Authorize(Roles = "1")]
         [Produces("application/json")]
@@ -25,7 +26,7 @@ namespace API.Controllers
         {
             DTO_Respuesta respuesta = new DTO_Respuesta();
             //PRUEBA 
-            await bll_chatIA.enviarMensajeIA(mensaje);
+            //await bll_chatIA.enviarMensajeIA(mensaje);
             try
             {
                 
@@ -67,6 +68,50 @@ namespace API.Controllers
             {
                 respuesta = manejoError.errorNoControlado(ex);
             }
+            return respuesta;
+        }
+
+        [Authorize(Roles = "1")]
+        [Produces("application/json")]
+        [Route("obtenerMensajes")]
+        [HttpPost]
+        public DTO_Respuesta obtenerMensajes([FromBody] DTO_ChatIA chatIA)
+        {
+            DTO_Respuesta respuesta = new DTO_Respuesta();
+
+            try
+            {
+                respuesta = bLL_Mensaje.obtenerMensajes(chatIA);
+
+            }
+            catch (Exception ex)
+            {
+                respuesta = manejoError.errorNoControlado(ex);
+            }
+
+
+            return respuesta;
+        }        
+        
+        [Authorize(Roles = "1")]
+        [Produces("application/json")]
+        [Route("obtenerChats")]
+        [HttpPost]
+        public DTO_Respuesta obtenerChats([FromBody] DTO_Negocio negocio)
+        {
+            DTO_Respuesta respuesta = new DTO_Respuesta();
+
+            try
+            {
+                respuesta = bll_chatIA.obtenerChats(negocio);
+
+            }
+            catch (Exception ex)
+            {
+                respuesta = manejoError.errorNoControlado(ex);
+            }
+
+
             return respuesta;
         }
 
