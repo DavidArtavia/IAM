@@ -1,43 +1,36 @@
-import { ReactNode, useReducer } from "react";
+import { ReactNode, useState } from "react";
 import { AuthContext } from "./AuthContext";
-import { authReducer, AuthState } from "./authReducer";
-import { types } from "@/types/types";
 import { DTO_Usuario } from "@/models/DTO_Usuario";
 
 type Props = {
   children: ReactNode;
 };
 
-const initialState: AuthState = {
-  user: null,
-  token: null,
-  isAuthenticated: false,
-};
-
 const AuthProvider = (props: Props) => {
-  const [authState, dispatch] = useReducer(authReducer, initialState);
+    const [user, setUser] = useState<DTO_Usuario | null>(null);
+    const [token, setToken] = useState<string>("");
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   const onLogin = (user: DTO_Usuario, token: string) => {
-    const action = {
-      type: types.login,
-      payload: {
-        user,
-        token,
-      },
-    };
-    dispatch(action);
+
+    setUser(user);
+    setToken(token);
+    setIsAuthenticated(true);
   };
 
   const onLogout = () => {
-    const action = {
-      type: types.logout,
-    };
-    dispatch(action);
+
+    setUser(null);
+    setToken('');
+    setIsAuthenticated(false);
   };
 
   // Solución con type assertion para asegurar compatibilidad
   const contextValue = {
-    ...authState,
+    user,
+    setUser,
+    token,
+    isAuthenticated,
     login: onLogin,
     logout: onLogout,
   };

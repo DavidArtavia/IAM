@@ -59,17 +59,23 @@ export const Login = () => {
     setLoadingModal(true);
 
     try {
-      const response = await api.post(API_ENDPOINTS.AUTH.LOGIN, values);
+
+      console.log("Valores que se envio", values);     
+
+      const response = await api.post(API_ENDPOINTS.AUTH.LOGIN, values, { withCredentials: true });
       console.log("El response que recibo", response);      
 
       if (response.data.tipoRespuesta) {
-        const user: DTO_Usuario = response.data.resultado[0];
+
+        const user = response.data.resultado[0] as DTO_Usuario;
         const accesToken = response.data.resultado[1].accesToken; 
 
         login(user, accesToken);
+        localStorage.setItem("user", JSON.stringify(user));
+        localStorage.setItem("accesToken", accesToken);
         notify.success({
           message: "Inicio de sesión exitoso",
-          description: `Hola ${user.NombreUsuario + " " + user.Apellido}, bienvenido de nuevo 👋`,
+          description: `Hola ${user.nombreUsuario + " " + user.apellido}, bienvenido de nuevo 👋`,
           placement: "topRight",
         });
         navigate(ROUTES.HOME);
