@@ -1,4 +1,4 @@
-// src/utils/RequireAuth.tsx
+// src/utils/RedirectIfAuth.tsx
 import { useContext, useEffect, useState } from "react";
 import { Navigate, Outlet } from "react-router-dom";
 import api from "../api/api";
@@ -6,14 +6,13 @@ import { AuthContext } from "@/context/AuthContext";
 import { LoadingModal } from "@/components/Modals/LoadingModal/LoadingModal";
 import { ROUTES } from "@/constants/routes";
 
-const RequireAuth = () => {
+const RedirectIfAuth = () => {
   const [isAuth, setIsAuth] = useState<boolean | null>(null);
   const { setUser } = useContext(AuthContext);
 
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        // const res = await api.get("/users/profile");
         const user = localStorage.getItem("user");
         if (user) {
           setUser(JSON.parse(user));
@@ -33,7 +32,7 @@ const RequireAuth = () => {
     return <LoadingModal loadingMessage="Verificando autenticación..." />;
   }
 
-  return isAuth ? <Outlet /> : <Navigate to={ROUTES.LOGIN} replace />;
+  return isAuth ? <Navigate to={ROUTES.HOME} replace /> : <Outlet />;
 };
 
-export default RequireAuth;
+export default RedirectIfAuth;

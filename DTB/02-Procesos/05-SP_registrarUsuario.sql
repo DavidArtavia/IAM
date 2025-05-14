@@ -7,8 +7,8 @@ END
 GO
 -- =============================================
 -- Autor: Danny Cantillano Arias
--- Creación: 07/05/2025
--- Descripción: Procedimiento para registrar un usuario (se utiliza en la página de registro del sistema)
+-- Creaciï¿½n: 07/05/2025
+-- Descripciï¿½n: Procedimiento para registrar un usuario (se utiliza en la pï¿½gina de registro del sistema)
 -- =============================================
 ALTER PROCEDURE SECU.SP_registrarUsuario
            @NombreUsuario VARCHAR(100),
@@ -27,7 +27,7 @@ BEGIN
     END
 	ELSE
 	BEGIN
-		-- Si el correo no existe, proceder con la inserción
+		-- Si el correo no existe, proceder con la inserciï¿½n
 		INSERT INTO [SECU].[TBL_USUARIOS]
 				   ([ID_Estado]
 				   ,[ID_Rol]

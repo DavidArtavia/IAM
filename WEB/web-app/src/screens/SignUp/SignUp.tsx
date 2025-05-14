@@ -1,38 +1,16 @@
 import { useState } from "react";
-import TallerLogo from "@/assets/img/TallerLogo.png";
+import { Button, Form, Input, Typography, Col, Row, Divider } from "antd";
+import { Link, useNavigate } from "react-router-dom";
 import { useNotificationContext } from "@/context/NotificationContext";
-import { useNavigate } from "react-router-dom";
-import { Button, Form, Input } from "antd";
 import { ROUTES } from "@/constants/routes";
 import api from "@/api/api";
 import { API_ENDPOINTS } from "@/constants/apiEndPoints";
 import { DTO_Usuario } from "@/models/DTO_Usuario";
 import { validatorNotify } from "@/utils/validators";
+import TallerLogo from "@/assets/img/TallerLogo.png";
+import "./SignUp.css";
 
-const formItemLayout = {
-  labelCol: {
-    xs: { span: 24 },
-    sm: { span: 8 },
-  },
-  wrapperCol: {
-    xs: { span: 24 },
-    sm: { span: 16 },
-  },
-};
-
-const tailFormItemLayout = {
-  wrapperCol: {
-    xs: {
-      span: 24,
-      offset: 0,
-    },
-    sm: {
-      span: 16,
-      offset: 8,
-    },
-  },
-};
-
+const { Title, Text } = Typography;
 
 export const SignUp = () => {
   const [form] = Form.useForm();
@@ -48,7 +26,7 @@ export const SignUp = () => {
     try {
       validatorNotify(values);
 
-      // Se mandan vacíos por de mantener la estructura de la API
+      // Se crean vacíos por de mantener la estructura de la API
       values.Estado = { ID_Estado: 0, Nombre: "", Tabla: "" };
       values.Rol = {
         ID_Rol: 0,
@@ -110,166 +88,216 @@ export const SignUp = () => {
   };
 
   return (
-    <>
-      <div
-        style={{
-          position: "relative",
-          width: "100%",
-          height: "100vh",
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          flexDirection: "column",
-        }}
-      >
+    <Row
+      justify="center"
+      align="middle"
+      style={{
+        minHeight: "100vh",
+        background: "linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)",
+      }}
+    >
+      <Col xs={22} sm={20} md={16} lg={12} xl={10}>
         <div
           style={{
             display: "flex",
+            flexDirection: "column",
             alignItems: "center",
-            marginBottom: "1.5rem",
+            padding: "2rem",
+            background: "#fff",
+            borderRadius: "12px",
+            boxShadow: "0px 8px 24px rgba(0, 0, 0, 0.12)",
           }}
         >
-          <img
-            alt="Logo"
-            src={TallerLogo}
+          {/* Logo y título */}
+          <div
             style={{
-              width: "80px",
-              maxHeight: "64px",
-              objectFit: "contain",
-              marginRight: "1rem",
-            }}
-          />
-          <span style={{ fontSize: "1.5rem", fontWeight: "bold" }}>
-            MAIK TALLER
-          </span>
-        </div>
-
-        <Form
-          {...formItemLayout}
-          form={form}
-          name="signUp"
-          onFinish={onFinish}
-          initialValues={dto_usuario}
-          style={{
-            width: "35%",
-            maxWidth: 600,
-            padding: 24,
-            boxShadow: "0 0 10px rgba(5, 5, 5, 0.1)",
-            borderRadius: 8,
-            backgroundColor: "#fff",
-          }}
-          scrollToFirstError
-        >
-          <h1
-            style={{
-              textAlign: "center",
-              marginBottom: "20px",
-              fontSize: "24px",
-              color: "#333",
+              display: "flex",
+              alignItems: "center",
+              marginBottom: "1.5rem",
             }}
           >
+            <img
+              alt="Logo"
+              src={TallerLogo}
+              style={{
+                width: "80px",
+                maxHeight: "64px",
+                objectFit: "contain",
+                marginRight: "1rem",
+              }}
+            />
+            <span style={{ fontSize: "1.5rem", fontWeight: "bold" }}>
+              MAIK TALLER
+            </span>
+          </div>
+
+          <Title level={3} style={{ textAlign: "center", margin: 0 }}>
             Registro de Usuario
-          </h1>
+          </Title>
 
-          <hr
-            style={{
-              marginBottom: "20px",
-              border: "none",
-              borderTop: "1px solid #ddd",
-            }}
-          />
-
-          <p
+          <Text
             style={{
               textAlign: "center",
-              marginBottom: "20px",
+              marginTop: "0.5rem",
+              marginBottom: "0.5rem",
               fontSize: "16px",
               color: "#555",
             }}
           >
-            Complete el formulario para registrar un nuevo usuario.
-          </p>
+            Complete el formulario para registrar un nuevo usuario
+          </Text>
+          <Divider style={{ margin: "1rem 0" }} />
 
-          <Form.Item
-            name="NombreUsuario"
-            label="Nombre"
-            rules={[
-              {
-                required: true,
-                message: "Por favor, ingrese el nombre del usuario",
-              },
-            ]}
+          <Form
+            form={form}
+            name="signUp"
+            layout="vertical"
+            onFinish={onFinish}
+            initialValues={dto_usuario}
+            style={{ width: "100%" }}
+            scrollToFirstError
           >
-            <Input placeholder="Nombre Usuario" />
-          </Form.Item>
+            <Row gutter={16}>
+              <Col xs={24} md={12}>
+                <Form.Item
+                  name="NombreUsuario"
+                  label="Nombre"
+                  rules={[
+                    {
+                      required: true,
+                      message: "Por favor, ingrese el nombre del usuario",
+                    },
+                  ]}
+                >
+                  <Input placeholder="Nombre Usuario" size="large" />
+                </Form.Item>
+              </Col>
 
-          <Form.Item
-            name="Apellido"
-            label="Apellidos"
-            rules={[
-              {
-                required: true,
-                message: "Por favor, ingrese el apellido del usuario",
-              },
-            ]}
-          >
-            <Input placeholder="Apellidos" />
-          </Form.Item>
+              <Col xs={24} md={12}>
+                <Form.Item
+                  name="Apellido"
+                  label="Apellidos"
+                  rules={[
+                    {
+                      required: true,
+                      message: "Por favor, ingrese el apellido del usuario",
+                    },
+                  ]}
+                >
+                  <Input placeholder="Apellidos" size="large" />
+                </Form.Item>
+              </Col>
+            </Row>
 
-          <Form.Item
-            name="TelefonoUsuario"
-            label="Teléfono"
-            rules={[
-              {
-                required: true,
-                message: "Por favor, ingrese el número de teléfono",
-              },
-              { len: 8, message: "El número debe tener exactamente 8 dígitos" },
-            ]}
-          >
-            <Input placeholder="Teléfono Usuario" maxLength={8} />
-          </Form.Item>
+            <Form.Item
+              name="TelefonoUsuario"
+              label="Teléfono"
+              rules={[
+                {
+                  required: true,
+                  message: "Por favor, ingrese el número de teléfono",
+                },
+                {
+                  len: 8,
+                  message: "El número debe tener exactamente 8 dígitos",
+                },
+              ]}
+            >
+              <Input
+                placeholder="Teléfono Usuario"
+                maxLength={8}
+                size="large"
+              />
+            </Form.Item>
 
-          <Form.Item
-            name="CorreoUsuario"
-            label="Correo"
-            rules={[
-              {
-                required: true,
-                message: "Por favor, ingrese el correo electrónico",
-              },
-              { type: "email", message: "Correo no válido" },
-            ]}
-          >
-            <Input placeholder="Correo Usuario" />
-          </Form.Item>
+            <Form.Item
+              name="CorreoUsuario"
+              label="Correo"
+              rules={[
+                {
+                  required: true,
+                  message: "Por favor, ingrese el correo electrónico",
+                },
+                { type: "email", message: "Correo no válido" },
+              ]}
+            >
+              <Input placeholder="Correo Usuario" size="large" />
+            </Form.Item>
 
-          <Form.Item
-            name="Pass"
-            label="Contraseña"
-            rules={[
-              { required: true, message: "Por favor, ingrese la contraseña" },
-            ]}
-            hasFeedback
-          >
-            <Input.Password placeholder="Contraseña" />
-          </Form.Item>
+            <Form.Item
+              name="Pass"
+              label="Contraseña"
+              rules={[
+                { required: true, message: "Por favor, ingrese la contraseña" },
+              ]}
+              hasFeedback
+            >
+              <Input.Password placeholder="Contraseña" size="large" />
+            </Form.Item>
 
-          {/* Campos no visibles para Estado y Rol */}
-          <Form.Item name="Estado" hidden>
-            <Input type="hidden" />
-          </Form.Item>
-          <Form.Item name="Rol" hidden>
-            <Input type="hidden" />
-          </Form.Item>
+            <Form.Item
+              name="ConfirmarContraseña"
+              label="Confirmar contraseña"
+              dependencies={["Pass"]}
+              hasFeedback
+              rules={[
+                {
+                  required: true,
+                  message: "Por favor, confirme su contraseña",
+                },
+                ({ getFieldValue }) => ({
+                  validator(_, value) {
+                    if (!value || getFieldValue("Pass") === value) {
+                      return Promise.resolve();
+                    }
+                    return Promise.reject(
+                      new Error("La contraseña que ingresó no coincide")
+                    );
+                  },
+                }),
+              ]}
+            >
+              <Input.Password placeholder="Confirmar Contraseña" size="large" />
+            </Form.Item>
 
-          <Form.Item {...tailFormItemLayout}>
-            <Button type="primary" htmlType="submit" loading={loading}>
-              Registrar
-            </Button>
-          </Form.Item>
-        </Form>
-      </div>
-    </>
+            {/* Campos no visibles para Estado y Rol */}
+            <Form.Item name="Estado" hidden>
+              <Input type="hidden" />
+            </Form.Item>
+            <Form.Item name="Rol" hidden>
+              <Input type="hidden" />
+            </Form.Item>
+
+            <Form.Item>
+              <Button
+                type="primary"
+                htmlType="submit"
+                loading={loading}
+                size="large"
+                style={{
+                  width: "100%",
+                  height: "48px",
+                  borderRadius: "6px",
+                  fontWeight: 500,
+                  fontSize: "16px",
+                  marginTop: "8px",
+                }}
+              >
+                Registrar
+              </Button>
+            </Form.Item>
+
+            <div style={{ textAlign: "center", marginTop: "16px" }}>
+              <Text type="secondary">
+                ¿Ya tienes una cuenta?{" "}
+                <Link to={ROUTES.LOGIN} style={{ fontWeight: 500 }}>
+                  Iniciar sesión
+                </Link>
+              </Text>
+            </div>
+          </Form>
+        </div>
+      </Col>
+    </Row>
   );
 };

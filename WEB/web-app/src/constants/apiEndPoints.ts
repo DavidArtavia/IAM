@@ -6,11 +6,13 @@ export const API_ENDPOINTS = {
         UPDATE: "/users/update",
     },
     AUTH: {
-        LOGIN: "/auth/login",
+        LOGIN: "/Usuario/autenticarUsuario",
         LOGOUT: "/auth/logout",
+        FORGOT_PASSWORD: "/auth/forgot-password",
     },
-    PRODUCTS: {
-        GET_ALL: "/products",
-        GET_BY_ID: "/products/:id",
+    CHAT: {
+        GET_BUSINESS: "/ChatIA/obtenerNegociosConChat",
+        GET_MESSAGES: "/ChatIA/obtenerMensajes",
+        SEND_MESSAGE: "/ChatIA/enviarMensaje",
     },
 } as const;
