@@ -35,7 +35,7 @@ INSERT INTO [SECU].[TBL_SESIONES]
 			@FechaExpiracion,
 			0,
 			NULL,
-			NULL,
+			@ReemplazadoPorToken,
 			@UserAgent, 
 			@IPUsuario)
 

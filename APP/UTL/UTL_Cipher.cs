@@ -1,4 +1,5 @@
 ﻿using DTO;
+using Microsoft.AspNetCore.Http;
 using Microsoft.IdentityModel.Tokens;
 using System.Configuration;
 using System.IdentityModel.Tokens.Jwt;
@@ -77,7 +78,7 @@ namespace UTL
                 issuer: ConfigurationManager.AppSettings["JwtIssuer"] ?? "",
                 audience: ConfigurationManager.AppSettings["JwtAudience"] ?? "",
                 claims: claims,
-                expires: DateTime.UtcNow.AddMinutes(15),
+                expires: DateTime.UtcNow.AddMinutes(1),
                 signingCredentials: creds);
 
             return new JwtSecurityTokenHandler().WriteToken(token);
@@ -86,6 +87,19 @@ namespace UTL
         public String generarCodigoFecha()
         {
             return DateTime.UtcNow.ToString("ddMMyyyyHHmmssfff");
+        }        
+        
+        public CookieOptions cookieOptions()
+        {
+            var cookieOptions = new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.Strict,
+                Expires = DateTime.UtcNow.AddDays(Convert.ToInt32(ConfigurationManager.AppSettings["SesionDaysExpiration"] ?? "7"))
+            }; 
+
+            return cookieOptions;
         }
 
     }

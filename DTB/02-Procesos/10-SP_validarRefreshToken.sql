@@ -38,8 +38,8 @@ BEGIN
 		END
 	ELSE
 	--Validamos que el refresh token no esté vencido
-	IF NOT EXISTS (SELECT 1 FROM [SECU].[TBL_SESIONES] WHERE RefreshToken = @RefreshToken AND FechaExpiracion < GETDATE())
-		BEGIN
+	IF EXISTS (SELECT 1 FROM [SECU].[TBL_SESIONES] WHERE RefreshToken = @RefreshToken AND FechaExpiracion < GETDATE())
+		BEGIN																				
 			--El token está vencido pero como se llegó hasta esta validación pasando todos los otros filtros, se puede generar uno nuevo.
 			SELECT [COD_ALERTA],[Nombre],[Mensaje],[Tipo] FROM [UTIL].[TBL_ALERTAS] WHERE [COD_ALERTA] = 'A0018' 
 		END
@@ -49,8 +49,6 @@ BEGIN
 			SELECT [COD_ALERTA],[Nombre],[Mensaje],[Tipo] FROM [UTIL].[TBL_ALERTAS] WHERE [COD_ALERTA] = 'A0017'
 		END
 
-
-	
     
 END
 
