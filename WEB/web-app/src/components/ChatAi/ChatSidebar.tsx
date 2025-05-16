@@ -32,14 +32,8 @@ const ChatSidebar = ({ onSelectChat }: Props) => {
         chats: [
           { id: 1, titulo: "Chat 1", fecha: "2023-10-01" },
           { id: 2, titulo: "Chat 2", fecha: "2023-10-02" },
-        ],
-      },
-      {
-        id: 2,
-        nombre: "Negocio 2",
-        chats: [
-          { id: 3, titulo: "Chat 3", fecha: "2023-10-03" },
-          { id: 4, titulo: "Chat 4", fecha: "2023-10-04" },
+          { id: 3, titulo: "Chat 3", fecha: "2023-10-02" },
+          { id: 4, titulo: "Chat 4", fecha: "2023-10-02" },
         ],
       },
     ];

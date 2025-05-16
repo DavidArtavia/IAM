@@ -9,26 +9,39 @@ import {
   UploadOutlined,
   UserOutlined,
   LogoutOutlined,
-  PieChartOutlined,
   MessageOutlined,
 } from "@ant-design/icons";
-import { Layout, Menu, theme } from "antd";
-import { useContext } from "react";
+import { Layout, Menu, Modal, theme } from "antd";
+import { useContext, useState } from "react";
 import { AuthContext } from "@/context/AuthContext";
+import { useLogout } from "@/hooks/useLogout";
 
 const { Header, Content, Footer, Sider } = Layout;
 
 export const LayoutMain = () => {
+  const logout = useLogout();
   const { user } = useContext(AuthContext);
-  console.log("user", user);
-  
-  // Define los items usando Link en lugar de <a href>
-  const handleLogout = () => {
-    // Aquí puedes agregar la lógica para destruir la sesión, por ejemplo:
-    //localStorage.clear(); // Limpia el almacenamiento local
-    sessionStorage.clear(); // Limpia el almacenamiento de sesión
-    console.log("Sesión destruida");
+  const [open, setOpen] = useState(false);
+  const [confirmLoading, setConfirmLoading] = useState(false);
+
+  const { nombreUsuario = "", apellido = "" } = user?.resultado?.[0] || {};
+
+  const showModal = () => {
+    setOpen(true);
   };
+  const handleCancel = () => {
+    setOpen(false);
+  };
+  const handleOk = () => {
+    setConfirmLoading(true);
+    setTimeout(() => {
+      setOpen(false);
+      setConfirmLoading(false);
+      logout();
+    }, 2000);
+  };
+  console.log("user en layout", user);
+  
 
   const items = [
     {
@@ -58,26 +71,19 @@ export const LayoutMain = () => {
       children: [
         {
           key: "3-1",
-          label: <Link to="/home">option</Link>,
+          label: <Link to="/home">option1</Link>,
         },
         {
-          key: "3-2",
-          label: (
-            <Link to="/login" onClick={handleLogout}>
-              Cerrar Sesión
-            </Link>
-          ),
+          key: "3-1",
+          label: <Link to="/home">option2</Link>,
         },
       ],
     },
     {
       key: "4",
       icon: <LogoutOutlined />,
-      label: (
-        <Link to={ROUTES.LOGIN} onClick={handleLogout}>
-          logout
-        </Link>
-      ),
+      label: "Cerrar sesión",
+      onClick: showModal,
     },
   ];
   const {
@@ -86,6 +92,15 @@ export const LayoutMain = () => {
 
   return (
     <Layout>
+      <Modal
+        title="Confirmar cierre de sesión"
+        open={open}
+        onOk={handleOk}
+        confirmLoading={confirmLoading}
+        onCancel={handleCancel}
+      >
+        <p>¿Está seguro que desea cerrar sesión?</p>
+      </Modal>
       <Sider
         breakpoint="lg"
         collapsedWidth="0"
@@ -123,7 +138,7 @@ export const LayoutMain = () => {
           <h1 style={{ color: "#000", margin: 0 }}>My App</h1>
           <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
             <div style={{ fontWeight: "bold" }}>
-              👋 ¡Hola, {user?.nombreUsuario} {user?.apellido }!
+              👋 ¡Hola, {nombreUsuario} {apellido}!
             </div>
             <img
               src={TallerLogo}

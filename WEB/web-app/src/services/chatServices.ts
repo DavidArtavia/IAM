@@ -3,17 +3,17 @@ import { API_ENDPOINTS } from "@/constants/apiEndPoints";
 import { DTO_Mensaje } from "@/models/DTO_Mensaje";
 
 export const getBusinessesWithChats = async () => {
-    const response = await api.post(API_ENDPOINTS.CHAT.GET_BUSINESS, { withCredentials: true });
+    const response = await api.post(API_ENDPOINTS.CHAT.GET_BUSINESS);
     return response.data;
 };
 
-export const getMessagesByChatId = async (values: number) => {
-    const response = await api.post(API_ENDPOINTS.CHAT.GET_MESSAGES, values, { withCredentials: true });
+export const getMessagesByChat = async () => {
+    const response = await api.post(API_ENDPOINTS.CHAT.GET_MESSAGES);
     return response.data;
 };
 
 export const sendTextMessage = async (values: DTO_Mensaje) => {
-    const response = await api.post(API_ENDPOINTS.CHAT.SEND_MESSAGE, values, { withCredentials: true });
+    const response = await api.post(API_ENDPOINTS.CHAT.SEND_MESSAGE, values);
     return response.data;
 };
 

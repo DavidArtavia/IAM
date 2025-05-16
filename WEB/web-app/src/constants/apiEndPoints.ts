@@ -3,16 +3,19 @@ export const API_ENDPOINTS = {
     USERS: {
         
         CREATE: "/Usuario/registrarUsuario",
-        UPDATE: "/users/update",
+        UPDATE: "",
+        GET_BY_ID: '/Usuario/obtenerUsuarioPorId',
     },
     AUTH: {
         LOGIN: "/Usuario/autenticarUsuario",
         LOGOUT: "/auth/logout",
         FORGOT_PASSWORD: "/auth/forgot-password",
+        CHANGE_PASSWORD: "/Usuario/cambiarContrasena",
     },
     CHAT: {
-        GET_BUSINESS: "/ChatIA/obtenerNegociosConChat",
+        GET_BUSINESS: "/ChatIA/obtenerNegocios",
         GET_MESSAGES: "/ChatIA/obtenerMensajes",
+        GET_CHAT: "/ChatIA/obtenerChats",
         SEND_MESSAGE: "/ChatIA/enviarMensaje",
     },
 } as const;

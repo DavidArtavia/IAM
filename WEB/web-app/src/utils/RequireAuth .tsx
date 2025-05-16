@@ -1,38 +1,13 @@
-// src/utils/RequireAuth.tsx
-import { useContext, useEffect, useState } from "react";
+// RequireAuth.tsx
 import { Navigate, Outlet } from "react-router-dom";
-import api from "../api/api";
-import { AuthContext } from "@/context/AuthContext";
-import { LoadingModal } from "@/components/Modals/LoadingModal/LoadingModal";
 import { ROUTES } from "@/constants/routes";
+import { LoadingModal } from "@/components/Modals/LoadingModal/LoadingModal";
+import { useAuthCheck } from "@/hooks/useAuthCheck";
 
 const RequireAuth = () => {
-  const [isAuth, setIsAuth] = useState<boolean | null>(null);
-  const { setUser } = useContext(AuthContext);
+  const isAuth = useAuthCheck();
 
-  useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        // const res = await api.get("/users/profile");
-        const user = localStorage.getItem("user");
-        if (user) {
-          setUser(JSON.parse(user));
-          setIsAuth(true);
-        } else {
-          setIsAuth(false);
-        }
-      } catch (err) {
-        setIsAuth(false);
-      }
-    };
-
-    checkAuth();
-  }, []);
-
-  if (isAuth === null) {
-    return <LoadingModal loadingMessage="Verificando autenticación..." />;
-  }
-
+  if (isAuth === null) return <LoadingModal loadingMessage="Verificando..." />;
   return isAuth ? <Outlet /> : <Navigate to={ROUTES.LOGIN} replace />;
 };
 

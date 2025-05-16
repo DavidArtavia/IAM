@@ -62,7 +62,8 @@ export const Login = () => {
 
       console.log("Valores que se envio", values);     
 
-      const response = await api.post(API_ENDPOINTS.AUTH.LOGIN, values, { withCredentials: true });
+      const response = await api.post(API_ENDPOINTS.AUTH.LOGIN, values);
+      const mensage = response.data.mensaje;
       console.log("El response que recibo", response);      
 
       if (response.data.tipoRespuesta) {
@@ -70,19 +71,22 @@ export const Login = () => {
         const user = response.data.resultado[0] as DTO_Usuario;
         const accesToken = response.data.resultado[1].accesToken; 
 
-        login(user, accesToken);
-        localStorage.setItem("user", JSON.stringify(user));
         localStorage.setItem("accesToken", accesToken);
+        login(user, accesToken);
         notify.success({
-          message: "Inicio de sesión exitoso",
-          description: `Hola ${user.nombreUsuario + " " + user.apellido}, bienvenido de nuevo 👋`,
+          message: mensage,
+          description: `Hola ${
+            user.nombreUsuario + " " + user.apellido
+          }, bienvenido de nuevo 👋`,
           placement: "topRight",
         });
         navigate(ROUTES.HOME);
       } else {
-        notify.error({
-          message: "Error",
-          description: "Credenciales incorrectas",
+        setButtonLoading(false);
+        setLoadingModal(false);
+        notify.warning({
+          message: "Advertencia",
+          description: mensage,
           placement: "bottomRight",
         });
       }
@@ -94,38 +98,6 @@ export const Login = () => {
       });
       
     }
-
-    // try {
-    //   console.log("Valores que se envio", values);
-      
-    //   const response = await api.post(API_ENDPOINTS.AUTH.LOGIN, values);
-    //   console.log("El response que recibo", response);
-
-    //   // Descomenta cuando tengas la respuesta correcta del backend
-    //   if (response.data.tipoRespuesta) {
-    //     const user: DTO_Usuario = response.data.resultado[0];
-        
-    //     setUserInfo(user);
-    //     console.log('entro al login la respuesta fue true');
-        
-    //     notify.success({
-    //       message: "Inicio de sesión exitoso",
-    //       description: `Hola ${user.NombreUsuario +" "+ user.Apellido }, bienvenido de nuevo 👋`,
-    //       placement: "topRight",
-    //     });
-    //     navigate(ROUTES.HOME);
-    //   }
-    // } catch (error) {
-    //   notify.error({
-    //     message: "Error al iniciar sesión",
-    //     description:
-    //       error instanceof Error ? error.message : "Credenciales incorrectas",
-    //     placement: "bottomRight",
-    //   });
-    // } finally {
-    //   setButtonLoading(false);
-    //   setLoadingModal(false);
-    // }
   };
 
   return (
@@ -150,7 +122,7 @@ export const Login = () => {
           }}
         >
           {loadingModal && (
-            <LoadingModal loadingMessage="Verificando credenciales..." />
+            <LoadingModal loadingMessage="LogVerificando credenciales..." />
           )}
 
           {/* Logo y título */}
@@ -215,6 +187,7 @@ export const Login = () => {
                 prefix={<UserOutlined style={{ color: "#bfbfbf" }} />}
                 placeholder="example@gmail.com"
                 size="large"
+                autoComplete="current-password"
               />
             </Form.Item>
 
@@ -228,6 +201,7 @@ export const Login = () => {
                 prefix={<LockOutlined style={{ color: "#bfbfbf" }} />}
                 placeholder="Contraseña"
                 size="large"
+                autoComplete="username"
               />
             </Form.Item>
 
@@ -259,42 +233,6 @@ export const Login = () => {
                 Iniciar Sesión
               </Button>
             </Form.Item>
-
-            {process.env.NODE_ENV === "development" && (
-              <div>
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    margin: "24px 0",
-                  }}
-                >
-                  <div style={{ flex: 1, height: "1px", background: "#eee" }} />
-                  <Text
-                    type="secondary"
-                    style={{ margin: "0 16px", fontSize: "14px" }}
-                  >
-                    Visible solo en modo dev
-                  </Text>
-                  <div style={{ flex: 1, height: "1px", background: "#eee" }} />
-                </div>
-
-                <Button
-                  type="default"
-                  style={{
-                    width: "100%",
-                    padding: "12px",
-                    backgroundColor: "#4CAF50",
-                    color: "#fff",
-                    border: "none",
-                    borderRadius: "6px",
-                    height: "auto",
-                  }}
-                >
-                  🔓 Saltar Login (Modo Dev)
-                </Button>
-              </div>
-            )}
           </Form>
         </div>
       </Col>
