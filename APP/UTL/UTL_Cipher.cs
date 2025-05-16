@@ -78,8 +78,8 @@ namespace UTL
                 issuer: ConfigurationManager.AppSettings["JwtIssuer"] ?? "",
                 audience: ConfigurationManager.AppSettings["JwtAudience"] ?? "",
                 claims: claims,
-                expires: DateTime.UtcNow.AddMinutes(1),
-                signingCredentials: creds);
+                expires: DateTime.UtcNow.AddMinutes(Convert.ToInt32(ConfigurationManager.AppSettings["SesionMinutesExpiration"] ?? "15")),
+                signingCredentials: creds); 
 
             return new JwtSecurityTokenHandler().WriteToken(token);
         }

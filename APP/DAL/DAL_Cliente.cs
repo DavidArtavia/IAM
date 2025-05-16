@@ -10,24 +10,23 @@ using UTL;
 
 namespace DAL
 {
-    public class DAL_ChatIA: DAL_Conexion
+    public class DAL_Cliente: DAL_Conexion
     {
-        
-            public DTO_Respuesta obtenerChats(DTO_Negocio negocio)
+        public DTO_Respuesta buscarCliente(DTO_Cliente cliente)
         {
             DTO_Respuesta respuesta = new DTO_Respuesta();
-            List<DTO_ChatIA> listaChats = new List<DTO_ChatIA>();
-            DTO_ChatIA chatIA = new DTO_ChatIA();
+            List<DTO_Cliente> listaCliente = new List<DTO_Cliente>();
             try
             {
 
-                string query = "CORE.SP_obtenerChats";
+                string query = "CORE.SP_buscarCliente";
 
                 
                 using (SqlCommand sqlcmd = new SqlCommand(query, this.GetObjConexion()))
                 {
                     sqlcmd.CommandType = CommandType.StoredProcedure;
-                    sqlcmd.Parameters.Add("@ID_Negocio", SqlDbType.Int).Value = negocio.ID_Negocio;
+                    sqlcmd.Parameters.Add("@NombreCliente", SqlDbType.VarChar).Value = cliente.NombreCliente;
+                    sqlcmd.Parameters.Add("@ApellidoCliente", SqlDbType.VarChar).Value = cliente.ApellidoCliente;
 
                     // Establecer la dirección de los parámetros
                     foreach (SqlParameter param in sqlcmd.Parameters)
@@ -43,18 +42,17 @@ namespace DAL
                     {
                         while (reader.Read())
                         {
-                            chatIA = new DTO_ChatIA();
-                            chatIA.ID_ChatIA = UTL_DBHelper.ReadNullSafeInt(reader["ID_ChatIA"]);
-                            chatIA.ID_Negocio = UTL_DBHelper.ReadNullSafeInt(reader["ID_Negocio"]);
-                            chatIA.Estado.ID_Estado = UTL_DBHelper.ReadNullSafeInt(reader["ID_Estado"]);
-                            chatIA.Estado.Nombre = UTL_DBHelper.ReadNullSafeString(reader["Nombre"]);
-                            chatIA.FechaInicial = UTL_DBHelper.ReadNullSafeDateTime(reader["FechaInicial"]);
-                            chatIA.FechaFinal = UTL_DBHelper.ReadNullSafeDateTime(reader["FechaFinal"]);
+                            cliente = new DTO_Cliente();
+                            cliente.ID_Cliente = UTL_DBHelper.ReadNullSafeInt(reader["ID_Cliente"]);
+                            cliente.ID_Usuario = UTL_DBHelper.ReadNullSafeInt(reader["ID_Usuario"]);
+                            cliente.NombreCliente = UTL_DBHelper.ReadNullSafeString(reader["NombreCliente"]);
+                            cliente.ApellidoCliente = UTL_DBHelper.ReadNullSafeString(reader["ApellidoCliente"]);
+                            cliente.TelefonoCliente = UTL_DBHelper.ReadNullSafeString(reader["TelefonoCliente"]);
+                            cliente.CorreoCliente = UTL_DBHelper.ReadNullSafeString(reader["CorreoCliente"]);
 
-                            listaChats.Add(chatIA);
-
-
+                            listaCliente.Add(cliente);
                         }
+       
 
                         if (reader.NextResult())
                         {
@@ -65,7 +63,7 @@ namespace DAL
                             }
                         }
 
-                        respuesta.Resultado.Add(listaChats);
+                        respuesta.Resultado.Add(listaCliente);
                     }
                     return respuesta;
                 }

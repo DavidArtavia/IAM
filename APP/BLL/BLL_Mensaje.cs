@@ -14,6 +14,11 @@ namespace BLL
         public DTO_Respuesta obtenerMensajes(DTO_ChatIA chatIA)
         {
             return dAL_Mensaje.obtenerMensajes(chatIA);
+        }        
+        
+        public DTO_Respuesta guardarMensaje(DTO_Mensaje mensaje)
+        {
+            return dAL_Mensaje.guardarMensaje(mensaje);
         }
     }
 }

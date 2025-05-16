@@ -22,7 +22,7 @@ namespace DAL
 
                 string query = "CORE.SP_obtenerNegocios";
 
-                // Usar Microsoft.Data.SqlClient.SqlCommand en lugar de System.Data.SqlClient.SqlCommand
+                
                 using (SqlCommand sqlcmd = new SqlCommand(query, this.GetObjConexion()))
                 {
                     sqlcmd.CommandType = CommandType.StoredProcedure;

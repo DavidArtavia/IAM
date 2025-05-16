@@ -51,7 +51,7 @@ namespace API.Controllers
         {
             UTL_Cipher uTL_Cipher = new UTL_Cipher();
             DTO.DTO_Sesion sesion = new DTO_Sesion();
-            DAL_Sesion dAL_Sesion = new DAL_Sesion();
+            BLL_Sesion bLL_Sesion = new BLL_Sesion();
             
                 
             try
@@ -59,6 +59,7 @@ namespace API.Controllers
                 //Validamos la cuestión
                 BLL_Usuario bLL_Usuario = new BLL_Usuario();
                 respuesta = bLL_Usuario.autenticarUsuario(usuario);
+                var ejemplo = JsonConvert.SerializeObject(new DTO_Respuesta());
 
                 //Si autentica correctamente procedemos
                 if (respuesta.TipoRespuesta)
@@ -71,7 +72,7 @@ namespace API.Controllers
                     sesion.ID_Usuario = usuario.ID_Usuario;
                     respuesta.Resultado.Add(new { accesToken = accesToken });
                     //Guardar el refreshToken y obtenemos la respuesta
-                    DTO_Respuesta respuestaRefreshToken = dAL_Sesion.guardarRefreshToken(sesion);
+                    DTO_Respuesta respuestaRefreshToken = bLL_Sesion.guardarRefreshToken(sesion);
                     if (respuestaRefreshToken.TipoRespuesta)
                     {
                         //Agregamos el refreshToken a una Cookie HttpOnly

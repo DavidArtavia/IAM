@@ -6,25 +6,28 @@ using System.Data;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using UTL;
 
 namespace DAL
 {
-    public class DAL_Alerta : DAL_Conexion
+    public class DAL_Contexto: DAL_Conexion
     {
-
-        public DTO_Respuesta obtenerAlerta(string COD_Alerta)
+        public DTO_Respuesta obtenerContexto()
         {
             DTO_Respuesta respuesta = new DTO_Respuesta();
+            DTO_Contexto contexto = new DTO_Contexto(); 
+            List<DTO_Contexto> listaContexto = new List<DTO_Contexto>();
+
             try
             {
 
-                string query = "UTIL.SP_obtenerAlerta";
+                string query = "SECU.SP_obtenerContexto";
 
                 
                 using (SqlCommand sqlcmd = new SqlCommand(query, this.GetObjConexion()))
                 {
                     sqlcmd.CommandType = CommandType.StoredProcedure;
-                    sqlcmd.Parameters.Add("@COD_Alerta", SqlDbType.VarChar).Value = COD_Alerta;
+                    //sqlcmd.Parameters.Add("@NombreCliente", SqlDbType.VarChar).Value = cliente.NombreCliente;
 
                     // Establecer la dirección de los parámetros
                     foreach (SqlParameter param in sqlcmd.Parameters)
@@ -40,8 +43,26 @@ namespace DAL
                     {
                         while (reader.Read())
                         {
-                            respuesta = manejarRespuesta(reader);
+                            contexto = new DTO_Contexto();
+                            contexto.ID_Contexto = UTL_DBHelper.ReadNullSafeInt(reader["ID_CONTEXTO"]);
+                            contexto.Nombre = UTL_DBHelper.ReadNullSafeString(reader["Nombre"]);
+                            contexto.Tipo = UTL_DBHelper.ReadNullSafeString(reader["Tipo"]);
+                            contexto.Prompt = UTL_DBHelper.ReadNullSafeString(reader["Prompt"]);
+
+                            listaContexto.Add(contexto);
                         }
+
+
+                        if (reader.NextResult())
+                        {
+                            while (reader.Read())
+                            {
+                                respuesta = respuesta = manejarRespuesta(reader);
+
+                            }
+                        }
+
+                        respuesta.Resultado.Add(listaContexto);
                     }
                     return respuesta;
                 }
