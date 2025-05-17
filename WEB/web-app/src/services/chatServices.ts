@@ -31,7 +31,9 @@ export const getChatsByBusiness = async (
   };
 
 export const getMessagesByChat = async (chat: DTO_ChatIA): Promise<DTO_Mensaje[] | string> => {
-    const response = await api.post<DTO_Respuesta>( API_ENDPOINTS.CHAT.GET_MESSAGES, chat);
+    const response = await api.post<DTO_Respuesta>(API_ENDPOINTS.CHAT.GET_MESSAGES, chat);
+    console.log('la respuesta de getMessagesByChat es1:', response.data);
+    
     if (!response.data.tipoRespuesta) return response.data.mensaje;
     return response.data.resultado as DTO_Mensaje[];
 };
