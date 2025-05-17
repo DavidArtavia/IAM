@@ -276,42 +276,89 @@ namespace BLL
 
         public async Task<DTO_Respuesta> procesarRespuestaIA(DTO_RepuestaIA repuestaIA)
         {
-            DTO_Mensaje mensajeUser = new DTO_Mensaje();
+            
 
             //si entra acá es porque ocupa algo del sistema para continuar la converación
             if (repuestaIA.EjecutarAccionBakend)
             {
-                switch (repuestaIA.AccionBakendDetectada) 
-                {
-                    case "buscarCliente":
-
-                        cliente.NombreCliente = repuestaIA.ParamsAccion.Find(p => p.Nombre.Equals("NombreCliente", StringComparison.OrdinalIgnoreCase))?.Valor ?? string.Empty;
-                        cliente.ApellidoCliente = repuestaIA.ParamsAccion.Find(p => p.Nombre.Equals("ApellidoCliente", StringComparison.OrdinalIgnoreCase))?.Valor ?? string.Empty;
-                        cliente.TelefonoCliente = repuestaIA.ParamsAccion.Find(p => p.Nombre.Equals("TelefonoCliente", StringComparison.OrdinalIgnoreCase))?.Valor ?? string.Empty;
-                        cliente.CorreoCliente = repuestaIA.ParamsAccion.Find(p => p.Nombre.Equals("CorreoCliente", StringComparison.OrdinalIgnoreCase))?.Valor ?? string.Empty;
-
-
-                        respuesta = bLL_Cliente.buscarCliente(cliente);
-
-                        mensajeUser.TextoMensaje = JsonConvert.SerializeObject(respuesta);
-                        mensajeUser.Tipo = "assistant";
-                        mensajeUser.ID_ChatIA = chatIA.ID_ChatIA;
-
-                        if (respuesta.TipoRespuesta)
-                        {
-                            respuesta = dAL_Mensaje.guardarMensaje(mensajeUser);
-                        }
-                        if (respuesta.TipoRespuesta)
-                        {
-                             respuesta = await enviarMensajeIA(mensajeUser);
-                        }
-
-                            break;
-
-                }
+                respuesta = await ejecutarAccionBakend(repuestaIA);
+            }
+            else if (repuestaIA.EjecutarIntencionDetectada)
+            {
+                respuesta = await ejecutarIntencionDetectada(repuestaIA);
             }
 
 
+                return respuesta;
+        }
+
+        public async Task<DTO_Respuesta> ejecutarAccionBakend(DTO_RepuestaIA repuestaIA)
+        {
+            DTO_Mensaje mensajeUser = new DTO_Mensaje();
+
+            switch (repuestaIA.AccionBakendDetectada)
+            {
+                case "buscarCliente":
+
+                    cliente.NombreCliente = repuestaIA.ParamsAccion.Find(p => p.Nombre.Equals("NombreCliente", StringComparison.OrdinalIgnoreCase))?.Valor ?? string.Empty;
+                    cliente.ApellidoCliente = repuestaIA.ParamsAccion.Find(p => p.Nombre.Equals("ApellidoCliente", StringComparison.OrdinalIgnoreCase))?.Valor ?? string.Empty;
+                    cliente.TelefonoCliente = repuestaIA.ParamsAccion.Find(p => p.Nombre.Equals("TelefonoCliente", StringComparison.OrdinalIgnoreCase))?.Valor ?? string.Empty;
+                    cliente.CorreoCliente = repuestaIA.ParamsAccion.Find(p => p.Nombre.Equals("CorreoCliente", StringComparison.OrdinalIgnoreCase))?.Valor ?? string.Empty;
+
+
+                    respuesta = bLL_Cliente.buscarCliente(cliente);
+
+                    mensajeUser.TextoMensaje = JsonConvert.SerializeObject(respuesta);
+                    mensajeUser.Tipo = "assistant";
+                    mensajeUser.ID_ChatIA = chatIA.ID_ChatIA;
+
+                    if (respuesta.TipoRespuesta)
+                    {
+                        respuesta = dAL_Mensaje.guardarMensaje(mensajeUser);
+                    }
+                    if (respuesta.TipoRespuesta)
+                    {
+                        respuesta = await enviarMensajeIA(mensajeUser);
+                    }
+
+                    break;
+
+            }
+            return respuesta;
+        }
+
+        public async Task<DTO_Respuesta> ejecutarIntencionDetectada(DTO_RepuestaIA repuestaIA)
+        {
+            DTO_Mensaje mensajeUser = new DTO_Mensaje();
+
+            switch (repuestaIA.IntencionDetectada)
+            {
+                case "guardarCliente":
+
+                    cliente.NombreCliente = repuestaIA.ParamsAccion.Find(p => p.Nombre.Equals("NombreCliente", StringComparison.OrdinalIgnoreCase))?.Valor ?? string.Empty;
+                    cliente.ApellidoCliente = repuestaIA.ParamsAccion.Find(p => p.Nombre.Equals("ApellidoCliente", StringComparison.OrdinalIgnoreCase))?.Valor ?? string.Empty;
+                    cliente.TelefonoCliente = repuestaIA.ParamsAccion.Find(p => p.Nombre.Equals("TelefonoCliente", StringComparison.OrdinalIgnoreCase))?.Valor ?? string.Empty;
+                    cliente.CorreoCliente = repuestaIA.ParamsAccion.Find(p => p.Nombre.Equals("CorreoCliente", StringComparison.OrdinalIgnoreCase))?.Valor ?? string.Empty;
+
+
+                    //respuesta = bLL_Cliente.gua(cliente);
+
+                    mensajeUser.TextoMensaje = JsonConvert.SerializeObject(respuesta);
+                    mensajeUser.Tipo = "assistant";
+                    mensajeUser.ID_ChatIA = chatIA.ID_ChatIA;
+
+                    if (respuesta.TipoRespuesta)
+                    {
+                        respuesta = dAL_Mensaje.guardarMensaje(mensajeUser);
+                    }
+                    if (respuesta.TipoRespuesta)
+                    {
+                        respuesta = await enviarMensajeIA(mensajeUser);
+                    }
+
+                    break;
+
+            }
             return respuesta;
         }
     }

@@ -15,7 +15,7 @@ namespace DTO
         private string telefonoNegocio;
         private string correoNegocio;
         private DateTime fechaRegistro;
-        private string referenciaJSON;
+        private List<DTO_Param> referenciaJSON;
 
         #endregion
 
@@ -33,7 +33,7 @@ namespace DTO
             TelefonoNegocio = string.Empty;
             CorreoNegocio = string.Empty;
             FechaRegistro = DateTime.Now;
-            ReferenciaJSON = string.Empty;
+            ReferenciaJSON = new List<DTO_Param>();
         }
 
         #endregion
@@ -48,7 +48,7 @@ namespace DTO
         public string TelefonoNegocio { get => telefonoNegocio; set => telefonoNegocio = value; }
         public string CorreoNegocio { get => correoNegocio; set => correoNegocio = value; }
         public DateTime FechaRegistro { get => fechaRegistro; set => fechaRegistro = value; }
-        public string ReferenciaJSON { get => referenciaJSON; set => referenciaJSON = value; }
+        public List<DTO_Param> ReferenciaJSON { get => referenciaJSON; set => referenciaJSON = value; }
         public DTO_Estado Estado { get => estado; set => estado = value; }
 
         #endregion
