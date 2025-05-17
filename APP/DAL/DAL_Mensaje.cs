@@ -20,14 +20,14 @@ namespace DAL
 
                 string query = "CORE.SP_guardarMensaje";
 
-                // Usar Microsoft.Data.SqlClient.SqlCommand en lugar de System.Data.SqlClient.SqlCommand
+                
                 using (SqlCommand sqlcmd = new SqlCommand(query, this.GetObjConexion()))
                 {
                     sqlcmd.CommandType = CommandType.StoredProcedure;
                     sqlcmd.Parameters.Add("@ID_ChatIA", SqlDbType.Int).Value = mensaje.ID_ChatIA;
                     sqlcmd.Parameters.Add("@Tipo", SqlDbType.NVarChar).Value = mensaje.Tipo;
                     sqlcmd.Parameters.Add("@TextoMensaje", SqlDbType.NVarChar).Value = mensaje.TextoMensaje;
-                    sqlcmd.Parameters.Add("@TranscripcionAudio", SqlDbType.DateTime).Value = mensaje.TranscripcionAudio;
+                    sqlcmd.Parameters.Add("@TranscripcionAudio", SqlDbType.NVarChar).Value = mensaje.TranscripcionAudio;
                     sqlcmd.Parameters.Add("@RutaAudio", SqlDbType.NVarChar).Value = mensaje.RutaAudio;
 
                     // Establecer la dirección de los parámetros
@@ -71,7 +71,7 @@ namespace DAL
 
                 string query = "CORE.SP_obtenerMensajesChat";
 
-                // Usar Microsoft.Data.SqlClient.SqlCommand en lugar de System.Data.SqlClient.SqlCommand
+                
                 using (SqlCommand sqlcmd = new SqlCommand(query, this.GetObjConexion()))
                 {
                     sqlcmd.CommandType = CommandType.StoredProcedure;

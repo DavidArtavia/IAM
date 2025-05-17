@@ -21,7 +21,7 @@ namespace DAL
 
                 string query = "SECU.SP_guardarRefreshToken";
 
-                // Usar Microsoft.Data.SqlClient.SqlCommand en lugar de System.Data.SqlClient.SqlCommand
+                
                 using (SqlCommand sqlcmd = new SqlCommand(query, this.GetObjConexion()))
                 {
                     sqlcmd.CommandType = CommandType.StoredProcedure;
@@ -71,7 +71,7 @@ namespace DAL
 
                 string query = "SECU.SP_validarRefreshToken";
 
-                // Usar Microsoft.Data.SqlClient.SqlCommand en lugar de System.Data.SqlClient.SqlCommand
+                
                 using (SqlCommand sqlcmd = new SqlCommand(query, this.GetObjConexion()))
                 {
                     sqlcmd.CommandType = CommandType.StoredProcedure;
