@@ -1,5 +1,14 @@
 import { useEffect, useState } from "react";
-import { Row, Col, Typography, Divider, Spin, Alert, Space, Button } from "antd";
+import {
+  Row,
+  Col,
+  Typography,
+  Divider,
+  Spin,
+  Alert,
+  Space,
+  Button,
+} from "antd";
 import ChatSidebar from "./ChatSidebar";
 import ChatMessages from "./ChatMessages";
 import ChatInputBar from "./ChatInputBar";
@@ -9,7 +18,7 @@ import {
   getMessagesByChat,
   sendTextMessage,
   sendAudioMessage,
-} from "@/services/chatServices";// ajusta imports según tu estructura
+} from "@/services/chatServices"; // ajusta imports según tu estructura
 import { DTO_Negocio } from "@/models/DTO_Negocio";
 import { DTO_ChatIA } from "@/models/DTO_ChatIA";
 import { DTO_Mensaje } from "@/models/DTO_Mensaje";
@@ -30,14 +39,11 @@ const ChatAi = () => {
 
   // 1) Cargo negocios al montar
   useEffect(() => {
-  getBusinesses().then((res) => {
-    if (typeof res === "string") return setError(res);
-    console.log("Respuesta de getBusinesses", res);
-    setBusinesses(res);
-    // El siguiente console.log mostrará el valor anterior, no el actualizado
-    // Si quieres ver el valor actualizado, usa un useEffect que dependa de businesses
-  });
-}, []);
+    getBusinesses().then((res) => {
+      if (typeof res === "string") return setError(res);
+      setBusinesses(res);
+    });
+  }, []);
 
   // 2) Cuando elijo negocio, cargo sus chats
   const handleSelectBusiness = (biz: DTO_Negocio) => {
@@ -47,6 +53,11 @@ const ChatAi = () => {
     getChatsByBusiness(biz).then((res) => {
       if (typeof res === "string") return setError(res);
       setChats(res);
+      console.log(
+        `los chat del negocio seleccionado ${selectedBusiness} son:`,
+        res
+      );
+      
     });
   };
 
@@ -57,7 +68,7 @@ const ChatAi = () => {
     setLoading(true);
     getMessagesByChat({
       ...chat,
-      id_Negocio: selectedBusiness!.iD_Negocio,
+      iD_Negocio: selectedBusiness!.iD_Negocio,
     }).then((res) => {
       setLoading(false);
       if (typeof res === "string") return setError(res);
@@ -69,7 +80,7 @@ const ChatAi = () => {
   const handleSendText = async (text: string) => {
     if (!selectedChat) return;
     const userMsg = new DTO_Mensaje();
-    userMsg.id_ChatIA = selectedChat.id_ChatIA;
+    userMsg.id_ChatIA = selectedChat.iD_ChatIA;
     userMsg.tipo = "texto";
     userMsg.textoMensaje = text;
     userMsg.fromUser = true;
@@ -84,7 +95,7 @@ const ChatAi = () => {
   const handleSendAudio = async (blob: Blob) => {
     if (!selectedChat) return;
     const userMsg = new DTO_Mensaje();
-    userMsg.id_ChatIA = selectedChat.id_ChatIA;
+    userMsg.id_ChatIA = selectedChat.iD_ChatIA;
     userMsg.tipo = "audio";
     userMsg.audio = new File([blob], "audio.wav", { type: blob.type });
     userMsg.fromUser = true;

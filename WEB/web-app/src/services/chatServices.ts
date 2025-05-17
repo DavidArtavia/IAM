@@ -22,7 +22,12 @@ export const getChatsByBusiness = async (
 ): Promise<DTO_ChatIA[] | string> => {
     const response = await api.post<DTO_Respuesta>(API_ENDPOINTS.CHAT.GET_CHATS, negocio);
     if (!response.data.tipoRespuesta) return response.data.mensaje;
-    return response.data.resultado as DTO_ChatIA[];
+    const raw = response.data.resultado;
+    // Si el primer elemento es a su vez un array, lo desenrollamos:
+    if (Array.isArray(raw[0])) {
+        return raw[0] as DTO_ChatIA[];
+    }
+    return raw as DTO_ChatIA[];
   };
 
 export const getMessagesByChat = async (chat: DTO_ChatIA): Promise<DTO_Mensaje[] | string> => {
