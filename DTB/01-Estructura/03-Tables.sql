@@ -139,9 +139,9 @@ CREATE TABLE CORE.TBL_MENSAJES_CHAT
 (
     ID_Mensaje INT IDENTITY(1,1) NOT NULL, --PK
     ID_ChatIA INT NOT NULL,-- FK
-    Tipo NVARCHAR(10) CHECK (Tipo IN ('Usuario', 'IA')) NOT NULL, -- Quien lo dijo
-    TextoMensaje NVARCHAR(500) NULL,
-    TranscripcionAudio NVARCHAR(500) NULL, -- si es entrada por voz
+    Tipo NVARCHAR(10) CHECK (Tipo IN ('system', 'assistant', 'user')) NOT NULL, -- Quien lo dijo
+    TextoMensaje NVARCHAR(2500) NULL,
+    TranscripcionAudio NVARCHAR(2500) NULL, -- si es entrada por voz
 	RutaAudio NVARCHAR(500) NULL,
     FechaMensaje DATETIME DEFAULT GETDATE() NOT NULL
 )
@@ -190,4 +190,12 @@ CREATE TABLE UTIL.TBL_ALERTAS
 	Tipo CHAR NOT NULL --W= Warning, E= Error, I=Info
 )
 GO
+
+CREATE TABLE SECU.TBL_CONTEXTO
+(
+	ID_CONTEXTO INT IDENTITY(1,1) NOT NULL,
+	Nombre VARCHAR(50) NOT NULL,
+	Tipo VARCHAR(50) NOT NULL,
+	Prompt NVARCHAR(2500) NOT NULL
+)
 

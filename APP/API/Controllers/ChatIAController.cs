@@ -56,11 +56,27 @@ namespace API.Controllers
                         respuesta = await bll_chatIA.guardarAudioBLOB(mensaje);
                     }
 
+                    if (respuesta.TipoRespuesta)
+                    {
+                        //si logró guardar el audio en la nuve procedemos a guardar el mensaje en la BD
+                        //procedemos a guardar el mensaje
+                        respuesta = bLL_Mensaje.guardarMensaje(mensaje);
+                    }
 
-                }//si no mandó audio nos ahorramos toda la lógica de guardare temporalmente, transcribir y subir a la nuve
+                }//si no mandó audio nos ahorramos toda la lógica de guardare temporalmente, transcribir y subir a la nuve y procedemos a guardar directamente
                 else
                 {
+                    //procedemos a guardar el mensaje
+                    mensaje.Tipo = "user";
+                    respuesta = bLL_Mensaje.guardarMensaje(mensaje);
+                    
+                }
 
+
+                //si guardó correctaente procedemos a hablar con la IA
+                if (respuesta.TipoRespuesta)
+                {
+                   respuesta = await bll_chatIA.enviarMensajeIA(mensaje);
                 }
 
             }
@@ -68,6 +84,7 @@ namespace API.Controllers
             {
                 respuesta = manejoError.errorNoControlado(ex);
             }
+
             return respuesta;
         }
 

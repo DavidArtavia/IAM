@@ -13,12 +13,12 @@ GO
 ALTER PROCEDURE CORE.SP_guardarMensaje
     @ID_ChatIA INT,
     @Tipo NVARCHAR(10), 
-    @TextoMensaje NVARCHAR(500) = NULL,
-    @TranscripcionAudio NVARCHAR(500) = NULL, -- Si es entrada por voz
+    @TextoMensaje NVARCHAR(2500) = NULL,
+    @TranscripcionAudio NVARCHAR(2500) = NULL, -- Si es entrada por voz
     @RutaAudio NVARCHAR(500) = NULL -- Ruta del archivo de audio si existe
 AS
 BEGIN
-    INSERT INTO [CORE].[TBL_MENSAJES]
+    INSERT INTO [CORE].[TBL_MENSAJES_CHAT]
                ([ID_ChatIA]
                ,[Tipo]
                ,[TextoMensaje]
