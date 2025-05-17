@@ -1,64 +1,54 @@
-// components/ChatAi/ChatMessages.tsx
-import { List, Avatar, Typography, Card } from "antd";
-import { UserOutlined, RobotOutlined } from "@ant-design/icons";
 import { DTO_Mensaje } from "@/models/DTO_Mensaje";
 
-const { Paragraph } = Typography;
+const formatTime = (d: Date) =>
+  d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 
-const ChatMessages = ({ messages }: { messages: DTO_Mensaje[] }) => {
-  console.log("el mensaje llego a ChatMessages", messages);
-  
+interface Props {
+  messages: DTO_Mensaje[];
+}
+
+export default function ChatMessages({ messages }: Props) {
   return (
-    <List
-      dataSource={messages}
-      renderItem={(msg) => (
-        <List.Item
+    <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+      {messages.map((m, i) => (
+        <div
+          key={i}
           style={{
-            justifyContent: msg.fromUser ? "flex-end" : "flex-start",
+            display: "flex",
+            justifyContent: m.fromUser ? "flex-end" : "flex-start",
           }}
         >
-          <Card
+          <div
             style={{
-              maxWidth: "70%",
-              backgroundColor: msg.fromUser ? "#e6f7ff" : "#f0f0f0",
-              borderRadius: "12px",
+              maxWidth: "60%",
+              padding: "10px 14px",
+              borderRadius: "18px",
+              background: m.fromUser ? "#DCF8C6" : "#FFF",
+              position: "relative",
             }}
-            bodyStyle={{ padding: "12px" }}
           >
-            <List.Item.Meta
-              avatar={
-                <Avatar
-                  icon={msg.fromUser ? <UserOutlined /> : <RobotOutlined />}
-                  style={{
-                    backgroundColor: msg.fromUser ? "#1890ff" : "#8c8c8c",
-                  }}
-                />
-              }
-              title={msg.fromUser ? "Tú" : "IA"}
-              description={
-                msg.Tipo === "texto" ? (
-                  <Paragraph style={{ margin: 0 }}>
-                    {msg.TextoMensaje}
-                  </Paragraph>
-                ) : (
-                  <audio
-                    controls
-                    src={
-                      typeof msg.audio === "string"
-                        ? msg.audio
-                        : msg.audio
-                        ? URL.createObjectURL(msg.audio)
-                        : undefined
-                    }
-                  />
-                )
-              }
-            />
-          </Card>
-        </List.Item>
-      )}
-    />
+            {m.tipo === "texto" ? (
+              <p style={{ margin: 0, whiteSpace: "pre-wrap" }}>
+                {m.textoMensaje}
+              </p>
+            ) : (
+              <audio controls src={URL.createObjectURL(m.audio!)} />
+            )}
+            <span
+              style={{
+                fontSize: 10,
+                position: "absolute",
+                bottom: -16,
+                right: m.fromUser ? 6 : "auto",
+                left: m.fromUser ? "auto" : 6,
+                color: "#999",
+              }}
+            >
+              {formatTime(new Date(m.fechaMensaje))}
+            </span>
+          </div>
+        </div>
+      ))}
+    </div>
   );
-};
-
-export default ChatMessages;
+}

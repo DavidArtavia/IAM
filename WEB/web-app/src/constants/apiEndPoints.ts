@@ -2,20 +2,22 @@ export const API_ENDPOINTS = {
     BASE_URL: "https://localhost:44330/api",
     USERS: {
         
-        CREATE: "/Usuario/registrarUsuario",
-        UPDATE: "",
-        GET_BY_ID: '/Usuario/obtenerUsuarioPorId',
+        CREATE:    "/Usuario/registrarUsuario",
+        UPDATE:    "",
+        GET_BY_ID: "/Usuario/obtenerUsuarioPorId",
     },
     AUTH: {
-        LOGIN: "/Usuario/autenticarUsuario",
-        LOGOUT: "/auth/logout",
+        LOGIN:           "/Usuario/autenticarUsuario",
+        LOGOUT:          "/auth/logout",
         FORGOT_PASSWORD: "/auth/forgot-password",
         CHANGE_PASSWORD: "/Usuario/cambiarContrasena",
     },
+    BUSINESS: {
+        GET_BUSINESS: "/Negocio/obtenerNegocios",
+    },
     CHAT: {
-        GET_BUSINESS: "/ChatIA/obtenerNegocios",
+        GET_CHATS:     "/ChatIA/obtenerChats",
         GET_MESSAGES: "/ChatIA/obtenerMensajes",
-        GET_CHAT: "/ChatIA/obtenerChats",
         SEND_MESSAGE: "/ChatIA/enviarMensaje",
     },
 } as const;

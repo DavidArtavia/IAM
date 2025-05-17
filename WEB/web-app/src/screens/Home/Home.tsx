@@ -1,4 +1,6 @@
 
+import { DTO_Mensaje } from "@/models/DTO_Mensaje";
+import { getBusinesses, sendTextMessage } from "@/services/chatServices";
 import { Button, Card, Row,  } from "antd";
 import { useState } from "react";
 // import { IProps } from "../../types/IProps";
@@ -7,9 +9,18 @@ export const Home = () => {
 
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
 
-  const handleAction = (idx: number) => {
-    // Implement your action here
-    console.log("Button clicked:", idx);
+  const handleAction = async () => {
+    const mensaje: DTO_Mensaje = {
+      ...new DTO_Mensaje(),
+      textoMensaje: "Mensaje de ejemplo",
+    };
+    console.log("DTO_Mensaje que envio:", mensaje);
+    try {
+      const res = await sendTextMessage(mensaje);
+      console.log("Respuesta de sendTextMessage", res);
+    } catch (error) {
+      console.log("Error al obtener los negocios", error);
+    }
   };
 
   const label = [
@@ -38,7 +49,7 @@ export const Home = () => {
             }}
             onClick={() => {
               setSelectedIndex(idx);
-              handleAction(idx);
+              handleAction();
             }}
           >
             {label}

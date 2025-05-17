@@ -1,94 +1,94 @@
 import { useEffect, useRef, useState } from "react";
-import { Input, Button } from "antd";
+import { Input, Button, Tooltip } from "antd";
 import { AudioOutlined, SendOutlined } from "@ant-design/icons";
 
 const { TextArea } = Input;
 
-const ChatInputBar = ({
-  onSendText,
-  onSendAudio,
-}: {
+interface Props {
+  disabled: boolean;
   onSendText: (msg: string) => void;
   onSendAudio: (blob: Blob) => void;
-}) => {
+}
+
+const ChatInputBar = ({ disabled, onSendText, onSendAudio }: Props) => {
   const [text, setText] = useState("");
-  const [recording, setRecording] = useState<boolean>(false);
-  const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
+  const [recording, setRec] = useState(false);
+  const [recorder, setRecObj] = useState<MediaRecorder>();
   const [chunks, setChunks] = useState<Blob[]>([]);
-  const textAreaRef = useRef<HTMLTextAreaElement>(null);
+  const ref = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
-    textAreaRef.current?.focus();
+    ref.current?.focus();
   }, []);
 
-  const handleSend = () => {
-    if (text.trim()) {
-      onSendText(text);
-      setText("");
-      // Volver a enfocar después de enviar
-    }
-    textAreaRef.current?.focus();
+  const sendText = () => {
+    if (!text.trim()) return;
+    onSendText(text.trim());
+    setText("");
+    ref.current?.focus();
   };
-  const handleStartRecording = async () => {
-    setRecording(true);
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    const recorder = new MediaRecorder(stream, { mimeType: "audio/webm" });
-    recorder.ondataavailable = (e) => setChunks((prev) => [...prev, e.data]);
 
-    recorder.onstop = () => {
-      const blob = new Blob(chunks, { type: "audio/webm" });
+  const startRecording = async () => {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    const m = new MediaRecorder(stream);
+    m.ondataavailable = (e) => setChunks((c) => [...c, e.data]);
+    m.onstop = () => {
+      const blob = new Blob(chunks, { type: chunks[0].type });
       onSendAudio(blob);
       setChunks([]);
     };
-    recorder.start();
-    setMediaRecorder(recorder);
+    m.start();
+    setRecObj(m);
+    setRec(true);
   };
 
-  const handleStopRecording = () => {
-    setRecording(false);
-    mediaRecorder?.stop();
+  const stopRecording = () => {
+    recorder?.stop();
+    setRec(false);
   };
 
   return (
-    <div style={{ display: "flex", gap: "8px", paddingTop: "12px" }}>
+    <div style={{ display: "flex", padding: 8, background: "#fff", gap: 8 }}>
       <TextArea
-      ref={textAreaRef}
-      autoSize={{ minRows: 1, maxRows: 6 }}
-      placeholder="Pregunta lo que quieras..."
-      value={text}
-      onChange={(e) => setText(e.target.value)}
-      onPressEnter={(e) => {
-        e.preventDefault();
-        handleSend();
-      }}
-      />
-      <Button
-      disabled={recording && !text}
-      icon={text.trim() ? <SendOutlined /> : <AudioOutlined />}
-      type="primary"
-      shape="circle"
-      danger={recording && !text}
-      onClick={() => {
-        if (text.trim()) {
-        handleSend();
+        ref={ref}
+        value={text}
+        onChange={(e) => setText(e.target.value)}
+        placeholder={
+          disabled ? "Selecciona un chat arriba" : "Escribe un mensaje..."
         }
-      }}
-      onMouseDown={!text.trim() ? () => {
-        handleStartRecording();
-      } : undefined}
-        onMouseUp={() => {
-          handleStopRecording();
+        disabled={disabled}
+        onPressEnter={(e) => {
+          e.preventDefault();
+          sendText();
         }}
-      onMouseLeave={!text.trim() ? () => {
-        if (recording) handleStopRecording();
-      } : undefined}
-      style={{
-        backgroundColor: !text.trim() ? "#25d366" : undefined,
-        borderColor: !text.trim() ? "#25d366" : undefined,
-        transition: "transform 0.15s",
-        transform: recording && !text.trim() ? "scale(1.35)" : "scale(1)",
-      }}
+        autoSize={{ minRows: 1, maxRows: 4 }}
       />
+      <Tooltip
+        title={
+          text.trim()
+            ? "Enviar texto"
+            : recording
+            ? "Suelta para enviar"
+            : "Mantén presionado para grabar"
+        }
+      >
+        <Button
+          type="primary"
+          shape="circle"
+          size="large"
+          icon={text.trim() ? <SendOutlined /> : <AudioOutlined />}
+          danger={recording}
+          disabled={disabled}
+          onClick={text.trim() ? sendText : undefined}
+          onMouseDown={!text.trim() ? startRecording : undefined}
+          onMouseUp={!text.trim() ? stopRecording : undefined}
+          onMouseLeave={!text.trim() && recording ? stopRecording : undefined}
+          style={{
+            transform: recording ? "scale(1.3)" : "scale(1)",
+            transition: "transform .1s",
+          }}
+        />
+      </Tooltip>
     </div>
   );
 };

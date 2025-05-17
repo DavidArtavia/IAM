@@ -37,7 +37,7 @@ export const Login = () => {
 
   const onFinish = async (values: DTO_Usuario) => {
 
-    if (!values.CorreoUsuario || !values.Pass) {
+    if (!values.correoUsuario || !values.pass) {
       notify.error({
         message: "Error",
         description: "Por favor, completa todos los campos.",
@@ -46,7 +46,7 @@ export const Login = () => {
       return;
     }
 
-    if (!validateEmail(values.CorreoUsuario)) {
+    if (!validateEmail(values.correoUsuario)) {
       notify.error({
         message: "Error",
         description: "Por favor, ingresa un correo electrónico válido.",
@@ -80,7 +80,8 @@ export const Login = () => {
           }, bienvenido de nuevo 👋`,
           placement: "topRight",
         });
-        navigate(ROUTES.HOME);
+        // navigate(ROUTES.HOME);
+        navigate(ROUTES.CHAT_AI);
       } else {
         setButtonLoading(false);
         setLoadingModal(false);
@@ -174,7 +175,7 @@ export const Login = () => {
             scrollToFirstError
           >
             <Form.Item
-              name="CorreoUsuario"
+              name="correoUsuario"
               rules={[
                 {
                   required: true,
@@ -192,7 +193,7 @@ export const Login = () => {
             </Form.Item>
 
             <Form.Item
-              name="Pass"
+              name="pass"
               rules={[
                 { required: true, message: "Por favor, ingrese la contraseña" },
               ]}

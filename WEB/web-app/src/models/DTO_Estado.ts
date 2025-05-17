@@ -1,5 +1,5 @@
 export class DTO_Estado {
-    ID_Estado: number = 0;
-    Nombre: string = '';
-    Tabla: string = '';
+    iD_Estado: number = 0;
+    nombre: string = '';
+    tabla: string = '';
 }

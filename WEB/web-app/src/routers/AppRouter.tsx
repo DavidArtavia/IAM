@@ -25,8 +25,8 @@ export const AppRouter = () => {
       {/* Rutas privadas (requieren autenticación) */}
       <Route element={<RequireAuth />}>
         <Route element={<LayoutMain />}>
-          <Route path={ROUTES.HOME} element={<Home />} />
           <Route path={ROUTES.CHAT_AI} element={<ChatAi />} />
+          <Route path={ROUTES.HOME} element={<Home />} />
           <Route path={ROUTES.STATISTICS} element={<Statistics />} />
         </Route>
       </Route>

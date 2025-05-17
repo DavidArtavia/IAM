@@ -1,11 +1,11 @@
 export class DTO_Mensaje {
-    ID_Mensaje: number = 0;
-    ID_ChatIA: number = 0;
-    Tipo: string = '';
-    TextoMensaje: string = '';
-    TranscripcionAudio: string = '';
-    RutaAudio: string = '';
-    FechaMensaje: Date = new Date();
+    id_Mensaje: number = 0;
+    id_ChatIA: number = 0;
+    tipo: string = '';
+    textoMensaje: string = '';
+    transcripcionAudio: string = '';
+    rutaAudio: string = '';
+    fechaMensaje: Date = new Date();
     audio?: File;
     fromUser: boolean = false;
 }
