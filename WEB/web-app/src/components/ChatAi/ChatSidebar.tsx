@@ -9,11 +9,6 @@ interface Props {
 }
 
 const ChatSidebar = ({ chats, selectedChat, onSelectChat }: Props) => {
-
-  console.log('los chats que legan a la sidebar son:', chats);
-  
-  
-  
   return (
     <div style={{ padding: 12 }}>
       <Tooltip title="Nuevo Chat">
@@ -49,6 +44,4 @@ const ChatSidebar = ({ chats, selectedChat, onSelectChat }: Props) => {
   );
 }
 
-
 export default ChatSidebar;
-

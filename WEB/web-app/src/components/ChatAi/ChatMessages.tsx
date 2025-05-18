@@ -1,5 +1,7 @@
+import { useEffect, useRef } from "react";
 import { DTO_Mensaje } from "@/models/DTO_Mensaje";
 
+// Formato de hora para los mensajes
 const formatTime = (d: Date) =>
   d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 
@@ -8,47 +10,87 @@ interface Props {
 }
 
 export default function ChatMessages({ messages }: Props) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  // Auto‐scroll al fondo cuando cambian mensajes
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (el) el.scrollTop = el.scrollHeight;
+  }, [messages]);
+
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-      {messages.map((m, i) => (
-        <div
-          key={i}
-          style={{
-            display: "flex",
-            justifyContent: m.fromUser ? "flex-end" : "flex-start",
-          }}
-        >
+    <div
+      ref={scrollRef}
+      style={{
+        flex: 1,
+        overflowY: "auto",
+        padding: 16,
+        display: "flex",
+        flexDirection: "column",
+      }}
+    >
+      
+      {messages.map((m, i) => {
+        const alignRight = m.fromUser === true;
+        const isAudio = !!m.rutaAudio && !m.textoMensaje;
+
+        return (
           <div
+            key={i}
             style={{
-              maxWidth: "60%",
-              padding: "10px 14px",
-              borderRadius: "18px",
-              background: m.fromUser ? "#DCF8C6" : "#FFF",
-              position: "relative",
+              display: "flex",
+              justifyContent: alignRight ? "flex-end" : "flex-start",
+              marginBottom: 12,
             }}
           >
-            {m.tipo === "texto" ? (
-              <p style={{ margin: 0, whiteSpace: "pre-wrap" }}>
-                {m.textoMensaje}
-              </p>
-            ) : (
-              <audio controls src={URL.createObjectURL(m.audio!)} />
-            )}
-            <span
+            <div
               style={{
-                fontSize: 10,
-                position: "absolute",
-                bottom: -16,
-                right: m.fromUser ? 6 : "auto",
-                left: m.fromUser ? "auto" : 6,
-                color: "#999",
+                maxWidth: "60%",
+                background: alignRight ? "#dcf8c6" : "#f0f0f0",
+                borderRadius: 12,
+                position: "relative",
+                padding: 0,
               }}
             >
-              {formatTime(new Date(m.fechaMensaje))}
-            </span>
+              {isAudio ? (
+                <audio
+                  controls
+                  style={{
+                    width: "100%",
+                    borderRadius: "12px",
+                    padding: "10px",
+                  }}
+                  src={m.rutaAudio}
+                />
+              ) : (
+                <div
+                  style={{
+                    maxHeight: 200,
+                    padding: "10px 14px",
+                    whiteSpace: "pre-wrap",
+                    lineHeight: 1.4,
+                  }}
+                >
+                  {m.textoMensaje}
+                </div>
+              )}
+
+              <span
+                style={{
+                  fontSize: 10,
+                  position: "absolute",
+                  bottom: -16,
+                  right: alignRight ? 6 : "auto",
+                  left: alignRight ? "auto" : 6,
+                  color: "#666",
+                }}
+              >
+                {formatTime(m.fechaMensaje)}
+              </span>
+            </div>
           </div>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }

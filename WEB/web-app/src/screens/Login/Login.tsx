@@ -16,7 +16,7 @@ import { AuthContext } from "@/context/AuthContext";
 import { ROUTES } from "@/constants/routes";
 import { LoadingModal } from "@/components/Modals/LoadingModal/LoadingModal";
 import { useNotificationContext } from "@/context/NotificationContext";
-import TallerLogo from "@/assets/img/TallerLogo.png";
+import TallerLogo from "@/assets/media/logos/TallerLogo.png";
 import api from "@/api/api";
 import { API_ENDPOINTS } from "@/constants/apiEndPoints";
 import { DTO_Usuario } from "@/models/DTO_Usuario";
@@ -59,12 +59,8 @@ export const Login = () => {
     setLoadingModal(true);
 
     try {
-
-      console.log("Valores que se envio", values);     
-
       const response = await api.post(API_ENDPOINTS.AUTH.LOGIN, values);
       const mensage = response.data.mensaje;
-      console.log("El response que recibo", response);      
 
       if (response.data.tipoRespuesta) {
 

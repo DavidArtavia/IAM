@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Button, Form, Input, Typography, Col, Row, Divider } from "antd";
+import TallerLogo from "@/assets/media/logos/TallerLogo.png";
 import { Link, useNavigate } from "react-router-dom";
 import { useNotificationContext } from "@/context/NotificationContext";
 import { ROUTES } from "@/constants/routes";
@@ -7,7 +8,6 @@ import api from "@/api/api";
 import { API_ENDPOINTS } from "@/constants/apiEndPoints";
 import { DTO_Usuario } from "@/models/DTO_Usuario";
 import { validatorNotify } from "@/utils/validators";
-import TallerLogo from "@/assets/img/TallerLogo.png";
 import "./SignUp.css";
 
 const { Title, Text } = Typography;
@@ -27,12 +27,12 @@ export const SignUp = () => {
       validatorNotify(values);
 
       // Se crean vacíos por de mantener la estructura de la API
-      values.Estado = { ID_Estado: 0, Nombre: "", Tabla: "" };
-      values.Rol = {
-        ID_Rol: 0,
-        ID_Usuario: 0,
-        NombreRol: "",
-        DescripcionRol: "",
+      values.estado = { iD_Estado: 0, nombre: "", tabla: "" };
+      values.rol = {
+        iD_Rol: 0,
+        iD_Usuario: 0,
+        nombreRol: "",
+        descripcionRol: "",
       };
 
       setLoading(true);

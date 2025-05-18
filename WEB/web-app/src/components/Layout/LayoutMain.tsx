@@ -1,6 +1,6 @@
 // LayoutMain.tsx
 import { ROUTES } from "@/constants/routes";
-import TallerLogo from "@/assets/img/TallerLogo.png";
+import TallerLogo from "@/assets/media/logos/TallerLogo.png";
 import { Outlet } from "react-router-dom";
 import "./LayoutMain.css";
 import { Link } from "react-router-dom";
@@ -24,7 +24,7 @@ export const LayoutMain = () => {
   const [open, setOpen] = useState(false);
   const [confirmLoading, setConfirmLoading] = useState(false);
 
-  const { nombreUsuario = "", apellido = "" } = user?.resultado?.[0] || {};
+  const { nombreUsuario = "", apellido = "" } = user || {};
 
   const showModal = () => {
     setOpen(true);
@@ -40,9 +40,7 @@ export const LayoutMain = () => {
       logout();
     }, 2000);
   };
-  console.log("user en layout", user);
   
-
   const items = [
     {
       key: "0",
@@ -104,12 +102,6 @@ export const LayoutMain = () => {
       <Sider
         breakpoint="lg"
         collapsedWidth="0"
-        onBreakpoint={(broken) => {
-          console.log(broken);
-        }}
-        onCollapse={(collapsed, type) => {
-          console.log(collapsed, type);
-        }}
       >
         <div style={{ padding: "16px", textAlign: "center" }}>
           <img
