@@ -57,13 +57,14 @@ const ChatAi = () => {
         `los chat del negocio seleccionado ${selectedBusiness} son:`,
         res
       );
-      
     });
   };
 
   // 3) Cuando elijo chat, cargo sus mensajes
   const handleSelectChat = (chat: DTO_ChatIA) => {
     setChat(chat);
+    console.log(`el chat seleccionado es:`, chat);
+    
     setMessages([]);
     setLoading(true);
     getMessagesByChat({
@@ -80,7 +81,7 @@ const ChatAi = () => {
   const handleSendText = async (text: string) => {
     if (!selectedChat) return;
     const userMsg = new DTO_Mensaje();
-    userMsg.id_ChatIA = selectedChat.iD_ChatIA;
+    userMsg.iD_ChatIA = 1;
     userMsg.tipo = "texto";
     userMsg.textoMensaje = text;
     userMsg.fromUser = true;
@@ -95,7 +96,7 @@ const ChatAi = () => {
   const handleSendAudio = async (blob: Blob) => {
     if (!selectedChat) return;
     const userMsg = new DTO_Mensaje();
-    userMsg.id_ChatIA = selectedChat.iD_ChatIA;
+    userMsg.iD_ChatIA = selectedChat.iD_ChatIA;
     userMsg.tipo = "audio";
     userMsg.audio = new File([blob], "audio.wav", { type: blob.type });
     userMsg.fromUser = true;
@@ -154,85 +155,7 @@ const ChatAi = () => {
             marginBottom: 12,
           }}
         >
-          <ChatMessages messages={messages} />
           {loadingMessages ? <Spin /> : <ChatMessages messages={messages} />}
-
-          {/* Simulación de chat: muestra mensajes de ejemplo si no hay mensajes */}
-          {messages.length === 0 && !loadingMessages && (
-            <div
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                marginTop: 32,
-              }}
-            >
-              {/* Burbuja del asistente */}
-              <div
-                style={{
-                  background: "#e6f4ff",
-                  color: "#1677ff",
-                  borderRadius: "18px",
-                  padding: "12px 20px",
-                  marginBottom: 8,
-                  boxShadow: "0 1px 4px rgba(0,0,0,0.04)",
-                  maxWidth: "60%",
-                  position: "relative",
-                  alignSelf: "flex-start",
-                }}
-              >
-                🤖 Hola, soy tu asistente virtual. ¿En qué puedo ayudarte hoy?
-              </div>
-              {/* Burbuja del usuario simulada */}
-              <div
-                style={{
-                  background: "#fffbe6",
-                  color: "#ad8b00",
-                  borderRadius: "18px",
-                  padding: "12px 20px",
-                  marginBottom: 8,
-                  boxShadow: "0 1px 4px rgba(0,0,0,0.04)",
-                  maxWidth: "60%",
-                  position: "relative",
-                  alignSelf: "flex-end",
-                }}
-              >
-                👤 Hola, ¿qué servicios ofrecen?
-              </div>
-              {/* Burbuja de respuesta del asistente */}
-              <div
-                style={{
-                  background: "#e6f4ff",
-                  color: "#1677ff",
-                  borderRadius: "18px",
-                  padding: "12px 20px",
-                  marginBottom: 8,
-                  boxShadow: "0 1px 4px rgba(0,0,0,0.04)",
-                  maxWidth: "60%",
-                  position: "relative",
-                  alignSelf: "flex-start",
-                }}
-              >
-                🤖 Ofrecemos servicios de mecánica general, cambio de aceite,
-                revisión de frenos y más. ¿Te gustaría agendar una cita o
-                conocer más detalles?
-              </div>
-              {/* Burbuja de ejemplo del asistente */}
-              <div
-                style={{
-                  background: "#f5f5f5",
-                  color: "#888",
-                  borderRadius: "18px",
-                  padding: "8px 16px",
-                  maxWidth: 320,
-                  fontSize: 13,
-                }}
-              >
-                (Ejemplo: "¿Cuáles son los servicios disponibles?" o "¿Puedo
-                agendar una cita?")
-              </div>
-            </div>
-          )}
         </div>
         <ChatInputBar
           disabled={!selectedChat}

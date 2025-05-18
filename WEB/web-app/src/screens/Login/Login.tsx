@@ -16,7 +16,7 @@ import { AuthContext } from "@/context/AuthContext";
 import { ROUTES } from "@/constants/routes";
 import { LoadingModal } from "@/components/Modals/LoadingModal/LoadingModal";
 import { useNotificationContext } from "@/context/NotificationContext";
-import TallerLogo from "@/assets/img/TallerLogo.png";
+// import TallerLogo from "@/assets/img/TallerLogo.png";
 import api from "@/api/api";
 import { API_ENDPOINTS } from "@/constants/apiEndPoints";
 import { DTO_Usuario } from "@/models/DTO_Usuario";
@@ -134,7 +134,7 @@ export const Login = () => {
               marginBottom: "rem",
             }}
           >
-            <img
+            {/* <img
               alt="Logo"
               src={TallerLogo}
               style={{
@@ -143,7 +143,7 @@ export const Login = () => {
                 objectFit: "contain",
                 marginRight: "1rem",
               }}
-            />
+            /> */}
             <span style={{ fontSize: "1.5rem", fontWeight: "bold" }}>
               MAIK TALLER
             </span>

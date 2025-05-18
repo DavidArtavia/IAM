@@ -7,7 +7,6 @@ import api from "@/api/api";
 import { API_ENDPOINTS } from "@/constants/apiEndPoints";
 import { DTO_Usuario } from "@/models/DTO_Usuario";
 import { validatorNotify } from "@/utils/validators";
-import TallerLogo from "@/assets/img/TallerLogo.png";
 import "./SignUp.css";
 
 const { Title, Text } = Typography;
@@ -27,12 +26,12 @@ export const SignUp = () => {
       validatorNotify(values);
 
       // Se crean vacíos por de mantener la estructura de la API
-      values.Estado = { ID_Estado: 0, Nombre: "", Tabla: "" };
-      values.Rol = {
-        ID_Rol: 0,
-        ID_Usuario: 0,
-        NombreRol: "",
-        DescripcionRol: "",
+      values.estado = { iD_Estado: 0, nombre: "", tabla: "" };
+      values.rol = {
+        iD_Rol: 0,
+        iD_Usuario: 0,
+        nombreRol: "",
+        descripcionRol: "",
       };
 
       setLoading(true);
@@ -116,16 +115,15 @@ export const SignUp = () => {
               marginBottom: "1.5rem",
             }}
           >
-            <img
+            {/* <img
               alt="Logo"
-              src={TallerLogo}
               style={{
                 width: "80px",
                 maxHeight: "64px",
                 objectFit: "contain",
                 marginRight: "1rem",
               }}
-            />
+            /> */}
             <span style={{ fontSize: "1.5rem", fontWeight: "bold" }}>
               MAIK TALLER
             </span>
