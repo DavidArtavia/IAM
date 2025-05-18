@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import { DTO_Mensaje } from "@/models/DTO_Mensaje";
 
+// Formato de hora para los mensajes
 const formatTime = (d: Date) =>
   d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 
@@ -18,7 +19,17 @@ export default function ChatMessages({ messages }: Props) {
   }, [messages]);
 
   return (
-    <div ref={scrollRef} style={{ flex: 1, overflowY: "auto", padding: 16 }}>
+    <div
+      ref={scrollRef}
+      style={{
+        flex: 1,
+        overflowY: "auto",
+        padding: 16,
+        display: "flex",
+        flexDirection: "column",
+      }}
+    >
+      
       {messages.map((m, i) => {
         const alignRight = m.fromUser === true;
         const isAudio = !!m.rutaAudio && !m.textoMensaje;
@@ -55,7 +66,6 @@ export default function ChatMessages({ messages }: Props) {
                 <div
                   style={{
                     maxHeight: 200,
-                    overflowY: "auto",
                     padding: "10px 14px",
                     whiteSpace: "pre-wrap",
                     lineHeight: 1.4,

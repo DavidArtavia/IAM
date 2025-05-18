@@ -15,7 +15,6 @@ const api = axios.create({
 // Interceptor de solicitud
 api.interceptors.request.use(
   (config) => {
-    console.log("entro al interceptor de solicitud donde mandamos el token");   
     const token = localStorage.getItem('accesToken');
 
     if (token) {
@@ -26,7 +25,6 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// handle 401/403 globally, **saltándose** el handler únicamente cuando tú le digas
 api.interceptors.response.use(
   r => r,
   err => {
@@ -34,7 +32,8 @@ api.interceptors.response.use(
     // si pediste skipAuthHandler, aquí no forzamos logoutUser()
     if (cfg.skipAuthHandler) return Promise.reject(err);
 
-    if ([STATUS.UNAUTHORIZED, STATUS.FORBIDDEN].includes(err.response?.status)) {
+    // solo en el error 401 forzamos logoutUser()
+    if ([STATUS.UNAUTHORIZED].includes(err.response?.status)) {
       logoutUser();
     }
     return Promise.reject(err);

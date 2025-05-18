@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Button, Form, Input, Typography, Col, Row, Divider } from "antd";
+import TallerLogo from "@/assets/media/logos/TallerLogo.png";
 import { Link, useNavigate } from "react-router-dom";
 import { useNotificationContext } from "@/context/NotificationContext";
 import { ROUTES } from "@/constants/routes";
@@ -115,15 +116,16 @@ export const SignUp = () => {
               marginBottom: "1.5rem",
             }}
           >
-            {/* <img
+            <img
               alt="Logo"
+              src={TallerLogo}
               style={{
                 width: "80px",
                 maxHeight: "64px",
                 objectFit: "contain",
                 marginRight: "1rem",
               }}
-            /> */}
+            />
             <span style={{ fontSize: "1.5rem", fontWeight: "bold" }}>
               MAIK TALLER
             </span>

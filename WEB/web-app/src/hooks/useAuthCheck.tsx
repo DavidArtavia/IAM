@@ -22,7 +22,8 @@ export const useAuthCheck = () => {
           {},
           { skipAuthHandler: true }
         );
-        setUser(res.data);
+        const user = res.data.resultado[0];
+        setUser(user);
         setIsAuth(true);
       } catch (
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
