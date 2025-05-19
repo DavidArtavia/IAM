@@ -68,6 +68,8 @@ export const Login = () => {
         const accesToken = response.data.resultado[1].accesToken; 
 
         localStorage.setItem("accesToken", accesToken);
+       const lastPath = localStorage.setItem("lastPath") || ROUTES.HOME;
+
         login(user, accesToken);
         notify.success({
           message: mensage,
@@ -77,7 +79,9 @@ export const Login = () => {
           placement: "topRight",
         });
         // navigate(ROUTES.HOME);
-        navigate(ROUTES.CHAT_AI);
+        navigate(lastPath, {
+        replace: true
+        });
       } else {
         setButtonLoading(false);
         setLoadingModal(false);
