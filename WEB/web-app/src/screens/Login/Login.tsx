@@ -68,7 +68,7 @@ export const Login = () => {
         const accesToken = response.data.resultado[1].accesToken; 
 
         localStorage.setItem("accesToken", accesToken);
-       const lastPath = localStorage.setItem("lastPath") || ROUTES.HOME;
+       const lastPath = localStorage.getItem("lastPath") || ROUTES.HOME;
 
         login(user, accesToken);
         notify.success({
