@@ -98,142 +98,95 @@ export const Login = () => {
   };
 
   return (
-    <Row
-      justify="center"
-      align="middle"
-      style={{
-        minHeight: "100vh",
-        background: "linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)",
-      }}
-    >
-      <Col xs={22} sm={20} md={16} lg={10} xl={8}>
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            padding: "2rem",
-            background: "#fff",
-            borderRadius: "12px",
-            boxShadow: "0px 8px 24px rgba(0, 0, 0, 0.12)",
-          }}
+    <div className="d-flex flex-column flex-root">
+  <div
+    className="d-flex flex-column flex-column-fluid bgi-position-y-bottom position-x-center bgi-no-repeat bgi-size-contain bgi-attachment-fixed"
+    style={{
+      backgroundImage:
+        'url("assets/media/illustrations/sketchy-1/14.png")',
+    }}
+  >
+    <div className="d-flex flex-center flex-column flex-column-fluid p-10 pb-lg-20">
+      <a className="mb-12">
+        <img
+          alt="Logo"
+           src="src/assets/media/logos/logo-1.svg"
+          className="h-40px"
+        />
+      </a>
+
+      <div className="w-lg-500px bg-body rounded shadow-sm p-10 p-lg-15 mx-auto">
+        <form
+          className="form w-100 fv-plugins-bootstrap5 fv-plugins-framework"
+          noValidate
+          id="kt_sign_in_form"
+          action="#"
         >
-          {loadingModal && (
-            <LoadingModal loadingMessage="LogVerificando credenciales..." />
-          )}
+          <div className="text-center mb-10">
+            <h1 className="text-dark mb-3">Iniciar Sesión</h1>
 
-          {/* Logo y título */}
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              marginBottom: "rem",
-            }}
-          >
-            <img
-              alt="Logo"
-              src={TallerLogo}
-              style={{
-                width: "80px",
-                maxHeight: "64px",
-                objectFit: "contain",
-                marginRight: "1rem",
-              }}
+            <div className="text-gray-400 fw-bold fs-4">
+       
+              <a
+                href="../../demo6/dist/authentication/flows/basic/sign-up.html"
+                className="link-primary fw-bolder"
+              >
+                Crear cuenta
+              </a>
+            </div>
+          </div>
+
+          <div className="fv-row mb-10 fv-plugins-icon-container">
+            <label className="form-label fs-6 fw-bolder text-dark">
+              Email
+            </label>
+            <input
+              className="form-control form-control-lg form-control-solid"
+              type="text"
+              name="email"
+              autoComplete="off"
+              placeholder="ejemplo@gmail.com"
             />
-            <span style={{ fontSize: "1.5rem", fontWeight: "bold" }}>
-              MAIK TALLER
-            </span>
+            <div className="fv-plugins-message-container invalid-feedback" />
           </div>
 
-          <Title level={3} style={{ textAlign: "center", margin: 0 }}>
-            Iniciar Sesión
-          </Title>
-          <div style={{ textAlign: "center", margin: "1rem 0 2rem" }}>
-            <Text type="secondary" style={{ fontSize: "16px" }}>
-              ¿Nuevo aquí?
-              <Link
-                to={ROUTES.SIGNUP}
-                style={{ marginLeft: "8px", fontWeight: 500 }}
-              >
-                Crear una cuenta
-              </Link>
-            </Text>
+          <div className="fv-row mb-10 fv-plugins-icon-container">
+            <div className="d-flex flex-stack mb-2">
+              <label className="form-label fw-bolder text-dark fs-6 mb-0">
+                Password
+              </label>
+            </div>
+            <input
+              className="form-control form-control-lg form-control-solid"
+              type="password"
+              name="password"
+              autoComplete="off"
+            />
+            <div className="fv-plugins-message-container invalid-feedback" />
           </div>
-          <Divider style={{ margin: "2rem 0" }} />
 
-          <Form
-            form={form}
-            name="login"
-            layout="vertical"
-            onFinish={onFinish}
-            initialValues={dto_usuario}
-            style={{ width: "100%" }}
-            scrollToFirstError
-          >
-            <Form.Item
-              name="correoUsuario"
-              rules={[
-                {
-                  required: true,
-                  message: "Por favor, ingrese el correo electrónico",
-                },
-                { type: "email", message: "Correo no válido" },
-              ]}
+          <div className="text-center">
+            <button 
+              type="submit"
+              id="kt_sign_in_submit"
+              className="btn btn-lg btn-primary w-100 mb-5"
             >
-              <Input
-                prefix={<UserOutlined style={{ color: "#bfbfbf" }} />}
-                placeholder="example@gmail.com"
-                size="large"
-                autoComplete="current-password"
-              />
-            </Form.Item>
+              <span className="indicator-label">Continue</span>
+              <span className="indicator-progress">
+                Por favor espere…
+                <span className="spinner-border spinner-border-sm align-middle ms-2" />
+              </span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
 
-            <Form.Item
-              name="pass"
-              rules={[
-                { required: true, message: "Por favor, ingrese la contraseña" },
-              ]}
-            >
-              <Input.Password
-                prefix={<LockOutlined style={{ color: "#bfbfbf" }} />}
-                placeholder="Contraseña"
-                size="large"
-                autoComplete="username"
-              />
-            </Form.Item>
-
-            <Form.Item>
-              <Flex justify="space-between" align="center">
-                <Form.Item name="remember" valuePropName="checked" noStyle>
-                  <Checkbox>Recordar</Checkbox>
-                </Form.Item>
-                <Link to={API_ENDPOINTS.AUTH.FORGOT_PASSWORD}>
-                  ¿Olvidaste tu contraseña?
-                </Link>
-              </Flex>
-            </Form.Item>
-
-            <Form.Item>
-              <Button
-                type="primary"
-                htmlType="submit"
-                loading={buttonLoading}
-                size="large"
-                style={{
-                  width: "100%",
-                  height: "48px",
-                  borderRadius: "6px",
-                  fontWeight: 500,
-                  fontSize: "16px",
-                }}
-              >
-                Iniciar Sesión
-              </Button>
-            </Form.Item>
-          </Form>
-        </div>
-      </Col>
-    </Row>
+    <div className="d-flex flex-center flex-column-auto p-10">
+      <div className="d-flex align-items-center fw-bold fs-6" />
+    </div>
+  </div>
+</div>
   );
 };
 
