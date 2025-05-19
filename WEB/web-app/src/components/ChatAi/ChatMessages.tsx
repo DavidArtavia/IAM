@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { DTO_Mensaje } from "@/models/DTO_Mensaje";
+import { DTO_Mensaje } from "@/models";
 
 // Formato de hora para los mensajes
 const formatTime = (d: Date) =>
@@ -9,7 +9,8 @@ interface Props {
   messages: DTO_Mensaje[];
 }
 
-export default function ChatMessages({ messages }: Props) {
+export const ChatMessages = ({ messages }: Props) => {
+
   const scrollRef = useRef<HTMLDivElement>(null);
 
   // Auto‐scroll al fondo cuando cambian mensajes
@@ -29,7 +30,6 @@ export default function ChatMessages({ messages }: Props) {
         flexDirection: "column",
       }}
     >
-      
       {messages.map((m, i) => {
         const alignRight = m.fromUser === true;
         const isAudio = !!m.rutaAudio && !m.textoMensaje;

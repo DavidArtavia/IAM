@@ -1,5 +1,5 @@
 import { createContext } from "react";
-import { DTO_Usuario } from "@/models/DTO_Usuario";
+import { DTO_Usuario } from "@/models";
 
 interface AuthContextType {
   user: DTO_Usuario | null;

@@ -1,9 +1,8 @@
 import { useContext } from "react";
 import { useNavigate } from "react-router-dom";
 // import api from "../api/api";
-import { AuthContext } from "@/context/AuthContext";
-import { ROUTES } from "@/constants/routes";
-import { useNotificationContext } from "@/context/NotificationContext";
+import { AuthContext, useNotificationContext } from "@/context";
+import { ROUTES } from "@/constants";
 
 export const useLogout = () => {
   const { setUser } = useContext(AuthContext);
