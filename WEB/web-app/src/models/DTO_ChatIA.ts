@@ -1,5 +1,4 @@
-import { DTO_Estado } from './DTO_Estado';
-import { DTO_Mensaje } from './DTO_Mensaje';
+import { DTO_Estado, DTO_Mensaje } from '@/models';
 
 export class DTO_ChatIA {
     iD_ChatIA: number = 0;

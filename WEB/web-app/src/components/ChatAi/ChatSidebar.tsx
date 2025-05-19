@@ -1,5 +1,5 @@
 import { List, Divider, Tooltip, Button } from "antd";
-import { DTO_ChatIA } from "@/models/DTO_ChatIA";
+import { DTO_ChatIA } from "@/models";
 import { PlusOutlined } from "@ant-design/icons";
 
 interface Props {
@@ -8,7 +8,7 @@ interface Props {
   onSelectChat: (chat: DTO_ChatIA) => void;
 }
 
-const ChatSidebar = ({ chats, selectedChat, onSelectChat }: Props) => {
+export const ChatSidebar = ({ chats, selectedChat, onSelectChat }: Props) => {
   return (
     <div style={{ padding: 12 }}>
       <Tooltip title="Nuevo Chat">
@@ -44,4 +44,3 @@ const ChatSidebar = ({ chats, selectedChat, onSelectChat }: Props) => {
   );
 }
 
-export default ChatSidebar;

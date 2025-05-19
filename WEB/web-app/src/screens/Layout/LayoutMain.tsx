@@ -1,9 +1,6 @@
 // LayoutMain.tsx
-import { ROUTES } from "@/constants/routes";
 import TallerLogo from "@/assets/media/logos/TallerLogo.png";
-import { Outlet } from "react-router-dom";
-import "./LayoutMain.css";
-import { Link } from "react-router-dom";
+import { Outlet, Link } from "react-router-dom";
 import {
   HomeFilled,
   UploadOutlined,
@@ -13,8 +10,10 @@ import {
 } from "@ant-design/icons";
 import { Layout, Menu, Modal, theme } from "antd";
 import { useContext, useState } from "react";
-import { AuthContext } from "@/context/AuthContext";
-import { useLogout } from "@/hooks/useLogout";
+import { useLogout } from "@/hooks";
+import { ROUTES } from "@/constants";
+import { AuthContext } from "@/context";
+import "./LayoutMain.css";
 
 const { Header, Content, Footer, Sider } = Layout;
 
