@@ -9,24 +9,13 @@ import {
   Space,
   Button,
 } from "antd";
-import ChatSidebar from "./ChatSidebar";
-import ChatMessages from "./ChatMessages";
-import ChatInputBar from "./ChatInputBar";
-import {
-  getBusinesses,
-  getChatsByBusiness,
-  getMessagesByChat,
-  sendTextMessage,
-  sendAudioMessage,
-} from "@/services/chatServices"; // ajusta imports según tu estructura
-import { DTO_Negocio } from "@/models/DTO_Negocio";
-import { DTO_ChatIA } from "@/models/DTO_ChatIA";
-import { DTO_Mensaje } from "@/models/DTO_Mensaje";
-// import { DTO_Estado } from "@/models/DTO_Estado";
+import {ChatSidebar, ChatMessages, ChatInputBar } from "@/components";
+import { getBusinesses, getChatsByBusiness, getMessagesByChat, sendTextMessage, sendAudioMessage,} from "@/services"; // ajusta imports según tu estructura
+import { DTO_Negocio, DTO_ChatIA, DTO_Mensaje } from "@/models";
 
 const { Title } = Typography;
 
-const ChatAi = () => {
+export const ChatAi = () => {
   const [businesses, setBusinesses] = useState<DTO_Negocio[]>([]);
   const [chats, setChats] = useState<DTO_ChatIA[]>([]);
   const [messages, setMessages] = useState<DTO_Mensaje[]>([]);
@@ -167,4 +156,3 @@ const ChatAi = () => {
   );
 };
 
-export default ChatAi;

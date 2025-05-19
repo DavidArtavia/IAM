@@ -13,13 +13,13 @@ import { UserOutlined, LockOutlined } from "@ant-design/icons";
 import { useState, useContext } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { AuthContext } from "@/context/AuthContext";
-import { ROUTES } from "@/constants/routes";
-import { LoadingModal } from "@/components/Modals/LoadingModal/LoadingModal";
-import { useNotificationContext } from "@/context/NotificationContext";
+import { ROUTES } from "@/constants";
+import { LoadingModal } from "@/components";
+import { useNotificationContext } from "@/context";
 import TallerLogo from "@/assets/media/logos/TallerLogo.png";
-import api from "@/api/api";
-import { API_ENDPOINTS } from "@/constants/apiEndPoints";
-import { DTO_Usuario } from "@/models/DTO_Usuario";
+import { api } from "@/api";
+import { API_ENDPOINTS } from "@/constants";
+import { DTO_Usuario } from "@/models";
 
 const { Title, Text } = Typography;
 

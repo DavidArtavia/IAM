@@ -1,10 +1,10 @@
 // RequireAuth.tsx
 import { Navigate, Outlet, useLocation } from "react-router-dom";
-import { ROUTES } from "@/constants/routes";
-import { LoadingModal } from "@/components/Modals/LoadingModal/LoadingModal";
-import { useAuthCheck } from "@/hooks/useAuthCheck";
+import { ROUTES } from "@/constants";
+import { LoadingModal } from "@/components";
+import { useAuthCheck } from "@/hooks";
 
-const RequireAuth = () => {
+export const RequireAuth = () => {
   const isAuth = useAuthCheck();
   const { pathname, search } = useLocation();
 
@@ -15,4 +15,3 @@ const RequireAuth = () => {
   return isAuth ? <Outlet /> : <Navigate to={ROUTES.LOGIN} replace />;
 };
 
-export default RequireAuth;
