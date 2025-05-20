@@ -1,6 +1,6 @@
 // LayoutMain.tsx
 import { useEffect, useRef } from "react";
-import { Outlet } from "react-router-dom";
+import { Outlet, useLocation } from "react-router-dom";
 import { ROUTES } from "@/constants";
 import { Link } from "react-router-dom";
 import "./LayoutMain.css";
@@ -14,8 +14,8 @@ declare global {
 }
 
 export const LayoutMain = () => {
-  /** referencia al nodo #kt_aside para inicializar drawer */
   const asideRef = useRef<HTMLDivElement>(null);
+  const { pathname } = useLocation();
 
   useEffect(() => {
     // añade las clases globales que exige Metronic
@@ -71,7 +71,7 @@ export const LayoutMain = () => {
               data-kt-menu="true"
             >
               <div className="menu-item py-2">
-                <Link to={ROUTES.HOME} className="menu-link active menu-center" data-bs-trigger="hover"
+                <Link to={ROUTES.HOME}  className={`menu-link menu-center${(pathname === ROUTES.HOME) ? " active" : ""}`} data-bs-trigger="hover"
                   data-bs-dismiss="click"
                   data-bs-placement="right">
                   <span className="menu-icon me-0">
@@ -83,7 +83,7 @@ export const LayoutMain = () => {
               </div>
 
               <div className="menu-item py-2">
-                <Link to={ROUTES.CHAT_AI} className="menu-link menu-center" data-bs-trigger="hover"
+                <Link to={ROUTES.CHAT_AI} className={`menu-link menu-center${(pathname === ROUTES.CHAT_AI) ? " active" : ""}`} data-bs-trigger="hover"
                   data-bs-dismiss="click"
                   data-bs-placement="right">
                   <span className="menu-icon me-0">
@@ -95,13 +95,25 @@ export const LayoutMain = () => {
               </div>
 
               <div className="menu-item py-2">
-                <Link to={ROUTES.CHAT_AI} className="menu-link menu-center" data-bs-trigger="hover"
+                <Link to={ROUTES.NEGOCIO} className={`menu-link menu-center${(pathname === ROUTES.NEGOCIO) ? " active" : ""}`} data-bs-trigger="hover"
                   data-bs-dismiss="click"
                   data-bs-placement="right">
                   <span className="menu-icon me-0">
                     <i className="bi bi-briefcase fs-2" />
                   </span>
                   <span className="menu-title">Negocio</span>
+
+                </Link>
+              </div>
+
+              <div className="menu-item py-2">
+                <Link to={ROUTES.MONITOR} className={`menu-link menu-center${(pathname === ROUTES.MONITOR) ? " active" : ""}`} data-bs-trigger="hover"
+                  data-bs-dismiss="click"
+                  data-bs-placement="right">
+                  <span className="menu-icon me-0">
+                    <i className="bi bi-window fs-2" />
+                  </span>
+                  <span className="menu-title">Monitor</span>
 
                 </Link>
               </div>
@@ -156,95 +168,95 @@ export const LayoutMain = () => {
 
             <div className="d-flex align-items-stretch justify-content-between flex-lg-grow-1">
               <div className="d-flex align-items-stretch" id="kt_header_nav" />
-              
+
               <div
-  className="d-flex align-items-center ms-1 ms-lg-3"
-  id="kt_header_user_menu_toggle"
->
-  <div
-    className="cursor-pointer symbol symbol-30px symbol-md-40px show menu-dropdown"
-    data-kt-menu-trigger="click"
-    data-kt-menu-attach="parent"
-    data-kt-menu-placement="bottom-end"
-    data-kt-menu-flip="bottom"
-  >
-    {/* <img src="src/assets/media/avatars/150-26.jpg" alt="metronic" /> */}
-    <i className="bi bi-person-fill fs-1"></i>
-  </div>
+                className="d-flex align-items-center ms-1 ms-lg-3"
+                id="kt_header_user_menu_toggle"
+              >
+                <div
+                  className="cursor-pointer symbol symbol-30px symbol-md-40px show menu-dropdown"
+                  data-kt-menu-trigger="click"
+                  data-kt-menu-attach="parent"
+                  data-kt-menu-placement="bottom-end"
+                  data-kt-menu-flip="bottom"
+                >
+                  {/* <img src="src/assets/media/avatars/150-26.jpg" alt="metronic" /> */}
+                  <i className="bi bi-person-fill fs-1"></i>
+                </div>
 
-  <div
-    className="menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-gray-800 menu-state-bg menu-state-primary fw-bold py-4 fs-6 w-275px show"
-    data-kt-menu="true"
-    data-popper-placement="bottom-end"
-    style={{
-      zIndex: 105,
-      position: "fixed",
-      inset: "0 auto auto 0",
-      margin: 0,
-      transform: "translate(1382px, 65px)",
-    }}
-  >
-    <div className="menu-item px-3">
-      <div className="menu-content d-flex align-items-center px-3">
-        <div className="symbol symbol-50px me-5">
-          <img
-            alt="Logo"
-            src="src/assets/media/avatars/150-26.jpg"
-          />
-        </div>
+                <div
+                  className="menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-gray-800 menu-state-bg menu-state-primary fw-bold py-4 fs-6 w-275px show"
+                  data-kt-menu="true"
+                  data-popper-placement="bottom-end"
+                  style={{
+                    zIndex: 105,
+                    position: "fixed",
+                    inset: "0 auto auto 0",
+                    margin: 0,
+                    transform: "translate(1382px, 65px)",
+                  }}
+                >
+                  <div className="menu-item px-3">
+                    <div className="menu-content d-flex align-items-center px-3">
+                      <div className="symbol symbol-50px me-5">
+                        <img
+                          alt="Logo"
+                          src="src/assets/media/avatars/150-26.jpg"
+                        />
+                      </div>
 
-        <div className="d-flex flex-column">
-          <div className="fw-bolder d-flex align-items-center fs-5">
-            Danny Cantillano
-           
-          </div>
-          <a
-          
-            className="fw-bold text-muted text-hover-primary fs-7"
-          >
-            admin@gmail.com
-          </a>
-        </div>
-      </div>
-    </div>
+                      <div className="d-flex flex-column">
+                        <div className="fw-bolder d-flex align-items-center fs-5">
+                          Danny Cantillano
 
-    <div className="separator my-2" />
+                        </div>
+                        <a
 
-    <div className="menu-item px-5">
-      <a href="../../demo6/dist/account/overview.html" className="menu-link px-5">
-        Mi perfil
-      </a>
-    </div>
+                          className="fw-bold text-muted text-hover-primary fs-7"
+                        >
+                          admin@gmail.com
+                        </a>
+                      </div>
+                    </div>
+                  </div>
 
+                  <div className="separator my-2" />
 
-
-    <div
-      className="menu-item px-5"
-      data-kt-menu-trigger="hover"
-      data-kt-menu-placement="left-start"
-      data-kt-menu-flip="bottom, top"
-    >
- 
-
-   
-    </div>
+                  <div className="menu-item px-5">
+                    <a href="../../demo6/dist/account/overview.html" className="menu-link px-5">
+                      Mi perfil
+                    </a>
+                  </div>
 
 
 
-    <div className="separator my-2" />
+                  <div
+                    className="menu-item px-5"
+                    data-kt-menu-trigger="hover"
+                    data-kt-menu-placement="left-start"
+                    data-kt-menu-flip="bottom, top"
+                  >
 
 
 
-    <div className="menu-item px-5">
-      <a
-       
-        className="menu-link px-5"
-      >
-        Cerrar Sesión
-      </a>
-    </div>
-  </div>
-</div>
+                  </div>
+
+
+
+                  <div className="separator my-2" />
+
+
+
+                  <div className="menu-item px-5">
+                    <a
+
+                      className="menu-link px-5"
+                    >
+                      Cerrar Sesión
+                    </a>
+                  </div>
+                </div>
+              </div>
 
             </div>
           </div>
@@ -261,12 +273,12 @@ export const LayoutMain = () => {
             <div className="text-dark order-2 order-md-1">
               <span className="text-muted fw-bold me-1">{new Date().getFullYear()}©</span>
               <a
-                href="https://keenthemes.com"
+
                 target="_blank"
                 rel="noreferrer"
                 className="text-gray-800 text-hover-primary"
               >
-                Keenthemes
+                Desarrollado por
               </a>
             </div>
           </div>

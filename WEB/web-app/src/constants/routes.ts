@@ -2,7 +2,7 @@ export const ROUTES = {
     HOME: "/home",
     ABOUT: "/about",
     STATISTICS: "/statistics",
-    CHAT_AI: "/chat-ai",
+    CHAT_AI: "/chat",
     CONTACT: "/contact",
     SERVICES: "/services",
     BLOG: "/blog",
@@ -15,6 +15,8 @@ export const ROUTES = {
     HELP: "/help",
     TERMS: "/terms",
     PRIVACY: "/privacy",
+    NEGOCIO: "/negocio",
+    MONITOR: "/monitor",
     NOT_FOUND: "*", // Ruta para manejar páginas no encontradas
 } as const;
 

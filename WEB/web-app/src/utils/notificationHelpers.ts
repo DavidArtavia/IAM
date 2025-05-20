@@ -5,13 +5,13 @@ export class notificationHelpers {
         toastr.options = {
             "closeButton": false,
             "debug": false,
-            "newestOnTop": false,
-            "progressBar": false,
+            "newestOnTop": true,
+            "progressBar": true,
             "positionClass": "toast-top-right",
-            "preventDuplicates": false,
+            "preventDuplicates": true,
             "onclick": null,
-            "showDuration": "400",
-            "hideDuration": "2000",
+            "showDuration": "300",
+            "hideDuration": "1000",
             "timeOut": "5000",
             "extendedTimeOut": "1000",
             "showEasing": "swing",
@@ -19,22 +19,22 @@ export class notificationHelpers {
             "showMethod": "fadeIn",
             "hideMethod": "fadeOut"
         };
-        
+
     }
 
     static errorAlert(mensaje: string) {
         // @ts-expect-error - Función nativa
         toastr.error(mensaje, "Error");
     }
-        static infoAlert(mensaje: string) {
+    static infoAlert(mensaje: string) {
         // @ts-expect-error - Función nativa
         toastr.info(mensaje, "Información");
     }
-        static warningAlert(mensaje: string) {
+    static warningAlert(mensaje: string) {
         // @ts-expect-error - Función nativa
         toastr.warning(mensaje, "Advertencia");
     }
-        static successAlert(mensaje: string) {
+    static successAlert(mensaje: string) {
         // @ts-expect-error - Función nativa
         toastr.success(mensaje, "Correcto");
     }
