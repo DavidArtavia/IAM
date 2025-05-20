@@ -15,16 +15,16 @@ export const Login = () => {
   const navigate = useNavigate();
 
   //Eventos
-  function handleOnClick() { validarDatosLogin() }
+    const handleOnClick = () => { validarDatosLogin() }
 
   //Métodos
-  function validarDatosLogin() {
+  const validarDatosLogin = () => {
     if (usuarioValidator.validarDatosLogin(usuario)) {
       autenticarUsuario()
     }
   }
 
-  function autenticarUsuario() {
+  const autenticarUsuario = () => {
     setCargando(true);
     usuarioService.autenticarUsuario(usuario).subscribe({
       next: (result) => procesarRespuesta(result as DTO_Respuesta),
@@ -34,7 +34,7 @@ export const Login = () => {
 
   }
 
-  function procesarRespuesta(respuesta: DTO_Respuesta) {
+  const procesarRespuesta = (respuesta: DTO_Respuesta) => {
     if (respuesta.tipoRespuesta) {
       const user = respuesta.resultado[0] as DTO_Usuario
       setUsuario(user);
@@ -43,7 +43,7 @@ export const Login = () => {
       notificationHelpers.successAlert(`Hola ${user.nombreUsuario + " " + user.apellido}, bienvenido de nuevo 👋`)
       const lastPath = localStorage.getItem("lastPath") || ROUTES.HOME;
       navigate(ROUTES.HOME);
-      navigate(lastPath, { replace: true});
+      navigate(lastPath, { replace: true });
     } else {
       //Controlamos el error del sistema
       errorHelpers.systemError(respuesta);

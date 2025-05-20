@@ -1,6 +1,8 @@
 // LayoutMain.tsx
 import { useEffect, useRef } from "react";
 import { Outlet } from "react-router-dom";
+import { ROUTES } from "@/constants";
+import { Link } from "react-router-dom";
 import "./LayoutMain.css";
 
 declare global {
@@ -49,7 +51,7 @@ export const LayoutMain = () => {
       >
         <div className="aside-logo py-8" id="kt_aside_logo">
           <a href="/" className="d-flex align-items-center">
-            <img alt="Logo"className="h-45px logo"  src="/src/assets/media/logos/logo-demo-6.svg" />
+            <img alt="Logo" className="h-45px logo" src="src/assets/media/logos/logo-demo-6.svg" />
           </a>
         </div>
 
@@ -69,19 +71,41 @@ export const LayoutMain = () => {
               data-kt-menu="true"
             >
               <div className="menu-item py-2">
-                <a
-                  className="menu-link active menu-center"
-                  href="/"
-                  data-bs-trigger="hover"
+                <Link to={ROUTES.HOME} className="menu-link active menu-center" data-bs-trigger="hover"
                   data-bs-dismiss="click"
-                  data-bs-placement="right"
-                >
+                  data-bs-placement="right">
                   <span className="menu-icon me-0">
                     <i className="bi bi-house fs-2" />
                   </span>
                   <span className="menu-title">Home</span>
-                </a>
+
+                </Link>
               </div>
+
+              <div className="menu-item py-2">
+                <Link to={ROUTES.CHAT_AI} className="menu-link menu-center" data-bs-trigger="hover"
+                  data-bs-dismiss="click"
+                  data-bs-placement="right">
+                  <span className="menu-icon me-0">
+                    <i className="bi bi-chat-left fs-2" />
+                  </span>
+                  <span className="menu-title">Chat</span>
+
+                </Link>
+              </div>
+
+              <div className="menu-item py-2">
+                <Link to={ROUTES.CHAT_AI} className="menu-link menu-center" data-bs-trigger="hover"
+                  data-bs-dismiss="click"
+                  data-bs-placement="right">
+                  <span className="menu-icon me-0">
+                    <i className="bi bi-briefcase fs-2" />
+                  </span>
+                  <span className="menu-title">Negocio</span>
+
+                </Link>
+              </div>
+
             </div>
           </div>
         </div>
@@ -102,52 +126,126 @@ export const LayoutMain = () => {
                 type="button"
               >
                 <span className="svg-icon svg-icon-2x mt-1">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-            >
-              <path
-                d="M21 7H3C2.4 7 2 6.6 2 6V4C2 3.4 2.4 3 3 3H21C21.6 3 22 3.4 22 4V6C22 6.6 21.6 7 21 7Z"
-                fill="black"
-              />
-              <path
-                opacity="0.3"
-                d="M21 14H3C2.4 14 2 13.6 2 13V11C2 10.4 2.4 10 3 10H21C21.6 10 22 10.4 22 11V13C22 13.6 21.6 14 21 14ZM22 20V18C22 17.4 21.6 17 21 17H3C2.4 17 2 17.4 2 18V20C2 20.6 2.4 21 3 21H21C21.6 21 22 20.6 22 20Z"
-                fill="black"
-              />
-            </svg>
-          </span>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                  >
+                    <path
+                      d="M21 7H3C2.4 7 2 6.6 2 6V4C2 3.4 2.4 3 3 3H21C21.6 3 22 3.4 22 4V6C22 6.6 21.6 7 21 7Z"
+                      fill="black"
+                    />
+                    <path
+                      opacity="0.3"
+                      d="M21 14H3C2.4 14 2 13.6 2 13V11C2 10.4 2.4 10 3 10H21C21.6 10 22 10.4 22 11V13C22 13.6 21.6 14 21 14ZM22 20V18C22 17.4 21.6 17 21 17H3C2.4 17 2 17.4 2 18V20C2 20.6 2.4 21 3 21H21C21.6 21 22 20.6 22 20Z"
+                      fill="black"
+                    />
+                  </svg>
+                </span>
               </button>
             </div>
 
             {/* logo móvil */}
             <div className="d-flex align-items-center flex-grow-1 flex-lg-grow-0">
               <a href="/" className="d-lg-none">
-                <img alt="Logo" className="h-30px" src="/src/assets/media/logos/logo-2.svg" />
+                <img alt="Logo" className="h-30px" src="src/assets/media/logos/logo-2.svg" />
               </a>
             </div>
 
             <div className="d-flex align-items-stretch justify-content-between flex-lg-grow-1">
               <div className="d-flex align-items-stretch" id="kt_header_nav" />
-              <div className="d-flex align-items-stretch flex-shrink-0">
-                <div className="d-flex align-items-center ms-1 ms-lg-3">
-                  <div
-                    className="cursor-pointer symbol symbol-30px symbol-md-40px"
-                    data-kt-menu-trigger="click"
-                    data-kt-menu-attach="parent"
-                    data-kt-menu-placement="bottom-end"
-                    data-kt-menu-flip="bottom"
-                  >
-                    <img
-                      src="/src/assets/media/avatars/150-26.jpg"
-                      alt="avatar"
-                    />
-                  </div>
-                </div>
-              </div>
+              
+              <div
+  className="d-flex align-items-center ms-1 ms-lg-3"
+  id="kt_header_user_menu_toggle"
+>
+  <div
+    className="cursor-pointer symbol symbol-30px symbol-md-40px show menu-dropdown"
+    data-kt-menu-trigger="click"
+    data-kt-menu-attach="parent"
+    data-kt-menu-placement="bottom-end"
+    data-kt-menu-flip="bottom"
+  >
+    {/* <img src="src/assets/media/avatars/150-26.jpg" alt="metronic" /> */}
+    <i className="bi bi-person-fill fs-1"></i>
+  </div>
+
+  <div
+    className="menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-gray-800 menu-state-bg menu-state-primary fw-bold py-4 fs-6 w-275px show"
+    data-kt-menu="true"
+    data-popper-placement="bottom-end"
+    style={{
+      zIndex: 105,
+      position: "fixed",
+      inset: "0 auto auto 0",
+      margin: 0,
+      transform: "translate(1382px, 65px)",
+    }}
+  >
+    <div className="menu-item px-3">
+      <div className="menu-content d-flex align-items-center px-3">
+        <div className="symbol symbol-50px me-5">
+          <img
+            alt="Logo"
+            src="src/assets/media/avatars/150-26.jpg"
+          />
+        </div>
+
+        <div className="d-flex flex-column">
+          <div className="fw-bolder d-flex align-items-center fs-5">
+            Danny Cantillano
+           
+          </div>
+          <a
+          
+            className="fw-bold text-muted text-hover-primary fs-7"
+          >
+            admin@gmail.com
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <div className="separator my-2" />
+
+    <div className="menu-item px-5">
+      <a href="../../demo6/dist/account/overview.html" className="menu-link px-5">
+        Mi perfil
+      </a>
+    </div>
+
+
+
+    <div
+      className="menu-item px-5"
+      data-kt-menu-trigger="hover"
+      data-kt-menu-placement="left-start"
+      data-kt-menu-flip="bottom, top"
+    >
+ 
+
+   
+    </div>
+
+
+
+    <div className="separator my-2" />
+
+
+
+    <div className="menu-item px-5">
+      <a
+       
+        className="menu-link px-5"
+      >
+        Cerrar Sesión
+      </a>
+    </div>
+  </div>
+</div>
+
             </div>
           </div>
         </div>

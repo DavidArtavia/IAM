@@ -15,16 +15,16 @@ export const SignUp = () => {
   const navigate = useNavigate();
 
   //Eventos
-  function handleOnClick() { validarDatosRegistroUsuario() }
+  const handleOnClick = () => { validarDatosRegistroUsuario() }
 
   //Métodos
-  function validarDatosRegistroUsuario() {
+  const validarDatosRegistroUsuario = () => {
     if (usuarioValidator.validarDatosRegistroUsuario(usuario, confirmacionPass)) {
       registrarUsuario()
     }
   }
 
-  function registrarUsuario() {
+  const registrarUsuario = () => {
     setCargando(true);
     usuarioService.registrarUsuario(usuario).subscribe({
       next: (result) => procesarRespuesta(result as DTO_Respuesta),
@@ -33,8 +33,7 @@ export const SignUp = () => {
     });
   }
 
-
-  function procesarRespuesta(respuesta: DTO_Respuesta) {
+  const procesarRespuesta = (respuesta: DTO_Respuesta) => {
     if (respuesta.tipoRespuesta) {
       notificationHelpers.successAlert(respuesta.mensaje)
       const lastPath = localStorage.getItem("lastPath") || ROUTES.HOME;
