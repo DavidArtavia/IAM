@@ -1,8 +1,8 @@
 // src/hooks/useAuthCheck.ts
 import { useContext, useEffect, useState } from "react";
-import {api} from "@/api";
-import { AuthContext } from "@/context";
-import { API_ENDPOINTS } from "@/constants";
+import api from "@/api/api";
+import { AuthContext } from "@/context/AuthContext";
+import { API_ENDPOINTS } from "@/constants/apiEndPoints";
 
 export const useAuthCheck = () => {
   const { setUser, logout } = useContext(AuthContext);

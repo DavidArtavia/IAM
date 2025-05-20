@@ -1,4 +1,4 @@
-import { DTO_Estado } from '@/models';
+import { DTO_Estado } from './DTO_Estado';
 
 export class DTO_Negocio {
     iD_Negocio: number = 0;

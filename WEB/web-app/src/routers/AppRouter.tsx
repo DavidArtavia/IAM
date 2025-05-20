@@ -1,9 +1,15 @@
 import { Routes, Route, Navigate } from "react-router-dom";
-import { ROUTES } from "@/constants";
-import { Home, LayoutMain } from "@/screens";
-import { Login, SignUp } from "@/auth";
-import { ChatAi } from "@/components";
-import { RedirectIfAuth, RequireAuth } from "@/utils";
+import { LayoutMain } from "@/components/Layout/LayoutMain";
+import { Statistics } from "@/components/Statistics/Statistics";
+import { ROUTES } from "@/constants/routes";
+import { Home } from "@/screens/Home/Home";
+import { Login } from "@/screens/Login/Login";
+import { SignUp } from "@/screens/SignUp/SignUp";
+
+import RedirectIfAuth from "@/utils/RedirectIfAuth";
+import RequireAuth from "@/utils/RequireAuth ";
+import ChatAi from "@/components/ChatAi/ChatAi";
+
 export const AppRouter = () => {
   return (
     <Routes>
@@ -21,6 +27,7 @@ export const AppRouter = () => {
         <Route element={<LayoutMain />}>
           <Route path={ROUTES.CHAT_AI} element={<ChatAi />} />
           <Route path={ROUTES.HOME} element={<Home />} />
+          <Route path={ROUTES.STATISTICS} element={<Statistics />} />
         </Route>
       </Route>
 

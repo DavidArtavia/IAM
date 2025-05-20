@@ -1,4 +1,5 @@
-import { DTO_Estado, DTO_Rol } from '@/models';
+import { DTO_Estado } from "./DTO_Estado";
+import { DTO_Rol } from "./DTO_Rol";
 
 export class DTO_Usuario {
     idUsuario: number = 0;

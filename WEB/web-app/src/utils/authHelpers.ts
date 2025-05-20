@@ -1,5 +1,6 @@
+// src/utils/authHelpers.ts
 
-import { ROUTES } from "@/constants";
+import { ROUTES } from "@/constants/routes";
 
 export const logoutUser = () => {
     localStorage.removeItem("accesToken");

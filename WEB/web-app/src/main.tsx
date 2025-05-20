@@ -1,6 +1,6 @@
 // import React from "react";
 import { createRoot } from "react-dom/client";
-import "./styles.css";
+import "./index.css";
 import "antd/dist/reset.css";
 import { App } from "@/App";
 import { NotificationProvider } from "./context/NotificationContext";

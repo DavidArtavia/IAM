@@ -13,13 +13,13 @@ import { UserOutlined, LockOutlined } from "@ant-design/icons";
 import { useState, useContext } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { AuthContext } from "@/context/AuthContext";
-import { ROUTES } from "@/constants";
-import { LoadingModal } from "@/components";
-import { useNotificationContext } from "@/context";
+import { ROUTES } from "@/constants/routes";
+import { LoadingModal } from "@/components/Modals/LoadingModal/LoadingModal";
+import { useNotificationContext } from "@/context/NotificationContext";
 import TallerLogo from "@/assets/media/logos/TallerLogo.png";
-import { api } from "@/api";
-import { API_ENDPOINTS } from "@/constants";
-import { DTO_Usuario } from "@/models";
+import api from "@/api/api";
+import { API_ENDPOINTS } from "@/constants/apiEndPoints";
+import { DTO_Usuario } from "@/models/DTO_Usuario";
 
 const { Title, Text } = Typography;
 
@@ -68,8 +68,6 @@ export const Login = () => {
         const accesToken = response.data.resultado[1].accesToken; 
 
         localStorage.setItem("accesToken", accesToken);
-       const lastPath = localStorage.getItem("lastPath") || ROUTES.HOME;
-
         login(user, accesToken);
         notify.success({
           message: mensage,
@@ -79,9 +77,7 @@ export const Login = () => {
           placement: "topRight",
         });
         // navigate(ROUTES.HOME);
-        navigate(lastPath, {
-        replace: true
-        });
+        navigate(ROUTES.CHAT_AI);
       } else {
         setButtonLoading(false);
         setLoadingModal(false);

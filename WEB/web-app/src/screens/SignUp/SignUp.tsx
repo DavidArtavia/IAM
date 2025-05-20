@@ -1,12 +1,13 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
 import { Button, Form, Input, Typography, Col, Row, Divider } from "antd";
 import TallerLogo from "@/assets/media/logos/TallerLogo.png";
-import {api} from "@/api";
-import { DTO_Usuario } from "@/models";
-import { validatorNotify } from "@/utils";
-import { useNotificationContext } from "@/context";
-import { API_ENDPOINTS, ROUTES } from "@/constants";
+import { Link, useNavigate } from "react-router-dom";
+import { useNotificationContext } from "@/context/NotificationContext";
+import { ROUTES } from "@/constants/routes";
+import api from "@/api/api";
+import { API_ENDPOINTS } from "@/constants/apiEndPoints";
+import { DTO_Usuario } from "@/models/DTO_Usuario";
+import { validatorNotify } from "@/utils/validators";
 import "./SignUp.css";
 
 const { Title, Text } = Typography;

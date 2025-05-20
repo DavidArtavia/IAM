@@ -1,13 +1,14 @@
 // RedirectIfAuth.tsx
 import { Navigate, Outlet } from "react-router-dom";
-import { ROUTES } from "@/constants";
-import { LoadingModal } from "@/components";
-import { useAuthCheck } from "@/hooks";
+import { ROUTES } from "@/constants/routes";
+import { LoadingModal } from "@/components/Modals/LoadingModal/LoadingModal";
+import { useAuthCheck } from "@/hooks/useAuthCheck";
 
-export const RedirectIfAuth = () => {
+const RedirectIfAuth = () => {
   const isAuth = useAuthCheck();
 
   if (isAuth === null) return <LoadingModal loadingMessage="Verificando..." />;
   return isAuth ? <Navigate to={ROUTES.HOME} replace /> : <Outlet />;
 };
 
+export default RedirectIfAuth;

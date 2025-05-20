@@ -1,6 +1,6 @@
 import { ReactNode, useState } from "react";
-import { AuthContext } from "@/context";
-import { DTO_Usuario } from "@/models";
+import { AuthContext } from "./AuthContext";
+import { DTO_Usuario } from "@/models/DTO_Usuario";
 
 type Props = {
   children: ReactNode;
