@@ -1,16 +1,19 @@
-import { Routes, Route, Navigate } from "react-router-dom";
-import { LayoutMain } from "@/components/Layout/LayoutMain";
-import { Statistics } from "@/components/Statistics/Statistics";
-import { ROUTES } from "@/constants/routes";
-import { Home } from "@/screens/Home/Home";
-import { Login } from "@/screens/Login/Login";
-import { SignUp } from "@/screens/SignUp/SignUp";
-
-import RedirectIfAuth from "@/utils/RedirectIfAuth";
-import RequireAuth from "@/utils/RequireAuth ";
-import ChatAi from "@/components/ChatAi/ChatAi";
-
+import { Routes, Route, Navigate, useLocation } from "react-router-dom";
+import { ROUTES } from "@/constants";
+import { Home, LayoutMain } from "@/screens";
+import { Login, SignUp } from "@/auth";
+import { ChatAi, Monitor, Negocio } from "@/components";
+import { RedirectIfAuth, RequireAuth } from "@/utils";
+import { useEffect } from "react";
 export const AppRouter = () => {
+const { pathname } = useLocation(); //ruta actual
+
+    useEffect(() => {
+       //activamos el cerrado automático del menu cuando está en 
+       // dimenciones pequeñas y cada vez que se cambie de ruta
+        document.querySelectorAll<HTMLElement>(".drawer-overlay").forEach((el) => el.click());
+    }, [pathname]);
+
   return (
     <Routes>
       {/* Redirige raíz a login */}
@@ -27,7 +30,8 @@ export const AppRouter = () => {
         <Route element={<LayoutMain />}>
           <Route path={ROUTES.CHAT_AI} element={<ChatAi />} />
           <Route path={ROUTES.HOME} element={<Home />} />
-          <Route path={ROUTES.STATISTICS} element={<Statistics />} />
+          <Route path={ROUTES.NEGOCIO} element={<Negocio />} />
+          <Route path={ROUTES.MONITOR} element={<Monitor />} />
         </Route>
       </Route>
 

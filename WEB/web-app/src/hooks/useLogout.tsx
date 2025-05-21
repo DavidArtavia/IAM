@@ -1,13 +1,12 @@
 import { useContext } from "react";
 import { useNavigate } from "react-router-dom";
 // import api from "../api/api";
-import { AuthContext } from "@/context/AuthContext";
-import { ROUTES } from "@/constants/routes";
-import { useNotificationContext } from "@/context/NotificationContext";
+import { AuthContext } from "@/context";
+import { ROUTES } from "@/constants";
+import { notificationHelpers } from "@/utils";
 
 export const useLogout = () => {
   const { setUser } = useContext(AuthContext);
-  const { notify } = useNotificationContext();
   const navigate = useNavigate();
 
   const logout = async () => {
@@ -21,19 +20,12 @@ export const useLogout = () => {
 
       // Redirige a login
       navigate(ROUTES.LOGIN, { replace: true });
+      notificationHelpers.successAlert("Se cerró la sesión correctamente.");
 
-      notify.success({
-        message: "Sesión cerrada",
-        description: "Se cerró la sesión correctamente",
-        placement: "bottomRight",
-      });
     } catch (error) {
-      notify.error({
-        message: "Error al cerrar sesión",
-        description:
-          error instanceof Error ? error.message : "Error inesperado",
-        placement: "bottomRight",
-      });
+      console.log(error)
+      notificationHelpers.errorAlert("Error al cerrar sesión.");
+
     }
   };
 
