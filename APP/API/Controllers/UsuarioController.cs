@@ -67,10 +67,10 @@ namespace API.Controllers
                     usuario = (DTO_Usuario)respuesta.Resultado[0];
 
                     //Creamos el accesToken
-                    String accesToken = uTL_Cipher.generarAccessToken((DTO_Usuario)respuesta.Resultado[0]);
+                    String accesToken = uTL_Cipher.generarAccessToken(usuario);
                     sesion.RefreshToken = Guid.NewGuid().ToString();
                     sesion.ID_Usuario = usuario.ID_Usuario;
-                    respuesta.Resultado.Add(new { accesToken = accesToken });
+                    respuesta.Resultado.Add(new { accesToken });
                     //Guardar el refreshToken y obtenemos la respuesta
                     DTO_Respuesta respuestaRefreshToken = bLL_Sesion.guardarRefreshToken(sesion);
                     if (respuestaRefreshToken.TipoRespuesta)
@@ -112,7 +112,8 @@ namespace API.Controllers
         public DTO_Respuesta obtenerUsuarioPorId()
         {
             DTO_Usuario usuario = new DTO_Usuario();
-            usuario.ID_Usuario = usuario.ID_Usuario = Convert.ToInt32(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+            //todo: recuperar el id del usuario desde el token para el crear negocio
+            usuario.ID_Usuario = Convert.ToInt32(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
             return bLL_Usuario.obtenerUsuarioPorId(usuario);
         }
 
