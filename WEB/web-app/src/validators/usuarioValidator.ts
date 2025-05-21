@@ -24,7 +24,6 @@ export class usuarioValidator {
     static validarDatosRegistroUsuario(usuario: DTO_Usuario, confirmacionPass: string): boolean {
         let estadoValidacion: boolean = false;
         const validateEmail = (email: string): boolean => /\S+@\S+\.\S+/.test(email);
-        console.log(usuario)
         if (!usuario.correoUsuario || !usuario.pass || !usuario.apellido || !usuario.nombreUsuario || !usuario.telefonoUsuario || !confirmacionPass) {
             notificationHelpers.warningAlert("Por favor, completa todos los campos.");
         } else if (!validateEmail(usuario.correoUsuario)) {

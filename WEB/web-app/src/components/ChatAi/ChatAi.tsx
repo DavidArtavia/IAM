@@ -27,7 +27,6 @@ export const ChatAi = () => {
   //metodo generico para procesar lo que envía el server
   const procesarRespuesta = (respuesta: DTO_Respuesta) => {
     if (respuesta.tipoRespuesta) {
-      console.log(respuesta);
       return respuesta.resultado[0]
     } else {
       //Controlamos el error del sistema
@@ -57,7 +56,7 @@ export const ChatAi = () => {
     chatService.obtenerMensajesPorChat(chat).subscribe({
       next: (result) => setMessages(procesarRespuesta(result as DTO_Respuesta) as Array<DTO_Mensaje>),
       error: (err) => errorHelpers.serverError(err), //controlamos el error del servidor
-      complete: () => { console.log(businesses) }
+      complete: () => {  }
     });
   }
 
@@ -74,7 +73,7 @@ export const ChatAi = () => {
     chatService.enviarMensajeTexto(userMsg).subscribe({
       next: (result) => setMessages((m) => [...m, procesarRespuesta(result as DTO_Respuesta) as DTO_Mensaje]),
       error: (err) => errorHelpers.serverError(err), //controlamos el error del servidor
-      complete: () => { console.log(businesses) }
+      complete: () => { }
     });
   };
 
@@ -91,7 +90,7 @@ export const ChatAi = () => {
     chatService.enviarMensajeAudio(userMsg).subscribe({
       next: (result) => setMessages((m) => [...m, procesarRespuesta(result as DTO_Respuesta) as DTO_Mensaje]),
       error: (err) => errorHelpers.serverError(err), //controlamos el error del servidor
-      complete: () => { console.log(businesses) }
+      complete: () => {  }
     });
   };
 
