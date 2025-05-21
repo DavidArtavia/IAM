@@ -1,302 +1,212 @@
+import { useUsuarioContext } from "@/context";
+import { usuarioValidator } from "@/validators/usuarioValidator";
+import { usuarioService } from "@/services/usuario.service";
+import { DTO_Respuesta } from "@/models";
+import { errorHelpers, notificationHelpers } from "@/utils";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Button, Form, Input, Typography, Col, Row, Divider } from "antd";
-import TallerLogo from "@/assets/media/logos/TallerLogo.png";
-import {api} from "@/api";
-import { DTO_Usuario } from "@/models";
-import { validatorNotify } from "@/utils";
-import { useNotificationContext } from "@/context";
-import { API_ENDPOINTS, ROUTES } from "@/constants";
-import "./SignUp.css";
-
-const { Title, Text } = Typography;
+import { ROUTES } from "@/constants";
 
 export const SignUp = () => {
-  const [form] = Form.useForm();
-  const { notify } = useNotificationContext();
+  //useContext/useStates
+  const [usuario, setUsuario] = useUsuarioContext();
+  const [cargando, setCargando] = useState<boolean>(false);
+  const [confirmacionPass, setconfirmacionPass] = useState<string>("");
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(false);
-  const dto_usuario: DTO_Usuario = new DTO_Usuario();
 
-  const sleep = (ms: number) =>
-    new Promise((resolve) => setTimeout(resolve, ms));
+  //Eventos
+  const handleOnClick = () => { validarDatosRegistroUsuario() }
 
-  const onFinish = async (values: DTO_Usuario) => {
-    try {
-      validatorNotify(values);
-
-      // Se crean vacíos por de mantener la estructura de la API
-      values.estado = { iD_Estado: 0, nombre: "", tabla: "" };
-      values.rol = {
-        iD_Rol: 0,
-        iD_Usuario: 0,
-        nombreRol: "",
-        descripcionRol: "",
-      };
-
-      setLoading(true);
-      const response = await api.post(API_ENDPOINTS.USERS.CREATE, values);
-
-      if (response.data.codigo === "200") {
-        notify.success({
-          message: "Éxito",
-          description: response.data.mensaje,
-          placement: "bottomRight",
-        });
-        await sleep(2000);
-        setLoading(false);
-        navigate(ROUTES.LOGIN);
-      } else {
-        notify.warning({
-          message: "Advertencia",
-          description: response.data.mensaje,
-          placement: "bottomRight",
-        });
-        setLoading(false);
-      }
-    } catch (error) {
-      if (error instanceof Error) {
-        const errorMessage = error.message;
-
-        if (errorMessage.startsWith("ValidationError:")) {
-          const cleanMessage = errorMessage.replace("ValidationError: ", "");
-
-          notify.error({
-            message: "Error de Validación",
-            description: cleanMessage,
-            placement: "bottomRight",
-          });
-        } else {
-          console.error("Error al crear usuario:", error);
-          notify.error({
-            message: "Error",
-            description: "Error al conectar con el servidor.",
-            placement: "bottomRight",
-          });
-        }
-      } else {
-        console.error("Error desconocido:", error);
-        notify.error({
-          message: "Error",
-          description: "Ha ocurrido un error inesperado.",
-          placement: "bottomRight",
-        });
-      }
-      setLoading(false);
+  //Métodos
+  const validarDatosRegistroUsuario = () => {
+    if (usuarioValidator.validarDatosRegistroUsuario(usuario, confirmacionPass)) {
+      registrarUsuario()
     }
-  };
+  }
+
+  const registrarUsuario = () => {
+    setCargando(true);
+    usuarioService.registrarUsuario(usuario).subscribe({
+      next: (result) => procesarRespuesta(result as DTO_Respuesta),
+      error: (err) => errorHelpers.serverError(err), //controlamos el error del servidor
+      complete: () => { setCargando(false); }
+    });
+  }
+
+  const procesarRespuesta = (respuesta: DTO_Respuesta) => {
+    if (respuesta.tipoRespuesta) {
+      notificationHelpers.successAlert(respuesta.mensaje)
+      const lastPath = localStorage.getItem("lastPath") || ROUTES.HOME;
+      navigate(ROUTES.LOGIN);
+      navigate(lastPath, { replace: true });
+    } else {
+      //Controlamos el error del sistema
+      errorHelpers.systemError(respuesta);
+    }
+  }
 
   return (
-    <Row
-      justify="center"
-      align="middle"
-      style={{
-        minHeight: "100vh",
-        background: "linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)",
-      }}
-    >
-      <Col xs={22} sm={20} md={16} lg={12} xl={10}>
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            padding: "2rem",
-            background: "#fff",
-            borderRadius: "12px",
-            boxShadow: "0px 8px 24px rgba(0, 0, 0, 0.12)",
-          }}
-        >
-          {/* Logo y título */}
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              marginBottom: "1.5rem",
-            }}
-          >
+    <div className="d-flex flex-column flex-root">
+      <div
+        className="d-flex flex-column flex-column-fluid bgi-position-y-bottom position-x-center bgi-no-repeat bgi-size-contain bgi-attachment-fixed"
+        style={{
+          backgroundImage:
+            'url("src/assets/media/illustrations/sketchy-1/14.png")',
+        }}
+      >
+        <div className="d-flex flex-center flex-column flex-column-fluid p-10 pb-lg-20">
+          <a href="../../demo6/dist/index.html" className="mb-12">
             <img
               alt="Logo"
-              src={TallerLogo}
-              style={{
-                width: "80px",
-                maxHeight: "64px",
-                objectFit: "contain",
-                marginRight: "1rem",
-              }}
+              src="src/assets/media/logos/logo-1.svg"
+              className="h-40px"
             />
-            <span style={{ fontSize: "1.5rem", fontWeight: "bold" }}>
-              MAIK TALLER
-            </span>
-          </div>
+          </a>
 
-          <Title level={3} style={{ textAlign: "center", margin: 0 }}>
-            Registro de Usuario
-          </Title>
-
-          <Text
-            style={{
-              textAlign: "center",
-              marginTop: "0.5rem",
-              marginBottom: "0.5rem",
-              fontSize: "16px",
-              color: "#555",
-            }}
-          >
-            Complete el formulario para registrar un nuevo usuario
-          </Text>
-          <Divider style={{ margin: "1rem 0" }} />
-
-          <Form
-            form={form}
-            name="signUp"
-            layout="vertical"
-            onFinish={onFinish}
-            initialValues={dto_usuario}
-            style={{ width: "100%" }}
-            scrollToFirstError
-          >
-            <Row gutter={16}>
-              <Col xs={24} md={12}>
-                <Form.Item
-                  name="NombreUsuario"
-                  label="Nombre"
-                  rules={[
-                    {
-                      required: true,
-                      message: "Por favor, ingrese el nombre del usuario",
-                    },
-                  ]}
-                >
-                  <Input placeholder="Nombre Usuario" size="large" />
-                </Form.Item>
-              </Col>
-
-              <Col xs={24} md={12}>
-                <Form.Item
-                  name="Apellido"
-                  label="Apellidos"
-                  rules={[
-                    {
-                      required: true,
-                      message: "Por favor, ingrese el apellido del usuario",
-                    },
-                  ]}
-                >
-                  <Input placeholder="Apellidos" size="large" />
-                </Form.Item>
-              </Col>
-            </Row>
-
-            <Form.Item
-              name="TelefonoUsuario"
-              label="Teléfono"
-              rules={[
-                {
-                  required: true,
-                  message: "Por favor, ingrese el número de teléfono",
-                },
-                {
-                  len: 8,
-                  message: "El número debe tener exactamente 8 dígitos",
-                },
-              ]}
+          <div className="w-lg-600px bg-body rounded shadow-sm p-10 p-lg-15 mx-auto">
+            <form
+              className="form w-100 fv-plugins-bootstrap5 fv-plugins-framework"
+              noValidate
+              id="kt_sign_up_form"
             >
-              <Input
-                placeholder="Teléfono Usuario"
-                maxLength={8}
-                size="large"
-              />
-            </Form.Item>
+              <div className="mb-10 text-center">
+                <h1 className="text-dark mb-3">Crear cuenta</h1>
 
-            <Form.Item
-              name="CorreoUsuario"
-              label="Correo"
-              rules={[
-                {
-                  required: true,
-                  message: "Por favor, ingrese el correo electrónico",
-                },
-                { type: "email", message: "Correo no válido" },
-              ]}
-            >
-              <Input placeholder="Correo Usuario" size="large" />
-            </Form.Item>
+                <div className="text-gray-400 fw-bold fs-4">
+                  Ya tienes una cuenta?
+                  <Link to={ROUTES.LOGIN} className="link-primary fw-bolder">
+                    Iniciar sesión
+                  </Link>
 
-            <Form.Item
-              name="Pass"
-              label="Contraseña"
-              rules={[
-                { required: true, message: "Por favor, ingrese la contraseña" },
-              ]}
-              hasFeedback
-            >
-              <Input.Password placeholder="Contraseña" size="large" />
-            </Form.Item>
+                </div>
+              </div>
 
-            <Form.Item
-              name="ConfirmarContraseña"
-              label="Confirmar contraseña"
-              dependencies={["Pass"]}
-              hasFeedback
-              rules={[
-                {
-                  required: true,
-                  message: "Por favor, confirme su contraseña",
-                },
-                ({ getFieldValue }) => ({
-                  validator(_, value) {
-                    if (!value || getFieldValue("Pass") === value) {
-                      return Promise.resolve();
-                    }
-                    return Promise.reject(
-                      new Error("La contraseña que ingresó no coincide")
-                    );
-                  },
-                }),
-              ]}
-            >
-              <Input.Password placeholder="Confirmar Contraseña" size="large" />
-            </Form.Item>
+              <div className="row fv-row mb-7 fv-plugins-icon-container">
+                <div className="col-xl-6">
+                  <label className="form-label fw-bolder text-dark fs-6">
+                    Nombre
+                  </label>
+                  <input
+                    value={usuario.nombreUsuario}
+                    onChange={(e) => setUsuario({ nombreUsuario: e.target.value })}
+                    className="form-control form-control-lg form-control-solid"
+                    type="text"
+                    name="first-name"
+                    autoComplete="off"
+                  />
+                  <div className="fv-plugins-message-container invalid-feedback" />
+                </div>
 
-            {/* Campos no visibles para Estado y Rol */}
-            <Form.Item name="Estado" hidden>
-              <Input type="hidden" />
-            </Form.Item>
-            <Form.Item name="Rol" hidden>
-              <Input type="hidden" />
-            </Form.Item>
+                <div className="col-xl-6">
+                  <label className="form-label fw-bolder text-dark fs-6">
+                    Apellido
+                  </label>
+                  <input
+                    value={usuario.apellido}
+                    onChange={(e) => setUsuario({ apellido: e.target.value })}
+                    className="form-control form-control-lg form-control-solid"
+                    type="text"
+                    name="last-name"
+                    autoComplete="off"
+                  />
+                  <div className="fv-plugins-message-container invalid-feedback" />
+                </div>
+              </div>
 
-            <Form.Item>
-              <Button
-                type="primary"
-                htmlType="submit"
-                loading={loading}
-                size="large"
-                style={{
-                  width: "100%",
-                  height: "48px",
-                  borderRadius: "6px",
-                  fontWeight: 500,
-                  fontSize: "16px",
-                  marginTop: "8px",
-                }}
+              <div className="fv-row mb-7 fv-plugins-icon-container">
+                <label className="form-label fw-bolder text-dark fs-6">
+                  Correo
+                </label>
+                <input
+                  value={usuario.correoUsuario}
+                  onChange={(e) => setUsuario({ correoUsuario: e.target.value })}
+                  className="form-control form-control-lg form-control-solid"
+                  type="email"
+                  name="email"
+                  autoComplete="off"
+                />
+                <div className="fv-plugins-message-container invalid-feedback" />
+              </div>
+
+              <div className="fv-row mb-7 fv-plugins-icon-container">
+                <label className="form-label fw-bolder text-dark fs-6">
+                  Teléfono
+                </label>
+                <input
+                  value={usuario.telefonoUsuario}
+                  onChange={(e) => setUsuario({ telefonoUsuario: e.target.value })}
+                  className="form-control form-control-lg form-control-solid"
+                  type="email"
+                  name="email"
+                  autoComplete="off"
+                />
+                <div className="fv-plugins-message-container invalid-feedback" />
+              </div>
+
+              <div
+                className="mb-10 fv-row fv-plugins-icon-container"
+                data-kt-password-meter="true"
               >
-                Registrar
-              </Button>
-            </Form.Item>
+                <div className="mb-1">
+                  <label className="form-label fw-bolder text-dark fs-6">
+                    Contraseña
+                  </label>
 
-            <div style={{ textAlign: "center", marginTop: "16px" }}>
-              <Text type="secondary">
-                ¿Ya tienes una cuenta?{" "}
-                <Link to={ROUTES.LOGIN} style={{ fontWeight: 500 }}>
-                  Iniciar sesión
-                </Link>
-              </Text>
-            </div>
-          </Form>
+                  <div className="position-relative mb-3">
+                    <input
+                      value={usuario.pass}
+                      onChange={(e) => setUsuario({ pass: e.target.value })}
+                      className="form-control form-control-lg form-control-solid"
+                      type="password"
+                      name="password"
+                      autoComplete="off"
+                    />
+                    <span
+                      className="btn btn-sm btn-icon position-absolute translate-middle top-50 end-0 me-n2"
+                      data-kt-password-meter-control="visibility"
+                    >
+                      <i className="bi bi-eye-slash fs-2" />
+                      <i className="bi bi-eye fs-2 d-none" />
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="fv-row mb-5 fv-plugins-icon-container">
+                <label className="form-label fw-bolder text-dark fs-6">
+                  Confirmar contraseña
+                </label>
+                <input
+                  value={confirmacionPass}
+                  onChange={(e) => setconfirmacionPass(e.target.value)}
+
+                  className="form-control form-control-lg form-control-solid"
+                  type="password"
+                  name="confirm-password"
+                  autoComplete="off"
+                />
+                <div className="fv-plugins-message-container invalid-feedback" />
+              </div>
+
+              <div className="text-center">
+                <button
+                  onClick={handleOnClick}
+                  data-kt-indicator={cargando ? "on" : "off"}
+                  type="button"
+                  id="kt_sign_up_submit"
+                  className="btn btn-lg btn-primary"
+                >
+                  <span className="indicator-label">Crear cuenta</span>
+                  <span className="indicator-progress">
+                    Por favor espere…
+                    <span className="spinner-border spinner-border-sm align-middle ms-2" />
+                  </span>
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
-      </Col>
-    </Row>
+      </div>
+    </div>
   );
 };
