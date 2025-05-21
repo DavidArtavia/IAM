@@ -3,7 +3,7 @@ import { STATUS } from "@/constants/status";
 import { logoutUser } from "@/utils/authHelpers";
 import axios from "axios";
 
-const api = axios.create({
+export const api = axios.create({
   baseURL: API_ENDPOINTS.BASE_URL,
   withCredentials: true,
   timeout: 10000,
@@ -40,5 +40,3 @@ api.interceptors.response.use(
   }
 );
 
-
-export default api;

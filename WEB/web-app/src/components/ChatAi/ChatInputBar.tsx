@@ -10,7 +10,7 @@ interface Props {
   onSendAudio: (blob: Blob) => void;
 }
 
-const ChatInputBar = ({ disabled, onSendText, onSendAudio }: Props) => {
+export const ChatInputBar = ({ disabled, onSendText, onSendAudio }: Props) => {
   const [text, setText] = useState("");
   const [recording, setRec] = useState(false);
   const [recorder, setRecObj] = useState<MediaRecorder>();
@@ -93,4 +93,4 @@ const ChatInputBar = ({ disabled, onSendText, onSendAudio }: Props) => {
   );
 };
 
-export default ChatInputBar;
+
