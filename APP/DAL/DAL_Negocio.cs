@@ -7,11 +7,62 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using UTL;
+using System.Text.Json;
 
 namespace DAL
 {
-    public class DAL_Negocio: DAL_Conexion
+    public class DAL_Negocio : DAL_Conexion
     {
+
+        public DTO_Respuesta registrarNegocio(DTO_Negocio negocio)
+        {
+            DTO_Respuesta respuesta = new();
+
+            try
+            {
+                string query = "CORE.SP_registrarNegocio";
+                string json = JsonSerializer.Serialize(negocio.ReferenciaJSON);
+
+                using (SqlCommand sqlcmd = new(query, this.GetObjConexion()))
+                {
+                    sqlcmd.CommandType = CommandType.StoredProcedure;
+
+                    sqlcmd.Parameters.Add("@ID_Usuario", SqlDbType.Int).Value = negocio.ID_Usuario;
+                    sqlcmd.Parameters.Add("@NombreNegocio", SqlDbType.VarChar).Value = negocio.NombreNegocio;
+                    sqlcmd.Parameters.Add("@Descripcion", SqlDbType.NVarChar).Value = negocio.Descripcion;
+                    sqlcmd.Parameters.Add("@Direccion", SqlDbType.NVarChar).Value = negocio.Direccion;
+                    sqlcmd.Parameters.Add("@TelefonoNegocio", SqlDbType.VarChar).Value = negocio.TelefonoNegocio;
+                    sqlcmd.Parameters.Add("@CorreoNegocio", SqlDbType.NVarChar).Value = negocio.CorreoNegocio;
+                    sqlcmd.Parameters.Add("@ReferenciaJSON", SqlDbType.NVarChar, -1).Value = json;
+
+                    foreach (SqlParameter param in sqlcmd.Parameters)
+                    {
+                        param.Direction = ParameterDirection.Input;
+                    }
+
+                    this.Open();
+
+                    using (SqlDataReader reader = sqlcmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            respuesta = manejarRespuesta(reader);
+                        }
+                    }
+                    return respuesta;
+                }
+            }
+            catch (Exception e)
+            {
+                this.Close();
+                throw e;
+            }
+            finally
+            {
+                this.Close();
+            }
+        }
+
         public DTO_Respuesta obtenerNegocios(DTO_Usuario usuario)
         {
             DTO_Respuesta respuesta = new DTO_Respuesta();
@@ -22,7 +73,7 @@ namespace DAL
 
                 string query = "CORE.SP_obtenerNegocios";
 
-                
+
                 using (SqlCommand sqlcmd = new SqlCommand(query, this.GetObjConexion()))
                 {
                     sqlcmd.CommandType = CommandType.StoredProcedure;
@@ -54,7 +105,7 @@ namespace DAL
                             negocio.ReferenciaJSON = new List<DTO_Param>();//UTL_DBHelper.ReadNullSafeString(reader["ReferenciaJSON"]);
                             negocio.Estado.ID_Estado = UTL_DBHelper.ReadNullSafeInt(reader["ID_Estado"]);
                             negocio.Estado.Nombre = UTL_DBHelper.ReadNullSafeString(reader["Nombre"]);
-                            
+
                             listaNegocios.Add(negocio);
 
                         }
@@ -77,6 +128,56 @@ namespace DAL
             {
                 this.Close();
                 throw e;  // Luego se guardan las ecepciones en un log
+            }
+            finally
+            {
+                this.Close();
+            }
+        }
+
+        public DTO_Respuesta actualizarNegocio(DTO_Negocio negocio)
+        {
+            DTO_Respuesta respuesta = new();
+
+            try
+            {
+                string query = "CORE.SP_actualizarNegocio";
+                string json = JsonSerializer.Serialize(negocio.ReferenciaJSON);
+
+                using (SqlCommand sqlcmd = new(query, this.GetObjConexion()))
+                {
+                    sqlcmd.CommandType = CommandType.StoredProcedure;
+
+                    sqlcmd.Parameters.Add("@ID_Negocio", SqlDbType.Int).Value = negocio.ID_Negocio;
+                    sqlcmd.Parameters.Add("@ID_Usuario", SqlDbType.Int).Value = negocio.ID_Usuario;
+                    sqlcmd.Parameters.Add("@NombreNegocio", SqlDbType.VarChar).Value = negocio.NombreNegocio;
+                    sqlcmd.Parameters.Add("@Descripcion", SqlDbType.NVarChar).Value = negocio.Descripcion;
+                    sqlcmd.Parameters.Add("@Direccion", SqlDbType.NVarChar).Value = negocio.Direccion;
+                    sqlcmd.Parameters.Add("@TelefonoNegocio", SqlDbType.VarChar).Value = negocio.TelefonoNegocio;
+                    sqlcmd.Parameters.Add("@CorreoNegocio", SqlDbType.NVarChar).Value = negocio.CorreoNegocio;
+                    sqlcmd.Parameters.Add("@ReferenciaJSON", SqlDbType.NVarChar, -1).Value = json;
+
+                    foreach (SqlParameter param in sqlcmd.Parameters)
+                    {
+                        param.Direction = ParameterDirection.Input;
+                    }
+
+                    this.Open();
+
+                    using (SqlDataReader reader = sqlcmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            respuesta = manejarRespuesta(reader);
+                        }
+                    }
+                    return respuesta;
+                }
+            }
+            catch (Exception e)
+            {
+                this.Close();
+                throw e;
             }
             finally
             {
