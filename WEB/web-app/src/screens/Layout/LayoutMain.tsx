@@ -77,7 +77,7 @@ export const LayoutMain = () => {
                   <span className="menu-icon me-0">
                     <i className="bi bi-house fs-2" />
                   </span>
-                  <span className="menu-title">Home</span>
+                  <span className="menu-title">Inicio</span>
 
                 </Link>
               </div>
@@ -124,7 +124,7 @@ export const LayoutMain = () => {
       </div>
 
       {/* WRAPPER */}
-      <div className="wrapper d-flex flex-column flex-row-fluid" id="kt_wrapper">
+      <div className="wrapper d-flex flex-column flex-row-fluid pt-0" id="kt_wrapper">
         {/* HEADER */}
         <div id="kt_header" className="header align-items-stretch">
           <div className="container-fluid d-flex align-items-stretch justify-content-between">
@@ -263,7 +263,7 @@ export const LayoutMain = () => {
         </div>
 
         {/* CONTENT */}
-        <div className="content d-flex flex-column flex-column-fluid" id="kt_content">
+        <div className="content d-flex flex-column flex-column-fluid mt-10" id="kt_content">
           <Outlet /> {/* aquí se renderizan las rutas hijas */}
         </div>
 
