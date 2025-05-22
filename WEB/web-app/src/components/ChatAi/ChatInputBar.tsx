@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-
+import Recorder from 'recorder-js';
 
 
 interface Props {
@@ -10,10 +10,13 @@ interface Props {
 
 export const ChatInputBar = ({ disabled, onSendText, onSendAudio }: Props) => {
   const [text, setText] = useState("");
-  const [recording, setRec] = useState(false);
-  const [recorder, setRecObj] = useState<MediaRecorder>();
-  const [chunks, setChunks] = useState<Blob[]>([]);
+  const [recording] = useState(false);
+
   const ref = useRef<HTMLTextAreaElement>(null);
+  const recorderRef = useRef<Recorder | null>(null);
+  const [isRecording, setIsRecording] = useState(false);
+
+  const [audioURL, setAudioURL] = useState<string | null>(null);
 
   useEffect(() => {
     ref.current?.focus();
@@ -26,23 +29,31 @@ export const ChatInputBar = ({ disabled, onSendText, onSendAudio }: Props) => {
     ref.current?.focus();
   };
 
-  const startRecording = async () => {
+   const startRecording = async () => {
+    // 1) Pedimos permisos y capturamos el stream de micrófono
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    const m = new MediaRecorder(stream);
-    m.ondataavailable = (e) => setChunks((c) => [...c, e.data]);
-    m.onstop = () => {
-      const blob = new Blob(chunks, { type: chunks[0].type });
-      onSendAudio(blob);
-      setChunks([]);
-    };
-    m.start();
-    setRecObj(m);
-    setRec(true);
+    // 2) Creamos AudioContext y Recorder
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+    const recorder = new Recorder(audioContext, { /* opcionales: bufferLen, numChannels… */ });
+    recorderRef.current = recorder;
+
+    // 3) Inicializamos y arrancamos
+    await recorder.init(stream);
+    recorder.start();
+    setIsRecording(true);
   };
 
-  const stopRecording = () => {
-    recorder?.stop();
-    setRec(false);
+  const stopRecording = async () => {
+    if (!recorderRef.current) return;
+    // 4) Paramos y obtenemos el blob WAV
+    const { blob } = await recorderRef.current.stop();
+    setIsRecording(false);
+
+    // 5) Mostramos preview y enviamos a quien escuche
+    const url = URL.createObjectURL(blob);
+    setAudioURL(url);
+    onSendAudio(blob);
   };
 
   return (
@@ -64,7 +75,8 @@ export const ChatInputBar = ({ disabled, onSendText, onSendAudio }: Props) => {
 
       <button
         data-bs-toggle="tooltip"
-        className="btn btn-icon btn-primary me-2 mb-2"
+        
+        className={`btn btn-icon me-2 mb-2${(isRecording) ? " btn-danger" : " btn-primary"}`}
         disabled={disabled}
         onClick={text.trim() ? sendText : undefined}
         onMouseDown={!text.trim() ? startRecording : undefined}
