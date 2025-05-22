@@ -1,9 +1,11 @@
 // LayoutMain.tsx
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import { ROUTES } from "@/constants";
 import { Link } from "react-router-dom";
 import "./LayoutMain.css";
+import { useLogout } from "@/hooks/useLogout";
+import { ConfirmModal } from "@/components/Modals/LoadingModal/ConfirmModal";
 
 declare global {
   interface Window {
@@ -16,6 +18,11 @@ declare global {
 export const LayoutMain = () => {
   const asideRef = useRef<HTMLDivElement>(null);
   const { pathname } = useLocation();
+  //Manejo del modal de confirmaciones
+  const [confirmModalMessage, setconfirmModalMessage] = useState<string>("");
+  const [confirmModalTipe, setconfirmModalTipe] = useState<string>("");
+
+  const logout = useLogout();
 
   useEffect(() => {
     // añade las clases globales que exige Metronic
@@ -33,6 +40,40 @@ export const LayoutMain = () => {
       window.KTScroll?.createInstances?.();
     }
   }, []);
+
+      const limpiarConfirmModalAcion = () => {
+      setconfirmModalMessage("");
+      setconfirmModalTipe("");
+      }
+
+      const abrirconfirmModal = (tipo: string, mensaje: string) => {
+        setconfirmModalTipe(tipo); setconfirmModalMessage(mensaje);
+        //@ts-expect-error - aqui se abre el modal
+        const myModal = new bootstrap.Modal(document.getElementById('confirmModal'), {keyboard: false})
+        myModal.show()
+      }
+
+        const cerrarconfirmModal = () => {
+        setconfirmModalTipe(""); setconfirmModalMessage("");
+        //@ts-expect-error - aqui se abre el modal
+        const myModal = new bootstrap.Modal(document.getElementById('confirmModal'), {keyboard: false})
+        myModal.hide()
+      }
+
+    const confirmModalAcion = (action: boolean) => {
+      document.querySelector('.modal-backdrop.fade.show')?.remove();
+      cerrarconfirmModal();
+      limpiarConfirmModalAcion();
+      switch (confirmModalTipe) {
+        case 'login':
+          if(action)
+            logout();
+          break;
+      
+        default:
+          break;
+      }
+  };
 
   return (
     <div style={{ display: "contents" }}>
@@ -248,7 +289,7 @@ export const LayoutMain = () => {
 
 
                   <div className="menu-item px-5">
-                    <a
+                    <a onClick={() => {abrirconfirmModal("login", "¿Desea cerrar la sesión?");}}
 
                       className="menu-link px-5"
                     >
@@ -284,6 +325,12 @@ export const LayoutMain = () => {
           </div>
         </div>
       </div>
+
+
+         <ConfirmModal confirmMessage={confirmModalMessage} onAction={confirmModalAcion} />
+        
+
+
     </div>
   );
 };
