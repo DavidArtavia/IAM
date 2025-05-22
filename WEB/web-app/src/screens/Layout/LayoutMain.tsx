@@ -174,7 +174,7 @@ export const LayoutMain = () => {
                 id="kt_header_user_menu_toggle"
               >
                 <div
-                  className="cursor-pointer symbol symbol-30px symbol-md-40px show menu-dropdown"
+                  className="cursor-pointer symbol symbol-30px symbol-md-40px menu-dropdown"
                   data-kt-menu-trigger="click"
                   data-kt-menu-attach="parent"
                   data-kt-menu-placement="bottom-end"
@@ -185,7 +185,7 @@ export const LayoutMain = () => {
                 </div>
 
                 <div
-                  className="menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-gray-800 menu-state-bg menu-state-primary fw-bold py-4 fs-6 w-275px show"
+                  className="menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-gray-800 menu-state-bg menu-state-primary fw-bold py-4 fs-6 w-275px"
                   data-kt-menu="true"
                   data-popper-placement="bottom-end"
                   style={{

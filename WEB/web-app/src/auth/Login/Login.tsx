@@ -1,18 +1,18 @@
-
-import { useUsuarioContext } from "@/context";
 import { usuarioValidator } from "@/validators/usuarioValidator";
 import { usuarioService } from "@/services/usuario.service";
 import { errorHelpers, notificationHelpers } from "@/utils"
 import { Link, useNavigate } from "react-router-dom";
 import { DTO_Respuesta, DTO_Usuario } from "@/models";
 import { ROUTES } from "@/constants";
-import { useState } from "react";
+import { useContext, useState } from "react";
+import { AuthContext } from "@/context/AuthContext";
 
 export const Login = () => {
   //useContext/useStates
-  const [usuario, setUsuario] = useUsuarioContext();
+  const [usuario, setUsuario] =  useState<DTO_Usuario | null>(new DTO_Usuario());;
   const [cargando, setCargando] = useState<boolean>(false);
   const navigate = useNavigate();
+  const { login } = useContext(AuthContext);
 
   //Eventos
     const handleOnClick = () => { validarDatosLogin() }
@@ -34,16 +34,27 @@ export const Login = () => {
 
   }
 
+  // actualiza sólo el campo dinámicamente
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setUsuario((prev) =>
+      prev
+        ? { ...prev, [name]: value }         
+        : null
+    );
+  };
+
   const procesarRespuesta = (respuesta: DTO_Respuesta) => {
     if (respuesta.tipoRespuesta) {
       const user = respuesta.resultado[0] as DTO_Usuario
+      //@ts-expect-error - Aqui se obtiene el token 
+       const accesToken = respuesta.resultado[1].accesToken;
       setUsuario(user);
-      //@ts-expect-error - Aqui se obtiene el token y se guarda en localstorage
-      localStorage.setItem("accesToken", respuesta.resultado[1].accesToken);
+      login(user, accesToken);
+      
+      localStorage.setItem("accesToken", accesToken);
       notificationHelpers.successAlert(`Hola ${user.nombreUsuario + " " + user.apellido}, bienvenido de nuevo 👋`)
-      const lastPath = localStorage.getItem("lastPath") || ROUTES.HOME;
       navigate(ROUTES.HOME);
-      navigate(lastPath, { replace: true });
     } else {
       //Controlamos el error del sistema
       errorHelpers.systemError(respuesta);
@@ -91,11 +102,11 @@ export const Login = () => {
                   Email
                 </label>
                 <input
-                  value={usuario.correoUsuario}
-                  onChange={(e) => setUsuario({ correoUsuario: e.target.value })}
+                  value={usuario?.correoUsuario}
+                  onChange={handleChange}
                   className="form-control form-control-lg form-control-solid"
                   type="text"
-                  name="email"
+                  name="correoUsuario"
                   autoComplete="off"
                   placeholder="ejemplo@gmail.com"
                 />
@@ -109,11 +120,11 @@ export const Login = () => {
                   </label>
                 </div>
                 <input
-                  value={usuario.pass}
-                  onChange={(e) => setUsuario({ pass: e.target.value })}
+                  value={usuario?.pass}
+                  onChange={handleChange}
                   className="form-control form-control-lg form-control-solid"
                   type="password"
-                  name="password"
+                  name="pass"
                   autoComplete="off"
                 />
                 <div className="fv-plugins-message-container invalid-feedback" />

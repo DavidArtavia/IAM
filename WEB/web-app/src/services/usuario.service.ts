@@ -8,11 +8,11 @@ export class usuarioService {
 
   constructor() { }
 
-  static autenticarUsuario(usuario: DTO_Usuario): Observable<DTO_Respuesta>{ 
+  static autenticarUsuario(usuario: DTO_Usuario | null): Observable<DTO_Respuesta>{ 
     return defer(() => api.post<DTO_Respuesta>(API_ENDPOINTS.AUTH.LOGIN, usuario as DTO_Usuario)).pipe(map((r: AxiosResponse<DTO_Respuesta>) => r.data));
    }
 
-  static registrarUsuario(usuario: DTO_Usuario): Observable<DTO_Respuesta>{ 
+  static registrarUsuario(usuario: DTO_Usuario | null): Observable<DTO_Respuesta>{ 
     return defer(() => api.post<DTO_Respuesta>(API_ENDPOINTS.USERS.CREATE, usuario as DTO_Usuario)).pipe(map((r: AxiosResponse<DTO_Respuesta>) => r.data));
    }
 

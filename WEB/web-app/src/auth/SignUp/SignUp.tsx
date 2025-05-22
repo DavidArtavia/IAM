@@ -1,7 +1,6 @@
-import { useUsuarioContext } from "@/context";
 import { usuarioValidator } from "@/validators/usuarioValidator";
 import { usuarioService } from "@/services/usuario.service";
-import { DTO_Respuesta } from "@/models";
+import { DTO_Respuesta, DTO_Usuario } from "@/models";
 import { errorHelpers, notificationHelpers } from "@/utils";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
@@ -9,11 +8,11 @@ import { ROUTES } from "@/constants";
 
 export const SignUp = () => {
   //useContext/useStates
-  const [usuario, setUsuario] = useUsuarioContext();
+const [usuario, setUsuario] =  useState<DTO_Usuario | null>(new DTO_Usuario());;
   const [cargando, setCargando] = useState<boolean>(false);
   const [confirmacionPass, setconfirmacionPass] = useState<string>("");
   const navigate = useNavigate();
-
+  
   //Eventos
   const handleOnClick = () => { validarDatosRegistroUsuario() }
 
@@ -44,6 +43,16 @@ export const SignUp = () => {
       errorHelpers.systemError(respuesta);
     }
   }
+
+    // actualiza sólo el campo dinámicamente
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setUsuario((prev) =>
+      prev
+        ? { ...prev, [name]: value }         
+        : null
+    );
+  };
 
   return (
     <div className="d-flex flex-column flex-root">
@@ -87,11 +96,12 @@ export const SignUp = () => {
                     Nombre
                   </label>
                   <input
-                    value={usuario.nombreUsuario}
-                    onChange={(e) => setUsuario({ nombreUsuario: e.target.value })}
+                  
+                    value={usuario?.nombreUsuario}
+                    onChange={handleChange}
                     className="form-control form-control-lg form-control-solid"
                     type="text"
-                    name="first-name"
+                    name="nombreUsuario"
                     autoComplete="off"
                   />
                   <div className="fv-plugins-message-container invalid-feedback" />
@@ -102,11 +112,11 @@ export const SignUp = () => {
                     Apellido
                   </label>
                   <input
-                    value={usuario.apellido}
-                    onChange={(e) => setUsuario({ apellido: e.target.value })}
+                    value={usuario?.apellido}
+                    onChange={handleChange}
                     className="form-control form-control-lg form-control-solid"
                     type="text"
-                    name="last-name"
+                    name="apellido"
                     autoComplete="off"
                   />
                   <div className="fv-plugins-message-container invalid-feedback" />
@@ -118,11 +128,11 @@ export const SignUp = () => {
                   Correo
                 </label>
                 <input
-                  value={usuario.correoUsuario}
-                  onChange={(e) => setUsuario({ correoUsuario: e.target.value })}
+                  value={usuario?.correoUsuario}
+                  onChange={handleChange}
                   className="form-control form-control-lg form-control-solid"
                   type="email"
-                  name="email"
+                  name="correoUsuario"
                   autoComplete="off"
                 />
                 <div className="fv-plugins-message-container invalid-feedback" />
@@ -133,11 +143,11 @@ export const SignUp = () => {
                   Teléfono
                 </label>
                 <input
-                  value={usuario.telefonoUsuario}
-                  onChange={(e) => setUsuario({ telefonoUsuario: e.target.value })}
+                  value={usuario?.telefonoUsuario}
+                  onChange={handleChange}
                   className="form-control form-control-lg form-control-solid"
                   type="email"
-                  name="email"
+                  name="telefonoUsuario"
                   autoComplete="off"
                 />
                 <div className="fv-plugins-message-container invalid-feedback" />
@@ -154,11 +164,11 @@ export const SignUp = () => {
 
                   <div className="position-relative mb-3">
                     <input
-                      value={usuario.pass}
-                      onChange={(e) => setUsuario({ pass: e.target.value })}
+                      value={usuario?.pass}
+                      onChange={handleChange}
                       className="form-control form-control-lg form-control-solid"
                       type="password"
-                      name="password"
+                      name="pass"
                       autoComplete="off"
                     />
                     <span
