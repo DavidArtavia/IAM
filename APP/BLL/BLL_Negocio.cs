@@ -15,5 +15,14 @@ namespace BLL
         {
             return dal_negocio.obtenerNegocios(usuario);
         }
+        public DTO_Respuesta registrarNegocio(DTO_Negocio negocio)
+        {
+            return dal_negocio.registrarNegocio(negocio);
+        } 
+        public DTO_Respuesta actualizarNegocio(DTO_Negocio negocio)
+        {
+            return dal_negocio.actualizarNegocio(negocio);
+        }
+
     }
 }
