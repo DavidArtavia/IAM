@@ -74,7 +74,13 @@ export const ChatInputBar = ({ disabled, onSendText, onSendAudio }: Props) => {
         />
 
       <button
-        data-bs-toggle="tooltip"
+        data-bs-toggle="tooltip" data-bs-placement="top" title={
+          text.trim()
+            ? "Enviar texto"
+            : recording
+            ? "Suelta para enviar"
+            : "Mantén presionado para grabar"
+        }
         
         className={`btn btn-icon me-2 mb-2${(isRecording) ? " btn-danger" : " btn-primary"}`}
         disabled={disabled}

@@ -10,6 +10,7 @@ export const SignUp = () => {
   //useContext/useStates
 const [usuario, setUsuario] =  useState<DTO_Usuario | null>(new DTO_Usuario());;
   const [cargando, setCargando] = useState<boolean>(false);
+  const [showPass, setshowPass] = useState<boolean>(false);
   const [confirmacionPass, setconfirmacionPass] = useState<string>("");
   const navigate = useNavigate();
   
@@ -146,7 +147,7 @@ const [usuario, setUsuario] =  useState<DTO_Usuario | null>(new DTO_Usuario());;
                   value={usuario?.telefonoUsuario}
                   onChange={handleChange}
                   className="form-control form-control-lg form-control-solid"
-                  type="email"
+                  type="text"
                   name="telefonoUsuario"
                   autoComplete="off"
                 />
@@ -167,16 +168,17 @@ const [usuario, setUsuario] =  useState<DTO_Usuario | null>(new DTO_Usuario());;
                       value={usuario?.pass}
                       onChange={handleChange}
                       className="form-control form-control-lg form-control-solid"
-                      type="password"
+                      type={showPass ? "text" : "password"}
                       name="pass"
                       autoComplete="off"
                     />
                     <span
+                    onClick={() => {setshowPass(!showPass)}}
                       className="btn btn-sm btn-icon position-absolute translate-middle top-50 end-0 me-n2"
                       data-kt-password-meter-control="visibility"
                     >
-                      <i className="bi bi-eye-slash fs-2" />
-                      <i className="bi bi-eye fs-2 d-none" />
+                      <i className={`bi bi-eye-slash fs-2${showPass ? " d-none" : " "}`} />
+                      <i className={`bi bi-eye fs-2${!showPass ? " d-none" : " "}`} />
                     </span>
                   </div>
                 </div>

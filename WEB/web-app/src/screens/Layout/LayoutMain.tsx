@@ -1,11 +1,12 @@
 // LayoutMain.tsx
-import { useEffect, useRef, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import { ROUTES } from "@/constants";
 import { Link } from "react-router-dom";
 import "./LayoutMain.css";
 import { useLogout } from "@/hooks/useLogout";
 import { ConfirmModal } from "@/components/Modals/LoadingModal/ConfirmModal";
+import { AuthContext } from "@/context/AuthContext";
 
 declare global {
   interface Window {
@@ -16,6 +17,7 @@ declare global {
 }
 
 export const LayoutMain = () => {
+  const { user } = useContext(AuthContext);
   const asideRef = useRef<HTMLDivElement>(null);
   const { pathname } = useLocation();
   //Manejo del modal de confirmaciones
@@ -248,14 +250,14 @@ export const LayoutMain = () => {
 
                       <div className="d-flex flex-column">
                         <div className="fw-bolder d-flex align-items-center fs-5">
-                          Danny Cantillano
+                          {user?.nombreUsuario + ' ' + user?.apellido}
 
                         </div>
                         <a
 
                           className="fw-bold text-muted text-hover-primary fs-7"
                         >
-                          admin@gmail.com
+                         {user?.correoUsuario}
                         </a>
                       </div>
                     </div>
@@ -264,7 +266,7 @@ export const LayoutMain = () => {
                   <div className="separator my-2" />
 
                   <div className="menu-item px-5">
-                    <a href="../../demo6/dist/account/overview.html" className="menu-link px-5">
+                    <a className="menu-link px-5">
                       Mi perfil
                     </a>
                   </div>
@@ -327,7 +329,7 @@ export const LayoutMain = () => {
       </div>
 
 
-         <ConfirmModal confirmMessage={confirmModalMessage} onAction={confirmModalAcion} />
+         <ConfirmModal confirmMessage={confirmModalMessage} onAction={() => confirmModalAcion} />
         
 
 
