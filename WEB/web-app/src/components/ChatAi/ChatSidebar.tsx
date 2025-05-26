@@ -24,7 +24,8 @@ export const ChatSidebar = ({ chats, selectedChat, onSelectChat }: Props) => {
         <div className="card-body">
 
           {chats.map((chat) => (
-              <a href="#kt_chat_messenger_footer" key={chat.iD_ChatIA} onClick={() => onSelectChat(chat)}>
+            
+              <div key={chat.iD_ChatIA} onClick={() => onSelectChat(chat)}>
                 <div className="d-flex flex-stack">
                   <div className="d-flex align-items-center">
                     <div className="symbol symbol-45px symbol-circle">
@@ -43,7 +44,7 @@ export const ChatSidebar = ({ chats, selectedChat, onSelectChat }: Props) => {
                   </div>
                 </div>
                 <div className="separator border-solid mt-10 mb-12"></div>
-              </a>
+              </div>
         
           ))}
         </div>

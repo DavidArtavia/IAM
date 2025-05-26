@@ -3,7 +3,7 @@ export class notificationHelpers {
     constructor() {
         // @ts-expect-error — Se importa en el index al ser una funcionabilidad ya integrada de la plantilla
         toastr.options = {
-            "closeButton": false,
+            "closeButton": true,
             "debug": false,
             "newestOnTop": true,
             "progressBar": true,

@@ -1,9 +1,12 @@
 // LayoutMain.tsx
-import { useEffect, useRef } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import { ROUTES } from "@/constants";
 import { Link } from "react-router-dom";
 import "./LayoutMain.css";
+import { useLogout } from "@/hooks/useLogout";
+import { ConfirmModal } from "@/components/Modals/LoadingModal/ConfirmModal";
+import { AuthContext } from "@/context/AuthContext";
 
 declare global {
   interface Window {
@@ -14,8 +17,14 @@ declare global {
 }
 
 export const LayoutMain = () => {
+  const { user } = useContext(AuthContext);
   const asideRef = useRef<HTMLDivElement>(null);
   const { pathname } = useLocation();
+  //Manejo del modal de confirmaciones
+  const [confirmModalMessage, setconfirmModalMessage] = useState<string>("");
+  const [confirmModalTipe, setconfirmModalTipe] = useState<string>("");
+
+  const logout = useLogout();
 
   useEffect(() => {
     // añade las clases globales que exige Metronic
@@ -33,6 +42,40 @@ export const LayoutMain = () => {
       window.KTScroll?.createInstances?.();
     }
   }, []);
+
+      const limpiarConfirmModalAcion = () => {
+      setconfirmModalMessage("");
+      setconfirmModalTipe("");
+      }
+
+      const abrirconfirmModal = (tipo: string, mensaje: string) => {
+        setconfirmModalTipe(tipo); setconfirmModalMessage(mensaje);
+        //@ts-expect-error - aqui se abre el modal
+        const myModal = new bootstrap.Modal(document.getElementById('confirmModal'), {keyboard: false})
+        myModal.show()
+      }
+
+        const cerrarconfirmModal = () => {
+        setconfirmModalTipe(""); setconfirmModalMessage("");
+        //@ts-expect-error - aqui se abre el modal
+        const myModal = new bootstrap.Modal(document.getElementById('confirmModal'), {keyboard: false})
+        myModal.hide()
+      }
+
+    const confirmModalAcion = (action: boolean) => {
+      document.querySelector('.modal-backdrop.fade.show')?.remove();
+      cerrarconfirmModal();
+      limpiarConfirmModalAcion();
+      switch (confirmModalTipe) {
+        case 'login':
+          if(action)
+            logout();
+          break;
+      
+        default:
+          break;
+      }
+  };
 
   return (
     <div style={{ display: "contents" }}>
@@ -174,7 +217,7 @@ export const LayoutMain = () => {
                 id="kt_header_user_menu_toggle"
               >
                 <div
-                  className="cursor-pointer symbol symbol-30px symbol-md-40px show menu-dropdown"
+                  className="cursor-pointer symbol symbol-30px symbol-md-40px menu-dropdown"
                   data-kt-menu-trigger="click"
                   data-kt-menu-attach="parent"
                   data-kt-menu-placement="bottom-end"
@@ -185,7 +228,7 @@ export const LayoutMain = () => {
                 </div>
 
                 <div
-                  className="menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-gray-800 menu-state-bg menu-state-primary fw-bold py-4 fs-6 w-275px show"
+                  className="menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-gray-800 menu-state-bg menu-state-primary fw-bold py-4 fs-6 w-275px"
                   data-kt-menu="true"
                   data-popper-placement="bottom-end"
                   style={{
@@ -207,14 +250,14 @@ export const LayoutMain = () => {
 
                       <div className="d-flex flex-column">
                         <div className="fw-bolder d-flex align-items-center fs-5">
-                          Danny Cantillano
+                          {user?.nombreUsuario + ' ' + user?.apellido}
 
                         </div>
                         <a
 
                           className="fw-bold text-muted text-hover-primary fs-7"
                         >
-                          admin@gmail.com
+                         {user?.correoUsuario}
                         </a>
                       </div>
                     </div>
@@ -223,7 +266,7 @@ export const LayoutMain = () => {
                   <div className="separator my-2" />
 
                   <div className="menu-item px-5">
-                    <a href="../../demo6/dist/account/overview.html" className="menu-link px-5">
+                    <a className="menu-link px-5">
                       Mi perfil
                     </a>
                   </div>
@@ -248,7 +291,7 @@ export const LayoutMain = () => {
 
 
                   <div className="menu-item px-5">
-                    <a
+                    <a onClick={() => {abrirconfirmModal("login", "¿Desea cerrar la sesión?");}}
 
                       className="menu-link px-5"
                     >
@@ -284,6 +327,12 @@ export const LayoutMain = () => {
           </div>
         </div>
       </div>
+
+
+         <ConfirmModal confirmMessage={confirmModalMessage} onAction={() => confirmModalAcion} />
+        
+
+
     </div>
   );
 };

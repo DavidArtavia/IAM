@@ -51,12 +51,14 @@ export const ChatAi = () => {
 
   // 3) Cuando elijo chat, cargo sus mensajes
   const handleSelectChat = (chat: DTO_ChatIA) => {
+    //Nos dirigimos al campo de texto automáticamente
+    window.location.hash = "#kt_chat_messenger_footer";
     setChat(chat);
     setMessages(new Array<DTO_Mensaje>);
     chatService.obtenerMensajesPorChat(chat).subscribe({
       next: (result) => setMessages(procesarRespuesta(result as DTO_Respuesta) as Array<DTO_Mensaje>),
       error: (err) => errorHelpers.serverError(err), //controlamos el error del servidor
-      complete: () => {  }
+      complete: () => { }
     });
   }
 
@@ -69,6 +71,7 @@ export const ChatAi = () => {
     userMsg.tipo = "user";
     userMsg.textoMensaje = text;
     userMsg.fromUser = true;
+
 
     chatService.enviarMensajeTexto(userMsg).subscribe({
       next: (result) => setMessages((m) => [...m, procesarRespuesta(result as DTO_Respuesta) as DTO_Mensaje]),
@@ -90,7 +93,7 @@ export const ChatAi = () => {
     chatService.enviarMensajeAudio(userMsg).subscribe({
       next: (result) => setMessages((m) => [...m, procesarRespuesta(result as DTO_Respuesta) as DTO_Mensaje]),
       error: (err) => errorHelpers.serverError(err), //controlamos el error del servidor
-      complete: () => {  }
+      complete: () => { }
     });
   };
 
@@ -110,9 +113,26 @@ export const ChatAi = () => {
               </button>
             </div>
           ))}
+
+
+          <div className={`d-flex align-items-center rounded py-5 px-5 bg-light-warning${(businesses.length > 0) ? " d-none" : " "}`}>
+
+            <span className="svg-icon svg-icon-3x svg-icon-warning me-5">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+                <rect opacity="0.3" x="2" y="2" width="20" height="20" rx="10" fill="black"></rect>
+                <rect x="11" y="14" width="7" height="2" rx="1" transform="rotate(-90 11 14)" fill="black"></rect>
+                <rect x="11" y="17" width="2" height="2" rx="1" transform="rotate(-90 11 17)" fill="black"></rect>
+              </svg>
+            </span>
+
+            <div className="text-gray-700 fw-bold fs-6">
+              <code>Alerta</code>Aún no tiene negocios registrados, por favor dirigete a la opcion de negocio y registra tu primer negocio</div>
+
+          </div>
+
         </div>
       </div>
-      <div className="d-flex flex-column flex-lg-row mt-10">
+      <div className={`d-flex flex-column flex-lg-row mt-10${(businesses.length > 0) ? " " : " d-none"}`}>
         <div className="flex-column flex-lg-row-auto w-100 w-lg-300px w-xl-400px mb-10 mb-lg-0 p-2">
           <ChatSidebar
             chats={chats}
