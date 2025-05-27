@@ -62,5 +62,12 @@ namespace BLL
         {
             return dal_Usuario.obtenerUsuarioPorId(usuario);
         }
+
+        public DTO_Respuesta actualizarUsuario(DTO_Usuario usuario)
+        {
+            return dal_Usuario.actualizarUsuario(usuario);
+        }
     }
+
+
 }

@@ -8,10 +8,12 @@ using UTL;
 namespace API.Controllers
 {
     [Route("api/[controller]")]
-    public class NegocioController : Controller
+    [ApiController]
+    public class NegocioController : ControllerBase
     {
-        UTL_ManejoError manejoError = new UTL_ManejoError();
-        BLL_Negocio bLL_Negocio = new BLL_Negocio();
+        private UTL_ManejoError manejoError = new();
+        private BLL_Negocio bLL_Negocio = new();
+        private DTO_Respuesta respuesta = new();
 
         [Authorize(Roles = "1")]
         [Produces("application/json")]
@@ -19,15 +21,12 @@ namespace API.Controllers
         [HttpPost]
         public DTO_Respuesta registrarNegocio([FromBody] DTO_Negocio negocio)
         {
-            DTO_Respuesta respuesta;
-            BLL_Negocio bLL_Negocio;
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
 
             try
             {
                 if (userIdClaim == null) throw new UnauthorizedAccessException("User ID claim is missing.");
                 negocio.ID_Usuario = Convert.ToInt32(userIdClaim.Value);
-                bLL_Negocio = new();
                 respuesta = bLL_Negocio.registrarNegocio(negocio);
             }
             catch (Exception ex)
@@ -44,8 +43,6 @@ namespace API.Controllers
         [HttpPost]
         public DTO_Respuesta obtenerNegocios()
         {
-            DTO_Respuesta respuesta;
-
             try
             {
                 DTO_Usuario usuario = new();
@@ -65,15 +62,12 @@ namespace API.Controllers
         [HttpPost]
         public DTO_Respuesta actualizarNegocio([FromBody] DTO_Negocio negocio)
         {
-            DTO_Respuesta respuesta;
-            BLL_Negocio bLL_Negocio;
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
 
             try
             {
                 if (userIdClaim == null) throw new UnauthorizedAccessException("User ID claim is missing.");
                 negocio.ID_Usuario = Convert.ToInt32(userIdClaim.Value);
-                bLL_Negocio = new();
                 respuesta = bLL_Negocio.actualizarNegocio(negocio);
             }
             catch (Exception ex)

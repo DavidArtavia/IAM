@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 using UTL;
 using static System.Runtime.InteropServices.JavaScript.JSType;
@@ -196,6 +197,53 @@ namespace DAL
             {
                 this.Close();
                 throw e;  // Luego se guardan las ecepciones en un log
+            }
+            finally
+            {
+                this.Close();
+            }
+        }
+
+        public DTO_Respuesta actualizarUsuario(DTO_Usuario usuario)
+        {
+            DTO_Respuesta respuesta = new();
+
+            try
+            {
+                string query = "SECU.SP_actualizarUsuario";
+
+                using (SqlCommand sqlcmd = new(query, this.GetObjConexion()))
+                {
+                    sqlcmd.CommandType = CommandType.StoredProcedure;
+
+
+                    sqlcmd.Parameters.Add("@ID_Usuario", SqlDbType.Int).Value = usuario.ID_Usuario;
+                    sqlcmd.Parameters.Add("@NombreUsuario", SqlDbType.VarChar).Value = usuario.NombreUsuario;
+                    sqlcmd.Parameters.Add("@Apellido", SqlDbType.VarChar).Value = usuario.Apellido;
+                    sqlcmd.Parameters.Add("@TelefonoUsuario", SqlDbType.VarChar).Value = usuario.TelefonoUsuario;
+
+
+                    foreach (SqlParameter param in sqlcmd.Parameters)
+                    {
+                        param.Direction = ParameterDirection.Input;
+                    }
+
+                    this.Open();
+
+                    using (SqlDataReader reader = sqlcmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            respuesta = manejarRespuesta(reader);
+                        }
+                    }
+                    return respuesta;
+                }
+            }
+            catch (Exception e)
+            {
+                this.Close();
+                throw e;
             }
             finally
             {
