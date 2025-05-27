@@ -14,9 +14,9 @@ namespace DAL
     public class DAL_Negocio : DAL_Conexion
     {
 
+        DTO_Respuesta respuesta = new();
         public DTO_Respuesta registrarNegocio(DTO_Negocio negocio)
         {
-            DTO_Respuesta respuesta = new();
 
             try
             {
@@ -65,9 +65,8 @@ namespace DAL
 
         public DTO_Respuesta obtenerNegocios(DTO_Usuario usuario)
         {
-            DTO_Respuesta respuesta = new DTO_Respuesta();
-            DTO_Negocio negocio = new DTO_Negocio();
-            List<DTO_Negocio> listaNegocios = new List<DTO_Negocio>();
+            DTO_Negocio negocio = new();
+            List<DTO_Negocio> listaNegocios = [];
             try
             {
 
@@ -137,8 +136,6 @@ namespace DAL
 
         public DTO_Respuesta actualizarNegocio(DTO_Negocio negocio)
         {
-            DTO_Respuesta respuesta = new();
-
             try
             {
                 string query = "CORE.SP_actualizarNegocio";

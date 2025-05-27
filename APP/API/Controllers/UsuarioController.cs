@@ -27,7 +27,6 @@ namespace API.Controllers
         [HttpPost]
         public DTO_Respuesta registrarUsuario([FromBody] DTO_Usuario usuario)
         {
-            Console.WriteLine(usuario);
 
             try
             {
@@ -112,9 +111,33 @@ namespace API.Controllers
         public DTO_Respuesta obtenerUsuarioPorId()
         {
             DTO_Usuario usuario = new DTO_Usuario();
-            //todo: recuperar el id del usuario desde el token para el crear negocio
             usuario.ID_Usuario = Convert.ToInt32(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
             return bLL_Usuario.obtenerUsuarioPorId(usuario);
+        }
+
+        [Authorize(Roles = "1")]
+        [Produces("application/json")]
+        [Route("actualizarUsuario")]
+        [HttpPost]
+        public DTO_Respuesta actualizarUsuario([FromBody] DTO_Usuario usuario)
+        {
+            DTO_Respuesta respuesta;
+            BLL_Usuario bLL_usuario;
+            //var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+
+            try
+            {
+                //if (userIdClaim == null) throw new UnauthorizedAccessException("El id del usuario es requerido.");
+                //usuario.ID_Usuario = Convert.ToInt32(userIdClaim.Value);
+                bLL_usuario = new();
+                respuesta = bLL_usuario.actualizarUsuario(usuario);
+            }
+            catch (Exception ex)
+            {
+                respuesta = manejoError.errorNoControlado(ex);
+            }
+
+            return respuesta;
         }
 
     }
