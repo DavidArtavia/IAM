@@ -62,7 +62,7 @@ export const LayoutMain = () => {
         myModal.hide()
       }
 
-    const confirmModalAcion = (action: boolean) => {
+    const confirmModalAcion = (action: boolean | null) => {
       document.querySelector('.modal-backdrop.fade.show')?.remove();
       cerrarconfirmModal();
       limpiarConfirmModalAcion();
@@ -329,7 +329,7 @@ export const LayoutMain = () => {
       </div>
 
 
-         <ConfirmModal confirmMessage={confirmModalMessage} onAction={() => confirmModalAcion} />
+         <ConfirmModal confirmMessage={confirmModalMessage} onAction={(action) => confirmModalAcion(action)} />
         
 
 
