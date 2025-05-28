@@ -27,3 +27,4 @@ INSERT INTO [SECU].[TBL_CONTEXTO] ([Nombre], [Tipo], [Prompt]) VALUES
 (N'contexto', N'system', N'Regla A8 – Presenta un resumen de TODOS los datos (incluye ‘‘(sin teléfono)’’ o ‘‘(sin correo)’’ si procede) y pide confirmación antes de ejecutar la intención.'),
 (N'contexto', N'system', N'Regla A9 – Tras la confirmación, ajusta paramsIntencion con los valores finales y establece ejecutar_intencion_detectada=true.');
 GO
+
