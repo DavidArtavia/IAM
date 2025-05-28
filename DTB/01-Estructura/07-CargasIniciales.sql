@@ -39,7 +39,10 @@ INSERT INTO [UTIL].[TBL_ALERTAS] ([COD_ALERTA], [Nombre], [Mensaje], [Tipo]) VAL
 ('A0018', N'Autenticación de usuario', N'El refresh token se encuentra vencido', 'E'),
 ('A0019', N'Negocios', N'Negocios obtenidos correctamente', 'I'),
 ('A0020', N'ChatIA', N'Mensajes obtenidos correctamente', 'I'),
-('A0021', N'ChatIA', N'Chats obtenidos correctamente', 'I');
+('A0021', N'ChatIA', N'Chats obtenidos correctamente', 'I'),
+('A0022', N'Cliente', N'Busqueda de clientes realizada correctamente', 'I'),
+('A0023', N'Contexto', N'Contexto consultado correctamente', 'I'),
+('A0024', N'Cliente', N'Cliente guardado correctamente', 'I'),
 -- Bloque nuevo
 ('B001', N'Negocio', N'El negocio se registró exitosamente.', 'I'),
 ('B002', N'Negocio', N'No puede registrar más de 3 negocios.', 'E'),

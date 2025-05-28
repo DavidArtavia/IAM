@@ -15,5 +15,10 @@ namespace BLL
         {
            return dAL_Cliente.buscarCliente(cliente);
         }
+
+        public DTO_Respuesta guardarCliente(DTO_Usuario usuario, DTO_Cliente cliente)
+        {
+           return dAL_Cliente.guardarCliente(usuario, cliente);
+        }
     }
 }

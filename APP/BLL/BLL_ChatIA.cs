@@ -233,7 +233,7 @@ namespace BLL
                         }
                         else
                         {
-                            await procesarRespuestaIA(repuestaIA, usuario);
+                            respuesta = await procesarRespuestaIA(repuestaIA, usuario);
                         }
 
                     }
@@ -256,7 +256,7 @@ namespace BLL
 
             //Quitamos el razonamiento
             mensajeUser.TextoMensaje = Regex.Replace(mensajeIA.TextoMensaje, @"<think>.*?</think>", String.Empty, RegexOptions.IgnoreCase | RegexOptions.Singleline);
-
+            mensajeUser.TextoMensaje = mensajeUser.TextoMensaje.Replace("\n", "");
             //Nos quedamos solo con la parte JSON
             int indiceLlave = mensajeUser.TextoMensaje.IndexOf('{');
             if (indiceLlave == -1) throw new FormatException("No se encontró JSON en la cadena.");
@@ -335,13 +335,13 @@ namespace BLL
             {
                 case "guardarCliente":
 
-                    cliente.NombreCliente = repuestaIA.ParamsAccion.Find(p => p.Nombre.Equals("NombreCliente", StringComparison.OrdinalIgnoreCase))?.Valor ?? string.Empty;
-                    cliente.ApellidoCliente = repuestaIA.ParamsAccion.Find(p => p.Nombre.Equals("ApellidoCliente", StringComparison.OrdinalIgnoreCase))?.Valor ?? string.Empty;
-                    cliente.TelefonoCliente = repuestaIA.ParamsAccion.Find(p => p.Nombre.Equals("TelefonoCliente", StringComparison.OrdinalIgnoreCase))?.Valor ?? string.Empty;
-                    cliente.CorreoCliente = repuestaIA.ParamsAccion.Find(p => p.Nombre.Equals("CorreoCliente", StringComparison.OrdinalIgnoreCase))?.Valor ?? string.Empty;
+                    cliente.NombreCliente = repuestaIA.ParamsIntencion.Find(p => p.Nombre.Equals("NombreCliente", StringComparison.OrdinalIgnoreCase))?.Valor ?? string.Empty;
+                    cliente.ApellidoCliente = repuestaIA.ParamsIntencion.Find(p => p.Nombre.Equals("ApellidoCliente", StringComparison.OrdinalIgnoreCase))?.Valor ?? string.Empty;
+                    cliente.TelefonoCliente = repuestaIA.ParamsIntencion.Find(p => p.Nombre.Equals("TelefonoCliente", StringComparison.OrdinalIgnoreCase))?.Valor ?? string.Empty;
+                    cliente.CorreoCliente = repuestaIA.ParamsIntencion.Find(p => p.Nombre.Equals("CorreoCliente", StringComparison.OrdinalIgnoreCase))?.Valor ?? string.Empty;
 
 
-                    //respuesta = bLL_Cliente.gua(cliente);
+                    respuesta = bLL_Cliente.guardarCliente(usuario, cliente);
 
                     mensajeUser.TextoMensaje = JsonConvert.SerializeObject(respuesta);
                     mensajeUser.Tipo = "assistant";
@@ -349,7 +349,7 @@ namespace BLL
 
                     if (respuesta.TipoRespuesta)
                     {
-                        respuesta = bLL_Cliente.guardarCliente(mensajeUser);
+                        respuesta = dAL_Mensaje.guardarMensaje(mensajeUser);
                     }
                     if (respuesta.TipoRespuesta)
                     {
