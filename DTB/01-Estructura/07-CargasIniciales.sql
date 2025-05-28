@@ -13,35 +13,61 @@ INSERT INTO [UTIL].[TBL_ESTADOS]
 		   ('Activo','TBL_NEGOCIOS')
 GO
 
-INSERT INTO [UTIL].[TBL_ALERTAS]
-           ([COD_ALERTA]
-           ,[Nombre]
-           ,[Mensaje]
-		   ,Tipo)
-     VALUES
-           ('A001','Registro de usuario', 'Usuario registrado correctamente', 'I'),
-		   ('A002','Registro de usuario', 'Ya existe un usuario con ese correo', 'E'),
-		   ('A003','Obtener usuario', 'Correo no encontrado', 'E'),
-		   ('A004','AutenticaciÛn de usuario', 'Inicio de sesiÛn satisfactorio', 'I'),
-		   ('A005','AutenticaciÛn de usuario', 'Usuario en estado inactivo', 'I'),
-		   ('A006','AutenticaciÛn de usuario', 'Correo y contraseÒa no coinciden', 'E'),
-		   ('A007','AutenticaciÛn de usuario', 'Refresh token guardado correctamente', 'I'),
-		   ('A008','ChatIA', 'Audio guardado temporalemnte', 'I'),
-		   ('A009','ChatIA', 'Transcrito correctamente', 'I'),
-		   ('A0010','ChatIA', 'El audio no se pudo entender', 'E'),
-		   ('A0011','ChatIA', 'Transcripcion cancelada', 'E'),
-		   ('A0012','ChatIA', 'Audio guardado en la nuve', 'I'),
-		   ('A0013','ChatIA', 'El audio no se pudo guardar en la nuve', 'E'),
-		   ('A0014','ChatIA', 'Mensaje guardado correctamente', 'I'),
-		   ('A0015','AutenticaciÛn de usuario', 'El refresh token no coincide con el usuario', 'E'),
-		   ('A0016','AutenticaciÛn de usuario', 'El refresh token se encuentra revocado', 'E'),
-		   ('A0017','AutenticaciÛn de usuario', 'El refresh token se validÛ correctamente', 'I'),
-		   ('A0018','AutenticaciÛn de usuario', 'El refresh token se encuentra vencido', 'E'),
-		   ('A0019','Negocios', 'Negocios obtenidos correctamente', 'I'),
-		   ('A0020','ChatIA', 'Mensajes obtenidos correctamente', 'I'),
-		   ('A0021','ChatIA', 'Chats obtenidos correctamente', 'I')
-		   
+USE [IAMDB]
 GO
+
+--Se coloca N para que se interprete como NVARCHAR segun la configuracion de la base de datos
+INSERT INTO [UTIL].[TBL_ALERTAS] ([COD_ALERTA], [Nombre], [Mensaje], [Tipo]) VALUES
+-- Bloque anterior
+('A001', N'Registro de usuario', N'Usuario registrado correctamente', 'I'),
+('A002', N'Registro de usuario', N'Ya existe un usuario con ese correo', 'E'),
+('A003', N'Obtener usuario', N'Correo no encontrado', 'E'),
+('A004', N'Autenticaci√≥n de usuario', N'Inicio de sesi√≥n satisfactorio', 'I'),
+('A005', N'Autenticaci√≥n de usuario', N'Usuario en estado inactivo', 'I'),
+('A006', N'Autenticaci√≥n de usuario', N'Correo y contrase√±a no coinciden', 'E'),
+('A007', N'Autenticaci√≥n de usuario', N'Refresh token guardado correctamente', 'I'),
+('A008', N'ChatIA', N'Audio guardado temporalmente', 'I'),
+('A009', N'ChatIA', N'Transcrito correctamente', 'I'),
+('A0010', N'ChatIA', N'El audio no se pudo entender', 'E'),
+('A0011', N'ChatIA', N'Transcripci√≥n cancelada', 'E'),
+('A0012', N'ChatIA', N'Audio guardado en la nube', 'I'),
+('A0013', N'ChatIA', N'El audio no se pudo guardar en la nube', 'E'),
+('A0014', N'ChatIA', N'Mensaje guardado correctamente', 'I'),
+('A0015', N'Autenticaci√≥n de usuario', N'El refresh token no coincide con el usuario', 'E'),
+('A0016', N'Autenticaci√≥n de usuario', N'El refresh token se encuentra revocado', 'E'),
+('A0017', N'Autenticaci√≥n de usuario', N'El refresh token se valid√≥ correctamente', 'I'),
+('A0018', N'Autenticaci√≥n de usuario', N'El refresh token se encuentra vencido', 'E'),
+('A0019', N'Negocios', N'Negocios obtenidos correctamente', 'I'),
+('A0020', N'ChatIA', N'Mensajes obtenidos correctamente', 'I'),
+('A0021', N'ChatIA', N'Chats obtenidos correctamente', 'I');
+-- Bloque nuevo
+('B001', N'Negocio', N'El negocio se registr√≥ exitosamente.', 'I'),
+('B002', N'Negocio', N'No puede registrar m√°s de 3 negocios.', 'E'),
+('B003', N'Negocio', N'El negocio se actualiz√≥ exitosamente.', 'I'),
+('B004', N'Negocio', N'Negocio no encontrado.', 'E'),
+('B005', N'Actualizar Usuario', N'La informaci√≥n del usuario fue actualizada correctamente.', 'I'),
+('B006', N'Actualizar Usuario', N'No se encontr√≥ un usuario con el ID proporcionado.', 'E'),
+('B007', N'Actualizar Usuario', N'No se aplicaron cambios porque los valores eran iguales o nulos.', 'I'),
+('B008', N'Registro CuentaPorPagar', N'La cuenta por pagar se registr√≥ correctamente.', 'I'),
+('B009', N'Registro CuentaPorPagar', N'El negocio especificado no existe.', 'E'),
+('B010', N'Registro CuentaPorPagar', N'El estado especificado no existe.', 'E'),
+('B011', N'Registro CuentaPorPagar', N'No se pudo registrar la cuenta por pagar.', 'E'),
+('B012', N'Obtener CuentasPorPagar', N'Las cuentas por pagar se obtuvieron correctamente.', 'I'),
+('B013', N'Obtener CuentasPorPagar', N'No se encontraron cuentas por pagar para el negocio.', 'I'),
+('B014', N'Obtener CuentasPorPagar', N'El negocio especificado no existe.', 'E'),
+('B015', N'Actualizar CuentasPorPagar', N'La cuenta por pagar se actualiz√≥ correctamente.', 'I'),
+('B016', N'Actualizar CuentasPorPagar', N'La cuenta por pagar especificada no existe.', 'E'),
+('B017', N'Actualizar CuentasPorPagar', N'No se realiz√≥ ninguna modificaci√≥n en la cuenta por pagar.', 'I'),
+('B018', N'Registrar OrdenServicio', N'La orden de servicio se registr√≥ correctamente.', 'I'),
+('B019', N'Registrar OrdenServicio', N'El cliente especificado no existe.', 'E'),
+('B020', N'Registrar OrdenServicio', N'El negocio especificado no existe.', 'E'),
+('B021', N'Registrar OrdenServicio', N'El estado especificado no existe.', 'E'),
+('B022', N'Registrar OrdenServicio', N'No se pudo registrar la orden de servicio.', 'E'),
+('B023', N'Actualizar OrdenServicio', N'La orden de servicio se actualiz√≥ correctamente.', 'I'),
+('B024', N'Actualizar OrdenServicio', N'La orden de servicio especificada no existe.', 'E'),
+('B025', N'Actualizar OrdenServicio', N'No se realizaron cambios en la orden de servicio.', 'I'),
+GO
+
 
 INSERT INTO [SECU].[TBL_ROLES]
            ([NombreRol]
@@ -64,7 +90,7 @@ INSERT INTO [CORE].[TBL_NEGOCIOS]
            ,[FechaRegistro]
            ,[ReferenciaJSON])
      VALUES
-           (3,4,'Taller Mata','Taller automotris','SarchÌ','12345678','123@gmail.com',GETDATE(),'{"PARAMS": ["placa", "marca", "modelo"]}'),
+           (3,4,'Taller Mata','Taller automotris','SarchÔøΩ','12345678','123@gmail.com',GETDATE(),'{"PARAMS": ["placa", "marca", "modelo"]}'),
 		   (3,4,'Taller Mata 2','Taller automotris','Naranjo','12345678','123@gmail.com',GETDATE(),'{"PARAMS": ["placa", "marca", "modelo"]}')
 GO
 
@@ -99,7 +125,7 @@ INSERT INTO [CORE].[TBL_MENSAJES_CHAT]
 		   (1,'IA','Mensaje 2 de prueba','','',GETDATE()),
 		   (1,'Usuario','Mensaje 3 de prueba','','',GETDATE()),
 		   (1,'IA','Mensaje 4 de prueba','','',GETDATE()),
-		   (1,'Usuario','','Una trancripciÛn X','https://iamhub7185441083.blob.core.windows.net/audios/11052025215100505.WAV',GETDATE()),
+		   (1,'Usuario','','Una trancripciÔøΩn X','https://iamhub7185441083.blob.core.windows.net/audios/11052025215100505.WAV',GETDATE()),
 		   (1,'IA','Mensaje 5 de prueba','','',GETDATE()),
 		   (2,'Usuario','Mensaje 1 de prueba','','',GETDATE()),
 		   (2,'IA','Mensaje 2 de prueba','','',GETDATE())
