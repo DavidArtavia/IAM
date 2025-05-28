@@ -7,6 +7,7 @@ using Microsoft.CognitiveServices.Speech.Audio;
 using Microsoft.CognitiveServices.Speech;
 using UTL;
 using System.Text;
+using System.Security.Claims;
 
 namespace API.Controllers
 {
@@ -25,8 +26,11 @@ namespace API.Controllers
         public async Task<DTO_Respuesta> enviarMensaje([FromForm] DTO_Mensaje mensaje)
         {
             DTO_Respuesta respuesta = new DTO_Respuesta();
-            //PRUEBA 
-            //await bll_chatIA.enviarMensajeIA(mensaje);
+            DTO_Usuario usuario = new DTO_Usuario();
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (userIdClaim == null) throw new UnauthorizedAccessException("User ID claim is missing.");
+            usuario.ID_Usuario = Convert.ToInt32(userIdClaim.Value);
+
             try
             {
                 
@@ -60,6 +64,7 @@ namespace API.Controllers
                     {
                         //si logró guardar el audio en la nuve procedemos a guardar el mensaje en la BD
                         //procedemos a guardar el mensaje
+                        mensaje.Tipo = "user";
                         respuesta = bLL_Mensaje.guardarMensaje(mensaje);
                     }
 
@@ -76,7 +81,7 @@ namespace API.Controllers
                 //si guardó correctaente procedemos a hablar con la IA
                 if (respuesta.TipoRespuesta)
                 {
-                   respuesta = await bll_chatIA.enviarMensajeIA(mensaje);
+                   respuesta = await bll_chatIA.enviarMensajeIA(mensaje, usuario);
                 }
 
             }

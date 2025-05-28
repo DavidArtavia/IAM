@@ -12,7 +12,7 @@ namespace DAL
 {
     public class DAL_Contexto: DAL_Conexion
     {
-        public DTO_Respuesta obtenerContexto()
+        public DTO_Respuesta obtenerContexto(DTO_Usuario usuario, DTO_ChatIA chat)
         {
             DTO_Respuesta respuesta = new DTO_Respuesta();
             DTO_Contexto contexto = new DTO_Contexto(); 
@@ -27,7 +27,8 @@ namespace DAL
                 using (SqlCommand sqlcmd = new SqlCommand(query, this.GetObjConexion()))
                 {
                     sqlcmd.CommandType = CommandType.StoredProcedure;
-                    //sqlcmd.Parameters.Add("@NombreCliente", SqlDbType.VarChar).Value = cliente.NombreCliente;
+                    sqlcmd.Parameters.Add("@IdChat", SqlDbType.Int).Value = chat.ID_ChatIA;
+                    sqlcmd.Parameters.Add("@IdUsuario", SqlDbType.Int).Value = usuario.ID_Usuario;
 
                     // Establecer la dirección de los parámetros
                     foreach (SqlParameter param in sqlcmd.Parameters)

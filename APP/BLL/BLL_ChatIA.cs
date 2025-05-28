@@ -150,7 +150,7 @@ namespace BLL
             return dAL_chatIA.obtenerChats(negocio);
         }
 
-        public async Task<DTO_Respuesta> enviarMensajeIA(DTO_Mensaje mensaje)
+        public async Task<DTO_Respuesta> enviarMensajeIA(DTO_Mensaje mensaje, DTO_Usuario usuario)
         {
 
             chatIA.ID_ChatIA = mensaje.ID_ChatIA;
@@ -164,7 +164,7 @@ namespace BLL
 
 
             //Obtenemos el contexto para la IA
-            respuesta = bLL_Contexto.obtenerContexto();
+            respuesta = bLL_Contexto.obtenerContexto(usuario, chatIA);
 
 
             //armamos contexto si obtuvo el contexto correctamente
@@ -233,7 +233,7 @@ namespace BLL
                         }
                         else
                         {
-                            await procesarRespuestaIA(repuestaIA);
+                            await procesarRespuestaIA(repuestaIA, usuario);
                         }
 
                     }
@@ -274,25 +274,25 @@ namespace BLL
             return repuestaIA;
         }
 
-        public async Task<DTO_Respuesta> procesarRespuestaIA(DTO_RepuestaIA repuestaIA)
+        public async Task<DTO_Respuesta> procesarRespuestaIA(DTO_RepuestaIA repuestaIA, DTO_Usuario usuario)
         {
             
 
             //si entra acá es porque ocupa algo del sistema para continuar la converación
             if (repuestaIA.EjecutarAccionBakend)
             {
-                respuesta = await ejecutarAccionBakend(repuestaIA);
+                respuesta = await ejecutarAccionBakend(repuestaIA, usuario);
             }
             else if (repuestaIA.EjecutarIntencionDetectada)
             {
-                respuesta = await ejecutarIntencionDetectada(repuestaIA);
+                respuesta = await ejecutarIntencionDetectada(repuestaIA, usuario);
             }
 
 
                 return respuesta;
         }
 
-        public async Task<DTO_Respuesta> ejecutarAccionBakend(DTO_RepuestaIA repuestaIA)
+        public async Task<DTO_Respuesta> ejecutarAccionBakend(DTO_RepuestaIA repuestaIA, DTO_Usuario usuario)
         {
             DTO_Mensaje mensajeUser = new DTO_Mensaje();
 
@@ -318,7 +318,7 @@ namespace BLL
                     }
                     if (respuesta.TipoRespuesta)
                     {
-                        respuesta = await enviarMensajeIA(mensajeUser);
+                        respuesta = await enviarMensajeIA(mensajeUser, usuario);
                     }
 
                     break;
@@ -327,7 +327,7 @@ namespace BLL
             return respuesta;
         }
 
-        public async Task<DTO_Respuesta> ejecutarIntencionDetectada(DTO_RepuestaIA repuestaIA)
+        public async Task<DTO_Respuesta> ejecutarIntencionDetectada(DTO_RepuestaIA repuestaIA, DTO_Usuario usuario)
         {
             DTO_Mensaje mensajeUser = new DTO_Mensaje();
 
@@ -349,11 +349,11 @@ namespace BLL
 
                     if (respuesta.TipoRespuesta)
                     {
-                        respuesta = dAL_Mensaje.guardarMensaje(mensajeUser);
+                        respuesta = bLL_Cliente.guardarCliente(mensajeUser);
                     }
                     if (respuesta.TipoRespuesta)
                     {
-                        respuesta = await enviarMensajeIA(mensajeUser);
+                        respuesta = await enviarMensajeIA(mensajeUser, usuario);
                     }
 
                     break;
