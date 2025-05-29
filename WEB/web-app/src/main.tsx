@@ -1,13 +1,21 @@
-// import React from "react";
-import { createRoot } from "react-dom/client";
-import "./styles.css";
-import { App } from "@/App";
+import { createRoot } from 'react-dom/client';
+import './styles.css';
+import { App } from '@/App';
+import 'datatables.net-bs5/css/dataTables.bootstrap5.min.css';
+import $ from 'jquery';
 
+// Extiende el objeto Window
+declare global {
+    interface Window {
+        $: JQueryStatic;
+        jQuery: JQueryStatic;
+    }
+}
 
-const rootElement = document.getElementById("root")!;
-const root = createRoot(rootElement);
-root.render(
+// Importa jQuery y asigna globalmente
+window.$ = $;
+window.jQuery = $;
 
-    <App />
-  
-);
+const rootElement = document.getElementById('root');
+const root = createRoot(rootElement!);
+root.render(<App />);

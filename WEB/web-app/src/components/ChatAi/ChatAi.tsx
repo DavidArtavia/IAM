@@ -3,12 +3,16 @@ import { ChatSidebar, ChatMessages, ChatInputBar } from "@/components";
 import { chatService } from "@/services"; // ajusta imports según tu estructura
 import { DTO_Negocio, DTO_ChatIA, DTO_Mensaje, DTO_Respuesta } from "@/models";
 import { errorHelpers } from "@/utils";
-
+import { BusinessButtons } from "../Buttons/BusinessButtons";
 
 export const ChatAi = () => {
-  const [businesses, setBusinesses] = useState<Array<DTO_Negocio>>(new Array<DTO_Negocio>);
+  const [businesses, setBusinesses] = useState<Array<DTO_Negocio>>(
+    new Array<DTO_Negocio>()
+  );
   const [chats, setChats] = useState<Array<DTO_ChatIA>>([]);
-  const [messages, setMessages] = useState<Array<DTO_Mensaje>>(new Array<DTO_Mensaje>);
+  const [messages, setMessages] = useState<Array<DTO_Mensaje>>(
+    new Array<DTO_Mensaje>()
+  );
   const [selectedBusiness, setSelectedBusiness] = useState<DTO_Negocio | null>(
     null
   );
@@ -17,23 +21,25 @@ export const ChatAi = () => {
   // 1) Cargo negocios al montar
   useEffect(() => {
     chatService.obtenerNegocios().subscribe({
-      next: (result) => setBusinesses(procesarRespuesta(result as DTO_Respuesta) as Array<DTO_Negocio>),
+      next: (result) =>
+        setBusinesses(
+          procesarRespuesta(result as DTO_Respuesta) as Array<DTO_Negocio>
+        ),
       error: (err) => errorHelpers.serverError(err), //controlamos el error del servidor
-      complete: () => { }
+      complete: () => {},
     });
-
   }, []);
 
   //metodo generico para procesar lo que envía el server
   const procesarRespuesta = (respuesta: DTO_Respuesta) => {
     if (respuesta.tipoRespuesta) {
-      return respuesta.resultado[0]
+      return respuesta.resultado[0];
     } else {
       //Controlamos el error del sistema
       errorHelpers.systemError(respuesta);
-      return null
+      return null;
     }
-  }
+  };
 
   // 2) Cuando elijo negocio, cargo sus chats
   const handleSelectBusiness = (negocio: DTO_Negocio) => {
@@ -41,27 +47,30 @@ export const ChatAi = () => {
     setChat(null);
     setMessages([]);
     chatService.obtenerChatsPorNegocio(negocio).subscribe({
-      next: (result) => setChats(procesarRespuesta(result as DTO_Respuesta) as Array<DTO_ChatIA>),
+      next: (result) =>
+        setChats(
+          procesarRespuesta(result as DTO_Respuesta) as Array<DTO_ChatIA>
+        ),
       error: (err) => errorHelpers.serverError(err), //controlamos el error del servidor
-      complete: () => { }
+      complete: () => {},
     });
-  }
-
-
+  };
 
   // 3) Cuando elijo chat, cargo sus mensajes
   const handleSelectChat = (chat: DTO_ChatIA) => {
     //Nos dirigimos al campo de texto automáticamente
     window.location.hash = "#kt_chat_messenger_footer";
     setChat(chat);
-    setMessages(new Array<DTO_Mensaje>);
+    setMessages(new Array<DTO_Mensaje>());
     chatService.obtenerMensajesPorChat(chat).subscribe({
-      next: (result) => setMessages(procesarRespuesta(result as DTO_Respuesta) as Array<DTO_Mensaje>),
+      next: (result) =>
+        setMessages(
+          procesarRespuesta(result as DTO_Respuesta) as Array<DTO_Mensaje>
+        ),
       error: (err) => errorHelpers.serverError(err), //controlamos el error del servidor
-      complete: () => { }
+      complete: () => {},
     });
-  }
-
+  };
 
   // 4) Envío texto
   const handleSendText = async (text: string) => {
@@ -72,14 +81,16 @@ export const ChatAi = () => {
     userMsg.textoMensaje = text;
     userMsg.fromUser = true;
 
-
     chatService.enviarMensajeTexto(userMsg).subscribe({
-      next: (result) => setMessages((m) => [...m, procesarRespuesta(result as DTO_Respuesta) as DTO_Mensaje]),
+      next: (result) =>
+        setMessages((m) => [
+          ...m,
+          procesarRespuesta(result as DTO_Respuesta) as DTO_Mensaje,
+        ]),
       error: (err) => errorHelpers.serverError(err), //controlamos el error del servidor
-      complete: () => { }
+      complete: () => {},
     });
   };
-
 
   // 5) Envío audio
   const handleSendAudio = async (blob: Blob) => {
@@ -91,48 +102,30 @@ export const ChatAi = () => {
     userMsg.fromUser = true;
 
     chatService.enviarMensajeAudio(userMsg).subscribe({
-      next: (result) => setMessages((m) => [...m, procesarRespuesta(result as DTO_Respuesta) as DTO_Mensaje]),
+      next: (result) =>
+        setMessages((m) => [
+          ...m,
+          procesarRespuesta(result as DTO_Respuesta) as DTO_Mensaje,
+        ]),
       error: (err) => errorHelpers.serverError(err), //controlamos el error del servidor
-      complete: () => { }
+      complete: () => {},
     });
   };
 
   return (
     <div className="row p-4 col-12 gx-0">
-      <div className="card shadow-sm">
-        <div className="card-header col-12">
-          <span className="card-title text-gray-600">Seleccione un negocio para conversar con el asistente inteligente:</span>
-        </div>
-        <div className="card-body row">
-          {businesses.map((negocio) => (
-            <div className="col-4 p-2" key={negocio.iD_Negocio}>
-              <button
-                className={`btn col-12 text-truncate w-100${(negocio.iD_Negocio === selectedBusiness?.iD_Negocio) ? " btn-primary" : " btn-secondary"}`}
-                onClick={() => handleSelectBusiness(negocio)}>
-                {negocio.nombreNegocio}
-              </button>
-            </div>
-          ))}
-
-
-          <div className={`d-flex align-items-center rounded py-5 px-5 bg-light-warning${(businesses.length > 0) ? " d-none" : " "}`}>
-
-            <span className="svg-icon svg-icon-3x svg-icon-warning me-5">
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
-                <rect opacity="0.3" x="2" y="2" width="20" height="20" rx="10" fill="black"></rect>
-                <rect x="11" y="14" width="7" height="2" rx="1" transform="rotate(-90 11 14)" fill="black"></rect>
-                <rect x="11" y="17" width="2" height="2" rx="1" transform="rotate(-90 11 17)" fill="black"></rect>
-              </svg>
-            </span>
-
-            <div className="text-gray-700 fw-bold fs-6">
-              <code>Alerta</code>Aún no tiene negocios registrados, por favor dirigete a la opcion de negocio y registra tu primer negocio</div>
-
-          </div>
-
-        </div>
-      </div>
-      <div className={`d-flex flex-column flex-lg-row mt-10${(businesses.length > 0) ? " " : " d-none"}`}>
+      <BusinessButtons
+        title={
+          "Seleccione un negocio para conversar con el asistente inteligente:"
+        }
+        handleSelectBusiness={handleSelectBusiness}
+        selectedBusiness={selectedBusiness}
+      />
+      <div
+        className={`d-flex flex-column flex-lg-row mt-10${
+          businesses.length > 0 ? " " : " d-none"
+        }`}
+      >
         <div className="flex-column flex-lg-row-auto w-100 w-lg-300px w-xl-400px mb-10 mb-lg-0 p-2">
           <ChatSidebar
             chats={chats}
@@ -145,7 +138,10 @@ export const ChatAi = () => {
             <div className="card-header" id="kt_chat_messenger_header">
               <div className="card-title">
                 <div className="d-flex justify-content-center flex-column me-3">
-                  <a href="#" className="fs-4 fw-bolder text-gray-900 text-hover-primary me-1 mb-2 lh-1">
+                  <a
+                    href="#"
+                    className="fs-4 fw-bolder text-gray-900 text-hover-primary me-1 mb-2 lh-1"
+                  >
                     IAM Asistente
                   </a>
                   <div className="mb-0 lh-1">
@@ -167,4 +163,3 @@ export const ChatAi = () => {
     </div>
   );
 };
-

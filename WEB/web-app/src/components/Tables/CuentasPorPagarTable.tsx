@@ -1,0 +1,78 @@
+import { useEffect, useRef } from "react";
+import $ from "jquery";
+import "datatables.net-bs5";
+import { DTO_CuentasPorPagar } from "@/models/DTO_CuentasPorPagar";
+import { CoreDataTable } from "./CoreDataTable";
+
+interface DataTableProps {
+  data: DTO_CuentasPorPagar[];
+  onEdit: (rowData: DTO_CuentasPorPagar) => void;
+  onDelete: (rowData: DTO_CuentasPorPagar) => void;
+}
+
+export const CuentasPorPagarTable = ({
+  data,
+  onEdit,
+  onDelete,
+}: DataTableProps) => {
+  const tableRef = useRef<HTMLTableElement>(null);
+
+  const columns = [
+    { title: "ID", data: "iD_CuentasPorPagar" },
+    { title: "Negocio", data: "iD_Negocio" },
+    {
+      title: "Estado",
+      data: null,
+      render: (_data: unknown, _type: unknown, row: DTO_CuentasPorPagar) => {
+        const isActivo = row.estado?.nombre?.toLowerCase() === "activo";
+        const badgeClass = isActivo
+          ? "badge badge-light-success"
+          : "badge badge-light-danger";
+        return `<span class="${badgeClass}">${
+          row.estado?.nombre || "N/A"
+        }</span>`;
+      },
+    },
+    { title: "Concepto", data: "concepto" },
+    { title: "Descripción", data: "descripcion" },
+    {
+      title: "Saldo",
+      data: "saldo",
+      render: $.fn.dataTable.render.number(",", ".", 2, "₡"),
+    },
+    {
+      title: "Fecha Inicial",
+      data: "fechaInicial",
+      render: (data: string) => new Date(data).toLocaleDateString(),
+    },
+    {
+      title: "Fecha Modificación",
+      data: "fechaModificacion",
+      render: (data: string) => new Date(data).toLocaleDateString(),
+    },
+  ];
+
+  useEffect(() => {
+    if (tableRef.current) {
+      const table = $(tableRef.current).DataTable({
+        data: data,
+        columns: columns,
+        destroy: true,
+      });
+      return () => {
+        table.destroy();
+      };
+    }
+  }, [data, onEdit, onDelete]);
+
+    return (
+    <CoreDataTable
+      title="Cuentas por Pagar"
+      data={data}
+      handleAdd={() => { /* implement add logic here */ }}
+      columns={columns}
+      onEdit={onEdit}
+      onDelete={onDelete}
+    />
+    );
+};
