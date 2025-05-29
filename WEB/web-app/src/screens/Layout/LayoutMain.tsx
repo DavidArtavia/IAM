@@ -21,8 +21,9 @@ export const LayoutMain = () => {
   const asideRef = useRef<HTMLDivElement>(null);
   const { pathname } = useLocation();
   //Manejo del modal de confirmaciones
+  const [isConfirmOpen, setIsConfirmOpen] = useState<boolean>(false);
   const [confirmModalMessage, setconfirmModalMessage] = useState<string>("");
-  const [confirmModalTipe, setconfirmModalTipe] = useState<string>("");
+  const [confirmModalType, setconfirmModalType] = useState<string>("");
 
   const logout = useLogout();
 
@@ -45,36 +46,31 @@ export const LayoutMain = () => {
 
   const limpiarConfirmModalAcion = () => {
     setconfirmModalMessage("");
-    setconfirmModalTipe("");
+    setconfirmModalType("");
   };
 
   const abrirconfirmModal = (tipo: string, mensaje: string) => {
-    setconfirmModalTipe(tipo);
+    setconfirmModalType(tipo);
     setconfirmModalMessage(mensaje);
-    //@ts-expect-error - aqui se abre el modal
-    const myModal = new bootstrap.Modal(
-      document.getElementById("confirmModal"),
-      { keyboard: false }
-    );
-    myModal.show();
+    setIsConfirmOpen(true);
   };
 
-  const cerrarconfirmModal = () => {
-    setconfirmModalTipe("");
-    setconfirmModalMessage("");
-    //@ts-expect-error - aqui se abre el modal
-    const myModal = new bootstrap.Modal(
-      document.getElementById("confirmModal"),
-      { keyboard: false }
-    );
-    myModal.hide();
-  };
+  // const cerrarconfirmModal = () => {
+  //   setconfirmModalType("");
+  //   setconfirmModalMessage("");
+  //   //@ts-expect-error - aqui se abre el modal
+  //   const myModal = new bootstrap.Modal(
+  //     document.getElementById("confirmModal"),
+  //     { keyboard: false }
+  //   );
+  //   myModal.hide();
+  // };
 
   const confirmModalAcion = (action: boolean | null) => {
-    document.querySelector(".modal-backdrop.fade.show")?.remove();
-    cerrarconfirmModal();
+    setIsConfirmOpen(false);
+    // cerrarconfirmModal();
     limpiarConfirmModalAcion();
-    switch (confirmModalTipe) {
+    switch (confirmModalType) {
       case "login":
         if (action) logout();
         break;
@@ -355,6 +351,7 @@ export const LayoutMain = () => {
       </div>
 
       <ConfirmModal
+        show={isConfirmOpen}
         confirmMessage={confirmModalMessage}
         onAction={(action) => confirmModalAcion(action)}
       />

@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { ChatSidebar, ChatMessages, ChatInputBar } from "@/components";
 import { chatService } from "@/services"; // ajusta imports según tu estructura
 import { DTO_Negocio, DTO_ChatIA, DTO_Mensaje, DTO_Respuesta } from "@/models";
-import { errorHelpers } from "@/utils";
+import { errorHelpers, procesarRespuesta, processResponse } from "@/utils";
 import { BusinessButtons } from "../Buttons/BusinessButtons";
 
 export const ChatAi = () => {
@@ -23,23 +23,12 @@ export const ChatAi = () => {
     chatService.obtenerNegocios().subscribe({
       next: (result) =>
         setBusinesses(
-          procesarRespuesta(result as DTO_Respuesta) as Array<DTO_Negocio>
+          processResponse(result as DTO_Respuesta) as Array<DTO_Negocio>
         ),
       error: (err) => errorHelpers.serverError(err), //controlamos el error del servidor
       complete: () => {},
     });
   }, []);
-
-  //metodo generico para procesar lo que envía el server
-  const procesarRespuesta = (respuesta: DTO_Respuesta) => {
-    if (respuesta.tipoRespuesta) {
-      return respuesta.resultado[0];
-    } else {
-      //Controlamos el error del sistema
-      errorHelpers.systemError(respuesta);
-      return null;
-    }
-  };
 
   // 2) Cuando elijo negocio, cargo sus chats
   const handleSelectBusiness = (negocio: DTO_Negocio) => {
@@ -49,7 +38,7 @@ export const ChatAi = () => {
     chatService.obtenerChatsPorNegocio(negocio).subscribe({
       next: (result) =>
         setChats(
-          procesarRespuesta(result as DTO_Respuesta) as Array<DTO_ChatIA>
+          processResponse(result as DTO_Respuesta) as Array<DTO_ChatIA>
         ),
       error: (err) => errorHelpers.serverError(err), //controlamos el error del servidor
       complete: () => {},
@@ -65,7 +54,7 @@ export const ChatAi = () => {
     chatService.obtenerMensajesPorChat(chat).subscribe({
       next: (result) =>
         setMessages(
-          procesarRespuesta(result as DTO_Respuesta) as Array<DTO_Mensaje>
+          processResponse(result as DTO_Respuesta) as Array<DTO_Mensaje>
         ),
       error: (err) => errorHelpers.serverError(err), //controlamos el error del servidor
       complete: () => {},
@@ -85,7 +74,7 @@ export const ChatAi = () => {
       next: (result) =>
         setMessages((m) => [
           ...m,
-          procesarRespuesta(result as DTO_Respuesta) as DTO_Mensaje,
+          processResponse(result as DTO_Respuesta) as DTO_Mensaje,
         ]),
       error: (err) => errorHelpers.serverError(err), //controlamos el error del servidor
       complete: () => {},

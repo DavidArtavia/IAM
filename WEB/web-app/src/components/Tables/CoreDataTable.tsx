@@ -15,6 +15,7 @@ interface DataTableProps {
   data: DTO_CuentasPorPagar[];
   onEdit: (rowData: DTO_CuentasPorPagar) => void;
   onDelete: (rowData: DTO_CuentasPorPagar) => void;
+  disabeldButtonAdd?: boolean;
 }
 
 export const CoreDataTable = ({
@@ -24,14 +25,18 @@ export const CoreDataTable = ({
   columns = [],
   onEdit,
   onDelete,
+  disabeldButtonAdd,
 }: DataTableProps) => {
   const tableRef = useRef<HTMLTableElement>(null);
 
   useEffect(() => {
     if (!tableRef.current) return;
 
+    // 🔥 Si ya existe DataTable, límpialo completamente
     if ($.fn.dataTable.isDataTable(tableRef.current)) {
-      $(tableRef.current).DataTable().destroy();
+      const tableInstance = $(tableRef.current).DataTable();
+      tableInstance.clear().destroy();
+      $(tableRef.current).empty(); // limpia completamente el contenido
     }
 
     const reactRoots: ReactDOM.Root[] = [];
@@ -47,7 +52,7 @@ export const CoreDataTable = ({
           searchable: false,
           createdCell: (td, _cellData, rowData) => {
             (td as HTMLElement).innerHTML = "";
-            const root = ReactDOM.createRoot(td as HTMLElement); // <- CAST aquí
+            const root = ReactDOM.createRoot(td as HTMLElement);
             reactRoots.push(root);
             root.render(
               <ActionButtons
@@ -78,15 +83,14 @@ export const CoreDataTable = ({
       },
       destroy: true,
     });
-    // Elimina el evento anterior para evitar duplicados
+
     $(tableRef.current).off("click", "tbody tr");
 
-    // Agrega el evento de clic a las filas de la tabla
     $(tableRef.current).on("click", "tbody tr", function (this: HTMLElement) {
       const row = table.row(this);
       if (row.any()) {
-      const rowData = row.data() as DTO_CuentasPorPagar;
-      console.log("Fila seleccionada-->:", rowData);
+        const rowData = row.data() as DTO_CuentasPorPagar;
+        console.log("Fila seleccionada -->:", rowData);
       }
     });
 
@@ -97,13 +101,18 @@ export const CoreDataTable = ({
       }, 0);
     };
   }, [data, columns, onEdit, onDelete]);
+  
 
   return (
     <div className="card shadow-sm mt-5">
       <div className="card">
         <div className="card-header d-flex justify-content-between align-items-center">
           <h3 className="card-title text-gray-600">{title}</h3>
-          <button onClick={handleAdd} className="btn btn-primary">
+          <button
+            disabled={disabeldButtonAdd}
+            onClick={handleAdd}
+            className="btn btn-primary"
+          >
             Agregar
           </button>
         </div>

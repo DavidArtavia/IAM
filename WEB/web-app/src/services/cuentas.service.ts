@@ -11,4 +11,7 @@ export class cuentasService {
     static obtenerCuentasPorPagar(negocio: DTO_Negocio | null): Observable<DTO_CuentasPorPagar> {
         return defer(() => api.post<DTO_CuentasPorPagar>(API_ENDPOINTS.ACCOUNTS_PAYABLE.GET_ACCOUNTS,negocio as DTO_Negocio)).pipe(map((r: AxiosResponse<DTO_CuentasPorPagar>) => r.data));
     }
+    static registrarCuentasPorPagar(cuentasPorPagar: DTO_CuentasPorPagar | null): Observable<DTO_CuentasPorPagar> {
+        return defer(() => api.post<DTO_CuentasPorPagar>(API_ENDPOINTS.ACCOUNTS_PAYABLE.ADD_ACCOUNT, cuentasPorPagar as DTO_CuentasPorPagar)).pipe(map((r: AxiosResponse<DTO_CuentasPorPagar>) => r.data));
+    }
 }

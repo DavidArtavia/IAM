@@ -1,31 +1,34 @@
 interface ConfirmModalProps {
+  show: boolean;
   confirmMessage?: string;
   onAction: (action: boolean | null) => void;
 }
 
 export const ConfirmModal = ({
+  show,
   confirmMessage,
   onAction,
 }: ConfirmModalProps) => {
+  if (!show) return null;
+
   return (
     <div
-      className="modal fade"
-      id="confirmModal"
-      aria-labelledby="exampleModalCenterTitle"
-      aria-hidden="true"
+      className="modal fade show"
+      style={{ display: "block", backgroundColor: "rgba(0, 0, 0, 0.20)" }}
+      onClick={() => onAction(null)} // clic afuera cierra
     >
-      <div className="modal-dialog modal-dialog-centered">
+      <div
+        className="modal-dialog modal-dialog-centered"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="modal-content">
           <div className="modal-header">
-            <h5 className="modal-title" id="exampleModalCenterTitle">
-              Confirmación
-            </h5>
+            <h5 className="modal-title">Confirmación</h5>
             <button
               type="button"
               className="btn-close"
-              data-bs-dismiss="modal"
-              aria-label="Close"
-            ></button>
+              onClick={() => onAction(null)}
+            />
           </div>
           <div className="modal-body">
             <p>{confirmMessage}</p>
@@ -35,7 +38,6 @@ export const ConfirmModal = ({
               onClick={() => onAction(false)}
               type="button"
               className="btn btn-secondary"
-              data-bs-dismiss="modal"
             >
               Cancelar
             </button>
@@ -52,3 +54,4 @@ export const ConfirmModal = ({
     </div>
   );
 };
+

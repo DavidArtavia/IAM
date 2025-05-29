@@ -7,3 +7,6 @@ export * from "./ChatAi/ChatMessages";
 export * from "./Buttons/ActionButtons";
 export * from "./Tables/CuentasPorPagarTable";
 export * from "./Modals/LoadingModal/LoadingModal";
+export * from "./Modals/Forms/FormRegisterAccountModal";
+export * from "./Modals/LoadingModal/ConfirmModal";
+export * from "./Modals/LoadingModal/LoadingModal";

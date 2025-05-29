@@ -6,14 +6,18 @@ import { CoreDataTable } from "./CoreDataTable";
 
 interface DataTableProps {
   data: DTO_CuentasPorPagar[];
+  onAdd: () => void;
   onEdit: (rowData: DTO_CuentasPorPagar) => void;
   onDelete: (rowData: DTO_CuentasPorPagar) => void;
+  disableButtonAdd?: boolean;
 }
 
 export const CuentasPorPagarTable = ({
   data,
+  onAdd ,
   onEdit,
   onDelete,
+  disableButtonAdd
 }: DataTableProps) => {
   const tableRef = useRef<HTMLTableElement>(null);
 
@@ -50,7 +54,7 @@ export const CuentasPorPagarTable = ({
       data: "fechaModificacion",
       render: (data: string) => new Date(data).toLocaleDateString(),
     },
-  ];
+    ];
 
   useEffect(() => {
     if (tableRef.current) {
@@ -66,13 +70,14 @@ export const CuentasPorPagarTable = ({
   }, [data, onEdit, onDelete]);
 
     return (
-    <CoreDataTable
-      title="Cuentas por Pagar"
-      data={data}
-      handleAdd={() => { /* implement add logic here */ }}
-      columns={columns}
-      onEdit={onEdit}
-      onDelete={onDelete}
-    />
+      <CoreDataTable
+        title="Cuentas por Pagar"
+        data={data}
+        handleAdd={onAdd}
+        columns={columns}
+        onEdit={onEdit}
+        onDelete={onDelete}
+        disabeldButtonAdd={disableButtonAdd}
+      />
     );
 };
