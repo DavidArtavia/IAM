@@ -10,10 +10,16 @@ namespace BLL
 {
     public class BLL_Contexto
     {
-        DAL_Contexto dAL_Contexto = new DAL_Contexto();
+        DAL_Contexto dAL_Contexto = new();
+        DTO_Respuesta respuesta = new();
         public DTO_Respuesta obtenerContexto(DTO_Usuario usuario, DTO_ChatIA chat)
         {
-            return dAL_Contexto.obtenerContexto(usuario, chat);  
+            respuesta = dAL_Contexto.obtenerContexto(usuario, chat);
+
+            if(!respuesta.TipoRespuesta)
+                throw new Exception(respuesta.Mensaje);
+
+            return respuesta;
         }
     }
 }

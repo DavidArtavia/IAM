@@ -13,14 +13,13 @@ namespace DTO
         private int iD_Cliente;
         private int iD_Negocio;
         private DTO_Estado estado;
-        private DateTime fechaEstimadaEntrega;
-        private DateTime fechaInicio;
-        private DateTime fechaFinal;
-        private DateTime fechaEntrega;
+        private DateTime? fechaEstimadaEntrega;
+        private DateTime? fechaInicio;
+        private DateTime? fechaFinal;
+        private DateTime? fechaEntrega;
         private string notaOrdenServicio;
         private List<DTO_Param> referenciaJSON;
         #endregion
-
 
         #region Constructor
         public DTO_OrdenServicio()
@@ -29,10 +28,10 @@ namespace DTO
             ID_Cliente = 0;
             ID_Negocio = 0;
             Estado = new();
-            FechaEstimadaEntrega = DateTime.Now;
-            FechaInicio = DateTime.Now;
-            FechaFinal = DateTime.Now;
-            FechaEntrega = DateTime.Now;
+            FechaEstimadaEntrega = null;
+            FechaInicio = null;
+            FechaFinal = null;
+            FechaEntrega = null;
             NotaOrdenServicio = string.Empty;
             ReferenciaJSON = [];
         }
@@ -43,10 +42,10 @@ namespace DTO
         public int ID_Cliente { get => iD_Cliente; set => iD_Cliente = value; }
         public int ID_Negocio { get => iD_Negocio; set => iD_Negocio = value; }
         public DTO_Estado Estado { get => estado; set => estado = value; }
-        public DateTime FechaEstimadaEntrega { get => fechaEstimadaEntrega; set => fechaEstimadaEntrega = value; }
-        public DateTime FechaInicio { get => fechaInicio; set => fechaInicio = value; }
-        public DateTime FechaFinal { get => fechaFinal; set => fechaFinal = value; }
-        public DateTime FechaEntrega { get => fechaEntrega; set => fechaEntrega = value; }
+        public DateTime? FechaEstimadaEntrega { get => fechaEstimadaEntrega; set => fechaEstimadaEntrega = value; }
+        public DateTime? FechaInicio { get => fechaInicio; set => fechaInicio = value; }
+        public DateTime? FechaFinal { get => fechaFinal; set => fechaFinal = value; }
+        public DateTime? FechaEntrega { get => fechaEntrega; set => fechaEntrega = value; }
         public string NotaOrdenServicio { get => notaOrdenServicio; set => notaOrdenServicio = value; }
         public List<DTO_Param> ReferenciaJSON
         {

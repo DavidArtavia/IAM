@@ -30,6 +30,7 @@ namespace API.Controllers
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
             if (userIdClaim == null) throw new UnauthorizedAccessException("User ID claim is missing.");
             usuario.ID_Usuario = Convert.ToInt32(userIdClaim.Value);
+            mensaje.Tipo = "user";
 
             try
             {
@@ -60,29 +61,28 @@ namespace API.Controllers
                         respuesta = await bll_chatIA.guardarAudioBLOB(mensaje);
                     }
 
-                    if (respuesta.TipoRespuesta)
-                    {
-                        //si logró guardar el audio en la nuve procedemos a guardar el mensaje en la BD
-                        //procedemos a guardar el mensaje
-                        mensaje.Tipo = "user";
-                        respuesta = bLL_Mensaje.guardarMensaje(mensaje);
-                    }
+                    //if (respuesta.TipoRespuesta)
+                    //{
+                    //    //si logró guardar el audio en la nuve procedemos a guardar el mensaje en la BD
+                    //    //procedemos a guardar el mensaje
+                    //    mensaje.Tipo = "user";
+                    //    respuesta = bLL_Mensaje.guardarMensaje(mensaje);
+                    //}
 
                 }//si no mandó audio nos ahorramos toda la lógica de guardare temporalmente, transcribir y subir a la nuve y procedemos a guardar directamente
-                else
-                {
-                    //procedemos a guardar el mensaje
-                    mensaje.Tipo = "user";
-                    respuesta = bLL_Mensaje.guardarMensaje(mensaje);
+                //else
+                //{
+                //    //procedemos a guardar el mensaje
+                   
+                //    respuesta = bLL_Mensaje.guardarMensaje(mensaje);
                     
-                }
+                //}
 
 
                 //si guardó correctaente procedemos a hablar con la IA
-                if (respuesta.TipoRespuesta)
-                {
-                   respuesta = await bll_chatIA.enviarMensajeIA(mensaje, usuario);
-                }
+            
+                   respuesta = bll_chatIA.enviarMensajeIA(mensaje, usuario);
+            
 
             }
             catch (Exception ex)
@@ -104,6 +104,7 @@ namespace API.Controllers
             try
             {
                 respuesta = bLL_Mensaje.obtenerMensajes(chatIA);
+                respuesta = bll_chatIA.formatearMensajesParaChat((List<DTO_Mensaje>)respuesta.Resultado[0]);
 
             }
             catch (Exception ex)

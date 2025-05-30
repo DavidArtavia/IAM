@@ -24,6 +24,13 @@ BEGIN
 			   ,[ApellidoCliente]
 			   ,[TelefonoCliente]
 			   ,[CorreoCliente])
+
+OUTPUT			inserted.ID_Cliente
+				,inserted.ID_Usuario
+				,inserted.NombreCliente
+				,inserted.ApellidoCliente
+				,inserted.TelefonoCliente
+				,inserted.CorreoCliente
 		 VALUES
 			   (@ID_Usuario
 			   ,@NombreCliente

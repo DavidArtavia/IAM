@@ -28,6 +28,16 @@ namespace DAL
                     sqlcmd.Parameters.Add("@NombreCliente", SqlDbType.VarChar).Value = cliente.NombreCliente;
                     sqlcmd.Parameters.Add("@ApellidoCliente", SqlDbType.VarChar).Value = cliente.ApellidoCliente;
 
+                    if (cliente.TelefonoCliente.Length > 0) {
+                        sqlcmd.Parameters.Add("@TelefonoCliente", SqlDbType.NVarChar).Value = cliente.TelefonoCliente;
+                    }
+
+                    if (cliente.CorreoCliente.Length > 0)
+                    {
+                        sqlcmd.Parameters.Add("@CorreoCliente", SqlDbType.NVarChar).Value = cliente.CorreoCliente;
+                    }
+
+
                     // Establecer la dirección de los parámetros
                     foreach (SqlParameter param in sqlcmd.Parameters)
                     {
@@ -58,7 +68,7 @@ namespace DAL
                         {
                             while (reader.Read())
                             {
-                                respuesta = respuesta = manejarRespuesta(reader);
+                                respuesta = manejarRespuesta(reader);
 
                             }
                         }
@@ -112,9 +122,20 @@ namespace DAL
                     {
                         while (reader.Read())
                         {
-                            respuesta = manejarRespuesta(reader);
+                            cliente.ID_Cliente = UTL_DBHelper.ReadNullSafeInt(reader["ID_Cliente"]);
+                        }
+
+                        if (reader.NextResult())
+                        {
+                            while (reader.Read())
+                            {
+                                respuesta = manejarRespuesta(reader);
+
+                            }
                         }
                     }
+
+                    respuesta.Resultado.Add(cliente);
                     return respuesta;
                 }
             }

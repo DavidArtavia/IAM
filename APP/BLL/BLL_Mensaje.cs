@@ -10,15 +10,27 @@ namespace BLL
 {
     public class BLL_Mensaje
     {
-        DAL_Mensaje dAL_Mensaje = new DAL_Mensaje();
+        DAL_Mensaje dAL_Mensaje = new();
+        DTO_Respuesta respuesta = new();
+
         public DTO_Respuesta obtenerMensajes(DTO_ChatIA chatIA)
         {
-            return dAL_Mensaje.obtenerMensajes(chatIA);
-        }        
-        
+            respuesta = dAL_Mensaje.obtenerMensajes(chatIA);
+            if (!respuesta.TipoRespuesta)
+                throw new Exception(respuesta.Mensaje);
+
+            return respuesta;
+
+        }
+
+
+
         public DTO_Respuesta guardarMensaje(DTO_Mensaje mensaje)
         {
-            return dAL_Mensaje.guardarMensaje(mensaje);
+            respuesta = dAL_Mensaje.guardarMensaje(mensaje);
+            if (!respuesta.TipoRespuesta)
+                throw new Exception(respuesta.Mensaje);
+            return respuesta;
         }
     }
 }

@@ -11,14 +11,21 @@ namespace BLL
     public class BLL_Cliente
     {
         DAL_Cliente dAL_Cliente = new DAL_Cliente();
+        DTO_Respuesta respuesta = new();
         public DTO_Respuesta buscarCliente(DTO_Cliente cliente)
         {
-           return dAL_Cliente.buscarCliente(cliente);
+            respuesta = dAL_Cliente.buscarCliente(cliente);
+            if (!respuesta.TipoRespuesta)
+                throw new Exception(respuesta.Mensaje);
+            return respuesta;
         }
 
         public DTO_Respuesta guardarCliente(DTO_Usuario usuario, DTO_Cliente cliente)
         {
-           return dAL_Cliente.guardarCliente(usuario, cliente);
+            respuesta = dAL_Cliente.guardarCliente(usuario, cliente);
+            if (!respuesta.TipoRespuesta)
+                throw new Exception(respuesta.Mensaje);
+            return respuesta;
         }
     }
 }

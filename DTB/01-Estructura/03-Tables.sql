@@ -140,7 +140,7 @@ CREATE TABLE CORE.TBL_MENSAJES_CHAT
     ID_Mensaje INT IDENTITY(1,1) NOT NULL, --PK
     ID_ChatIA INT NOT NULL,-- FK
     Tipo NVARCHAR(10) CHECK (Tipo IN ('system', 'assistant', 'user')) NOT NULL, -- Quien lo dijo
-    TextoMensaje NVARCHAR(2500) NULL,
+    TextoMensaje NVARCHAR(MAX) NULL,
     TranscripcionAudio NVARCHAR(2500) NULL, -- si es entrada por voz
 	RutaAudio NVARCHAR(500) NULL,
     FechaMensaje DATETIME DEFAULT GETDATE() NOT NULL

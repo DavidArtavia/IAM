@@ -13,7 +13,7 @@ GO
 ALTER PROCEDURE CORE.SP_guardarMensaje
     @ID_ChatIA INT,
     @Tipo NVARCHAR(10), 
-    @TextoMensaje NVARCHAR(2500) = NULL,
+    @TextoMensaje NVARCHAR(MAX) = NULL,
     @TranscripcionAudio NVARCHAR(2500) = NULL, -- Si es entrada por voz
     @RutaAudio NVARCHAR(500) = NULL -- Ruta del archivo de audio si existe
 AS
