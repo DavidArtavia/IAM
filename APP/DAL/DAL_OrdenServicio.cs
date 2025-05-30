@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+using UTL;
 
 namespace DAL
 {
@@ -47,7 +48,15 @@ namespace DAL
                     {
                         while (reader.Read())
                         {
-                            respuesta = manejarRespuesta(reader);
+                            ordenServicio.ID_OrdenServicio = UTL_DBHelper.ReadNullSafeInt(reader["ID_OrdenServicio"]);
+                        }
+
+                        if (reader.NextResult())
+                        {
+                            while (reader.Read())
+                            {
+                                respuesta = manejarRespuesta(reader);
+                            }
                         }
                     }
                     return respuesta;

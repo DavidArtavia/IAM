@@ -62,13 +62,13 @@ INSERT INTO [UTIL].[TBL_ALERTAS] ([COD_ALERTA], [Nombre], [Mensaje], [Tipo]) VAL
 ('B016', N'Actualizar CuentasPorPagar', N'La cuenta por pagar especificada no existe.', 'E'),
 ('B017', N'Actualizar CuentasPorPagar', N'No se realizó ninguna modificación en la cuenta por pagar.', 'I'),
 ('B018', N'Registrar OrdenServicio', N'La orden de servicio se registró correctamente.', 'I'),
-('B019', N'Registrar OrdenServicio', N'El cliente especificado no existe.', 'E'),
-('B020', N'Registrar OrdenServicio', N'El negocio especificado no existe.', 'E'),
-('B021', N'Registrar OrdenServicio', N'El estado especificado no existe.', 'E'),
-('B022', N'Registrar OrdenServicio', N'No se pudo registrar la orden de servicio.', 'E'),
+--('B019', N'Registrar OrdenServicio', N'El cliente especificado no existe.', 'E'),
+--('B020', N'Registrar OrdenServicio', N'El negocio especificado no existe.', 'E'),
+--('B021', N'Registrar OrdenServicio', N'El estado especificado no existe.', 'E'),
+--('B022', N'Registrar OrdenServicio', N'No se pudo registrar la orden de servicio.', 'E'),
 ('B023', N'Actualizar OrdenServicio', N'La orden de servicio se actualizó correctamente.', 'I'),
 ('B024', N'Actualizar OrdenServicio', N'La orden de servicio especificada no existe.', 'E'),
-('B025', N'Actualizar OrdenServicio', N'No se realizaron cambios en la orden de servicio.', 'I'),
+('B025', N'Actualizar OrdenServicio', N'No se realizaron cambios en la orden de servicio.', 'I')
 GO
 
 

@@ -7,6 +7,7 @@ SET QUOTED_IDENTIFIER ON
 GO -- =============================================
     -- Autor:       David Artavia Arias
     -- Creación:    2025-05-26
+	-- Modificacion: 30/05/2025 (Se agrega el Output para que la IA entienda el ID creado y proceda con demás procesos y se quitan validaciones)
     -- Descripción: Registra una nueva orden de servicio,
     --              capturando FechaOrdenServicio con GETDATE() y permitiendo NULL en algunos elementos.
     -- =============================================
@@ -34,47 +35,7 @@ GO -- =============================================
     @FechaEntrega DATETIME = NULL,
     @ReferenciaJSON NVARCHAR(MAX) = NULL,
     @NotaOrdenServicio VARCHAR(255) = NULL AS BEGIN
-SET NOCOUNT ON;
--- 1) Validar existencia de Cliente
-IF NOT EXISTS (
-    SELECT 1
-    FROM [CORE].[TBL_CLIENTES]
-    WHERE [ID_Cliente] = @ID_Cliente
-) BEGIN
-SELECT [COD_ALERTA],
-    [Nombre],
-    [Mensaje],
-    [Tipo]
-FROM [UTIL].[TBL_ALERTAS]
-WHERE [COD_ALERTA] = 'B019';
-RETURN;
-END -- 2) Validar existencia de Negocio
-IF NOT EXISTS (
-    SELECT 1
-    FROM [CORE].[TBL_NEGOCIOS]
-    WHERE [ID_Negocio] = @ID_Negocio
-) BEGIN
-SELECT [COD_ALERTA],
-    [Nombre],
-    [Mensaje],
-    [Tipo]
-FROM [UTIL].[TBL_ALERTAS]
-WHERE [COD_ALERTA] = 'B020';
-RETURN;
-END -- 3) Validar existencia de Estado
-IF NOT EXISTS (
-    SELECT 1
-    FROM [UTIL].[TBL_ESTADOS]
-    WHERE [ID_Estado] = @ID_Estado
-) BEGIN
-SELECT [COD_ALERTA],
-    [Nombre],
-    [Mensaje],
-    [Tipo]
-FROM [UTIL].[TBL_ALERTAS]
-WHERE [COD_ALERTA] = 'B021';
-RETURN;
-END -- 4) Insertar nueva orden de servicio
+
 INSERT INTO [CORE].[TBL_ORDENES_SERVICIO] (
         [ID_Cliente],
         [ID_Negocio],
@@ -87,35 +48,37 @@ INSERT INTO [CORE].[TBL_ORDENES_SERVICIO] (
         [ReferenciaJSON],
         [NotaOrdenServicio]
     )
+OUTPUT 
+    inserted.ID_OrdenServicio,
+    inserted.ID_Cliente,
+    inserted.ID_Negocio,
+    inserted.ID_Estado,
+    inserted.FechaOrdenServicio,
+    inserted.FechaEstimadaEntrega,
+    inserted.FechaInicio,
+    inserted.FechaFinal,
+    inserted.FechaEntrega,
+    inserted.ReferenciaJSON,
+    inserted.NotaOrdenServicio
 VALUES (
         @ID_Cliente,
         @ID_Negocio,
-        @ID_Estado -- PUEDE SER 6 (Activo) por defecto
-,
+        @ID_Estado, -- PUEDE SER 6 (Activo) por defecto
         GETDATE(),
         @FechaEstimadaEntrega,
-        @FechaInicio -- puede ser NULL
-,
-        @FechaFinal -- puede ser NULL
-,
+        @FechaInicio, -- puede ser NULL
+        @FechaFinal, -- puede ser NULL
         @FechaEntrega,
         @ReferenciaJSON,
         @NotaOrdenServicio
     );
--- 5) Verificar filas afectadas
-IF @@ROWCOUNT = 0 BEGIN
-SELECT [COD_ALERTA],
-    [Nombre],
-    [Mensaje],
-    [Tipo]
-FROM [UTIL].[TBL_ALERTAS]
-WHERE [COD_ALERTA] = 'B022';
-RETURN;
-END -- 6) Todo correcto
+
+
 SELECT [COD_ALERTA],
     [Nombre],
     [Mensaje],
     [Tipo]
 FROM [UTIL].[TBL_ALERTAS]
 WHERE [COD_ALERTA] = 'B018';
+
 END
