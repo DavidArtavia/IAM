@@ -59,6 +59,8 @@ namespace DAL
                             }
                         }
                     }
+
+                    respuesta.Resultado.Add(ordenServicio);
                     return respuesta;
                 }
             }

@@ -46,9 +46,15 @@ namespace BLL
         {
             _fileHandler = new UTL_FileHandler();
             client = new ChatCompletionsClient(new Uri(ConfigurationManager.AppSettings["AzureAIServiceURL"] ?? ""), new AzureKeyCredential(ConfigurationManager.AppSettings["AzureKey"] ?? ""), new ChatCompletionsClientOptions());
-            requestOptions = new ChatCompletionsOptions() { MaxTokens = Convert.ToInt32(ConfigurationManager.AppSettings["AzureMaxTokens"] ?? "2048"), Model = ConfigurationManager.AppSettings["AzureAIServiceModel"] ?? "" };
+            requestOptions = new ChatCompletionsOptions()
+            {
+                MaxTokens = Convert.ToInt32(ConfigurationManager.AppSettings["AzureMaxTokens"] ?? "2048"),
+                Model = ConfigurationManager.AppSettings["AzureAIServiceModel"] ?? "",
+                ResponseFormat = new ChatCompletionsResponseFormatJSON(),
+                Seed = 5800,
+                Temperature = (float) 0.5
 
-
+            };
         }
 
         public async Task<DTO_Respuesta> guardarAudioTemp(DTO_Mensaje mensaje)
@@ -292,7 +298,10 @@ namespace BLL
             DTO_RepuestaIA repuestaIA = new DTO_RepuestaIA();
 
             //Quitamos el razonamiento
-            mensajeUser.TextoMensaje = Regex.Replace(mensajeIA.TextoMensaje, @"<think>.*?</think>", String.Empty, RegexOptions.IgnoreCase | RegexOptions.Singleline);
+            //mensajeUser.TextoMensaje = Regex.Replace(mensajeIA.TextoMensaje, @"<think>.*?</think>", String.Empty, RegexOptions.IgnoreCase | RegexOptions.Singleline);
+            var mjs = Regex.Match(mensajeIA.TextoMensaje, @"```json(.*?)```", RegexOptions.IgnoreCase | RegexOptions.Singleline);
+            mensajeUser.TextoMensaje = mjs.Success ? mjs.Groups[1].Value : string.Empty;
+
             //Nos quedamos solo con la parte JSON
             int indiceLlave = mensajeUser.TextoMensaje.IndexOf('{');
             if (indiceLlave == -1) throw new FormatException("No se encontró JSON en la cadena.");
@@ -338,10 +347,7 @@ namespace BLL
                     cliente.TelefonoCliente = repuestaIA.ParamsAccion.Find(p => p.Nombre.Equals("TelefonoCliente", StringComparison.OrdinalIgnoreCase))?.Valor ?? string.Empty;
                     cliente.CorreoCliente = repuestaIA.ParamsAccion.Find(p => p.Nombre.Equals("CorreoCliente", StringComparison.OrdinalIgnoreCase))?.Valor ?? string.Empty;
 
-
-                    respuesta = bLL_Cliente.buscarCliente(cliente);
-
-                    mensajeUser.TextoMensaje = JsonConvert.SerializeObject(respuesta);
+                    mensajeUser.TextoMensaje = JsonConvert.SerializeObject(bLL_Cliente.buscarCliente(cliente));
                     mensajeUser.Tipo = "assistant";
                     mensajeUser.ID_ChatIA = chatIA.ID_ChatIA;
 
@@ -367,10 +373,7 @@ namespace BLL
                     cliente.TelefonoCliente = repuestaIA.ParamsIntencion.Find(p => p.Nombre.Equals("TelefonoCliente", StringComparison.OrdinalIgnoreCase))?.Valor ?? string.Empty;
                     cliente.CorreoCliente = repuestaIA.ParamsIntencion.Find(p => p.Nombre.Equals("CorreoCliente", StringComparison.OrdinalIgnoreCase))?.Valor ?? string.Empty;
 
-
-                    respuesta = bLL_Cliente.guardarCliente(usuario, cliente);
-
-                    mensajeUser.TextoMensaje = JsonConvert.SerializeObject(respuesta);
+                    mensajeUser.TextoMensaje = JsonConvert.SerializeObject(bLL_Cliente.guardarCliente(usuario, cliente));
                     mensajeUser.Tipo = "assistant";
                     mensajeUser.ID_ChatIA = chatIA.ID_ChatIA;
 
@@ -389,9 +392,7 @@ namespace BLL
                     ordenServicio.FechaEstimadaEntrega = Convert.ToDateTime(repuestaIA.ParamsIntencion.Find(p => p.Nombre.Equals("FechaEstimadaEntrega", StringComparison.OrdinalIgnoreCase))?.Valor ?? "");
                     ordenServicio.ID_Cliente = Convert.ToInt32(repuestaIA.ParamsIntencion.Find(p => p.Nombre.Equals("ID_Cliente", StringComparison.OrdinalIgnoreCase))?.Valor ?? "0");
 
-                    respuesta = bLL_OrdenServicio.registrarOrdenServicio(ordenServicio);
-
-                    mensajeUser.TextoMensaje = JsonConvert.SerializeObject(respuesta);
+                    mensajeUser.TextoMensaje = JsonConvert.SerializeObject(bLL_OrdenServicio.registrarOrdenServicio(ordenServicio));
                     mensajeUser.Tipo = "assistant";
                     mensajeUser.ID_ChatIA = chatIA.ID_ChatIA;
 
@@ -403,5 +404,9 @@ namespace BLL
             }
 
         }
+
+
+
+
     }
 }
