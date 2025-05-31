@@ -16,15 +16,17 @@ AS
 BEGIN
 
 		SELECT [ID_Mensaje]
-				,[ID_ChatIA]
-				,[Tipo]
-				,[TextoMensaje]
-				,[TranscripcionAudio]
-				,[RutaAudio]
-				,[FechaMensaje]
-			FROM [CORE].[TBL_MENSAJES_CHAT] WHERE ID_ChatIA = @ID_ChatIA
+			  ,[ID_ChatIA]
+			  ,[Envia]
+			  ,[Recibe]
+			  ,[Contenido]
+			  ,[Parametros]
+			  ,[RutaAudio]
+			  ,[FechaMensaje]
+		  FROM [CORE].[TBL_MENSAJES_CHAT]
+		  WHERE ID_ChatIA = @ID_ChatIA
 
-			SELECT [COD_ALERTA],[Nombre],[Mensaje],[Tipo] FROM [UTIL].[TBL_ALERTAS] WHERE [COD_ALERTA] = 'A0020'
+		  SELECT [COD_ALERTA],[Nombre],[Mensaje],[Tipo] FROM [UTIL].[TBL_ALERTAS] WHERE [COD_ALERTA] = 'A0020'
 
 END
 GO

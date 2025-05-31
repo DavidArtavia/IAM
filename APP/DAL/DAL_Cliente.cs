@@ -12,7 +12,7 @@ namespace DAL
 {
     public class DAL_Cliente: DAL_Conexion
     {
-        public DTO_Respuesta buscarCliente(DTO_Cliente cliente)
+        public async Task<DTO_Respuesta> buscarCliente(DTO_Cliente cliente)
         {
             DTO_Respuesta respuesta = new DTO_Respuesta();
             List<DTO_Cliente> listaCliente = new List<DTO_Cliente>();
@@ -48,7 +48,7 @@ namespace DAL
                     this.Open();
 
                     // Ejecutar el comando y obtener el lector de datos
-                    using (SqlDataReader reader = sqlcmd.ExecuteReader())
+                    using (SqlDataReader reader = await sqlcmd.ExecuteReaderAsync())
                     {
                         while (reader.Read())
                         {
@@ -89,7 +89,7 @@ namespace DAL
             }
         }
 
-        public DTO_Respuesta guardarCliente(DTO_Usuario usuario, DTO_Cliente cliente)
+        public async Task<DTO_Respuesta> guardarCliente(DTO_Usuario usuario, DTO_Cliente cliente)
         {
             DTO_Respuesta respuesta = new DTO_Respuesta();
             try
@@ -118,7 +118,7 @@ namespace DAL
                     this.Open();
 
                     // Ejecutar el comando y obtener el lector de datos
-                    using (SqlDataReader reader = sqlcmd.ExecuteReader())
+                    using (SqlDataReader reader = await sqlcmd.ExecuteReaderAsync())
                     {
                         while (reader.Read())
                         {

@@ -12,9 +12,9 @@ namespace BLL
     {
         DAL_Contexto dAL_Contexto = new();
         DTO_Respuesta respuesta = new();
-        public DTO_Respuesta obtenerContexto(DTO_Usuario usuario, DTO_ChatIA chat)
+        public async Task<DTO_Respuesta> obtenerContexto(DTO_Usuario usuario, DTO_ChatIA chat)
         {
-            respuesta = dAL_Contexto.obtenerContexto(usuario, chat);
+            respuesta = await dAL_Contexto.obtenerContexto(usuario, chat);
 
             if(!respuesta.TipoRespuesta)
                 throw new Exception(respuesta.Mensaje);

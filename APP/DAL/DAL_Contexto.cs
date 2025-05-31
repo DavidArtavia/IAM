@@ -12,7 +12,7 @@ namespace DAL
 {
     public class DAL_Contexto: DAL_Conexion
     {
-        public DTO_Respuesta obtenerContexto(DTO_Usuario usuario, DTO_ChatIA chat)
+        public async Task<DTO_Respuesta> obtenerContexto(DTO_Usuario usuario, DTO_ChatIA chat)
         {
             DTO_Respuesta respuesta = new DTO_Respuesta();
             DTO_Contexto contexto = new DTO_Contexto(); 
@@ -40,7 +40,7 @@ namespace DAL
                     this.Open();
 
                     // Ejecutar el comando y obtener el lector de datos
-                    using (SqlDataReader reader = sqlcmd.ExecuteReader())
+                    using (SqlDataReader reader = await sqlcmd.ExecuteReaderAsync())
                     {
                         while (reader.Read())
                         {

@@ -30,7 +30,8 @@ namespace API.Controllers
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
             if (userIdClaim == null) throw new UnauthorizedAccessException("User ID claim is missing.");
             usuario.ID_Usuario = Convert.ToInt32(userIdClaim.Value);
-            mensaje.Tipo = "user";
+            mensaje.Envia = "USUARIO";
+            mensaje.Recibe = "IAM";
 
             try
             {
@@ -63,7 +64,7 @@ namespace API.Controllers
 
                 }
             
-                   respuesta = bll_chatIA.enviarMensajeIA(mensaje, usuario);
+                   respuesta = await bll_chatIA.gestionarConversacionIA(mensaje, usuario);
             
 
             }
@@ -86,7 +87,8 @@ namespace API.Controllers
             try
             {
                 respuesta = bLL_Mensaje.obtenerMensajes(chatIA);
-                respuesta = bll_chatIA.formatearMensajesParaChat((List<DTO_Mensaje>)respuesta.Resultado[0]);
+                respuesta.Resultado.Clear();
+                respuesta.Resultado.Add(bll_chatIA.formatearMensajesParaChat((List<DTO_Mensaje>)respuesta.Resultado[0]));
 
             }
             catch (Exception ex)

@@ -1,12 +1,15 @@
 ﻿using DTO;
 using Microsoft.Data.SqlClient;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 using UTL;
+using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace DAL
 {
@@ -25,9 +28,10 @@ namespace DAL
                 {
                     sqlcmd.CommandType = CommandType.StoredProcedure;
                     sqlcmd.Parameters.Add("@ID_ChatIA", SqlDbType.Int).Value = mensaje.ID_ChatIA;
-                    sqlcmd.Parameters.Add("@Tipo", SqlDbType.NVarChar).Value = mensaje.Tipo;
-                    sqlcmd.Parameters.Add("@TextoMensaje", SqlDbType.NVarChar).Value = mensaje.TextoMensaje;
-                    sqlcmd.Parameters.Add("@TranscripcionAudio", SqlDbType.NVarChar).Value = mensaje.TranscripcionAudio;
+                    sqlcmd.Parameters.Add("@Envia", SqlDbType.NVarChar).Value = mensaje.Envia;
+                    sqlcmd.Parameters.Add("@Recibe", SqlDbType.NVarChar).Value = mensaje.Recibe;
+                    sqlcmd.Parameters.Add("@Contenido", SqlDbType.NVarChar).Value = mensaje.Contenido;
+                    sqlcmd.Parameters.Add("@Parametros", SqlDbType.NVarChar).Value = JsonConvert.SerializeObject(mensaje.Parametros);
                     sqlcmd.Parameters.Add("@RutaAudio", SqlDbType.NVarChar).Value = mensaje.RutaAudio;
 
                     // Establecer la dirección de los parámetros
@@ -44,9 +48,20 @@ namespace DAL
                     {
                         while (reader.Read())
                         {
-                            respuesta = manejarRespuesta(reader);
+                            mensaje.ID_Mensaje = UTL_DBHelper.ReadNullSafeInt(reader["ID_Mensaje"]);
                         }
+
+                        if (reader.NextResult())
+                        {
+                            while (reader.Read())
+                            {
+                                respuesta = manejarRespuesta(reader);
+
+                            }
+                        }
+
                     }
+                    respuesta.Resultado.Add(mensaje);
                     return respuesta;
                 }
             }
@@ -94,14 +109,14 @@ namespace DAL
                             mensaje = new DTO_Mensaje();
                             mensaje.ID_Mensaje = UTL_DBHelper.ReadNullSafeInt(reader["ID_Mensaje"]);
                             mensaje.ID_ChatIA = UTL_DBHelper.ReadNullSafeInt(reader["ID_ChatIA"]);
-                            mensaje.Tipo = UTL_DBHelper.ReadNullSafeString(reader["Tipo"]);
-                            mensaje.TextoMensaje = UTL_DBHelper.ReadNullSafeString(reader["TextoMensaje"]);
-                            mensaje.TranscripcionAudio = UTL_DBHelper.ReadNullSafeString(reader["TranscripcionAudio"]);
+                            mensaje.Envia = UTL_DBHelper.ReadNullSafeString(reader["Envia"]);
+                            mensaje.Recibe = UTL_DBHelper.ReadNullSafeString(reader["Recibe"]);
+                            mensaje.Contenido = UTL_DBHelper.ReadNullSafeString(reader["Contenido"]);
+                            mensaje.Parametros = JsonSerializer.Deserialize<List<DTO_Param>>(UTL_DBHelper.ReadNullSafeString(reader["Parametros"])) ?? new();
                             mensaje.RutaAudio = UTL_DBHelper.ReadNullSafeString(reader["RutaAudio"]);
                             mensaje.FechaMensaje = UTL_DBHelper.ReadNullSafeDateTime(reader["FechaMensaje"]);
 
                             listaMensajes.Add(mensaje);
-
 
                         }
 

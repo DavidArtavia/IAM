@@ -2,13 +2,16 @@
 using AutoGen.Core;
 using Azure;
 using Azure.AI.Inference;
+using Azure.Core.Pipeline;
 using DAL;
 using DTO;
 using Microsoft.CognitiveServices.Speech;
 using Microsoft.CognitiveServices.Speech.Audio;
 using Newtonsoft.Json;
 using System.Configuration;
+using System.Runtime.InteropServices.Marshalling;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using UTL;
 using JsonSerializer = Newtonsoft.Json.JsonSerializer;
 
@@ -17,8 +20,8 @@ namespace BLL
     public class BLL_ChatIA
     {
         //Globales
-        public ChatCompletionsClient? client;
-        public ChatCompletionsOptions? requestOptions;
+        public ChatCompletionsClient client;
+        public ChatCompletionsOptions requestOptions;
         List<DTO_Contexto> contextos = new();
         List<DTO_Mensaje> mensajes = new();
 
@@ -29,7 +32,7 @@ namespace BLL
         UTL_Cipher uTL_Cipher = new();
 
         DTO_Respuesta respuesta = new();
-        DTO_RepuestaIA repuestaIA = new();
+
         DTO_Cliente cliente = new();
         DTO_ChatIA chatIA = new();
         DTO_OrdenServicio ordenServicio = new();
@@ -44,16 +47,18 @@ namespace BLL
 
         public BLL_ChatIA()
         {
+
+            ChatCompletionsClientOptions options = new ChatCompletionsClientOptions(ChatCompletionsClientOptions.ServiceVersion.V2024_05_01_Preview);
+            options.RetryPolicy = new RetryPolicy(2);
+
             _fileHandler = new UTL_FileHandler();
-            client = new ChatCompletionsClient(new Uri(ConfigurationManager.AppSettings["AzureAIServiceURL"] ?? ""), new AzureKeyCredential(ConfigurationManager.AppSettings["AzureKey"] ?? ""), new ChatCompletionsClientOptions());
+            client = new ChatCompletionsClient(new Uri(ConfigurationManager.AppSettings["AzureAIServiceURL"] ?? ""), new AzureKeyCredential(ConfigurationManager.AppSettings["AzureKey"] ?? ""), options);
             requestOptions = new ChatCompletionsOptions()
             {
-                MaxTokens = Convert.ToInt32(ConfigurationManager.AppSettings["AzureMaxTokens"] ?? "2048"),
+                MaxTokens = Convert.ToInt32(ConfigurationManager.AppSettings["AzureMaxTokens"] ?? "3000"),
                 Model = ConfigurationManager.AppSettings["AzureAIServiceModel"] ?? "",
-                ResponseFormat = new ChatCompletionsResponseFormatJSON(),
-                Seed = 5800,
-                Temperature = (float) 0.5
-
+                Temperature = (float) 0.4,
+                
             };
         }
 
@@ -111,7 +116,7 @@ namespace BLL
             {
                 case ResultReason.RecognizedSpeech:
                     respuesta = alerta.obtenerAlerta("A009");
-                    mensaje.TranscripcionAudio = speechRecognitionResult.Text;
+                    mensaje.Contenido = speechRecognitionResult.Text;
                     respuesta.Resultado.Add(mensaje);
                     break;
                 case ResultReason.NoMatch:
@@ -170,12 +175,15 @@ namespace BLL
             return dAL_chatIA.obtenerChats(negocio);
         }
 
-        public void cargarContexto(DTO_Mensaje mensaje, DTO_Usuario usuario)
+        public async Task<DTO_Respuesta> cargarContexto(DTO_Usuario usuario)
         {
+            DTO_Respuesta respContexto = new();
             //Obtenemos el contexto para la IA
             if (contextos.Count() == 0)
             {
-                contextos = (List<DTO_Contexto>)bLL_Contexto.obtenerContexto(usuario, chatIA).Resultado[0];
+                respContexto = await bLL_Contexto.obtenerContexto(usuario, chatIA);
+
+                contextos = (List<DTO_Contexto>) respContexto.Resultado[0];
 
 
                 foreach (var contexto in contextos)
@@ -186,8 +194,7 @@ namespace BLL
                 //Acá unimos el contexto de la conversación si es que hay un contexto.
                 if (mensajes.Count() == 0)
                 {
-                    respuesta = bLL_Mensaje.obtenerMensajes(chatIA);
-                    mensajes = (List<DTO_Mensaje>)respuesta.Resultado[0];
+                    mensajes = (List<DTO_Mensaje>)bLL_Mensaje.obtenerMensajes(chatIA).Resultado[0];
                 }
 
                 //agregamos los mensajes que el usuario agregara previamente
@@ -196,39 +203,77 @@ namespace BLL
                     agregarMensajeAlContexto(mensajeChat);
                 }
             }
+            return respContexto;
 
         }
 
         public void agregarMensajeAlContexto(DTO_Mensaje mensaje)
         {
+            ChatRequestAssistantMessage assistant = new ChatRequestAssistantMessage();
+            assistant.Content = Newtonsoft.Json.JsonConvert.SerializeObject(mensaje);
 
-            switch (mensaje.Tipo)
+            switch (mensaje.Envia)
             {
-                case "system":
-                    requestOptions.Messages.Add(new ChatRequestSystemMessage(mensaje.TextoMensaje ?? mensaje.TranscripcionAudio));
-                    break;
-                case "assistant":
 
-                    ChatRequestAssistantMessage assistant = new ChatRequestAssistantMessage();
-                    assistant.Content = mensaje.TextoMensaje ?? mensaje.TranscripcionAudio;
+                case "BAKEND":
 
                     requestOptions.Messages.Add(assistant);
 
                     break;
-                case "user":
-                    requestOptions.Messages.Add(new ChatRequestUserMessage(mensaje.TextoMensaje ?? mensaje.TranscripcionAudio));
+                case "IAM":
+
+                    requestOptions.Messages.Add(assistant);
+
+                    break;
+                case "USUARIO":
+
+                    requestOptions.Messages.Add(new ChatRequestUserMessage(JsonConvert.SerializeObject(mensaje)));
+
                     break;
 
             }
 
         }
-        public DTO_Respuesta enviarMensajeIA(DTO_Mensaje mensaje, DTO_Usuario usuario)
-        {
 
+        public async Task<DTO_Respuesta> gestionarConversacionIA(DTO_Mensaje mensaje, DTO_Usuario usuario)
+        {
+            DTO_Respuesta resp = new DTO_Respuesta();
+            DTO_Mensaje msjRespIA = new();
             chatIA.ID_ChatIA = mensaje.ID_ChatIA;
 
-            //cargamos el contexto
-            cargarContexto(mensaje, usuario);
+            //cargamos el contexto inicial
+            await cargarContexto(usuario);
+
+
+
+            msjRespIA = await enviarMensajeIA(mensaje);
+
+
+            int contadorIteraciones = 0;
+
+            while (msjRespIA.Recibe != "USUARIO" && contadorIteraciones < 5)
+            {
+                contadorIteraciones++;
+
+                if (msjRespIA.Recibe == "BAKEND")
+                {
+                    mensaje = await ejecutarAccionBakend(msjRespIA, usuario);
+                    msjRespIA = await enviarMensajeIA(mensaje);
+                }
+
+            }
+
+
+            resp.TipoRespuesta = true;
+            resp.Resultado.Add(msjRespIA);
+
+            return resp;
+
+        }
+
+        public async Task<DTO_Mensaje> enviarMensajeIA(DTO_Mensaje mensaje)
+        {
+            DTO_Mensaje msjRespIA = new();
 
             //cargamos el mensaje al contexto
             agregarMensajeAlContexto(mensaje);
@@ -237,176 +282,153 @@ namespace BLL
             bLL_Mensaje.guardarMensaje(mensaje);
 
             //Creamos la respuesta
-            Response<ChatCompletions> response = client.Complete(requestOptions);
+            Response<ChatCompletions> response = await client.CompleteAsync(requestOptions);
+
+            //Ejecutamos el procesamiento con IA
+            msjRespIA = formatearRespuestaIA(new ChatRequestAssistantMessage(response.Value.Choices[0].Message).Content);
 
             //guardamos la respuesta serializada
-            mensaje.TextoMensaje = new ChatRequestAssistantMessage(response.Value.Choices[0].Message).Content;
-            mensaje.Tipo = "assistant";
-            bLL_Mensaje.guardarMensaje(mensaje);
+            bLL_Mensaje.guardarMensaje(msjRespIA);
 
             //damos forma a la respuesta
-            repuestaIA = formatearRespuestaIA(mensaje);
+            
 
-
-            if (repuestaIA.RespuestaUsuario.Length > 0)
+            //Si está vacío quiere decir que el procesamiento continuará por lo que procedemos a meter el mensaje al contexto
+            if (msjRespIA.Recibe != "USUARIO")
             {
-                mensaje.TextoMensaje = repuestaIA.RespuestaUsuario.Replace("\n", "<br>");
-                respuesta.Resultado.Clear();
-                respuesta.Resultado.Add(mensaje);
-            }
-            else
-            {
-                procesarRespuestaIA(repuestaIA, usuario);
+                agregarMensajeAlContexto(msjRespIA);
             }
 
-            return respuesta;
+            return msjRespIA;
 
         }
-        public DTO_Respuesta formatearMensajesParaChat(List<DTO_Mensaje> mensajesObtenidos)
+        public List<DTO_Mensaje> formatearMensajesParaChat(List<DTO_Mensaje> mensajesObtenidos)
         {
-            List<DTO_Mensaje> mensajesProcesados = new List<DTO_Mensaje>();
-            DTO_RepuestaIA respIA = new();
+            List<DTO_Mensaje> mensajesProcesados = new();
+            DTO_MensajeIA respIA = new();
 
 
             foreach (DTO_Mensaje msj in mensajesObtenidos)
             {
-                switch (msj.Tipo)
+              /*  switch (msj.Tipo)
                 {
                     case "user":
                         mensajesProcesados.Add(msj);
                         break;
                     case "assistant":
                         respIA = formatearRespuestaIA(msj);
-                        if (respIA.RespuestaUsuario.Length > 0)
+                        if (respIA.Contenido is not null)
                         {
-                            msj.TextoMensaje = respIA.RespuestaUsuario;
+                            msj.TextoMensaje = respIA.Contenido.ToString();
                             mensajesProcesados.Add(msj);
                         }
                         break;
+                }*/
+            }
+
+            return mensajesProcesados;
+        }
+        public DTO_Mensaje formatearRespuestaIA(string content)
+        {
+            DTO_Mensaje respuestaIAFormateada = new DTO_Mensaje();
+
+            // 1) Intentamos extraer JSON encerrado en ```json ... ```
+            string rawJson = null;
+            var match = Regex.Match(content, @"```json\s*(\{[\s\S]*?\})\s*```", RegexOptions.IgnoreCase);
+            if (match.Success)
+            {
+                rawJson = match.Groups[1].Value;
+            }
+            else
+            {
+                // 2) Si no lo encontramos, buscamos la primera '{' y la última '}'
+                int indicePrimeraLlave = content.IndexOf('{');
+                if (indicePrimeraLlave >= 0)
+                {
+                    int indiceUltimaLlave = content.LastIndexOf('}');
+                    if (indiceUltimaLlave >= indicePrimeraLlave)
+                        rawJson = content.Substring(indicePrimeraLlave, indiceUltimaLlave - indicePrimeraLlave + 1);
+                    else
+                        rawJson = content.Substring(indicePrimeraLlave);
                 }
             }
 
-            respuesta.Resultado.Clear();
-            respuesta.TipoRespuesta = true;
-            respuesta.Resultado.Add(mensajesProcesados);
-
-            return respuesta;
-        }
-        public DTO_RepuestaIA formatearRespuestaIA(DTO_Mensaje mensajeIA)
-        {
-            DTO_Mensaje mensajeUser = new DTO_Mensaje();
-            DTO_RepuestaIA repuestaIA = new DTO_RepuestaIA();
-
-            //Quitamos el razonamiento
-            //mensajeUser.TextoMensaje = Regex.Replace(mensajeIA.TextoMensaje, @"<think>.*?</think>", String.Empty, RegexOptions.IgnoreCase | RegexOptions.Singleline);
-            var mjs = Regex.Match(mensajeIA.TextoMensaje, @"```json(.*?)```", RegexOptions.IgnoreCase | RegexOptions.Singleline);
-            mensajeUser.TextoMensaje = mjs.Success ? mjs.Groups[1].Value : string.Empty;
-
-            //Nos quedamos solo con la parte JSON
-            int indiceLlave = mensajeUser.TextoMensaje.IndexOf('{');
-            if (indiceLlave == -1) throw new FormatException("No se encontró JSON en la cadena.");
-
-
-            //Deserializamos
-
-            JsonSerializer serializer = new JsonSerializer();
-            using (StringReader sr = new StringReader(mensajeUser.TextoMensaje.Substring(indiceLlave)))
-            using (JsonTextReader reader = new JsonTextReader(sr))
+            // 3) Si obtuvimos algo que parece JSON, intentamos deserializarlo
+            if (!string.IsNullOrWhiteSpace(rawJson))
             {
-                repuestaIA = serializer.Deserialize<DTO_RepuestaIA>(reader) ?? new();
+                try
+                {
+                    JsonSerializer serializer = new JsonSerializer();
+                    using (StringReader sr = new StringReader(rawJson))
+                    using (JsonTextReader reader = new JsonTextReader(sr))
+                    {
+                        respuestaIAFormateada = serializer.Deserialize<DTO_Mensaje>(reader) ?? new DTO_Mensaje();
+                    }
+                }
+                catch (JsonReaderException)
+                {
+                    // Aquí puedes decidir qué hacer si rawJson no era JSON válido.
+                    // Por defecto, dejamos respuestaIAFormateada con sus valores por defecto.
+                }
             }
 
-            return repuestaIA;
+            // 4) Asignamos el ID_ChatIA antes de retornar
+            respuestaIAFormateada.ID_ChatIA = chatIA.ID_ChatIA;
+            return respuestaIAFormateada;
         }
 
-        public void procesarRespuestaIA(DTO_RepuestaIA repuestaIA, DTO_Usuario usuario)
+
+
+        public async Task<DTO_Mensaje> ejecutarAccionBakend(DTO_Mensaje repuestaIA, DTO_Usuario usuario)
         {
+            DTO_Mensaje mensajeParaIAM = new();
+            mensajeParaIAM.Recibe = "IAM";
+            mensajeParaIAM.Envia = "BAKEND";
+            mensajeParaIAM.Parametros = repuestaIA.Parametros;
+            mensajeParaIAM.ID_ChatIA = chatIA.ID_ChatIA;
 
-            //si entra acá es porque ocupa algo del sistema para continuar la converación
-            if (repuestaIA.EjecutarAccionBakend)
-            {
-                ejecutarAccionBakend(repuestaIA, usuario);
-            }
-            else if (repuestaIA.EjecutarIntencionDetectada)
-            {
-                ejecutarIntencionDetectada(repuestaIA, usuario);
-            }
-
-        }
-
-        public void ejecutarAccionBakend(DTO_RepuestaIA repuestaIA, DTO_Usuario usuario)
-        {
-            DTO_Mensaje mensajeUser = new();
-
-            switch (repuestaIA.AccionBakendDetectada)
+            switch (repuestaIA.Contenido.ToString())
             {
                 case "buscarCliente":
 
-                    cliente.NombreCliente = repuestaIA.ParamsAccion.Find(p => p.Nombre.Equals("NombreCliente", StringComparison.OrdinalIgnoreCase))?.Valor ?? string.Empty;
-                    cliente.ApellidoCliente = repuestaIA.ParamsAccion.Find(p => p.Nombre.Equals("ApellidoCliente", StringComparison.OrdinalIgnoreCase))?.Valor ?? string.Empty;
-                    cliente.TelefonoCliente = repuestaIA.ParamsAccion.Find(p => p.Nombre.Equals("TelefonoCliente", StringComparison.OrdinalIgnoreCase))?.Valor ?? string.Empty;
-                    cliente.CorreoCliente = repuestaIA.ParamsAccion.Find(p => p.Nombre.Equals("CorreoCliente", StringComparison.OrdinalIgnoreCase))?.Valor ?? string.Empty;
+                    cliente.NombreCliente = repuestaIA.Parametros.Find(p => p.Nombre.Equals("NombreCliente", StringComparison.OrdinalIgnoreCase))?.Valor ?? string.Empty;
+                    cliente.ApellidoCliente = repuestaIA.Parametros.Find(p => p.Nombre.Equals("ApellidoCliente", StringComparison.OrdinalIgnoreCase))?.Valor ?? string.Empty;
+                    cliente.TelefonoCliente = repuestaIA.Parametros.Find(p => p.Nombre.Equals("TelefonoCliente", StringComparison.OrdinalIgnoreCase))?.Valor ?? string.Empty;
+                    cliente.CorreoCliente = repuestaIA.Parametros.Find(p => p.Nombre.Equals("CorreoCliente", StringComparison.OrdinalIgnoreCase))?.Valor ?? string.Empty;
 
-                    mensajeUser.TextoMensaje = JsonConvert.SerializeObject(bLL_Cliente.buscarCliente(cliente));
-                    mensajeUser.Tipo = "assistant";
-                    mensajeUser.ID_ChatIA = chatIA.ID_ChatIA;
+                    mensajeParaIAM.Contenido = JsonConvert.SerializeObject(await bLL_Cliente.buscarCliente(cliente));
 
-                    mensajes.Add(mensajeUser);
-                    enviarMensajeIA(mensajeUser, usuario);
 
                     break;
-
-            }
-
-        }
-
-        public void ejecutarIntencionDetectada(DTO_RepuestaIA repuestaIA, DTO_Usuario usuario)
-        {
-            DTO_Mensaje mensajeUser = new DTO_Mensaje();
-
-            switch (repuestaIA.IntencionDetectada)
-            {
                 case "guardarCliente":
 
-                    cliente.NombreCliente = repuestaIA.ParamsIntencion.Find(p => p.Nombre.Equals("NombreCliente", StringComparison.OrdinalIgnoreCase))?.Valor ?? string.Empty;
-                    cliente.ApellidoCliente = repuestaIA.ParamsIntencion.Find(p => p.Nombre.Equals("ApellidoCliente", StringComparison.OrdinalIgnoreCase))?.Valor ?? string.Empty;
-                    cliente.TelefonoCliente = repuestaIA.ParamsIntencion.Find(p => p.Nombre.Equals("TelefonoCliente", StringComparison.OrdinalIgnoreCase))?.Valor ?? string.Empty;
-                    cliente.CorreoCliente = repuestaIA.ParamsIntencion.Find(p => p.Nombre.Equals("CorreoCliente", StringComparison.OrdinalIgnoreCase))?.Valor ?? string.Empty;
+                    cliente.NombreCliente = repuestaIA.Parametros.Find(p => p.Nombre.Equals("NombreCliente", StringComparison.OrdinalIgnoreCase))?.Valor ?? string.Empty;
+                    cliente.ApellidoCliente = repuestaIA.Parametros.Find(p => p.Nombre.Equals("ApellidoCliente", StringComparison.OrdinalIgnoreCase))?.Valor ?? string.Empty;
+                    cliente.TelefonoCliente = repuestaIA.Parametros.Find(p => p.Nombre.Equals("TelefonoCliente", StringComparison.OrdinalIgnoreCase))?.Valor ?? string.Empty;
+                    cliente.CorreoCliente = repuestaIA.Parametros.Find(p => p.Nombre.Equals("CorreoCliente", StringComparison.OrdinalIgnoreCase))?.Valor ?? string.Empty;
 
-                    mensajeUser.TextoMensaje = JsonConvert.SerializeObject(bLL_Cliente.guardarCliente(usuario, cliente));
-                    mensajeUser.Tipo = "assistant";
-                    mensajeUser.ID_ChatIA = chatIA.ID_ChatIA;
-
-                    mensajes.Add(mensajeUser);
-                    enviarMensajeIA(mensajeUser, usuario);
-
+                    mensajeParaIAM.Contenido = JsonConvert.SerializeObject(await bLL_Cliente.guardarCliente(usuario, cliente));
 
                     break;
 
                 case "guardarOrdenServicio":
 
-                    ordenServicio.Estado.ID_Estado = Convert.ToInt32(repuestaIA.ParamsIntencion.Find(p => p.Nombre.Equals("ID_Estado", StringComparison.OrdinalIgnoreCase))?.Valor ?? "0");
-                    ordenServicio.ReferenciaJSON = JsonConvert.DeserializeObject<List<DTO_Param>>(repuestaIA.ParamsIntencion.Find(p => p.Nombre.Equals("ReferenciaJSON", StringComparison.OrdinalIgnoreCase))?.Valor ?? string.Empty) ?? [];
-                    ordenServicio.NotaOrdenServicio = repuestaIA.ParamsIntencion.Find(p => p.Nombre.Equals("NotaOrdenServicio", StringComparison.OrdinalIgnoreCase))?.Valor ?? "";
-                    ordenServicio.ID_Negocio = Convert.ToInt32(repuestaIA.ParamsIntencion.Find(p => p.Nombre.Equals("ID_Negocio", StringComparison.OrdinalIgnoreCase))?.Valor ?? "0");
-                    ordenServicio.FechaEstimadaEntrega = Convert.ToDateTime(repuestaIA.ParamsIntencion.Find(p => p.Nombre.Equals("FechaEstimadaEntrega", StringComparison.OrdinalIgnoreCase))?.Valor ?? "");
-                    ordenServicio.ID_Cliente = Convert.ToInt32(repuestaIA.ParamsIntencion.Find(p => p.Nombre.Equals("ID_Cliente", StringComparison.OrdinalIgnoreCase))?.Valor ?? "0");
+                    ordenServicio.Estado.ID_Estado = Convert.ToInt32(repuestaIA.Parametros.Find(p => p.Nombre.Equals("ID_Estado", StringComparison.OrdinalIgnoreCase))?.Valor ?? "0");
+                    ordenServicio.ReferenciaJSON = JsonConvert.DeserializeObject<List<DTO_Param>>(repuestaIA.Parametros.Find(p => p.Nombre.Equals("ReferenciaJSON", StringComparison.OrdinalIgnoreCase))?.Valor ?? string.Empty) ?? [];
+                    ordenServicio.NotaOrdenServicio = repuestaIA.Parametros.Find(p => p.Nombre.Equals("NotaOrdenServicio", StringComparison.OrdinalIgnoreCase))?.Valor ?? "";
+                    ordenServicio.ID_Negocio = Convert.ToInt32(repuestaIA.Parametros.Find(p => p.Nombre.Equals("ID_Negocio", StringComparison.OrdinalIgnoreCase))?.Valor ?? "0");
+                    ordenServicio.FechaEstimadaEntrega = Convert.ToDateTime(repuestaIA.Parametros.Find(p => p.Nombre.Equals("FechaEstimadaEntrega", StringComparison.OrdinalIgnoreCase))?.Valor ?? "");
+                    ordenServicio.ID_Cliente = Convert.ToInt32(repuestaIA.Parametros.Find(p => p.Nombre.Equals("ID_Cliente", StringComparison.OrdinalIgnoreCase))?.Valor ?? "0");
 
-                    mensajeUser.TextoMensaje = JsonConvert.SerializeObject(bLL_OrdenServicio.registrarOrdenServicio(ordenServicio));
-                    mensajeUser.Tipo = "assistant";
-                    mensajeUser.ID_ChatIA = chatIA.ID_ChatIA;
-
-                    mensajes.Add(mensajeUser);
-                    enviarMensajeIA(mensajeUser, usuario);
+                    mensajeParaIAM.Contenido = JsonConvert.SerializeObject(await bLL_OrdenServicio.registrarOrdenServicio(ordenServicio));
 
                     break;
 
             }
 
+            return mensajeParaIAM;
+
         }
-
-
-
 
     }
 }

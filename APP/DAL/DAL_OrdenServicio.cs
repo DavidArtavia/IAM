@@ -16,7 +16,7 @@ namespace DAL
 
         DTO_Respuesta respuesta = new();
 
-        public DTO_Respuesta registrarOrdenServicio(DTO_OrdenServicio ordenServicio)
+        public async Task<DTO_Respuesta> registrarOrdenServicio(DTO_OrdenServicio ordenServicio)
         {
             try
             {
@@ -44,7 +44,7 @@ namespace DAL
 
                     this.Open();
 
-                    using (SqlDataReader reader = sqlcmd.ExecuteReader())
+                    using (SqlDataReader reader = await sqlcmd.ExecuteReaderAsync())
                     {
                         while (reader.Read())
                         {

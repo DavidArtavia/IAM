@@ -24,24 +24,24 @@ BEGIN
             [Prompt]
     FROM    [SECU].[TBL_CONTEXTO]
 	UNION ALL
-	SELECT @NumContextos + 1 ID_CONTEXTO, 'CONTEXTO PERSONALIZADO' Nombre, 'system' TIPO, 'DATOS DE CONTEXTO INICIAL:\n• ' +
-	'ID_Usuario = ' + CONVERT(VARCHAR, NEGOCIO.ID_Usuario) + '\n• ' +
-	'ID_Negocio = ' + CONVERT(VARCHAR,NEGOCIO.ID_Negocio) + '\n• ' + 
-	'ID_Estado (El de la orden de servicio) = 6\n• ' + 
-	'ID_ChatIA = ' + CONVERT(VARCHAR,CHAT.ID_ChatIA) + '\nEstos valores se reciben desde el inicio y pueden usarse cuando sea necesario; **no debes solicitarlos al usuario.**' Prompt
+	SELECT @NumContextos + 1 ID_CONTEXTO, 'CONTEXTO PERSONALIZADO' Nombre, 'system' TIPO, 'DATOS DE CONTEXTO INICIAL: \n• ' +
+	'ID_Usuario = ' + CONVERT(VARCHAR, NEGOCIO.ID_Usuario) + ' \n• ' +
+	'ID_Negocio = ' + CONVERT(VARCHAR,NEGOCIO.ID_Negocio) + ' \n• ' + 
+	'ID_Estado (El de la orden de servicio) = 6 \n• ' + 
+	'ID_ChatIA = ' + CONVERT(VARCHAR,CHAT.ID_ChatIA) + '\nEstos valores se reciben desde el inicio y pueden usarse cuando sea necesario; **no debes solicitarlos ni mostrarlos al usuario.**' Prompt
 	FROM [CORE].[TBL_NEGOCIOS] NEGOCIO
 	INNER JOIN  [CORE].[TBL_CHAT_IA] CHAT ON CHAT.ID_Negocio = NEGOCIO.ID_Negocio
 	WHERE CHAT.ID_ChatIA = @IdChat
 	UNION ALL
-	SELECT @NumContextos + 2 ID_CONTEXTO, 'CONTEXTO PERSONALIZADO' Nombre, 'system' TIPO, 'DATOS DE CONTEXTO INICIAL:\n• ' +
-	'ReferenciaJSON = ' + NEGOCIO.ReferenciaJSON + '\n• ' +
+	SELECT @NumContextos + 2 ID_CONTEXTO, 'CONTEXTO PERSONALIZADO' Nombre, 'system' TIPO, 'DATOS DE CONTEXTO INICIAL: \n• ' +
+	'ReferenciaJSON = ' + NEGOCIO.ReferenciaJSON + ' \n• ' +
 	'\nEstos valores se deben solicitar si el usuario quiere crear una orden de servicio para guardarlos en el campo de la orden de servicio llamado ReferenciaJSON' Prompt
 	FROM [CORE].[TBL_NEGOCIOS] NEGOCIO
 	INNER JOIN  [CORE].[TBL_CHAT_IA] CHAT ON CHAT.ID_Negocio = NEGOCIO.ID_Negocio
 	WHERE CHAT.ID_ChatIA = @IdChat
 	UNION ALL
-	SELECT @NumContextos + 2 ID_CONTEXTO, 'CONTEXTO PERSONALIZADO' Nombre, 'system' TIPO, 'DATOS DE CONTEXTO INICIAL:\n• ' +
-	'Fecha Actual = ' + FORMAT(GETDATE(), 'dd/MM/yyyy') + ' En caso de tener que hacer calculos sobre la fecha, esta sería la fecha actual para dichos calculos\n• '  Prompt
+	SELECT @NumContextos + 2 ID_CONTEXTO, 'CONTEXTO PERSONALIZADO' Nombre, 'system' TIPO, 'DATOS DE CONTEXTO INICIAL: \n• ' +
+	'Fecha Actual = ' + FORMAT(GETDATE(), 'dd/MM/yyyy') + ' En caso de tener que hacer calculos sobre la fecha, esta sería la fecha actual para dichos calculos \n• '  Prompt
 	FROM [CORE].[TBL_NEGOCIOS] NEGOCIO
 	INNER JOIN  [CORE].[TBL_CHAT_IA] CHAT ON CHAT.ID_Negocio = NEGOCIO.ID_Negocio
 	WHERE CHAT.ID_ChatIA = @IdChat

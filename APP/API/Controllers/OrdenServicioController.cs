@@ -22,11 +22,11 @@ namespace API.Controllers
         [Produces("application/json")]
         [Route("registrarOrdenServicio")]
         [HttpPost]
-        public DTO_Respuesta registrarOrdenServicio([FromBody] DTO_OrdenServicio ordenServicio)
+        public async Task<DTO_Respuesta> registrarOrdenServicio([FromBody] DTO_OrdenServicio ordenServicio)
         {
             try
             {
-                respuesta = bLL_OrdenServicio.registrarOrdenServicio(ordenServicio);
+                respuesta = await bLL_OrdenServicio.registrarOrdenServicio(ordenServicio);
             }
             catch (Exception ex)
             {
