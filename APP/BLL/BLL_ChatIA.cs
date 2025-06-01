@@ -334,7 +334,8 @@ namespace BLL
 
             // 1) Intentamos extraer JSON encerrado en ```json ... ```
             string rawJson = null;
-            var match = Regex.Match(content, @"```json\s*(\{[\s\S]*?\})\s*```", RegexOptions.IgnoreCase);
+            // var match = Regex.Match(content, @"```json\s*(\{[\s\S]*?\})\s*```", RegexOptions.IgnoreCase);
+            var match = Regex.Match(content, @"\|\|(.*?)\|\|", RegexOptions.Singleline);
             if (match.Success)
             {
                 rawJson = match.Groups[1].Value;

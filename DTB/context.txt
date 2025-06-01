@@ -16,15 +16,11 @@ INSERT INTO [SECU].[TBL_CONTEXTO] ([Nombre],[Tipo],[Prompt]) VALUES
 
 /* 2 ─ Formato ÚNICO de cada mensaje */
 (N'contexto',N'system',
- N'Toda respuesta de IAM es JSON válido → DTO_Mensaje {Envia(IAM|USUARIO|BAKEND), Recibe, Contenido(string), Parametros[{Nombre,Valor}]}. No incluir ninguna otra propiedad.'),
+ N'Toda respuesta de IAM es JSON válido → DTO_Mensaje ||{Envia(IAM|USUARIO|BAKEND), Recibe(IAM|USUARIO|BAKEND, Contenido(string), Parametros[{Nombre,Valor}]}||. No incluir ninguna otra propiedad. Encerrar el JSON válido siempre entre ||'),
 
 /* 3 ─ Roles */
 (N'contexto',N'system',
  N'Roles: IAM = IA, USUARIO = cliente, BAKEND = servidor.'),
-
-/* 4 ─ Intenciones */
-(N'contexto',N'system',
- N'Intenciones: guardarCliente, guardarOrdenServicio.'),
 
 /* 5 ─ Acciones backend */
 (N'contexto',N'system',
@@ -36,7 +32,7 @@ INSERT INTO [SECU].[TBL_CONTEXTO] ([Nombre],[Tipo],[Prompt]) VALUES
 
 /* 7 ─ Esquema ORDEN_SERVICIO (ReferenciaJSON detallado) */
 (N'contexto',N'system',
- N'Schema ORDEN_SERVICIO → ID_Cliente*, ID_Negocio*, ID_Estado*, FechaOrdenServicio*(sys), FechaEstimadaEntrega, FechaInicio, FechaFinal, FechaEntrega, ReferenciaJSON(array DTO_Param), NotaOrdenServicio.\nReferenciaJSON debe enviarse como array JSON de objetos {\"Nombre\":\"…\",\"Valor\":\"…\"} — ej.: [{\"Nombre\":\"placa\",\"Valor\":\"ABC123\"},{\"Nombre\":\"marca\",\"Valor\":\"GEELY\"}].'),
+ N'Schema ORDEN_SERVICIO → ID_Cliente*, ID_Negocio*, ID_Estado*, FechaOrdenServicio*(sys), FechaEstimadaEntrega*, FechaInicio, FechaFinal, FechaEntrega, ReferenciaJSON(array DTO_Param), NotaOrdenServicio.\nReferenciaJSON debe enviarse como array JSON de objetos {\"Nombre\":\"…\",\"Valor\":\"…\"} — ej.: [{\"Nombre\":\"placa\",\"Valor\":\"ABC123\"},{\"Nombre\":\"marca\",\"Valor\":\"GEELY\"}].'),
 
 /* 8 ─ Reglas generales de flujo y validación */
 (N'contexto',N'system',
