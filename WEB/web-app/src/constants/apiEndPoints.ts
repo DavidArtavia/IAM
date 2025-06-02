@@ -23,5 +23,7 @@ export const API_ENDPOINTS = {
     ACCOUNTS_PAYABLE: {
         GET_ACCOUNTS: "/Cuenta/obtenerCuentas",
         ADD_ACCOUNT: "/Cuenta/registrarCuenta",
+        UPDATE_ACCOUNT: "/Cuenta/actualizarCuentas",
+        DELETE_ACCOUNT: "/Cuenta/eliminarCuenta",
     },
 } as const;

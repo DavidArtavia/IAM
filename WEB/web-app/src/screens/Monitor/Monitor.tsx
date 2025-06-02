@@ -4,9 +4,10 @@ import {
   ConfirmModal,
 } from "@/components";
 import { BusinessButtons } from "@/components/Buttons/BusinessButtons";
+import { EditModal } from "@/components/Modals/EditModal/EditModal";
 import { DTO_Negocio, DTO_CuentasPorPagar, DTO_Respuesta } from "@/models";
 import { cuentasService } from "@/services/cuentas.service";
-import { errorHelpers, procesarRespuesta } from "@/utils";
+import { errorHelpers, notificationHelpers, procesarRespuesta } from "@/utils";
 import { useEffect, useState } from "react";
 
 export const Monitor = () => {
@@ -17,6 +18,31 @@ export const Monitor = () => {
     Array<DTO_CuentasPorPagar>
   >([]);
 
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editData, setEditData] = useState<DTO_CuentasPorPagar | null>(null);
+
+  const handleEdit = (rowData: DTO_CuentasPorPagar) => {
+    console.log("Edit row data:", rowData);
+    setEditData(rowData);
+    setShowEditModal(true);
+  };
+
+  const handleSaveEdit = (updatedData: DTO_CuentasPorPagar) => {
+    console.log("Saving updated data:", updatedData);
+    cuentasService.actualizarCuentasPorPagar(updatedData).subscribe({
+      next: (result) => {
+      const updatedAccounts = accountsPayable.map((account) =>
+        account.iD_CuentasPorPagar === updatedData.iD_CuentasPorPagar
+        ? { ...account, ...updatedData }
+        : account
+      );
+      setAccountsPayable(updatedAccounts);
+      notificationHelpers.successAlert("Cuenta actualizada correctamente");
+      },
+      error: (err) => errorHelpers.serverError(err),
+    });
+    setShowEditModal(false);
+  };
   // Estado del modal para el formulario
   const [isModalFormOpen, setIsModalFormOpen] = useState(false);
   const [formData, setFormData] = useState<DTO_CuentasPorPagar>(
@@ -45,7 +71,6 @@ export const Monitor = () => {
   };
 
   const handleSave = () => {
-    console.log("Datos guardados:", formData);
     const iD_Negocio = selectedBusiness?.iD_Negocio;
     formData.iD_Negocio = iD_Negocio || 0;
 
@@ -63,6 +88,7 @@ export const Monitor = () => {
       },
       error: (err) => errorHelpers.serverError(err),
       complete: () => {
+        notificationHelpers.successAlert(`Cuenta registrada correctamente`);
         setIsModalFormOpen(false);
         setFormData(new DTO_CuentasPorPagar());
       },
@@ -95,7 +121,7 @@ export const Monitor = () => {
     if (action === true) {
       setFormData(new DTO_CuentasPorPagar());
       setIsModalFormOpen(false);
-      // Aquí puedes manejar la acción de confirmación
+      notificationHelpers.infoAlert("Cambios descartados correctamente");
       console.log("Acción descartar confirmada");
     }
     setIsConfirmOpen(false);
@@ -118,9 +144,6 @@ export const Monitor = () => {
     //     error: (err) => errorHelpers.serverError(err),    //   });
   };
 
-  const handleEdit = (rowData: DTO_CuentasPorPagar) => {
-    console.log("Edit row data:", rowData);
-  };
   return (
     <>
       <div className="row p-4 col-12 gx-0">
@@ -147,6 +170,12 @@ export const Monitor = () => {
           show={isConfirmOpen}
           confirmMessage={confirmModalMessage}
           onAction={(action) => confirmModalAcion(action)}
+        />
+        <EditModal
+          show={showEditModal}
+          onHide={() => setShowEditModal(false)}
+          data={editData}
+          onSave={handleSaveEdit}
         />
       </div>
     </>

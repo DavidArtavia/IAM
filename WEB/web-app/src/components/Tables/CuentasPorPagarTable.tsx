@@ -2,7 +2,8 @@ import { useEffect, useRef } from "react";
 import $ from "jquery";
 import "datatables.net-bs5";
 import { DTO_CuentasPorPagar } from "@/models/DTO_CuentasPorPagar";
-import { CoreDataTable } from "./CoreDataTable";
+import { CoreDataTable } from "./DataTable/CoreDataTable";
+import { labelMapCuentasPorPagar } from "@/utils";
 
 interface DataTableProps {
   data: DTO_CuentasPorPagar[];
@@ -14,29 +15,16 @@ interface DataTableProps {
 
 export const CuentasPorPagarTable = ({
   data,
-  onAdd ,
+  onAdd,
   onEdit,
   onDelete,
-  disableButtonAdd
+  disableButtonAdd,
 }: DataTableProps) => {
   const tableRef = useRef<HTMLTableElement>(null);
 
   const columns = [
     { title: "ID", data: "iD_CuentasPorPagar" },
     { title: "Negocio", data: "iD_Negocio" },
-    {
-      title: "Estado",
-      data: null,
-      render: (_data: unknown, _type: unknown, row: DTO_CuentasPorPagar) => {
-        const isActivo = row.estado?.nombre?.toLowerCase() === "activo";
-        const badgeClass = isActivo
-          ? "badge badge-light-success"
-          : "badge badge-light-danger";
-        return `<span class="${badgeClass}">${
-          row.estado?.nombre || "N/A"
-        }</span>`;
-      },
-    },
     { title: "Concepto", data: "concepto" },
     { title: "Descripción", data: "descripcion" },
     {
@@ -54,7 +42,20 @@ export const CuentasPorPagarTable = ({
       data: "fechaModificacion",
       render: (data: string) => new Date(data).toLocaleDateString(),
     },
-    ];
+    {
+      title: "Estado",
+      data: null,
+      render: (_data: unknown, _type: unknown, row: DTO_CuentasPorPagar) => {
+        const isActivo = row.estado?.nombre?.toLowerCase() === "activo";
+        const badgeClass = isActivo
+          ? "badge badge-light-success"
+          : "badge badge-light-danger";
+        return `<span class="${badgeClass}">${
+          row.estado?.nombre || "N/A"
+        }</span>`;
+      },
+    },
+  ];
 
   useEffect(() => {
     if (tableRef.current) {
@@ -69,15 +70,16 @@ export const CuentasPorPagarTable = ({
     }
   }, [data, onEdit, onDelete]);
 
-    return (
-      <CoreDataTable
-        title="Cuentas por Pagar"
-        data={data}
-        handleAdd={onAdd}
-        columns={columns}
-        onEdit={onEdit}
-        onDelete={onDelete}
-        disabeldButtonAdd={disableButtonAdd}
-      />
-    );
+  return (
+    <CoreDataTable
+      title="Cuentas por Pagar"
+      data={data}
+      handleAdd={onAdd}
+      columns={columns}
+      onEdit={onEdit}
+      onDelete={onDelete}
+      disabeldButtonAdd={disableButtonAdd}
+      labelMap={labelMapCuentasPorPagar}
+    />
+  );
 };

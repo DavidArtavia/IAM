@@ -1,42 +1,49 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import $ from "jquery";
 import "datatables.net-bs5";
 import ReactDOM from "react-dom/client";
-import { DTO_CuentasPorPagar } from "@/models/DTO_CuentasPorPagar";
-import { ActionButtons } from "../Buttons/ActionButtons";
+import { ActionButtons } from "../../Buttons/ActionButtons";
+import { InfoModal } from "../../Modals/InfoModal/InfoModal";
 
 type DataTableColumn = DataTables.ColumnSettings;
 
-
-interface DataTableProps {
+interface DataTableProps<T> {
   title: string;
   columns?: DataTableColumn[];
   handleAdd: () => void;
-  data: DTO_CuentasPorPagar[];
-  onEdit: (rowData: DTO_CuentasPorPagar) => void;
-  onDelete: (rowData: DTO_CuentasPorPagar) => void;
+  data: T[];
+  onEdit: (rowData: T) => void;
+  onDelete: (rowData: T) => void;
+  labelMap: Record<string, string>;
   disabeldButtonAdd?: boolean;
 }
 
-export const CoreDataTable = ({
+export const CoreDataTable = <T,>({
   title,
   handleAdd,
   data,
   columns = [],
   onEdit,
   onDelete,
+  labelMap,
   disabeldButtonAdd,
-}: DataTableProps) => {
+}: DataTableProps<T>) => {
+  const [showInfoModal, setShowInfoModal] = useState(false);
+  const [selectedData, setSelectedData] = useState<Record<string, unknown>>({});
+  const [currentLabelMap, setCurrentLabelMap] = useState<
+    Record<string, string>
+  >({});
+
   const tableRef = useRef<HTMLTableElement>(null);
 
   useEffect(() => {
     if (!tableRef.current) return;
 
-    // 🔥 Si ya existe DataTable, límpialo completamente
+    // 🔥 Si ya existe DataTable, limpiamos completamente
     if ($.fn.dataTable.isDataTable(tableRef.current)) {
       const tableInstance = $(tableRef.current).DataTable();
       tableInstance.clear().destroy();
-      $(tableRef.current).empty(); // limpia completamente el contenido
+      $(tableRef.current).empty(); // limpio completamente el contenido
     }
 
     const reactRoots: ReactDOM.Root[] = [];
@@ -64,6 +71,7 @@ export const CoreDataTable = ({
           },
         },
       ],
+      columnDefs: [{ targets: "_all", className: "text-center" }],
       language: {
         search: "Buscar:",
         lengthMenu: "Mostrar _MENU_ registros por página",
@@ -89,37 +97,55 @@ export const CoreDataTable = ({
     $(tableRef.current).on("click", "tbody tr", function (this: HTMLElement) {
       const row = table.row(this);
       if (row.any()) {
-        const rowData = row.data() as DTO_CuentasPorPagar;
-        console.log("Fila seleccionada -->:", rowData);
+        const rowData = row.data();
+        setSelectedData(rowData as Record<string, unknown>);
+        setCurrentLabelMap(labelMap);
+        setShowInfoModal(true);
       }
     });
-
     return () => {
       table.destroy();
       setTimeout(() => {
         reactRoots.forEach((root) => root.unmount());
       }, 0);
     };
-  }, [data, columns, onEdit, onDelete]);
-  
+  }, [data, columns, onEdit, onDelete, labelMap]);
 
   return (
-    <div className="card shadow-sm mt-5">
-      <div className="card">
-        <div className="card-header d-flex justify-content-between align-items-center">
-          <h3 className="card-title text-gray-600">{title}</h3>
-          <button
-            disabled={disabeldButtonAdd}
-            onClick={handleAdd}
-            className="btn btn-primary"
-          >
-            Agregar
-          </button>
-        </div>
-        <div className="card-body table-responsive">
-          <table ref={tableRef} className="table table-striped" />
+    <>
+      <InfoModal
+        show={showInfoModal}
+        onHide={() => setShowInfoModal(false)}
+        data={selectedData}
+        labelMap={currentLabelMap}
+        labels={currentLabelMap}
+      />
+      <div className="card shadow-sm mt-5">
+        <div className="card">
+          <div className="card-header d-flex justify-content-between align-items-center">
+            <h3 className="card-title text-gray-600">{title}</h3>
+            <button
+              disabled={disabeldButtonAdd}
+              onClick={handleAdd}
+              className="btn btn-primary"
+            >
+              Agregar
+            </button>
+          </div>
+          <div className="card-body table-responsive">
+            <div className="table-responsive">
+
+            {/* start table */}
+              <table
+                id="example"
+                ref={tableRef}
+                className="table table-striped gs-7 table-hover gy-4 align-middle text-center"
+              />
+            </div>
+            {/* end table */}
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 };

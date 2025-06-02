@@ -11,7 +11,10 @@ export const ActionButtons = ({ rowData,  onEdit, onDelete }: ActionButtonsProps
       <button
         type="button"
         className="btn btn-icon btn-bg-light btn-active-color-primary btn-sm me-1"
-        onClick={() => onEdit(rowData)}
+        onClick={(e) => {
+          e.stopPropagation();
+          onEdit(rowData);
+        }}
       >
         {/* Icon Edit */}
         <span className="svg-icon svg-icon-3">
@@ -39,7 +42,10 @@ export const ActionButtons = ({ rowData,  onEdit, onDelete }: ActionButtonsProps
       <button
         type="button"
         className="btn btn-icon btn-bg-light btn-active-color-primary btn-sm"
-        onClick={() => onDelete(rowData)}
+        onClick={(e) => {
+          e.stopPropagation();
+          onDelete(rowData);
+        }}
       >
         {/* Icon Delete */}
         <span className="svg-icon svg-icon-3">
