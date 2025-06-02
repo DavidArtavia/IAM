@@ -25,18 +25,12 @@ namespace DAL
                 using (SqlCommand sqlcmd = new SqlCommand(query, this.GetObjConexion()))
                 {
                     sqlcmd.CommandType = CommandType.StoredProcedure;
+                    sqlcmd.Parameters.Add("@ID_Usuario", SqlDbType.VarChar).Value = cliente.ID_Usuario;
                     sqlcmd.Parameters.Add("@NombreCliente", SqlDbType.VarChar).Value = cliente.NombreCliente;
                     sqlcmd.Parameters.Add("@ApellidoCliente", SqlDbType.VarChar).Value = cliente.ApellidoCliente;
-
-                    if (cliente.TelefonoCliente.Length > 0) {
-                        sqlcmd.Parameters.Add("@TelefonoCliente", SqlDbType.NVarChar).Value = cliente.TelefonoCliente;
-                    }
-
-                    if (cliente.CorreoCliente.Length > 0)
-                    {
-                        sqlcmd.Parameters.Add("@CorreoCliente", SqlDbType.NVarChar).Value = cliente.CorreoCliente;
-                    }
-
+                    sqlcmd.Parameters.Add("@TelefonoCliente", SqlDbType.NVarChar).Value = (cliente.TelefonoCliente.Length > 0) ? cliente.TelefonoCliente : (object)DBNull.Value;
+                    sqlcmd.Parameters.Add("@CorreoCliente", SqlDbType.NVarChar).Value = (cliente.CorreoCliente.Length > 0) ? cliente.CorreoCliente : (object)DBNull.Value;
+             
 
                     // Establecer la dirección de los parámetros
                     foreach (SqlParameter param in sqlcmd.Parameters)

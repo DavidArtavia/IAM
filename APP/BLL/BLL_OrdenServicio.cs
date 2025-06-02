@@ -30,5 +30,12 @@ namespace BLL
             return dal_OrdenServicio.actualizarOrdenServicio(ordenServicio);
         }
 
+        public async Task<DTO_Respuesta> buscarOrdenServicio(DTO_OrdenServicio ordenServicio, DTO_Cliente cliente)
+        {
+            respuesta = await dal_OrdenServicio.buscarOrdenServicio(ordenServicio, cliente);
+            if (!respuesta.TipoRespuesta)
+                throw new Exception(respuesta.Mensaje);
+            return respuesta;
+        }
     }
 }

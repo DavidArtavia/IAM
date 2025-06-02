@@ -1,5 +1,4 @@
-﻿using AutoGen.AzureAIInference;
-using AutoGen.Core;
+﻿
 using Azure;
 using Azure.AI.Inference;
 using Azure.Core.Pipeline;
@@ -9,9 +8,7 @@ using Microsoft.CognitiveServices.Speech;
 using Microsoft.CognitiveServices.Speech.Audio;
 using Newtonsoft.Json;
 using System.Configuration;
-using System.Runtime.InteropServices.Marshalling;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using UTL;
 using JsonSerializer = Newtonsoft.Json.JsonSerializer;
 
@@ -32,10 +29,7 @@ namespace BLL
         UTL_Cipher uTL_Cipher = new();
 
         DTO_Respuesta respuesta = new();
-
-        DTO_Cliente cliente = new();
         DTO_ChatIA chatIA = new();
-        DTO_OrdenServicio ordenServicio = new();
 
         DAL_ChatIA dAL_chatIA = new();
         DAL_Alerta alerta = new();
@@ -57,7 +51,7 @@ namespace BLL
             {
                 MaxTokens = Convert.ToInt32(ConfigurationManager.AppSettings["AzureMaxTokens"] ?? "3000"),
                 Model = ConfigurationManager.AppSettings["AzureAIServiceModel"] ?? "",
-                Temperature = (float) 0.4,
+                Temperature = (float) 0.4
                 
             };
         }
@@ -368,8 +362,9 @@ namespace BLL
                 }
                 catch (JsonReaderException)
                 {
-                    // Aquí puedes decidir qué hacer si rawJson no era JSON válido.
-                    // Por defecto, dejamos respuestaIAFormateada con sus valores por defecto.
+                    //Si no es válido
+                    if (!respuesta.TipoRespuesta)
+                        throw new Exception("Json no válido");
                 }
             }
 
@@ -383,6 +378,9 @@ namespace BLL
         public async Task<DTO_Mensaje> ejecutarAccionBakend(DTO_Mensaje repuestaIA, DTO_Usuario usuario)
         {
             DTO_Mensaje mensajeParaIAM = new();
+            DTO_Cliente cliente = new();
+            DTO_OrdenServicio ordenServicio = new();
+
             mensajeParaIAM.Recibe = "IAM";
             mensajeParaIAM.Envia = "BAKEND";
             mensajeParaIAM.Parametros = repuestaIA.Parametros;
@@ -391,12 +389,13 @@ namespace BLL
             switch (repuestaIA.Contenido.ToString())
             {
                 case "buscarCliente":
-
+                    
                     cliente.NombreCliente = repuestaIA.Parametros.Find(p => p.Nombre.Equals("NombreCliente", StringComparison.OrdinalIgnoreCase))?.Valor ?? string.Empty;
                     cliente.ApellidoCliente = repuestaIA.Parametros.Find(p => p.Nombre.Equals("ApellidoCliente", StringComparison.OrdinalIgnoreCase))?.Valor ?? string.Empty;
                     cliente.TelefonoCliente = repuestaIA.Parametros.Find(p => p.Nombre.Equals("TelefonoCliente", StringComparison.OrdinalIgnoreCase))?.Valor ?? string.Empty;
                     cliente.CorreoCliente = repuestaIA.Parametros.Find(p => p.Nombre.Equals("CorreoCliente", StringComparison.OrdinalIgnoreCase))?.Valor ?? string.Empty;
-
+                    cliente.ID_Usuario = usuario.ID_Usuario;
+                    
                     mensajeParaIAM.Contenido = JsonConvert.SerializeObject(await bLL_Cliente.buscarCliente(cliente));
 
 
@@ -413,6 +412,32 @@ namespace BLL
                     break;
 
                 case "guardarOrdenServicio":
+
+                    ordenServicio.Estado.ID_Estado = Convert.ToInt32(repuestaIA.Parametros.Find(p => p.Nombre.Equals("ID_Estado", StringComparison.OrdinalIgnoreCase))?.Valor ?? "0");
+                    ordenServicio.ReferenciaJSON = JsonConvert.DeserializeObject<List<DTO_Param>>(repuestaIA.Parametros.Find(p => p.Nombre.Equals("ReferenciaJSON", StringComparison.OrdinalIgnoreCase))?.Valor ?? string.Empty) ?? [];
+                    ordenServicio.NotaOrdenServicio = repuestaIA.Parametros.Find(p => p.Nombre.Equals("NotaOrdenServicio", StringComparison.OrdinalIgnoreCase))?.Valor ?? "";
+                    ordenServicio.ID_Negocio = Convert.ToInt32(repuestaIA.Parametros.Find(p => p.Nombre.Equals("ID_Negocio", StringComparison.OrdinalIgnoreCase))?.Valor ?? "0");
+                    ordenServicio.FechaEstimadaEntrega = Convert.ToDateTime(repuestaIA.Parametros.Find(p => p.Nombre.Equals("FechaEstimadaEntrega", StringComparison.OrdinalIgnoreCase))?.Valor ?? "");
+                    ordenServicio.ID_Cliente = Convert.ToInt32(repuestaIA.Parametros.Find(p => p.Nombre.Equals("ID_Cliente", StringComparison.OrdinalIgnoreCase))?.Valor ?? "0");
+
+                    mensajeParaIAM.Contenido = JsonConvert.SerializeObject(await bLL_OrdenServicio.registrarOrdenServicio(ordenServicio));
+
+                    break;                
+                
+                case "buscarOrdenServicio":
+
+                    ordenServicio.ID_OrdenServicio = Convert.ToInt32(repuestaIA.Parametros.Find(p => p.Nombre.Equals("ID_OrdenServicio", StringComparison.OrdinalIgnoreCase))?.Valor ?? "0");
+                    ordenServicio.ID_Negocio = Convert.ToInt32(repuestaIA.Parametros.Find(p => p.Nombre.Equals("ID_Negocio", StringComparison.OrdinalIgnoreCase))?.Valor ?? "0");
+                    ordenServicio.ReferenciaJSON = JsonConvert.DeserializeObject<List<DTO_Param>>(repuestaIA.Parametros.Find(p => p.Nombre.Equals("ReferenciaJSON", StringComparison.OrdinalIgnoreCase))?.Valor ?? string.Empty) ?? [];
+                    cliente.NombreCliente = repuestaIA.Parametros.Find(p => p.Nombre.Equals("NombreCliente", StringComparison.OrdinalIgnoreCase))?.Valor ?? string.Empty;
+                    cliente.ApellidoCliente = repuestaIA.Parametros.Find(p => p.Nombre.Equals("ApellidoCliente", StringComparison.OrdinalIgnoreCase))?.Valor ?? string.Empty;
+                    cliente.TelefonoCliente = repuestaIA.Parametros.Find(p => p.Nombre.Equals("TelefonoCliente", StringComparison.OrdinalIgnoreCase))?.Valor ?? string.Empty;
+                    cliente.CorreoCliente = repuestaIA.Parametros.Find(p => p.Nombre.Equals("CorreoCliente", StringComparison.OrdinalIgnoreCase))?.Valor ?? string.Empty;
+
+                    mensajeParaIAM.Contenido = JsonConvert.SerializeObject(await bLL_OrdenServicio.buscarOrdenServicio(ordenServicio, cliente));
+
+                    break;                
+                case "actualizarOrdenServicio":
 
                     ordenServicio.Estado.ID_Estado = Convert.ToInt32(repuestaIA.Parametros.Find(p => p.Nombre.Equals("ID_Estado", StringComparison.OrdinalIgnoreCase))?.Valor ?? "0");
                     ordenServicio.ReferenciaJSON = JsonConvert.DeserializeObject<List<DTO_Param>>(repuestaIA.Parametros.Find(p => p.Nombre.Equals("ReferenciaJSON", StringComparison.OrdinalIgnoreCase))?.Valor ?? string.Empty) ?? [];

@@ -13,6 +13,7 @@ namespace DTO
         private int iD_Cliente;
         private int iD_Negocio;
         private DTO_Estado estado;
+        private DateTime? fechaOrdenServicio;
         private DateTime? fechaEstimadaEntrega;
         private DateTime? fechaInicio;
         private DateTime? fechaFinal;
@@ -32,6 +33,7 @@ namespace DTO
             FechaInicio = null;
             FechaFinal = null;
             FechaEntrega = null;
+            FechaOrdenServicio = null;
             NotaOrdenServicio = string.Empty;
             ReferenciaJSON = [];
         }
@@ -51,6 +53,7 @@ namespace DTO
         {
             get => referenciaJSON; set => referenciaJSON = value;
         }
+        public DateTime? FechaOrdenServicio { get => fechaOrdenServicio; set => fechaOrdenServicio = value; }
         #endregion
     }
 }

@@ -24,7 +24,7 @@ INSERT INTO [SECU].[TBL_CONTEXTO] ([Nombre],[Tipo],[Prompt]) VALUES
 
 /* 5 ─ Acciones backend */
 (N'contexto',N'system',
- N'Acciones backend: buscarCliente, guardarCliente, guardarOrdenServicio.'),
+ N'Acciones backend: buscarCliente, guardarCliente, guardarOrdenServicio, buscarOrdenServicio, actualizarOrdenServicio'),
 
 /* 6 ─ Esquema CLIENTE */
 (N'contexto',N'system',
@@ -32,11 +32,14 @@ INSERT INTO [SECU].[TBL_CONTEXTO] ([Nombre],[Tipo],[Prompt]) VALUES
 
 /* 7 ─ Esquema ORDEN_SERVICIO (ReferenciaJSON detallado) */
 (N'contexto',N'system',
- N'Schema ORDEN_SERVICIO → ID_Cliente*, ID_Negocio*, ID_Estado*, FechaOrdenServicio*(sys), FechaEstimadaEntrega*, FechaInicio, FechaFinal, FechaEntrega, ReferenciaJSON(array DTO_Param), NotaOrdenServicio.\nReferenciaJSON debe enviarse como array JSON de objetos {\"Nombre\":\"…\",\"Valor\":\"…\"} — ej.: [{\"Nombre\":\"placa\",\"Valor\":\"ABC123\"},{\"Nombre\":\"marca\",\"Valor\":\"GEELY\"}].'),
+ N'Schema ORDEN_SERVICIO → ID_Cliente*, ID_Negocio*(DATOS DE CONTEXTO INICIAL), ID_Estado*, FechaOrdenServicio*(sys), FechaEstimadaEntrega*, FechaInicio, FechaFinal, FechaEntrega, ReferenciaJSON(array DTO_Param), NotaOrdenServicio.\nReferenciaJSON debe enviarse como array JSON de objetos {\"Nombre\":\"…\",\"Valor\":\"…\"} — ej.: [{\"Nombre\":\"placa\",\"Valor\":\"ABC123\"},{\"Nombre\":\"marca\",\"Valor\":\"GEELY\"}].'),
 
 /* 8 ─ Reglas generales de flujo y validación */
 (N'contexto',N'system',
- N'Reglas: (1) guardarCliente inicia con buscarCliente (Nombre+Apellido). (2) Si hay varios clientes → pedir elección; si ninguno → ofrecer crear. (3) Preguntar opcionales faltantes. (4) Mostrar resumen y pedir confirmación antes de guardar/editar/eliminar. (5) Nunca revelar IDs internos ni Codigo.'),
+ N'Reglas: (1) guardarCliente inicia con buscarCliente (Nombre+Apellido). (2) Si hay varios clientes → pedir elección; si ninguno → ofrecer crear. (3) Preguntar opcionales faltantes. (4) Mostrar resumen y pedir confirmación antes de guardar/editar/eliminar. (5) Nunca revelar IDs internos ni Codigo.
+ (6) buscarOrdenServicio (Nombre or Apellido or ReferenciaJSON or ID_OrdenServicio or TelefonoCliente, or CorreoCliente), el campo ID_Negocio siempre debe ir t se debe tomar de DATOS DE CONTEXTO INICIAL (se carga en los parámetros) al realizar la acción Bakend
+ (7) actualizarOrdenServicio inicia con buscarOrdenServicio.
+ '),
 
 /* 9 ─ Camino IAM → USUARIO */
 (N'contexto',N'system',

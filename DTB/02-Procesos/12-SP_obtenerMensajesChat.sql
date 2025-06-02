@@ -14,8 +14,7 @@ ALTER PROCEDURE CORE.SP_obtenerMensajesChat
     @ID_ChatIA INT
 AS
 BEGIN
-
-		SELECT [ID_Mensaje]
+		SELECT TOP 20 [ID_Mensaje]
 			  ,[ID_ChatIA]
 			  ,[Envia]
 			  ,[Recibe]

@@ -43,6 +43,7 @@ INSERT INTO [UTIL].[TBL_ALERTAS] ([COD_ALERTA], [Nombre], [Mensaje], [Tipo]) VAL
 ('A0022', N'Cliente', N'Busqueda de clientes realizada correctamente', 'I'),
 ('A0023', N'Contexto', N'Contexto consultado correctamente', 'I'),
 ('A0024', N'Cliente', N'Cliente guardado correctamente', 'I'),
+('A0025', N'OrdenServicio', N'Busqueda de orden de servicio realizada correctamente', 'I'),
 -- Bloque nuevo
 ('B001', N'Negocio', N'El negocio se registró exitosamente.', 'I'),
 ('B002', N'Negocio', N'No puede registrar más de 3 negocios.', 'E'),
