@@ -35,7 +35,6 @@ export const InfoModal = ({
   labelMap,
   title = "Información Detallada",
 }: InfoModalProps) => {
-
   if (!show) return null;
 
   const renderValue = (value: unknown): React.ReactNode => {
@@ -61,11 +60,7 @@ export const InfoModal = ({
   };
 
   return (
-    <div
-      className="modal fade show"
-      style={{ display: "block", backgroundColor: "rgba(0, 0, 0, 0.20)" }}
-      onClick={onHide}
-    >
+    <div className="modal fade show d-block shadowBackground" onClick={onHide}>
       <div
         className="modal-dialog modal-dialog-centered mw-650px"
         onClick={(e) => e.stopPropagation()}

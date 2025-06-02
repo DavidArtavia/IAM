@@ -43,3 +43,15 @@ table.dataTable thead th {
   font-size: 0.9rem;
   /* Reduce tamaño de fuente */
 }
+
+.shadowBackground {
+  position: fixed;
+  background-color: rgba(0, 0, 0, 0.7);
+  /* Fondo semitransparente */
+  backdrop-filter: blur(5px);
+  /* Efecto de desenfoque */
+  border-radius: 10px;
+  /* Bordes redondeados */
+  padding: 20px;
+  /* Espaciado interno */
+}
