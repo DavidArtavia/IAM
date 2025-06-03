@@ -3,7 +3,7 @@ import { usuarioService } from "@/services/usuario.service";
 import { DTO_Respuesta, DTO_Usuario } from "@/models";
 import { errorHelpers, notificationHelpers } from "@/utils";
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { ROUTES } from "@/constants";
 
 export const SignUp = () => {
@@ -12,8 +12,6 @@ const [usuario, setUsuario] =  useState<DTO_Usuario | null>(new DTO_Usuario());;
   const [cargando, setCargando] = useState<boolean>(false);
   const [showPass, setshowPass] = useState<boolean>(false);
   const [confirmacionPass, setconfirmacionPass] = useState<string>("");
-  const navigate = useNavigate();
-  
   //Eventos
   const handleOnClick = () => { validarDatosRegistroUsuario() }
 
@@ -36,9 +34,7 @@ const [usuario, setUsuario] =  useState<DTO_Usuario | null>(new DTO_Usuario());;
   const procesarRespuesta = (respuesta: DTO_Respuesta) => {
     if (respuesta.tipoRespuesta) {
       notificationHelpers.successAlert(respuesta.mensaje)
-      const lastPath = localStorage.getItem("lastPath") || ROUTES.HOME;
-      navigate(ROUTES.LOGIN);
-      navigate(lastPath, { replace: true });
+      
     } else {
       //Controlamos el error del sistema
       errorHelpers.systemError(respuesta);

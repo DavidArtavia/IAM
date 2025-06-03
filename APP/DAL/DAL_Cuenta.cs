@@ -24,10 +24,10 @@ namespace DAL
                 using (SqlCommand sqlcmd = new(query, this.GetObjConexion()))
                 {
                     sqlcmd.CommandType = System.Data.CommandType.StoredProcedure;
-                    sqlcmd.Parameters.AddWithValue("@ID_Negocio", cuentaPorPagar.ID_Negocio);
-                    sqlcmd.Parameters.AddWithValue("@Concepto", cuentaPorPagar.@Concepto);
-                    sqlcmd.Parameters.AddWithValue("@Descripcion", cuentaPorPagar.Descripcion);
-                    sqlcmd.Parameters.AddWithValue("@Saldo", cuentaPorPagar.Saldo);
+                    sqlcmd.Parameters.AddWithValue("@ID_Negocio", SqlDbType.Int).Value = cuentaPorPagar.ID_Negocio;
+                    sqlcmd.Parameters.AddWithValue("@Concepto", SqlDbType.VarChar).Value = cuentaPorPagar.@Concepto;
+                    sqlcmd.Parameters.AddWithValue("@Descripcion", SqlDbType.VarChar).Value = cuentaPorPagar.Descripcion;
+                    sqlcmd.Parameters.AddWithValue("@Saldo", SqlDbType.Decimal).Value = cuentaPorPagar.Saldo;
                     this.Open();
                     using (var reader = sqlcmd.ExecuteReader())
                     {

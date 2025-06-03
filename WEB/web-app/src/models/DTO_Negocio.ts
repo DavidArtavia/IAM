@@ -10,5 +10,5 @@ export class DTO_Negocio {
     telefonoNegocio: string = '';
     correoNegocio: string = '';
     fechaRegistro: Date = new Date();
-    referenciaJSON: string = '';
+    referenciaJSON: Array<unknown> = [];
 }

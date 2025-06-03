@@ -21,8 +21,9 @@ export const LayoutMain = () => {
   const asideRef = useRef<HTMLDivElement>(null);
   const { pathname } = useLocation();
   //Manejo del modal de confirmaciones
+  const [isConfirmOpen, setIsConfirmOpen] = useState<boolean>(false);
   const [confirmModalMessage, setconfirmModalMessage] = useState<string>("");
-  const [confirmModalTipe, setconfirmModalTipe] = useState<string>("");
+  const [confirmModalType, setconfirmModalType] = useState<string>("");
 
   const logout = useLogout();
 
@@ -43,38 +44,40 @@ export const LayoutMain = () => {
     }
   }, []);
 
-      const limpiarConfirmModalAcion = () => {
-      setconfirmModalMessage("");
-      setconfirmModalTipe("");
-      }
+  const limpiarConfirmModalAcion = () => {
+    setconfirmModalMessage("");
+    setconfirmModalType("");
+  };
 
-      const abrirconfirmModal = (tipo: string, mensaje: string) => {
-        setconfirmModalTipe(tipo); setconfirmModalMessage(mensaje);
-        //@ts-expect-error - aqui se abre el modal
-        const myModal = new bootstrap.Modal(document.getElementById('confirmModal'), {keyboard: false})
-        myModal.show()
-      }
+  const abrirconfirmModal = (tipo: string, mensaje: string) => {
+    setconfirmModalType(tipo);
+    setconfirmModalMessage(mensaje);
+    setIsConfirmOpen(true);
+  };
 
-        const cerrarconfirmModal = () => {
-        setconfirmModalTipe(""); setconfirmModalMessage("");
-        //@ts-expect-error - aqui se abre el modal
-        const myModal = new bootstrap.Modal(document.getElementById('confirmModal'), {keyboard: false})
-        myModal.hide()
-      }
+  // const cerrarconfirmModal = () => {
+  //   setconfirmModalType("");
+  //   setconfirmModalMessage("");
+  //   //@ts-expect-error - aqui se abre el modal
+  //   const myModal = new bootstrap.Modal(
+  //     document.getElementById("confirmModal"),
+  //     { keyboard: false }
+  //   );
+  //   myModal.hide();
+  // };
 
-    const confirmModalAcion = (action: boolean | null) => {
-      document.querySelector('.modal-backdrop.fade.show')?.remove();
-      cerrarconfirmModal();
-      limpiarConfirmModalAcion();
-      switch (confirmModalTipe) {
-        case 'login':
-          if(action)
-            logout();
-          break;
-      
-        default:
-          break;
-      }
+  const confirmModalAcion = (action: boolean | null) => {
+    setIsConfirmOpen(false);
+    // cerrarconfirmModal();
+    limpiarConfirmModalAcion();
+    switch (confirmModalType) {
+      case "login":
+        if (action) logout();
+        break;
+
+      default:
+        break;
+    }
   };
 
   return (
@@ -94,7 +97,11 @@ export const LayoutMain = () => {
       >
         <div className="aside-logo py-8" id="kt_aside_logo">
           <a href="/" className="d-flex align-items-center">
-            <img alt="Logo" className="h-45px logo" src="src/assets/media/logos/logo-demo-6.svg" />
+            <img
+              alt="Logo"
+              className="h-45px logo"
+              src="src/assets/media/logos/logo-demo-6.svg"
+            />
           </a>
         </div>
 
@@ -114,60 +121,82 @@ export const LayoutMain = () => {
               data-kt-menu="true"
             >
               <div className="menu-item py-2">
-                <Link to={ROUTES.HOME}  className={`menu-link menu-center${(pathname === ROUTES.HOME) ? " active" : ""}`} data-bs-trigger="hover"
+                <Link
+                  to={ROUTES.HOME}
+                  className={`menu-link menu-center${
+                    pathname === ROUTES.HOME ? " active" : ""
+                  }`}
+                  data-bs-trigger="hover"
                   data-bs-dismiss="click"
-                  data-bs-placement="right">
+                  data-bs-placement="right"
+                >
                   <span className="menu-icon me-0">
                     <i className="bi bi-house fs-2" />
                   </span>
                   <span className="menu-title">Inicio</span>
-
                 </Link>
               </div>
 
               <div className="menu-item py-2">
-                <Link to={ROUTES.CHAT_AI} className={`menu-link menu-center${(pathname === ROUTES.CHAT_AI) ? " active" : ""}`} data-bs-trigger="hover"
+                <Link
+                  to={ROUTES.CHAT_AI}
+                  className={`menu-link menu-center${
+                    pathname === ROUTES.CHAT_AI ? " active" : ""
+                  }`}
+                  data-bs-trigger="hover"
                   data-bs-dismiss="click"
-                  data-bs-placement="right">
+                  data-bs-placement="right"
+                >
                   <span className="menu-icon me-0">
                     <i className="bi bi-chat-left fs-2" />
                   </span>
                   <span className="menu-title">Chat</span>
-
                 </Link>
               </div>
 
               <div className="menu-item py-2">
-                <Link to={ROUTES.NEGOCIO} className={`menu-link menu-center${(pathname === ROUTES.NEGOCIO) ? " active" : ""}`} data-bs-trigger="hover"
+                <Link
+                  to={ROUTES.NEGOCIO}
+                  className={`menu-link menu-center${
+                    pathname === ROUTES.NEGOCIO ? " active" : ""
+                  }`}
+                  data-bs-trigger="hover"
                   data-bs-dismiss="click"
-                  data-bs-placement="right">
+                  data-bs-placement="right"
+                >
                   <span className="menu-icon me-0">
                     <i className="bi bi-briefcase fs-2" />
                   </span>
                   <span className="menu-title">Negocio</span>
-
                 </Link>
               </div>
 
               <div className="menu-item py-2">
-                <Link to={ROUTES.MONITOR} className={`menu-link menu-center${(pathname === ROUTES.MONITOR) ? " active" : ""}`} data-bs-trigger="hover"
+                <Link
+                  to={ROUTES.MONITOR}
+                  className={`menu-link menu-center${
+                    pathname === ROUTES.MONITOR ? " active" : ""
+                  }`}
+                  data-bs-trigger="hover"
                   data-bs-dismiss="click"
-                  data-bs-placement="right">
+                  data-bs-placement="right"
+                >
                   <span className="menu-icon me-0">
                     <i className="bi bi-window fs-2" />
                   </span>
                   <span className="menu-title">Monitor</span>
-
                 </Link>
               </div>
-
             </div>
           </div>
         </div>
       </div>
 
       {/* WRAPPER */}
-      <div className="wrapper d-flex flex-column flex-row-fluid pt-0" id="kt_wrapper">
+      <div
+        className="wrapper d-flex flex-column flex-row-fluid pt-0"
+        id="kt_wrapper"
+      >
         {/* HEADER */}
         <div id="kt_header" className="header align-items-stretch">
           <div className="container-fluid d-flex align-items-stretch justify-content-between">
@@ -205,7 +234,11 @@ export const LayoutMain = () => {
             {/* logo móvil */}
             <div className="d-flex align-items-center flex-grow-1 flex-lg-grow-0">
               <a href="/" className="d-lg-none">
-                <img alt="Logo" className="h-30px" src="src/assets/media/logos/logo-2.svg" />
+                <img
+                  alt="Logo"
+                  className="h-30px"
+                  src="src/assets/media/logos/logo-2.svg"
+                />
               </a>
             </div>
 
@@ -250,14 +283,10 @@ export const LayoutMain = () => {
 
                       <div className="d-flex flex-column">
                         <div className="fw-bolder d-flex align-items-center fs-5">
-                          {user?.nombreUsuario + ' ' + user?.apellido}
-
+                          {user?.nombreUsuario + " " + user?.apellido}
                         </div>
-                        <a
-
-                          className="fw-bold text-muted text-hover-primary fs-7"
-                        >
-                         {user?.correoUsuario}
+                        <a className="fw-bold text-muted text-hover-primary fs-7">
+                          {user?.correoUsuario}
                         </a>
                       </div>
                     </div>
@@ -266,33 +295,23 @@ export const LayoutMain = () => {
                   <div className="separator my-2" />
 
                   <div className="menu-item px-5">
-                    <a className="menu-link px-5">
-                      Mi perfil
-                    </a>
+                    <a className="menu-link px-5">Mi perfil</a>
                   </div>
-
-
 
                   <div
                     className="menu-item px-5"
                     data-kt-menu-trigger="hover"
                     data-kt-menu-placement="left-start"
                     data-kt-menu-flip="bottom, top"
-                  >
-
-
-
-                  </div>
-
-
+                  ></div>
 
                   <div className="separator my-2" />
 
-
-
                   <div className="menu-item px-5">
-                    <a onClick={() => {abrirconfirmModal("login", "¿Desea cerrar la sesión?");}}
-
+                    <a
+                      onClick={() => {
+                        abrirconfirmModal("login", "¿Desea cerrar la sesión?");
+                      }}
                       className="menu-link px-5"
                     >
                       Cerrar Sesión
@@ -300,13 +319,15 @@ export const LayoutMain = () => {
                   </div>
                 </div>
               </div>
-
             </div>
           </div>
         </div>
 
         {/* CONTENT */}
-        <div className="content d-flex flex-column flex-column-fluid mt-10" id="kt_content">
+        <div
+          className="content d-flex flex-column flex-column-fluid mt-10"
+          id="kt_content"
+        >
           <Outlet /> {/* aquí se renderizan las rutas hijas */}
         </div>
 
@@ -314,9 +335,10 @@ export const LayoutMain = () => {
         <div className="footer py-4 d-flex flex-lg-column" id="kt_footer">
           <div className="container-fluid d-flex flex-column flex-md-row align-items-center justify-content-between">
             <div className="text-dark order-2 order-md-1">
-              <span className="text-muted fw-bold me-1">{new Date().getFullYear()}©</span>
+              <span className="text-muted fw-bold me-1">
+                {new Date().getFullYear()}©
+              </span>
               <a
-
                 target="_blank"
                 rel="noreferrer"
                 className="text-gray-800 text-hover-primary"
@@ -328,11 +350,11 @@ export const LayoutMain = () => {
         </div>
       </div>
 
-
-         <ConfirmModal confirmMessage={confirmModalMessage} onAction={(action) => confirmModalAcion(action)} />
-        
-
-
+      <ConfirmModal
+        show={isConfirmOpen}
+        confirmMessage={confirmModalMessage}
+        onAction={(action) => confirmModalAcion(action)}
+      />
     </div>
   );
 };

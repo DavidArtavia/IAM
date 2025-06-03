@@ -13,9 +13,6 @@ INSERT INTO [UTIL].[TBL_ESTADOS]
 		   ('Activo','TBL_NEGOCIOS')
 GO
 
-USE [IAMDB]
-GO
-
 --Se coloca N para que se interprete como NVARCHAR segun la configuracion de la base de datos
 INSERT INTO [UTIL].[TBL_ALERTAS] ([COD_ALERTA], [Nombre], [Mensaje], [Tipo]) VALUES
 -- Bloque anterior
@@ -71,7 +68,6 @@ INSERT INTO [UTIL].[TBL_ALERTAS] ([COD_ALERTA], [Nombre], [Mensaje], [Tipo]) VAL
 ('B024', N'Actualizar OrdenServicio', N'La orden de servicio especificada no existe.', 'E'),
 ('B025', N'Actualizar OrdenServicio', N'No se realizaron cambios en la orden de servicio.', 'I')
 GO
-
 
 INSERT INTO [SECU].[TBL_ROLES]
            ([NombreRol]

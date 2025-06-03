@@ -10,4 +10,3 @@ export const RedirectIfAuth = () => {
   if (isAuth === null) return <LoadingModal loadingMessage="Verificando..." />;
   return isAuth ? <Navigate to={ROUTES.HOME} replace /> : <Outlet />;
 };
-
