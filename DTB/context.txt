@@ -38,7 +38,7 @@ INSERT INTO [SECU].[TBL_CONTEXTO] ([Nombre],[Tipo],[Prompt]) VALUES
 (N'contexto',N'system',
  N'Reglas: (1) guardarCliente inicia con buscarCliente (Nombre+Apellido). (2) Si hay varios clientes → pedir elección; si ninguno → ofrecer crear. (3) Preguntar opcionales faltantes. (4) Mostrar resumen y pedir confirmación antes de guardar/editar/eliminar. (5) Nunca revelar IDs internos ni Codigo.
  (6) buscarOrdenServicio (Nombre or Apellido or ReferenciaJSON or ID_OrdenServicio or TelefonoCliente, or CorreoCliente), el campo ID_Negocio siempre debe ir t se debe tomar de DATOS DE CONTEXTO INICIAL (se carga en los parámetros) al realizar la acción Bakend
- (7) actualizarOrdenServicio inicia con buscarOrdenServicio.
+ (7) actualizarOrdenServicio inicia con buscarOrdenServicio, Todos los campos que el usuario no modifica deben quedar exactamente igual y pasarlos por parámetros nuevamente al BAKEND.
  '),
 
 /* 9 ─ Camino IAM → USUARIO */

@@ -74,7 +74,7 @@ namespace DAL
                 this.Close();
             }
         }
-        public DTO_Respuesta actualizarOrdenServicio(DTO_OrdenServicio ordenServicio)
+        public async Task<DTO_Respuesta> actualizarOrdenServicio(DTO_OrdenServicio ordenServicio)
         {
             try
             {
@@ -85,7 +85,6 @@ namespace DAL
                 {
                     sqlcmd.CommandType = CommandType.StoredProcedure;
 
-                    sqlcmd.Parameters.Add("@ID_OrdenServicio", SqlDbType.Int).Value = ordenServicio.ID_OrdenServicio;
                     sqlcmd.Parameters.Add("@ID_Estado", SqlDbType.Int).Value = ordenServicio.Estado.ID_Estado;
                     sqlcmd.Parameters.Add("@FechaEstimadaEntrega", SqlDbType.DateTime).Value = ordenServicio.FechaEstimadaEntrega;
                     sqlcmd.Parameters.Add("@FechaInicio", SqlDbType.DateTime).Value = ordenServicio.FechaInicio;
@@ -101,7 +100,7 @@ namespace DAL
 
                     this.Open();
 
-                    using (SqlDataReader reader = sqlcmd.ExecuteReader())
+                    using (SqlDataReader reader = await sqlcmd.ExecuteReaderAsync())
                     {
                         while (reader.Read())
                         {
@@ -163,11 +162,11 @@ namespace DAL
                             ordenServicio.ID_Cliente = UTL_DBHelper.ReadNullSafeInt(reader["ID_Cliente"]);
                             ordenServicio.Estado.ID_Estado = UTL_DBHelper.ReadNullSafeInt(reader["ID_Estado"]);
                             ordenServicio.Estado.Nombre = UTL_DBHelper.ReadNullSafeString(reader["EstadoNombre"]);
-                            ordenServicio.FechaOrdenServicio = UTL_DBHelper.ReadNullSafeDateTime(reader["FechaOrdenServicio"]);
-                            ordenServicio.FechaEstimadaEntrega = UTL_DBHelper.ReadNullSafeDateTime(reader["FechaEstimadaEntrega"]);
-                            ordenServicio.FechaInicio = UTL_DBHelper.ReadNullSafeDateTime(reader["FechaInicio"]);
-                            ordenServicio.FechaFinal = UTL_DBHelper.ReadNullSafeDateTime(reader["FechaFinal"]);
-                            ordenServicio.FechaEntrega = UTL_DBHelper.ReadNullSafeDateTime(reader["FechaEntrega"]);
+                            ordenServicio.FechaOrdenServicio = UTL_DBHelper.ReadNullSafeDateTime(reader["FechaOrdenServicio"], null);
+                            ordenServicio.FechaEstimadaEntrega = UTL_DBHelper.ReadNullSafeDateTime(reader["FechaEstimadaEntrega"], null);
+                            ordenServicio.FechaInicio = UTL_DBHelper.ReadNullSafeDateTime(reader["FechaInicio"], null);
+                            ordenServicio.FechaFinal = UTL_DBHelper.ReadNullSafeDateTime(reader["FechaFinal"], null);
+                            ordenServicio.FechaEntrega = UTL_DBHelper.ReadNullSafeDateTime(reader["FechaEntrega"], null);
                             ordenServicio.NotaOrdenServicio = UTL_DBHelper.ReadNullSafeString(reader["NotaOrdenServicio"]);
                             
                            /* cliente = new DTO_Cliente();

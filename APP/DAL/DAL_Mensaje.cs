@@ -114,7 +114,7 @@ namespace DAL
                             mensaje.Contenido = UTL_DBHelper.ReadNullSafeString(reader["Contenido"]);
                             mensaje.Parametros = JsonSerializer.Deserialize<List<DTO_Param>>(UTL_DBHelper.ReadNullSafeString(reader["Parametros"])) ?? new();
                             mensaje.RutaAudio = UTL_DBHelper.ReadNullSafeString(reader["RutaAudio"]);
-                            mensaje.FechaMensaje = UTL_DBHelper.ReadNullSafeDateTime(reader["FechaMensaje"]);
+                            mensaje.FechaMensaje = (DateTime)UTL_DBHelper.ReadNullSafeDateTime(reader["FechaMensaje"]);
 
                             listaMensajes.Add(mensaje);
 

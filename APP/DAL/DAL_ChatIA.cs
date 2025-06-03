@@ -48,7 +48,7 @@ namespace DAL
                             chatIA.ID_Negocio = UTL_DBHelper.ReadNullSafeInt(reader["ID_Negocio"]);
                             chatIA.Estado.ID_Estado = UTL_DBHelper.ReadNullSafeInt(reader["ID_Estado"]);
                             chatIA.Estado.Nombre = UTL_DBHelper.ReadNullSafeString(reader["Nombre"]);
-                            chatIA.FechaInicial = UTL_DBHelper.ReadNullSafeDateTime(reader["FechaInicial"]);
+                            chatIA.FechaInicial = (DateTime)UTL_DBHelper.ReadNullSafeDateTime(reader["FechaInicial"]);
                             chatIA.FechaFinal = UTL_DBHelper.ReadNullSafeDateTime(reader["FechaFinal"]);
 
                             listaChats.Add(chatIA);

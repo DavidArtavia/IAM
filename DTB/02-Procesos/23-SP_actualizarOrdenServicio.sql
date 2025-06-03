@@ -31,22 +31,6 @@ GO -- =============================================
     @FechaEntrega DATETIME = NULL,
     @ReferenciaJSON NVARCHAR(MAX) = NULL,
     @NotaOrdenServicio VARCHAR(255) = NULL AS BEGIN
-SET NOCOUNT ON;
--- 1) Validar existencia de la orden
-IF NOT EXISTS (
-    SELECT 1
-    FROM [CORE].[TBL_ORDENES_SERVICIO]
-    WHERE [ID_OrdenServicio] = @ID_OrdenServicio
-) BEGIN
-SELECT [COD_ALERTA],
-    [Nombre],
-    [Mensaje],
-    [Tipo]
-FROM [UTIL].[TBL_ALERTAS]
-WHERE [COD_ALERTA] = 'B024';
--- Orden no existe
-RETURN;
-END -- 2) Ejecutar UPDATE con parámetros opcionales
 UPDATE [CORE].[TBL_ORDENES_SERVICIO]
 SET [ID_Estado] = ISNULL(@ID_Estado, [ID_Estado]),
     [FechaEstimadaEntrega] = @FechaEstimadaEntrega,
@@ -60,17 +44,7 @@ SET [ID_Estado] = ISNULL(@ID_Estado, [ID_Estado]),
     [ReferenciaJSON] = ISNULL(@ReferenciaJSON, [ReferenciaJSON]),
     [NotaOrdenServicio] = ISNULL(@NotaOrdenServicio, [NotaOrdenServicio])
 WHERE [ID_OrdenServicio] = @ID_OrdenServicio;
--- 3) Verificar filas afectadas
-IF @@ROWCOUNT = 0 BEGIN
-SELECT [COD_ALERTA],
-    [Nombre],
-    [Mensaje],
-    [Tipo]
-FROM [UTIL].[TBL_ALERTAS]
-WHERE [COD_ALERTA] = 'B025';
--- Sin cambios
-RETURN;
-END -- 4) Éxito
+
 SELECT [COD_ALERTA],
     [Nombre],
     [Mensaje],

@@ -51,7 +51,7 @@ namespace BLL
             {
                 MaxTokens = Convert.ToInt32(ConfigurationManager.AppSettings["AzureMaxTokens"] ?? "3000"),
                 Model = ConfigurationManager.AppSettings["AzureAIServiceModel"] ?? "",
-                Temperature = (float) 0.4
+                Temperature = (float) 0.5
                 
             };
         }
@@ -443,10 +443,14 @@ namespace BLL
                     ordenServicio.ReferenciaJSON = JsonConvert.DeserializeObject<List<DTO_Param>>(repuestaIA.Parametros.Find(p => p.Nombre.Equals("ReferenciaJSON", StringComparison.OrdinalIgnoreCase))?.Valor ?? string.Empty) ?? [];
                     ordenServicio.NotaOrdenServicio = repuestaIA.Parametros.Find(p => p.Nombre.Equals("NotaOrdenServicio", StringComparison.OrdinalIgnoreCase))?.Valor ?? "";
                     ordenServicio.ID_Negocio = Convert.ToInt32(repuestaIA.Parametros.Find(p => p.Nombre.Equals("ID_Negocio", StringComparison.OrdinalIgnoreCase))?.Valor ?? "0");
-                    ordenServicio.FechaEstimadaEntrega = Convert.ToDateTime(repuestaIA.Parametros.Find(p => p.Nombre.Equals("FechaEstimadaEntrega", StringComparison.OrdinalIgnoreCase))?.Valor ?? "");
+                    ordenServicio.FechaEstimadaEntrega = Convert.ToDateTime(repuestaIA.Parametros.Find(p => p.Nombre.Equals("FechaEstimadaEntrega", StringComparison.OrdinalIgnoreCase))?.Valor ?? null);
+                    ordenServicio.FechaInicio = Convert.ToDateTime(repuestaIA.Parametros.Find(p => p.Nombre.Equals("FechaInicio", StringComparison.OrdinalIgnoreCase))?.Valor ?? null);
+                    ordenServicio.FechaFinal = Convert.ToDateTime(repuestaIA.Parametros.Find(p => p.Nombre.Equals("FechaFinal", StringComparison.OrdinalIgnoreCase))?.Valor ?? null);
+                    ordenServicio.FechaEntrega = Convert.ToDateTime(repuestaIA.Parametros.Find(p => p.Nombre.Equals("FechaEntrega", StringComparison.OrdinalIgnoreCase))?.Valor ?? null);
+                    ordenServicio.Estado.ID_Estado = Convert.ToInt32(repuestaIA.Parametros.Find(p => p.Nombre.Equals("ID_Estado", StringComparison.OrdinalIgnoreCase))?.Valor ?? "0");
                     ordenServicio.ID_Cliente = Convert.ToInt32(repuestaIA.Parametros.Find(p => p.Nombre.Equals("ID_Cliente", StringComparison.OrdinalIgnoreCase))?.Valor ?? "0");
 
-                    mensajeParaIAM.Contenido = JsonConvert.SerializeObject(await bLL_OrdenServicio.registrarOrdenServicio(ordenServicio));
+                    mensajeParaIAM.Contenido = JsonConvert.SerializeObject(await bLL_OrdenServicio.actualizarOrdenServicio(ordenServicio));
 
                     break;
 
