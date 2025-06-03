@@ -1,9 +1,9 @@
 import { useEffect, useRef } from "react";
 import $ from "jquery";
 import "datatables.net-bs5";
-import { DTO_CuentasPorPagar } from "@/models/DTO_CuentasPorPagar";
-import { CoreDataTable } from "./DataTable/CoreDataTable";
-import { labelMapCuentasPorPagar } from "@/utils";
+import { DTO_CuentasPorPagar } from "@/models";
+import { labelCuentasPorPagar } from "@/utils";
+import { CoreDataTable } from "@/components";
 
 interface DataTableProps {
   data: DTO_CuentasPorPagar[];
@@ -71,7 +71,7 @@ export const CuentasPorPagarTable = ({
   }, [data, onEdit, onDelete]);
 
   return (
-    <CoreDataTable
+    <CoreDataTable<DTO_CuentasPorPagar>
       title="Cuentas por Pagar"
       data={data}
       handleAdd={onAdd}
@@ -79,7 +79,7 @@ export const CuentasPorPagarTable = ({
       onEdit={onEdit}
       onDelete={onDelete}
       disabeldButtonAdd={disableButtonAdd}
-      labelMap={labelMapCuentasPorPagar}
+      labelMap={labelCuentasPorPagar}
     />
   );
 };

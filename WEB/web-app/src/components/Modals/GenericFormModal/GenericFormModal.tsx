@@ -1,5 +1,6 @@
 // src/components/Modals/GenericFormModal/FormModal.tsx
-import React, { useState, useEffect } from "react";
+import * as React from "react";
+import { useState, useEffect } from "react";
 import { FieldConfig } from "./types";
 
 interface GenericFormModalProps<T> {
@@ -181,89 +182,156 @@ export const GenericFormModal = <T,>({
         onClick={(e) => e.stopPropagation()}
       >
         <div className="modal-content">
-          {/* ================= HEADER ================= */}
+          {/* HEADER */}
           <div className="modal-header">
-            <h5 className="modal-title">{title}</h5>
-            <button type="button" className="btn-close" onClick={onHide} />
+            <h2>{title}</h2>
+            <button
+              type="button"
+              className="btn btn-sm btn-icon btn-active-color-primary"
+              onClick={onHide}
+            >
+              ✕
+            </button>
           </div>
 
-          {/* ================= BODY: recorremos los campos ================= */}
-          <div className="modal-body py-4 px-5">
-            {fields.map((field) => {
-              const key = field.key;
-              const label = field.label;
-              const type = field.type ?? "text";
+          {/* BODY */}
+          <div className="modal-body py-10 px-lg-17">
+            <div className="row mb-5">
+              {fields.map((field, idx) => {
+                const key = field.key;
+                const label = field.label;
+                const type = field.type ?? "text";
+                const rawData = data[key];
+                const displayValue =
+                  type === "number" || type === "date"
+                    ? localDisplay[key] ?? ""
+                    : rawData != null
+                    ? String(rawData)
+                    : "";
 
-              // 1) Obtenemos el valor “raw” para el input
-              const rawData = data[key];
-              const displayValue =
-                type === "number" || type === "date"
-                  ? localDisplay[key] ?? ""
-                  : rawData != null
-                  ? String(rawData)
-                  : "";
+                const hasTouched = touched[key] === true;
+                const errorMsg = hasTouched ? errors[key] || "" : "";
 
-              // 2) ¿Debemos mostrar el mensaje de error?
-              const hasTouched = touched[key] === true;
-              const errorMsg = hasTouched ? errors[key] || "" : "";
+                // Bootstrap classes
+                let inputClass = "form-control form-control-solid";
+                if (errorMsg) {
+                  inputClass += " is-invalid";
+                } else if (hasTouched && displayValue !== "") {
+                  inputClass += " is-valid";
+                }
 
-              // 3) Calculamos la clase CSS de Bootstrap
-              let inputClass = "form-control";
-              if (errorMsg) {
-                inputClass = "form-control is-invalid";
-              } else if (hasTouched && displayValue !== "") {
-                inputClass = "form-control is-valid";
-              }
-
-              return (
-                <div className="mb-3" key={String(key)}>
-                  <label className="form-label">{label}</label>
-
-                  {type === "textarea" ? (
-                    <textarea
-                      className={inputClass}
-                      value={displayValue}
-                      onChange={(e) =>
-                        handleChange(key, e.target.value, "textarea")
-                      }
-                      onBlur={() => handleBlur(key)}
-                    />
-                  ) : (
-                    <input
-                      type={type}
-                      className={inputClass}
-                      value={displayValue}
-                      onChange={(e) =>
-                        handleChange(
-                          key,
-                          e.target.value,
-                          type === "text" ||
-                            type === "number" ||
-                            type === "date"
-                            ? type
-                            : "text"
-                        )
-                      }
-                      onBlur={() => handleBlur(key)}
-                    />
-                  )}
-
-                  {errorMsg && (
-                    <div className="invalid-feedback">{errorMsg}</div>
-                  )}
-                </div>
-              );
-            })}
+                // Responsive: first 2 fields in row, rest below
+                if (idx < 2) {
+                  return (
+                    <div className="col-md-6 fv-row" key={String(key)}>
+                      <label
+                        htmlFor={String(key)}
+                        className="required fs-5 fw-bold mb-2"
+                      >
+                        {label}
+                      </label>
+                      {type === "textarea" ? (
+                        <textarea
+                          id={String(key)}
+                          className={inputClass}
+                          value={displayValue}
+                          onChange={(e) =>
+                            handleChange(key, e.target.value, "textarea")
+                          }
+                          onBlur={() => handleBlur(key)}
+                        />
+                      ) : (
+                        <input
+                          id={String(key)}
+                          type={type}
+                          className={inputClass}
+                          value={displayValue}
+                          onChange={(e) =>
+                            handleChange(
+                              key,
+                              e.target.value,
+                              type === "text" ||
+                                type === "number" ||
+                                type === "date"
+                                ? type
+                                : "text"
+                            )
+                          }
+                          onBlur={() => handleBlur(key)}
+                        />
+                      )}
+                      {errorMsg ? (
+                        <div className="invalid-feedback">{errorMsg}</div>
+                      ) : hasTouched && displayValue ? (
+                        <div className="valid-feedback">¡Perfecto!</div>
+                      ) : null}
+                    </div>
+                  );
+                }
+                // For fields after the first two, show full width
+                return (
+                  <div
+                    className="d-flex flex-column mb-5 fv-row"
+                    key={String(key)}
+                  >
+                    <label
+                      htmlFor={String(key)}
+                      className="required fs-5 fw-bold mb-2 mt-6"
+                    >
+                      {label}
+                    </label>
+                    {type === "textarea" ? (
+                      <textarea
+                        id={String(key)}
+                        className={inputClass}
+                        value={displayValue}
+                        onChange={(e) =>
+                          handleChange(key, e.target.value, "textarea")
+                        }
+                        onBlur={() => handleBlur(key)}
+                      />
+                    ) : (
+                      <input
+                        id={String(key)}
+                        type={type}
+                        className={inputClass}
+                        value={displayValue}
+                        onChange={(e) =>
+                          handleChange(
+                            key,
+                            e.target.value,
+                            type === "text" ||
+                              type === "number" ||
+                              type === "date"
+                              ? type
+                              : "text"
+                          )
+                        }
+                        onBlur={() => handleBlur(key)}
+                      />
+                    )}
+                    {errorMsg && (
+                      <div className="invalid-feedback">{errorMsg}</div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
           </div>
 
-          {/* ================= FOOTER ================= */}
-          <div className="modal-footer">
-            <button type="button" className="btn btn-light" onClick={onHide}>
-              Cancelar
+          {/* FOOTER */}
+          <div className="modal-footer flex-center">
+            <button
+              type="button"
+              className="btn btn-light me-3"
+              onClick={onHide}
+            >
+              Descartar
             </button>
             <button
               type="button"
               className="btn btn-primary"
+              disabled={Object.values(errors).some((e) => !!e)}
               onClick={handleSubmit}
             >
               Enviar

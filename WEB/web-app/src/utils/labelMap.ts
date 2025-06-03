@@ -1,4 +1,5 @@
-export const labelMapCuentasPorPagar: Record<string, string> = {
+
+export const labelCuentasPorPagar: Record<string, string> = {
     iD_CuentasPorPagar: "Cuenta por Pagar #",
     iD_Negocio: "Negocio #",
     concepto: "Concepto",
@@ -11,4 +12,16 @@ export const labelMapCuentasPorPagar: Record<string, string> = {
     nombre: "Nombre",
     tabla: "Tabla",
 };
-  
+
+export const labelMapNegocio: Record<string, string> = {
+    iD_Negocio: "Negocio #",
+    iD_Usuario: "Usuario #",
+    estado: "Estado",
+    nombreNegocio: "Nombre del Negocio",
+    descripcion: "Descripción",
+    direccion: "Dirección",
+    telefonoNegocio: "Teléfono del Negocio",
+    correoNegocio: "Correo del Negocio",
+    fechaRegistro: "Fecha de Registro",
+    referenciaJSON: "Referencia JSON",
+};
