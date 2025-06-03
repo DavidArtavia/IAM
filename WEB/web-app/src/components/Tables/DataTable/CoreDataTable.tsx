@@ -2,8 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import $ from "jquery";
 import "datatables.net-bs5";
 import ReactDOM from "react-dom/client";
-import { ActionButtons } from "../../Buttons/ActionButtons";
-import { InfoModal } from "../../Modals/InfoModal/InfoModal";
+import { InfoModal, ActionButtons } from "@/components";
 
 type DataTableColumn = DataTables.ColumnSettings;
 
@@ -30,9 +29,6 @@ export const CoreDataTable = <T,>({
 }: DataTableProps<T>) => {
   const [showInfoModal, setShowInfoModal] = useState(false);
   const [selectedData, setSelectedData] = useState<Record<string, unknown>>({});
-  const [currentLabelMap, setCurrentLabelMap] = useState<
-    Record<string, string>
-  >({});
 
   const tableRef = useRef<HTMLTableElement>(null);
 
@@ -72,6 +68,7 @@ export const CoreDataTable = <T,>({
         },
       ],
       columnDefs: [{ targets: "_all", className: "text-center" }],
+      order: [[0, "desc"]],
       language: {
         search: "Buscar:",
         lengthMenu: "Mostrar _MENU_ registros por página",
@@ -99,7 +96,6 @@ export const CoreDataTable = <T,>({
       if (row.any()) {
         const rowData = row.data();
         setSelectedData(rowData as Record<string, unknown>);
-        setCurrentLabelMap(labelMap);
         setShowInfoModal(true);
       }
     });
@@ -109,7 +105,7 @@ export const CoreDataTable = <T,>({
         reactRoots.forEach((root) => root.unmount());
       }, 0);
     };
-  }, [data, columns, onEdit, onDelete, labelMap]);
+  }, [data]);
 
   return (
     <>
@@ -117,8 +113,7 @@ export const CoreDataTable = <T,>({
         show={showInfoModal}
         onHide={() => setShowInfoModal(false)}
         data={selectedData}
-        labelMap={currentLabelMap}
-        labels={currentLabelMap}
+        labelMap={labelMap}
       />
       <div className="card shadow-sm mt-5">
         <div className="card">
@@ -134,8 +129,7 @@ export const CoreDataTable = <T,>({
           </div>
           <div className="card-body table-responsive">
             <div className="table-responsive">
-
-            {/* start table */}
+              {/* start table */}
               <table
                 id="example"
                 ref={tableRef}

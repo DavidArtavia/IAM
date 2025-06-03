@@ -1,18 +1,14 @@
-// src/pages/Monitor.tsx  (o donde tengas este componente)
-import {
-  CuentasPorPagarTable,
-  FormRegisterAccountModal,
-  ConfirmModal,
-} from "@/components";
+// src/pages/Monitor.tsx
+import { CuentasPorPagarTable, ConfirmModal, GenericFormModal } from "@/components";
 import { BusinessButtons } from "@/components/Buttons/BusinessButtons";
-import { EditModal } from "@/components/Modals/EditModal/EditModal";
+
 import { DTO_Negocio, DTO_CuentasPorPagar, DTO_Respuesta } from "@/models";
-import { cuentasService } from "@/services/cuentas.service";
+import { cuentasService } from "@/services";
 import { errorHelpers, notificationHelpers, procesarRespuesta } from "@/utils";
 import { useEffect, useState } from "react";
 
 export const Monitor = () => {
-  // =================== Estados Generales ===================
+  // === Estados principales ===
   const [selectedBusiness, setSelectedBusiness] = useState<DTO_Negocio | null>(
     null
   );
@@ -21,66 +17,64 @@ export const Monitor = () => {
   >([]);
   const [disableButtonAdd, setDisableButtonAdd] = useState<boolean>(true);
 
-  // =================== Sección: Modal de Registro ===================
+  // === Modal “Registrar” (Genérico) ===
   const [isModalFormOpen, setIsModalFormOpen] = useState(false);
   const [formData, setFormData] = useState<DTO_CuentasPorPagar>(
     new DTO_CuentasPorPagar()
   );
 
-  // =================== Sección: Modal de Edición ===================
+  // === Modal “Editar” (Genérico) ===
   const [showEditModal, setShowEditModal] = useState(false);
   const [editData, setEditData] = useState<DTO_CuentasPorPagar | null>(null);
   const [rowEditSelected, setRowEditSelected] =
     useState<DTO_CuentasPorPagar | null>(null);
 
-  // =================== Sección: Modal de Confirmación ===================
-  const [isConfirmOpen, setIsConfirmOpen] = useState<boolean>(false);
-  const [confirmModalMessage, setconfirmModalMessage] = useState<string>("");
+  // === Modal de Confirmación ===
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+  const [confirmModalMessage, setconfirmModalMessage] = useState("");
   const [confirmContext, setConfirmContext] = useState<
     "cancel" | "delete" | null
   >(null);
-
-  // =================== Sección: Eliminar Cuenta ===================
   const [accountToDelete, setAccountToDelete] =
     useState<DTO_CuentasPorPagar | null>(null);
 
-  // =================== Sección: Efectos ===================
+  // Cuando cambia el negocio, recargamos cuentas
   useEffect(() => {
     if (selectedBusiness) {
       refetchAccounts();
     }
   }, [selectedBusiness]);
 
-  // =================== Sección: Negocio ===================
+  // === Selección de negocio ===
   const handleSelectBusiness = (negocio: DTO_Negocio) => {
     setSelectedBusiness(negocio);
     setDisableButtonAdd(false);
   };
 
-  // =================== Sección: Consultar Cuentas ===================
+  // === Refetch de Cuentas ===
   const refetchAccounts = () => {
-    if (selectedBusiness) {
-      cuentasService.obtenerCuentasPorPagar(selectedBusiness).subscribe({
-        next: (result) =>
-          setAccountsPayable(
-            procesarRespuesta(
-              result as unknown as DTO_Respuesta
-            ) as Array<DTO_CuentasPorPagar>
-          ),
-        error: (err) => errorHelpers.serverError(err),
-      });
-    }
+    if (!selectedBusiness) return;
+    cuentasService.obtenerCuentasPorPagar(selectedBusiness).subscribe({
+      next: (result) =>
+        setAccountsPayable(
+          procesarRespuesta(
+            result as unknown as DTO_Respuesta
+          ) as Array<DTO_CuentasPorPagar>
+        ),
+      error: (err) => errorHelpers.serverError(err),
+    });
   };
 
-  // =================== Sección: Registrar ===================
+  // ========== “Registrar” ==========
   const handleAddNew = () => {
+    // Limpiamos el DTO antes de abrir el modal
+    setFormData(new DTO_CuentasPorPagar());
     setIsModalFormOpen(true);
   };
 
   const handleSave = () => {
-    const iD_Negocio = selectedBusiness?.iD_Negocio;
-    formData.iD_Negocio = iD_Negocio || 0;
-
+    // En este punto ya asumimos que formData está validado correctamente por FormModal
+    formData.iD_Negocio = selectedBusiness?.iD_Negocio || 0;
     cuentasService.registrarCuentasPorPagar(formData).subscribe({
       next: (result: unknown) => {
         const mensaje =
@@ -89,7 +83,6 @@ export const Monitor = () => {
         notificationHelpers.successAlert(mensaje);
         refetchAccounts();
         setIsModalFormOpen(false);
-        setFormData(new DTO_CuentasPorPagar());
       },
       error: (err) => errorHelpers.serverError(err),
     });
@@ -101,22 +94,19 @@ export const Monitor = () => {
     setIsConfirmOpen(true);
   };
 
-  // =================== Sección: Edicion ===================
+  // ========== “Editar” ==========
   const handleEdit = (rowData: DTO_CuentasPorPagar) => {
     setRowEditSelected(rowData);
-    // Pasamos el objeto completo al modal (para que luego el modal clone todas las props)
-    setEditData({ ...rowData });
+    setEditData({ ...rowData }); // clonamos antes de editar
     setShowEditModal(true);
   };
 
   const handleSaveEdit = (updatedData: DTO_CuentasPorPagar) => {
     if (!rowEditSelected) return;
-
-    // Reasignamos IDs obligatorios que el SP necesita:
-    updatedData.iD_CuentasPorPagar = rowEditSelected.iD_CuentasPorPagar || 0;
+    updatedData.iD_CuentasPorPagar = rowEditSelected.iD_CuentasPorPagar;
     updatedData.iD_Negocio = selectedBusiness?.iD_Negocio || 0;
 
-    // Si no tocamos “estado” en el formulario, mantenemos el estado original:
+    // Si no cambiaron el estado, lo dejamos como estaba
     if (!updatedData.estado && rowEditSelected.estado) {
       updatedData.estado = { ...rowEditSelected.estado };
     }
@@ -129,13 +119,12 @@ export const Monitor = () => {
         notificationHelpers.successAlert(mensaje);
         refetchAccounts();
         setShowEditModal(false);
-        setRowEditSelected(null);
       },
       error: (err) => errorHelpers.serverError(err),
     });
   };
 
-  // =================== Sección: Eliminar ===================
+  // ========== “Eliminar” ==========
   const handleDelete = (rowData: DTO_CuentasPorPagar) => {
     setconfirmModalMessage("¿Estás seguro de que deseas eliminar esta cuenta?");
     setAccountToDelete(rowData);
@@ -144,35 +133,31 @@ export const Monitor = () => {
   };
 
   const handleConfirmDelete = (action: boolean | null) => {
-    if (action === true && accountToDelete) {
+    if (action && accountToDelete) {
       const updatedData: DTO_CuentasPorPagar = {
         ...accountToDelete,
         estado: {
           ...accountToDelete.estado,
-          iD_Estado: 7, // Por ejemplo, 7 = “Eliminado”
+          iD_Estado: 7, // ID “Eliminado”
         },
         iD_Negocio: selectedBusiness?.iD_Negocio || 0,
       };
-
       cuentasService.actualizarCuentasPorPagar(updatedData).subscribe({
         next: () => {
-          const mensaje = "Cuenta eliminada correctamente";
-          notificationHelpers.infoAlert(mensaje);
+          notificationHelpers.infoAlert("Cuenta eliminada correctamente");
           refetchAccounts();
         },
         error: (err) => errorHelpers.serverError(err),
       });
-
       setAccountToDelete(null);
     }
     setIsConfirmOpen(false);
   };
 
-  // =================== Sección: Confirmaciones Generales ===================
+  // ========== “Confirmaciones” ==========
   const confirmModalAcion = (action: boolean | null) => {
     if (action) {
       if (confirmContext === "cancel") {
-        setFormData(new DTO_CuentasPorPagar());
         setIsModalFormOpen(false);
         notificationHelpers.infoAlert("Cambios descartados correctamente");
       } else if (confirmContext === "delete" && accountToDelete) {
@@ -183,18 +168,16 @@ export const Monitor = () => {
     setConfirmContext(null);
   };
 
-  // =================== Render ===================
+  // ========== Render ==========
   return (
     <>
       <div className="row p-4 col-12 gx-0">
-        {/* Botones para elegir negocio */}
         <BusinessButtons
           handleSelectBusiness={handleSelectBusiness}
           title="Negocios"
           selectedBusiness={selectedBusiness}
         />
 
-        {/* Tabla de Cuentas por Pagar */}
         <CuentasPorPagarTable
           data={accountsPayable}
           onAdd={handleAddNew}
@@ -203,34 +186,46 @@ export const Monitor = () => {
           disableButtonAdd={disableButtonAdd}
         />
 
-        {/* Modal de Agregar Cuenta */}
-        <FormRegisterAccountModal
+        {/* === Modal Genérico: Registrar CuentasPorPagar === */}
+        <GenericFormModal<DTO_CuentasPorPagar>
+          title="Registrar Cuenta por Pagar"
           show={isModalFormOpen}
           onHide={handleCancel}
-          formData={formData}
-          setFormData={setFormData}
+          data={formData}
+          setData={setFormData}
           onSubmit={handleSave}
+          fields={[
+            { key: "concepto", label: "Concepto", type: "text" },
+            { key: "descripcion", label: "Descripción", type: "text" },
+            { key: "saldo", label: "Saldo", type: "number" },
+          ]}
         />
 
-        {/* Modal Genérico de Confirmación (cancelar o eliminar) */}
+        {/* === Modal Genérico: Confirmación === */}
         <ConfirmModal
           show={isConfirmOpen}
           confirmMessage={confirmModalMessage}
           onAction={(action) => confirmModalAcion(action)}
         />
 
-        {/* Modal Genérico de Edición */}
-        <EditModal<DTO_CuentasPorPagar>
+        {/* ====== Modal Genérico: Editar Cuenta por Pagar ====== */}
+        <GenericFormModal<DTO_CuentasPorPagar>
+          title="Editar Cuenta por Pagar"
           show={showEditModal}
           onHide={() => setShowEditModal(false)}
-          data={editData}
-          onSave={handleSaveEdit}
-          fieldsToEdit={["concepto", "descripcion", "saldo"]}
-          labelMap={{
-            concepto: "Concepto",
-            descripcion: "Descripción",
-            saldo: "Saldo",
+          data={editData!}
+          setData={(x) => setEditData(x as DTO_CuentasPorPagar)}
+          onSubmit={() => {
+            // Llamamos a handleSaveEdit con el objeto editData
+            if (editData) {
+              handleSaveEdit(editData);
+            }
           }}
+          fields={[
+            { key: "concepto", label: "Concepto", type: "text" },
+            { key: "descripcion", label: "Descripción", type: "text" },
+            { key: "saldo", label: "Saldo", type: "number" },
+          ]}
         />
       </div>
     </>

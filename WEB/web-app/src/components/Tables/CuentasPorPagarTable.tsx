@@ -49,7 +49,7 @@ export const CuentasPorPagarTable = ({
         const isActivo = row.estado?.nombre?.toLowerCase() === "activo";
         const badgeClass = isActivo
           ? "badge badge-light-success"
-          : "badge badge-light-danger";
+          : "badge badge-light-primary";
         return `<span class="${badgeClass}">${
           row.estado?.nombre || "N/A"
         }</span>`;

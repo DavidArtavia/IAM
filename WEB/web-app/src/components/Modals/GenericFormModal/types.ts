@@ -1,6 +1,6 @@
+// src/components/Modals/GenericFormModal/types.ts
 export interface FieldConfig<T> {
-    key: keyof T;
-    label: string;
-    type?: "text" | "number" | "date" | "textarea";
-    validator?: (value: unknown, allData: T) => string;
-  }
+  key: keyof T;
+  label: string;
+  type?: "text" | "number" | "date" | "boolean"| "textarea";
+}

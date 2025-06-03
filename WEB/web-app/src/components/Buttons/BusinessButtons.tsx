@@ -35,16 +35,16 @@ export const BusinessButtons = ({ title, selectedBusiness, handleSelectBusiness 
               businesses.length > 0 &&
               businesses.map((bis: DTO_Negocio) => (
                 <div className="col-4 p-2" key={bis.iD_Negocio}>
-                  <button
-                    className={`btn col-12 text-truncate w-100${
+                    <button
+                    className={`btn col-12 text-truncate mxw-100 w-100${
                       bis.iD_Negocio === selectedBusiness?.iD_Negocio
-                        ? " btn-primary"
-                        : " btn-secondary"
+                      ? " btn-primary"
+                      : " btn-secondary"
                     }`}
                     onClick={() => handleSelectBusiness(bis)}
-                  >
+                    >
                     {bis.nombreNegocio}
-                  </button>
+                    </button>
                 </div>
               ))}
 

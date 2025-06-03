@@ -3,28 +3,8 @@ import React from "react";
 interface InfoModalProps {
   show: boolean;
   onHide: () => void;
-
-  /**
-   * Objeto con los datos que queremos mostrar.
-   * Ej: { id: 5, nombre: "María", saldo: 1200, ... }
-   */
   data: Record<string, unknown>;
-
-  /**
-   * Mapa de etiquetas para cada propiedad de `data`.
-   * Ej: { id: "ID", nombre: "Nombre completo", saldo: "Saldo (₡)" }
-   */
-  labels: Record<string, string>;
-
-  /**
-   * (Opcional) Lista de keys en el orden deseado.
-   * Si no se provee, usará Object.keys(data).
-   */
-  fieldOrder?: string[];
-
-  /** Título que aparecerá en el header del modal */
   title?: string;
-
   labelMap: Record<string, string>;
 }
 
@@ -94,15 +74,7 @@ export const InfoModal = ({
                         onClick={(e) => e.preventDefault()}
                       >
                         <strong>{labelMap[key] ?? key}</strong>
-                        {/* Puedes personalizar el badge o quitarlo si no aplica */}
-                        {/* <span className="badge badge-light fs-8 fw-bold ms-2">
-                          Art Director
-                        </span> */}
                       </a>
-                      {/* Puedes personalizar este campo o quitarlo si no aplica */}
-                      {/* <div className="fw-bold text-muted">
-                        e.smith@kpmg.com.au
-                      </div> */}
                     </div>
                   </div>
                   <div className="d-flex align-items-center">
