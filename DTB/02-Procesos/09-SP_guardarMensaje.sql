@@ -12,28 +12,34 @@ GO
 -- =============================================
 ALTER PROCEDURE CORE.SP_guardarMensaje
     @ID_ChatIA INT,
-    @Tipo NVARCHAR(10), 
-    @TextoMensaje NVARCHAR(2500) = NULL,
-    @TranscripcionAudio NVARCHAR(2500) = NULL, -- Si es entrada por voz
-    @RutaAudio NVARCHAR(500) = NULL -- Ruta del archivo de audio si existe
+    @Envia NVARCHAR(15),
+	@Recibe NVARCHAR(15),
+    @Contenido NVARCHAR(MAX),
+	@Parametros NVARCHAR(MAX) = NULL,
+    @RutaAudio NVARCHAR(500) = '' -- Ruta del archivo de audio si existe
 AS
 BEGIN
-    INSERT INTO [CORE].[TBL_MENSAJES_CHAT]
-               ([ID_ChatIA]
-               ,[Tipo]
-               ,[TextoMensaje]
-               ,[TranscripcionAudio]
-               ,[RutaAudio]
-               ,[FechaMensaje])
-         VALUES
-               (@ID_ChatIA,
-                @Tipo,
-                @TextoMensaje,
-                @TranscripcionAudio,
-                @RutaAudio,
-                GETDATE())
+INSERT INTO [CORE].[TBL_MENSAJES_CHAT]
+           ([ID_ChatIA]
+           ,[Envia]
+           ,[Recibe]
+           ,[Contenido]
+           ,[Parametros]
+           ,[RutaAudio]
+           ,[FechaMensaje])
+	OUTPUT (
+	inserted.ID_Mensaje
+	)
+     VALUES
+           (@ID_ChatIA,
+            @Envia,
+            @Recibe, 
+            @Contenido,
+            @Parametros,
+            @RutaAudio, 
+            GETDATE())
 
-				SELECT [COD_ALERTA],[Nombre],[Mensaje],[Tipo] FROM [UTIL].[TBL_ALERTAS] WHERE [COD_ALERTA] = 'A0014'
+			SELECT [COD_ALERTA],[Nombre],[Mensaje],[Tipo] FROM [UTIL].[TBL_ALERTAS] WHERE [COD_ALERTA] = 'A0014'
 
 END
-GO
+

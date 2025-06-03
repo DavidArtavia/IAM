@@ -1,16 +1,16 @@
 USE [IAMDB]
 GO
-IF NOT EXISTS (SELECT 1 FROM sys.procedures WHERE name = 'CORE.SP_GuardarCliente')
+IF NOT EXISTS (SELECT 1 FROM sys.procedures WHERE name = 'SP_guardarCliente')
 BEGIN
-	EXEC('CREATE PROCEDURE CORE.SP_GuardarCliente AS BEGIN SET NOCOUNT ON; END ')
+	EXEC('CREATE PROCEDURE CORE.SP_guardarCliente AS BEGIN SET NOCOUNT ON; END ')
 END
 GO
 -- =============================================
 -- Autor: Danny Cantillano Arias
--- Creación: 04/05/2025
+-- Creación: 27/05/2025
 -- Descripción: Procedimiento para guardar un cliente nuevo
 -- =============================================
-ALTER PROCEDURE CORE.SP_GuardarCliente
+ALTER PROCEDURE CORE.SP_guardarCliente
 			@ID_Usuario INT,
             @NombreCliente VARCHAR(100),
             @ApellidoCliente VARCHAR(100),
@@ -24,6 +24,13 @@ BEGIN
 			   ,[ApellidoCliente]
 			   ,[TelefonoCliente]
 			   ,[CorreoCliente])
+
+OUTPUT			inserted.ID_Cliente
+				,inserted.ID_Usuario
+				,inserted.NombreCliente
+				,inserted.ApellidoCliente
+				,inserted.TelefonoCliente
+				,inserted.CorreoCliente
 		 VALUES
 			   (@ID_Usuario
 			   ,@NombreCliente
@@ -31,4 +38,7 @@ BEGIN
 			   ,@TelefonoCliente
 			   ,@CorreoCliente)
 
+			   SELECT [COD_ALERTA],[Nombre],[Mensaje],[Tipo] FROM [UTIL].[TBL_ALERTAS] WHERE [COD_ALERTA] = 'A0024'
+
 END
+
