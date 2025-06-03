@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+using UTL;
 
 namespace DAL
 {
@@ -15,7 +16,7 @@ namespace DAL
 
         DTO_Respuesta respuesta = new();
 
-        public DTO_Respuesta registrarOrdenServicio(DTO_OrdenServicio ordenServicio)
+        public async Task<DTO_Respuesta> registrarOrdenServicio(DTO_OrdenServicio ordenServicio)
         {
             try
             {
@@ -43,13 +44,23 @@ namespace DAL
 
                     this.Open();
 
-                    using (SqlDataReader reader = sqlcmd.ExecuteReader())
+                    using (SqlDataReader reader = await sqlcmd.ExecuteReaderAsync())
                     {
                         while (reader.Read())
                         {
-                            respuesta = manejarRespuesta(reader);
+                            ordenServicio.ID_OrdenServicio = UTL_DBHelper.ReadNullSafeInt(reader["ID_OrdenServicio"]);
+                        }
+
+                        if (reader.NextResult())
+                        {
+                            while (reader.Read())
+                            {
+                                respuesta = manejarRespuesta(reader);
+                            }
                         }
                     }
+
+                    respuesta.Resultado.Add(ordenServicio);
                     return respuesta;
                 }
             }
@@ -63,9 +74,7 @@ namespace DAL
                 this.Close();
             }
         }
-
-
-        public DTO_Respuesta actualizarOrdenServicio(DTO_OrdenServicio ordenServicio)
+        public async Task<DTO_Respuesta> actualizarOrdenServicio(DTO_OrdenServicio ordenServicio)
         {
             try
             {
@@ -76,7 +85,6 @@ namespace DAL
                 {
                     sqlcmd.CommandType = CommandType.StoredProcedure;
 
-                    sqlcmd.Parameters.Add("@ID_OrdenServicio", SqlDbType.Int).Value = ordenServicio.ID_OrdenServicio;
                     sqlcmd.Parameters.Add("@ID_Estado", SqlDbType.Int).Value = ordenServicio.Estado.ID_Estado;
                     sqlcmd.Parameters.Add("@FechaEstimadaEntrega", SqlDbType.DateTime).Value = ordenServicio.FechaEstimadaEntrega;
                     sqlcmd.Parameters.Add("@FechaInicio", SqlDbType.DateTime).Value = ordenServicio.FechaInicio;
@@ -92,7 +100,7 @@ namespace DAL
 
                     this.Open();
 
-                    using (SqlDataReader reader = sqlcmd.ExecuteReader())
+                    using (SqlDataReader reader = await sqlcmd.ExecuteReaderAsync())
                     {
                         while (reader.Read())
                         {
@@ -115,6 +123,88 @@ namespace DAL
         public DTO_Respuesta obtenerOrdenesServicio(DTO_Usuario usuario)
         {
             return null;
+        }
+        public async Task<DTO_Respuesta> buscarOrdenServicio(DTO_OrdenServicio ordenServicio, DTO_Cliente cliente)
+        {
+            try
+            {
+                string query = "CORE.SP_buscarOrdenServicio";
+                string json = JsonSerializer.Serialize(ordenServicio.ReferenciaJSON);
+                List<DTO_OrdenServicio> listaOrdenServicio = new();
+
+                using (SqlCommand sqlcmd = new(query, this.GetObjConexion()))
+                {
+                    sqlcmd.CommandType = CommandType.StoredProcedure;
+                        
+                    sqlcmd.Parameters.Add("@ID_OrdenServicio", SqlDbType.Int).Value = (ordenServicio.ID_OrdenServicio == 0) ? (object)DBNull.Value : ordenServicio.ID_OrdenServicio;
+                    sqlcmd.Parameters.Add("@ID_Negocio", SqlDbType.Int).Value = ordenServicio.ID_Negocio;
+                    sqlcmd.Parameters.Add("@ApellidoCliente", SqlDbType.VarChar).Value = (cliente.ApellidoCliente == string.Empty) ? (object)DBNull.Value : cliente.ApellidoCliente;
+                    sqlcmd.Parameters.Add("@NombreCliente", SqlDbType.VarChar).Value = (cliente.NombreCliente == string.Empty) ? (object)DBNull.Value : cliente.NombreCliente;
+                    sqlcmd.Parameters.Add("@CorreoCliente", SqlDbType.NVarChar).Value = (cliente.CorreoCliente == string.Empty) ? (object)DBNull.Value : cliente.CorreoCliente;
+                    sqlcmd.Parameters.Add("@TelefonoCliente", SqlDbType.VarChar).Value = (cliente.TelefonoCliente == string.Empty) ? (object)DBNull.Value : cliente.TelefonoCliente;
+                    sqlcmd.Parameters.Add("@ReferenciaJSON", SqlDbType.NVarChar, -1).Value = json;
+
+                    foreach (SqlParameter param in sqlcmd.Parameters)
+                    {
+                        param.Direction = ParameterDirection.Input;
+                    }
+
+                    this.Open();
+
+                    using (SqlDataReader reader = await sqlcmd.ExecuteReaderAsync())
+                    {
+                        while (reader.Read())
+                        {
+                            ordenServicio = new();
+                            ordenServicio.ReferenciaJSON = (JsonSerializer.Deserialize<List<DTO_Param>>(UTL_DBHelper.ReadNullSafeString(reader["ReferenciaJSON"]))) ?? new List<DTO_Param>();
+                            ordenServicio.ID_Negocio = UTL_DBHelper.ReadNullSafeInt(reader["ID_Negocio"]);
+                            ordenServicio.ID_OrdenServicio = UTL_DBHelper.ReadNullSafeInt(reader["ID_OrdenServicio"]);
+                            ordenServicio.ID_Cliente = UTL_DBHelper.ReadNullSafeInt(reader["ID_Cliente"]);
+                            ordenServicio.Estado.ID_Estado = UTL_DBHelper.ReadNullSafeInt(reader["ID_Estado"]);
+                            ordenServicio.Estado.Nombre = UTL_DBHelper.ReadNullSafeString(reader["EstadoNombre"]);
+                            ordenServicio.FechaOrdenServicio = UTL_DBHelper.ReadNullSafeDateTime(reader["FechaOrdenServicio"], null);
+                            ordenServicio.FechaEstimadaEntrega = UTL_DBHelper.ReadNullSafeDateTime(reader["FechaEstimadaEntrega"], null);
+                            ordenServicio.FechaInicio = UTL_DBHelper.ReadNullSafeDateTime(reader["FechaInicio"], null);
+                            ordenServicio.FechaFinal = UTL_DBHelper.ReadNullSafeDateTime(reader["FechaFinal"], null);
+                            ordenServicio.FechaEntrega = UTL_DBHelper.ReadNullSafeDateTime(reader["FechaEntrega"], null);
+                            ordenServicio.NotaOrdenServicio = UTL_DBHelper.ReadNullSafeString(reader["NotaOrdenServicio"]);
+                            
+                           /* cliente = new DTO_Cliente();
+                            cliente.ID_Cliente = UTL_DBHelper.ReadNullSafeInt(reader["ID_Cliente"]);
+                            cliente.ID_Usuario = UTL_DBHelper.ReadNullSafeInt(reader["ID_Usuario"]);
+                            cliente.NombreCliente = UTL_DBHelper.ReadNullSafeString(reader["NombreCliente"]);
+                            cliente.ApellidoCliente = UTL_DBHelper.ReadNullSafeString(reader["ApellidoCliente"]);
+                            cliente.TelefonoCliente = UTL_DBHelper.ReadNullSafeString(reader["TelefonoCliente"]);
+                            cliente.CorreoCliente = UTL_DBHelper.ReadNullSafeString(reader["CorreoCliente"]);
+                           */
+
+                            listaOrdenServicio.Add(ordenServicio);
+                        }
+
+
+                        if (reader.NextResult())
+                        {
+                            while (reader.Read())
+                            {
+                                respuesta = manejarRespuesta(reader);
+
+                            }
+                        }
+                    }
+
+                    respuesta.Resultado.Add(listaOrdenServicio);
+                    return respuesta;
+                }
+            }
+            catch (Exception e)
+            {
+                this.Close();
+                throw e;
+            }
+            finally
+            {
+                this.Close();
+            }
         }
     }
 }
