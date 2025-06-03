@@ -137,13 +137,14 @@ CREATE TABLE CORE.TBL_CHAT_IA
 
 CREATE TABLE CORE.TBL_MENSAJES_CHAT 
 (
-    ID_Mensaje INT IDENTITY(1,1) NOT NULL, --PK
-    ID_ChatIA INT NOT NULL,-- FK
-    Tipo NVARCHAR(10) CHECK (Tipo IN ('system', 'assistant', 'user')) NOT NULL, -- Quien lo dijo
-    TextoMensaje NVARCHAR(2500) NULL,
-    TranscripcionAudio NVARCHAR(2500) NULL, -- si es entrada por voz
-	RutaAudio NVARCHAR(500) NULL,
-    FechaMensaje DATETIME DEFAULT GETDATE() NOT NULL
+	[ID_Mensaje] [int] IDENTITY(1,1) NOT NULL,
+	[ID_ChatIA] [int] NOT NULL,
+	[Envia] [nvarchar](15) CHECK (Envia IN ('USUARIO', 'IAM', 'BAKEND')) NOT NULL,
+	[Recibe] [nvarchar](15) CHECK (Envia IN ('USUARIO', 'IAM', 'BAKEND')) NOT NULL,
+	[Contenido] [nvarchar](MAX) NULL,
+	[Parametros] [nvarchar](MAX) NULL,
+	[RutaAudio] [nvarchar](500) NULL,
+	[FechaMensaje] [datetime] NOT NULL
 )
 GO
 --La siguiente tabla tiene por fin guardar lo que se identifica que el usuario quiere hacer en un determinado chat con la IA

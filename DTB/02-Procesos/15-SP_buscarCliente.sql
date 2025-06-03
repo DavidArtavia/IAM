@@ -11,10 +11,11 @@ GO
 -- Descripción: Procedimiento para buscar un cliente (lo usa la IA cuando ocupa agregar un cliente nuevo para saber si existe)
 -- =============================================
 ALTER PROCEDURE CORE.SP_buscarCliente
-           @NombreCliente NVARCHAR(50) = '',
-		   @ApellidoCliente NVARCHAR = '',
-		   @TelefonoCliente NVARCHAR = '',
-		   @CorreoCliente NVARCHAR = ''
+           @NombreCliente NVARCHAR(100) = '',
+		   @ApellidoCliente NVARCHAR(100) = '',
+		   @TelefonoCliente NVARCHAR = NULL,
+		   @CorreoCliente NVARCHAR = NULL,
+		   @ID_Usuario INT
 AS
 BEGIN
 
@@ -26,6 +27,7 @@ BEGIN
 		  ,[CorreoCliente]
 	  FROM [CORE].[TBL_CLIENTES]
 	  WHERE 
+	  ID_Usuario = @ID_Usuario AND
 	  [NombreCliente] LIKE '%' + @NombreCliente + '%' OR
 	  [ApellidoCliente] LIKE '%' + @ApellidoCliente + '%' OR
 	  [TelefonoCliente] LIKE '%' + @TelefonoCliente + '%' OR

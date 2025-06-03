@@ -100,7 +100,7 @@ namespace DAL
                             negocio.Direccion = UTL_DBHelper.ReadNullSafeString(reader["Direccion"]);
                             negocio.TelefonoNegocio = UTL_DBHelper.ReadNullSafeString(reader["TelefonoNegocio"]);
                             negocio.CorreoNegocio = UTL_DBHelper.ReadNullSafeString(reader["CorreoNegocio"]);
-                            negocio.FechaRegistro = UTL_DBHelper.ReadNullSafeDateTime(reader["FechaRegistro"]);
+                            negocio.FechaRegistro = (DateTime)UTL_DBHelper.ReadNullSafeDateTime(reader["FechaRegistro"]);
                             negocio.ReferenciaJSON = new List<DTO_Param>();//UTL_DBHelper.ReadNullSafeString(reader["ReferenciaJSON"]);
                             negocio.Estado.ID_Estado = UTL_DBHelper.ReadNullSafeInt(reader["ID_Estado"]);
                             negocio.Estado.Nombre = UTL_DBHelper.ReadNullSafeString(reader["Nombre"]);

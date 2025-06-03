@@ -12,20 +12,33 @@ namespace BLL
     public class BLL_OrdenServicio
     {
         DAL_OrdenServicio dal_OrdenServicio = new();
-        DAL_Alerta dAL_Alerta = new();
+        DTO_Respuesta respuesta = new();
 
-        public DTO_Respuesta registrarOrdenServicio(DTO_OrdenServicio ordenServicio)
+        public async Task<DTO_Respuesta> registrarOrdenServicio(DTO_OrdenServicio ordenServicio)
         {
-            return dal_OrdenServicio.registrarOrdenServicio(ordenServicio);
+            respuesta = await dal_OrdenServicio.registrarOrdenServicio(ordenServicio);
+            if (!respuesta.TipoRespuesta)
+                throw new Exception(respuesta.Mensaje);
+            return respuesta;
         }
         public DTO_Respuesta obtenerOrdenesServicio(DTO_Usuario usuario)
         {
             return dal_OrdenServicio.obtenerOrdenesServicio(usuario);
         }
-        public DTO_Respuesta actualizarOrdenServicio(DTO_OrdenServicio ordenServicio)
+        public async Task<DTO_Respuesta> actualizarOrdenServicio(DTO_OrdenServicio ordenServicio)
         {
-            return dal_OrdenServicio.actualizarOrdenServicio(ordenServicio);
+            respuesta = await dal_OrdenServicio.actualizarOrdenServicio(ordenServicio);
+            if (!respuesta.TipoRespuesta)
+                throw new Exception(respuesta.Mensaje);
+            return respuesta;
         }
 
+        public async Task<DTO_Respuesta> buscarOrdenServicio(DTO_OrdenServicio ordenServicio, DTO_Cliente cliente)
+        {
+            respuesta = await dal_OrdenServicio.buscarOrdenServicio(ordenServicio, cliente);
+            if (!respuesta.TipoRespuesta)
+                throw new Exception(respuesta.Mensaje);
+            return respuesta;
+        }
     }
 }

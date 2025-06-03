@@ -86,8 +86,8 @@ namespace DAL
                             cuentaPorPagar.Concepto = UTL_DBHelper.ReadNullSafeString(reader["Concepto"]);
                             cuentaPorPagar.Descripcion = UTL_DBHelper.ReadNullSafeString(reader["Descripcion"]);
                             cuentaPorPagar.Saldo = UTL_DBHelper.ReadNullSafeDecimal(reader["Saldo"]);
-                            cuentaPorPagar.FechaInicial = UTL_DBHelper.ReadNullSafeDateTime(reader["FechaInicial"]);
-                            cuentaPorPagar.FechaModificacion = UTL_DBHelper.ReadNullSafeDateTime(reader["FechaModificacion"]);
+                            cuentaPorPagar.FechaInicial = (DateTime)UTL_DBHelper.ReadNullSafeDateTime(reader["FechaInicial"]);
+                            cuentaPorPagar.FechaModificacion = (DateTime)UTL_DBHelper.ReadNullSafeDateTime(reader["FechaModificacion"]);
                             cuentaPorPagar.Estado.ID_Estado = UTL_DBHelper.ReadNullSafeInt(reader["ID_Estado"]);
 
                             listaCuentasPorPagar.Add(cuentaPorPagar);

@@ -36,7 +36,11 @@ INSERT INTO [UTIL].[TBL_ALERTAS] ([COD_ALERTA], [Nombre], [Mensaje], [Tipo]) VAL
 ('A0018', N'Autenticación de usuario', N'El refresh token se encuentra vencido', 'E'),
 ('A0019', N'Negocios', N'Negocios obtenidos correctamente', 'I'),
 ('A0020', N'ChatIA', N'Mensajes obtenidos correctamente', 'I'),
-('A0021', N'ChatIA', N'Chats obtenidos correctamente', 'I');
+('A0021', N'ChatIA', N'Chats obtenidos correctamente', 'I'),
+('A0022', N'Cliente', N'Busqueda de clientes realizada correctamente', 'I'),
+('A0023', N'Contexto', N'Contexto consultado correctamente', 'I'),
+('A0024', N'Cliente', N'Cliente guardado correctamente', 'I'),
+('A0025', N'OrdenServicio', N'Busqueda de orden de servicio realizada correctamente', 'I'),
 -- Bloque nuevo
 ('B001', N'Negocio', N'El negocio se registró exitosamente.', 'I'),
 ('B002', N'Negocio', N'No puede registrar más de 3 negocios.', 'E'),
@@ -56,13 +60,13 @@ INSERT INTO [UTIL].[TBL_ALERTAS] ([COD_ALERTA], [Nombre], [Mensaje], [Tipo]) VAL
 ('B016', N'Actualizar CuentasPorPagar', N'La cuenta por pagar especificada no existe.', 'E'),
 ('B017', N'Actualizar CuentasPorPagar', N'No se realizó ninguna modificación en la cuenta por pagar.', 'I'),
 ('B018', N'Registrar OrdenServicio', N'La orden de servicio se registró correctamente.', 'I'),
-('B019', N'Registrar OrdenServicio', N'El cliente especificado no existe.', 'E'),
-('B020', N'Registrar OrdenServicio', N'El negocio especificado no existe.', 'E'),
-('B021', N'Registrar OrdenServicio', N'El estado especificado no existe.', 'E'),
-('B022', N'Registrar OrdenServicio', N'No se pudo registrar la orden de servicio.', 'E'),
+--('B019', N'Registrar OrdenServicio', N'El cliente especificado no existe.', 'E'),
+--('B020', N'Registrar OrdenServicio', N'El negocio especificado no existe.', 'E'),
+--('B021', N'Registrar OrdenServicio', N'El estado especificado no existe.', 'E'),
+--('B022', N'Registrar OrdenServicio', N'No se pudo registrar la orden de servicio.', 'E'),
 ('B023', N'Actualizar OrdenServicio', N'La orden de servicio se actualizó correctamente.', 'I'),
 ('B024', N'Actualizar OrdenServicio', N'La orden de servicio especificada no existe.', 'E'),
-('B025', N'Actualizar OrdenServicio', N'No se realizaron cambios en la orden de servicio.', 'I'),
+('B025', N'Actualizar OrdenServicio', N'No se realizaron cambios en la orden de servicio.', 'I')
 GO
 
 INSERT INTO [SECU].[TBL_ROLES]

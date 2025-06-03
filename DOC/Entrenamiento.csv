@@ -1,0 +1,127 @@
+﻿ID_Mensaje;ID_ChatIA;Envia;Recibe;Contenido;Parametros;RutaAudio;FechaMensaje
+142;3;USUARIO;IAM;Quiero crear una orden de servicio;[];NULL;2025-05-31 17:34:21.610
+143;3;IAM;USUARIO;"Para crear la orden de servicio, primero necesito registrar al cliente. Por favor, indique:
+
+1. **Nombre del cliente**
+2. **Apellido del cliente**
+
+Luego continuaremos con los detalles de la orden.";[];;2025-05-31 17:34:29.330
+144;3;USUARIO;IAM;Alvaro Torres;[];NULL;2025-05-31 17:34:54.560
+145;3;IAM;BAKEND;buscarCliente;"[{""Nombre"":""NombreCliente"",""Valor"":""Alvaro""},{""Nombre"":""ApellidoCliente"",""Valor"":""Torres""}]";;2025-05-31 17:35:01.047
+146;3;BAKEND;IAM;"{""TipoRespuesta"":true,""Mensaje"":""Busqueda de clientes realizada correctamente"",""Resultado"":[[]],""Codigo"":""A0022""}";"[{""Nombre"":""NombreCliente"",""Valor"":""Alvaro""},{""Nombre"":""ApellidoCliente"",""Valor"":""Torres""}]";;2025-05-31 17:35:27.490
+147;3;IAM;USUARIO;"No se encontraron clientes registrados con el nombre **Alvaro Torres**. ¿Desea crear un nuevo cliente con estos datos?
+
+Por favor indique:
+3. **Teléfono del cliente** (opcional)
+4. **Correo electrónico** (opcional)
+
+Ejemplo completo:
+- Teléfono: 555-1234
+- Correo: alvaro@ejemplo.com";[];;2025-05-31 17:35:33.227
+148;3;USUARIO;IAM;si quiero crear ese cliente con el numero de telefono 87662544 y sin correo;[];NULL;2025-05-31 17:35:58.940
+149;3;IAM;USUARIO;"Resumen del nuevo cliente:
+
+- **Nombre:** Alvaro
+- **Apellido:** Torres
+- **Teléfono:** 87662544
+- **Correo:** [Sin registrar]
+
+¿Confirmar la creación de este cliente?";[];;2025-05-31 17:36:04.030
+150;3;USUARIO;IAM;confirmo;[];NULL;2025-05-31 17:36:13.473
+151;3;IAM;BAKEND;guardarCliente;"[{""Nombre"":""NombreCliente"",""Valor"":""Alvaro""},{""Nombre"":""ApellidoCliente"",""Valor"":""Torres""},{""Nombre"":""TelefonoCliente"",""Valor"":""87662544""},{""Nombre"":""CorreoCliente"",""Valor"":""""}]";;2025-05-31 17:36:22.187
+152;3;BAKEND;IAM;"{""TipoRespuesta"":true,""Mensaje"":""Cliente guardado correctamente"",""Resultado"":[{""ID_Cliente"":6,""ID_Usuario"":0,""NombreCliente"":""Alvaro"",""ApellidoCliente"":""Torres"",""TelefonoCliente"":""87662544"",""CorreoCliente"":""""}],""Codigo"":""A0024""}";"[{""Nombre"":""NombreCliente"",""Valor"":""Alvaro""},{""Nombre"":""ApellidoCliente"",""Valor"":""Torres""},{""Nombre"":""TelefonoCliente"",""Valor"":""87662544""},{""Nombre"":""CorreoCliente"",""Valor"":""""}]";;2025-05-31 17:36:22.193
+153;3;IAM;USUARIO;"Cliente **Alvaro Torres** creado exitosamente. Ahora continuemos con la orden de servicio.
+
+Por favor proporcione los siguientes datos:
+
+1. **Placa del vehículo** (Ejemplo: ABC123)
+2. **Marca del vehículo** (Ejemplo: Toyota)
+3. **Fecha estimada de entrega** (Ejemplo: 05/06/2025)
+4. **Notas adicionales** (opcional, Ejemplo: Cambio de aceite y filtro)
+
+Ingrese la información en el formato:
+- Placa: [valor]
+- Marca: [valor]
+- Fecha estimada: [valor]
+- Notas: [valor]";[];;2025-05-31 17:36:27.200
+154;3;USUARIO;IAM;la placa es la DCA123 es un Geely GX3 espero entregar en 2 semanas el trabajo y como nota hay que poner que el carro tiene una raya en la puerta delantera derecha;[];NULL;2025-05-31 17:37:27.850
+155;3;IAM;USUARIO;"Resumen de la orden de servicio:
+
+- **Placa:** DCA123
+- **Marca:** Geely GX3
+- **Fecha estimada de entrega:** 14/06/2025 (2 semanas)
+- **Notas:** El carro tiene una raya en la puerta delantera derecha
+
+¿Confirmar la creación de esta orden con los datos proporcionados?";[];;2025-05-31 17:37:33.660
+156;3;USUARIO;IAM;crear si;[];NULL;2025-05-31 17:37:55.360
+157;3;IAM;BAKEND;guardarOrdenServicio;"[{""Nombre"":""ID_Cliente"",""Valor"":""6""},{""Nombre"":""ID_Negocio"",""Valor"":""2""},{""Nombre"":""ID_Estado"",""Valor"":""6""},{""Nombre"":""ReferenciaJSON"",""Valor"":""[{\""Nombre\"":\""Placa\"",\""Valor\"":\""DCA123\""},{\""Nombre\"":\""Marca\"",\""Valor\"":\""Geely GX3\""}]""},{""Nombre"":""FechaEstimadaEntrega"",""Valor"":""14/06/2025""},{""Nombre"":""NotaOrdenServicio"",""Valor"":""El carro tiene una raya en la puerta delantera derecha""}]";;2025-05-31 17:38:02.707
+158;3;BAKEND;IAM;"{""TipoRespuesta"":true,""Mensaje"":""La orden de servicio se registró correctamente."",""Resultado"":[{""ID_OrdenServicio"":5,""ID_Cliente"":6,""ID_Negocio"":2,""Estado"":{""ID_Estado"":6,""Nombre"":"""",""Tabla"":""""},""FechaEstimadaEntrega"":""2025-06-14T00:00:00"",""FechaInicio"":null,""FechaFinal"":null,""FechaEntrega"":null,""NotaOrdenServicio"":""El carro tiene una raya en la puerta delantera derecha"",""ReferenciaJSON"":[{""Nombre"":""Placa"",""Valor"":""DCA123""},{""Nombre"":""Marca"",""Valor"":""Geely GX3""}]}],""Codigo"":""B018""}";"[{""Nombre"":""ID_Cliente"",""Valor"":""6""},{""Nombre"":""ID_Negocio"",""Valor"":""2""},{""Nombre"":""ID_Estado"",""Valor"":""6""},{""Nombre"":""ReferenciaJSON"",""Valor"":""[{\""Nombre\"":\""Placa\"",\""Valor\"":\""DCA123\""},{\""Nombre\"":\""Marca\"",\""Valor\"":\""Geely GX3\""}]""},{""Nombre"":""FechaEstimadaEntrega"",""Valor"":""14/06/2025""},{""Nombre"":""NotaOrdenServicio"",""Valor"":""El carro tiene una raya en la puerta delantera derecha""}]";;2025-05-31 17:38:02.723
+159;3;IAM;USUARIO;"Orden de servicio #5 creada exitosamente para **Alvaro Torres** con los siguientes detalles:
+
+- **Vehículo:** Geely GX3 (Placa DCA123)
+- **Fecha estimada de entrega:** 14/06/2025
+- **Notas:** El carro tiene una raya en la puerta delantera derecha
+
+¿Desea realizar otra acción o finalizar?";[];;2025-05-31 17:38:10.523
+160;3;USUARIO;IAM;no gracias;[];NULL;2025-05-31 17:38:45.013
+161;3;IAM;USUARIO;¡Gracias por utilizar nuestros servicios! Si necesita asistencia en el futuro, estoy aquí para ayudarle. Que tenga un excelente día.;[];;2025-05-31 17:38:48.823
+217;2;USUARIO;IAM;quiero crear una orden de servicio;[];;2025-06-01 02:00:03.083
+218;2;IAM;USUARIO;"Para crear una orden de servicio necesitamos identificar al cliente. Por favor indique: 
+
+1. **Nombre del cliente**
+2. **Apellido del cliente**";[];;2025-06-01 02:00:09.350
+219;2;USUARIO;IAM;el cliente es Aguaje Ramos;[];;2025-06-01 02:00:23.830
+220;2;IAM;BAKEND;buscarCliente;"[{""Nombre"":""NombreCliente"",""Valor"":""Aguaje""},{""Nombre"":""ApellidoCliente"",""Valor"":""Ramos""},{""Nombre"":""ID_Negocio"",""Valor"":""1""}]";;2025-06-01 02:00:26.910
+221;2;BAKEND;IAM;"{""TipoRespuesta"":true,""Mensaje"":""Busqueda de clientes realizada correctamente"",""Resultado"":[[]],""Codigo"":""A0022""}";"[{""Nombre"":""NombreCliente"",""Valor"":""Aguaje""},{""Nombre"":""ApellidoCliente"",""Valor"":""Ramos""},{""Nombre"":""ID_Negocio"",""Valor"":""1""}]";;2025-06-01 02:00:26.913
+222;2;IAM;USUARIO;"No se encontró un cliente registrado con los datos proporcionados. ¿Desea crear un nuevo cliente con la siguiente información?
+
+**Nombre:** Aguaje
+**Apellido:** Ramos
+
+¿Desea agregar teléfono o correo electrónico del cliente? (Ejemplo: Tel: 0999123456, Correo: aguaje@example.com)";[];;2025-06-01 02:00:36.840
+223;2;USUARIO;IAM;si crear;[];;2025-06-01 02:00:58.717
+224;2;IAM;BAKEND;guardarCliente;"[{""Nombre"":""NombreCliente"",""Valor"":""Aguaje""},{""Nombre"":""ApellidoCliente"",""Valor"":""Ramos""},{""Nombre"":""ID_Negocio"",""Valor"":""1""},{""Nombre"":""ID_Usuario"",""Valor"":""3""}]";;2025-06-01 02:01:11.007
+225;2;BAKEND;IAM;"{""TipoRespuesta"":true,""Mensaje"":""Cliente guardado correctamente"",""Resultado"":[{""ID_Cliente"":8,""ID_Usuario"":0,""NombreCliente"":""Aguaje"",""ApellidoCliente"":""Ramos"",""TelefonoCliente"":"""",""CorreoCliente"":""""}],""Codigo"":""A0024""}";"[{""Nombre"":""NombreCliente"",""Valor"":""Aguaje""},{""Nombre"":""ApellidoCliente"",""Valor"":""Ramos""},{""Nombre"":""ID_Negocio"",""Valor"":""1""},{""Nombre"":""ID_Usuario"",""Valor"":""3""}]";;2025-06-01 02:01:11.013
+226;2;IAM;USUARIO;"Cliente registrado exitosamente. Ahora, necesitamos los detalles de la orden de servicio:
+
+1. **Placa** (Ejemplo: ABC123)
+2. **Marca** (Ejemplo: GEELY)
+3. **Fecha estimada de entrega** (Ejemplo: 05/06/2025)
+4. **Nota adicional** (Opcional)
+
+Por favor, proporcione estos datos en el formato:
+Placa: [valor]
+Marca: [valor]
+Fecha estimada: [valor]
+Nota: [valor]";[];;2025-06-01 02:01:18.090
+236;2;USUARIO;IAM;la placa sería la yui-8988 es un for mustang y la fecha estimada es en 5 días;[];;2025-06-01 02:14:38.553
+237;2;IAM;USUARIO;"Por favor confirme los datos de la orden:
+
+- **Placa:** YUI8988
+- **Marca:** Ford Mustang
+- **Fecha estimada de entrega:** 06/06/2025
+- **Nota:** [Sin nota adicional]
+
+¿Los datos son correctos? (Responda ""Confirmar"" para guardar o ""Corregir"" para modificar)";[];;2025-06-01 02:15:47.483
+238;2;USUARIO;IAM;AGREGAR nota, el carro presenta una falla en el arrancador;[];;2025-06-01 02:16:12.217
+239;2;IAM;USUARIO;"Resumen actualizado de la orden:
+
+- **Placa:** YUI8988
+- **Marca:** Ford Mustang
+- **Fecha estimada de entrega:** 06/06/2025
+- **Nota:** El carro presenta una falla en el arrancador
+
+¿Confirmar para guardar o desea realizar más ajustes? (Responda ""Confirmar"" o ""Corregir"")";[];;2025-06-01 02:16:19.793
+240;2;USUARIO;IAM;confirmar;[];;2025-06-01 02:16:35.927
+241;2;IAM;BAKEND;guardarOrdenServicio;"[{""Nombre"":""ID_Cliente"",""Valor"":""8""},{""Nombre"":""ID_Negocio"",""Valor"":""1""},{""Nombre"":""ID_Estado"",""Valor"":""6""},{""Nombre"":""FechaEstimadaEntrega"",""Valor"":""06/06/2025""},{""Nombre"":""ReferenciaJSON"",""Valor"":""[{\""Nombre\"":\""Placa\"",\""Valor\"":\""YUI8988\""},{\""Nombre\"":\""Marca\"",\""Valor\"":\""Ford Mustang\""}]""},{""Nombre"":""NotaOrdenServicio"",""Valor"":""El carro presenta una falla en el arrancador""},{""Nombre"":""ID_Usuario"",""Valor"":""3""}]";;2025-06-01 02:16:45.457
+242;2;BAKEND;IAM;"{""TipoRespuesta"":true,""Mensaje"":""La orden de servicio se registró correctamente."",""Resultado"":[{""ID_OrdenServicio"":8,""ID_Cliente"":8,""ID_Negocio"":1,""Estado"":{""ID_Estado"":6,""Nombre"":"""",""Tabla"":""""},""FechaEstimadaEntrega"":""2025-06-06T00:00:00"",""FechaInicio"":null,""FechaFinal"":null,""FechaEntrega"":null,""NotaOrdenServicio"":""El carro presenta una falla en el arrancador"",""ReferenciaJSON"":[{""Nombre"":""Placa"",""Valor"":""YUI8988""},{""Nombre"":""Marca"",""Valor"":""Ford Mustang""}]}],""Codigo"":""B018""}";"[{""Nombre"":""ID_Cliente"",""Valor"":""8""},{""Nombre"":""ID_Negocio"",""Valor"":""1""},{""Nombre"":""ID_Estado"",""Valor"":""6""},{""Nombre"":""FechaEstimadaEntrega"",""Valor"":""06/06/2025""},{""Nombre"":""ReferenciaJSON"",""Valor"":""[{\""Nombre\"":\""Placa\"",\""Valor\"":\""YUI8988\""},{\""Nombre\"":\""Marca\"",\""Valor\"":\""Ford Mustang\""}]""},{""Nombre"":""NotaOrdenServicio"",""Valor"":""El carro presenta una falla en el arrancador""},{""Nombre"":""ID_Usuario"",""Valor"":""3""}]";;2025-06-01 02:16:45.480
+243;2;IAM;USUARIO;"✅ **Orden de servicio creada exitosamente**
+
+**Detalles:**
+- Cliente: Aguaje Ramos
+- Placa: YUI8988
+- Marca: Ford Mustang
+- Fecha estimada de entrega: 06/06/2025
+- Nota: El carro presenta una falla en el arrancador
+
+¿Desea realizar otra acción?";[];;2025-06-01 02:16:48.260

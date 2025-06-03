@@ -198,12 +198,12 @@ namespace UTL
             return default_value;
         }
 
-        public static System.DateTime ReadNullSafeDateTime(Object db_value)
+        public static System.DateTime? ReadNullSafeDateTime(Object db_value)
         {
             return ReadNullSafeDateTime(db_value, EMPTY_DATETIME);
         }
 
-        public static System.DateTime ReadNullSafeDateTime(Object db_value, DateTime default_value)
+        public static System.DateTime? ReadNullSafeDateTime(Object db_value, DateTime? default_value = null)
         {
             if (db_value is System.DateTime)
             {
