@@ -44,47 +44,73 @@ export const CoreDataTable = <T,>({
 
     const reactRoots: ReactDOM.Root[] = [];
 
+    const dynamicColumns = [...columns];
+
+    // Solo agregamos la columna de estado si "estado" está en labelMap
+    if (labelMap.estado) {
+      dynamicColumns.push({
+      title: labelMap.estado || "Estado",
+      data: null,
+      orderable: false,
+      defaultContent: "<div></div>",
+      createdCell: (cell: Node, _cellData: unknown, rowData: T) => {
+        const td = cell as HTMLTableCellElement;
+        td.innerHTML = "";
+        const nombreEstado =
+        (rowData as { estado?: { nombre?: string } }).estado?.nombre ?? "N/A";
+        const badgeClass =
+        nombreEstado.toLowerCase() === "activo"
+          ? "badge badge-light-success"
+          : nombreEstado.toLowerCase() === "pendiente"
+          ? "badge badge-light-warning"
+          : "badge badge-light-primary";
+        const root = ReactDOM.createRoot(td);
+        root.render(<span className={badgeClass}>{nombreEstado}</span>);
+      },
+      });
+    }
+
+    // Columna de acciones siempre al final
+    dynamicColumns.push({
+      title: "Acciones",
+      data: null,
+      orderable: false,
+      searchable: false,
+      createdCell: (td, _cellData, rowData) => {
+      (td as HTMLElement).innerHTML = "";
+      const root = ReactDOM.createRoot(td as HTMLElement);
+      reactRoots.push(root);
+      root.render(
+        <ActionButtons
+        rowData={rowData}
+        onEdit={() => onEdit(rowData)}
+        onDelete={() => onDelete(rowData)}
+        />
+      );
+      },
+    });
+
     const table = $(tableRef.current).DataTable({
       data,
-      columns: [
-        ...columns,
-        {
-          title: "Acciones",
-          data: null,
-          orderable: false,
-          searchable: false,
-          createdCell: (td, _cellData, rowData) => {
-            (td as HTMLElement).innerHTML = "";
-            const root = ReactDOM.createRoot(td as HTMLElement);
-            reactRoots.push(root);
-            root.render(
-              <ActionButtons
-                rowData={rowData}
-                onEdit={() => onEdit(rowData)}
-                onDelete={() => onDelete(rowData)}
-              />
-            );
-          },
-        },
-      ],
+      columns: dynamicColumns,
       columnDefs: [{ targets: "_all", className: "text-center" }],
       order: [[0, "desc"]],
       language: {
-        search: "Buscar:",
-        lengthMenu: "Mostrar _MENU_ registros por página",
-        zeroRecords: "No se encontraron resultados",
-        info: "Mostrando página _PAGE_ de _PAGES_",
-        infoEmpty: "No hay registros disponibles",
-        infoFiltered: "(filtrado de _MAX_ registros totales)",
-        loadingRecords: "Cargando...",
-        processing: "Procesando...",
-        emptyTable: "No hay datos disponibles en la tabla",
-        paginate: {
-          first: "Primero",
-          last: "Último",
-          previous: "Anterior",
-          next: "Siguiente",
-        },
+      search: "Buscar:",
+      lengthMenu: "Mostrar _MENU_ registros por página",
+      zeroRecords: "No se encontraron resultados",
+      info: "Mostrando página _PAGE_ de _PAGES_",
+      infoEmpty: "No hay registros disponibles",
+      infoFiltered: "(filtrado de _MAX_ registros totales)",
+      loadingRecords: "Cargando...",
+      processing: "Procesando...",
+      emptyTable: "No hay datos disponibles en la tabla",
+      paginate: {
+        first: "Primero",
+        last: "Último",
+        previous: "Anterior",
+        next: "Siguiente",
+      },
       },
       destroy: true,
     });

@@ -12,3 +12,4 @@ export * from "./Modals/LoadingModal/ConfirmModal";
 export * from "./Modals/GenericFormModal/GenericFormModal";
 export * from "./Modals/InfoModal/InfoModal";
 export * from "./Tables/DataTable/CoreDataTable";
+export * from "./Tables/NegociosTable/NegociosTable";

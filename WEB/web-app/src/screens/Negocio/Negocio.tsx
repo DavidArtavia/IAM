@@ -1,9 +1,8 @@
-import { ConfirmModal, GenericFormModal } from "@/components";
-import { NegociosTable } from "@/components/Tables/NegociosTable/NegociosTable";
+import { ConfirmModal, GenericFormModal, NegociosTable } from "@/components";
 import { AuthContext } from "@/context";
 import { DTO_Negocio, DTO_Respuesta } from "@/models";
 import { negocioService } from "@/services";
-import { errorHelpers, labelMapNegocio, notificationHelpers, procesarRespuesta } from "@/utils";
+import { errorHelpers, labelMapNegocio, negocioFormFields, notificationHelpers, procesarRespuesta } from "@/utils";
 import { useContext, useEffect, useState } from "react";
 
 export const Negocio = () => {
@@ -17,6 +16,11 @@ export const Negocio = () => {
   const [isModalFormOpen, setIsModalFormOpen] = useState(false);
   const [formData, setFormData] = useState<DTO_Negocio>(new DTO_Negocio());
 
+    // === Modal “Editar” (Genérico) ===
+    const [showBusiness, setShowBusinessModal] = useState(false);
+    const [editData, setEditData] = useState<DTO_Negocio | null>(null);
+    const [rowBusinessSelected, setRowBusinessSelected] = useState<DTO_Negocio | null>(null);
+
   // === Modal de Confirmación ===
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [confirmModalMessage, setconfirmModalMessage] = useState("");
@@ -24,6 +28,7 @@ export const Negocio = () => {
     "cancelAdd" | "delete" | null
   >(null);
 
+  // === Efecto para cargar los negocios al iniciar ===
   useEffect(() => {
     refetchAccounts();
   }, []);
@@ -44,12 +49,7 @@ export const Negocio = () => {
       },
     });
   };
-
-  const handleCancel = () => {
-    setconfirmModalMessage("¿Estás seguro de que deseas cancelar?");
-    setConfirmContext("cancelAdd");
-    setIsConfirmOpen(true);
-  };
+  // ========== “Registrar” ==========
 
   const handleAddNewBusiness = () => {
     setFormData(new DTO_Negocio());
@@ -71,7 +71,42 @@ export const Negocio = () => {
     });
   };
 
-  
+  //
+  const handleCancel = () => {
+    setconfirmModalMessage("¿Estás seguro de que deseas cancelar?");
+    setConfirmContext("cancelAdd");
+    setIsConfirmOpen(true);
+  };
+
+  // ========== “Editar” ==========
+ const handleEdit = (rowData: DTO_Negocio) => {
+    setRowBusinessSelected(rowData);
+    setEditData({ ...rowData });
+    setShowBusinessModal(true);
+  };
+
+ const handleSaveBusiness = (updatedData: DTO_Negocio) => {
+    if (!rowBusinessSelected) return;
+    updatedData.iD_Negocio = rowBusinessSelected.iD_Negocio;
+    updatedData.iD_Usuario = user?.iD_Usuario  || 0;
+
+    // Si no cambiaron el estado, lo dejamos como estaba
+    if (!updatedData.estado && rowBusinessSelected.estado) {
+      updatedData.estado = { ...rowBusinessSelected.estado };
+    }
+
+    negocioService.actualizarNegocio(updatedData).subscribe({
+      next: (result: unknown) => {
+        const mensaje =
+          (result as DTO_Respuesta)?.mensaje ??
+          "Negocio actualizado correctamente";
+        notificationHelpers.successAlert(mensaje);
+        refetchAccounts();
+        setShowBusinessModal(false);
+      },
+      error: (err) => errorHelpers.serverError(err),
+    });
+  };
 
   // ========== “Confirmaciones” ==========
   const confirmModalAcion = (action: boolean | null) => {
@@ -94,13 +129,12 @@ export const Negocio = () => {
         <NegociosTable
           data={business}
           onAdd={handleAddNewBusiness}
-          onEdit={() => {}}
+          onEdit={handleEdit}
           onDelete={() => {}}
           disableButtonAdd={disableButtonAdd}
         />
 
         {/* === Modal Genérico: Registrar Negocios === */}
-
         <GenericFormModal<DTO_Negocio>
           title="Registrar Negocio"
           show={isModalFormOpen}
@@ -108,33 +142,23 @@ export const Negocio = () => {
           data={formData}
           setData={setFormData}
           onSubmit={handleSave}
-          fields={[
-            {
-              key: "nombreNegocio",
-              label: labelMapNegocio.nombreNegocio,
-              type: "text",
-            },
-            {
-              key: "descripcion",
-              label: labelMapNegocio.descripcion,
-              type: "text",
-            },
-            {
-              key: "direccion",
-              label: labelMapNegocio.direccion,
-              type: "text",
-            },
-            {
-              key: "telefonoNegocio",
-              label: labelMapNegocio.telefonoNegocio,
-              type: "text",
-            },
-            {
-              key: "correoNegocio",
-              label: labelMapNegocio.correoNegocio,
-              type: "text",
-            },
-          ]}
+          fields={negocioFormFields}
+        />
+
+        {/* ====== Modal Genérico: Editar Cuenta por Pagar ====== */}
+        <GenericFormModal<DTO_Negocio>
+          title="Editar datos del Negocio"
+          show={showBusiness}
+          onHide={() => setShowBusinessModal(false)}
+          data={editData!}
+          setData={(x) => setEditData(x as DTO_Negocio)}
+          onSubmit={() => {
+            // Llamamos a handleSaveEdit con el objeto editData
+            if (editData) {
+              handleSaveBusiness(editData);
+            }
+          }}
+          fields={negocioFormFields}
         />
 
         {/* === Modal Genérico: Confirmación === */}

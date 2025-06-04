@@ -4,7 +4,7 @@ import { BusinessButtons } from "@/components/Buttons/BusinessButtons";
 
 import { DTO_Negocio, DTO_CuentasPorPagar, DTO_Respuesta } from "@/models";
 import { cuentasService } from "@/services";
-import { errorHelpers, notificationHelpers, procesarRespuesta } from "@/utils";
+import { cuentasFormFields, errorHelpers, notificationHelpers, procesarRespuesta } from "@/utils";
 import { useEffect, useState } from "react";
 
 export const Monitor = () => {
@@ -97,7 +97,7 @@ export const Monitor = () => {
   // ========== “Editar” ==========
   const handleEdit = (rowData: DTO_CuentasPorPagar) => {
     setRowEditSelected(rowData);
-    setEditData({ ...rowData }); // clonamos antes de editar
+    setEditData({ ...rowData }); // Creamos una copia del objeto para evitar mutaciones directas
     setShowEditModal(true);
   };
 
@@ -194,11 +194,7 @@ export const Monitor = () => {
           data={formData}
           setData={setFormData}
           onSubmit={handleSave}
-          fields={[
-            { key: "concepto", label: "Concepto", type: "text" },
-            { key: "descripcion", label: "Descripción", type: "text" },
-            { key: "saldo", label: "Saldo", type: "number" },
-          ]}
+          fields={cuentasFormFields}
         />
 
         {/* === Modal Genérico: Confirmación === */}
@@ -221,11 +217,7 @@ export const Monitor = () => {
               handleSaveEdit(editData);
             }
           }}
-          fields={[
-            { key: "concepto", label: "Concepto", type: "text" },
-            { key: "descripcion", label: "Descripción", type: "text" },
-            { key: "saldo", label: "Saldo", type: "number" },
-          ]}
+          fields={cuentasFormFields}
         />
       </div>
     </>

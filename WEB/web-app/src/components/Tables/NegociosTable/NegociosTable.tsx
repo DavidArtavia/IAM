@@ -19,7 +19,6 @@ export const NegociosTable = ({
   onDelete,
   disableButtonAdd,
 }: DataTableProps) => {
-
   const tableRef = useRef<HTMLTableElement>(null);
 
   const columns = [
@@ -37,21 +36,8 @@ export const NegociosTable = ({
         return fecha ? new Date(fecha).toLocaleDateString() : "";
       },
     },
-    {
-      title: labelMapNegocio.estado,
-      data: null,
-      render: (_data: unknown, _type: unknown, row: DTO_Negocio) => {
-        const isActivo = row.estado?.nombre?.toLowerCase() === "activo";
-        const badgeClass = isActivo
-          ? "badge badge-light-success"
-          : "badge badge-light-primary";
-        return `<span class="${badgeClass}">${
-          row.estado?.nombre || "N/A"
-        }</span>`;
-      },
-    },
   ];
-  
+
   useEffect(() => {
     if (tableRef.current) {
       const table = $(tableRef.current).DataTable({
