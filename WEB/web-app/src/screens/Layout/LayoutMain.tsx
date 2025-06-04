@@ -5,8 +5,8 @@ import { ROUTES } from "@/constants";
 import { Link } from "react-router-dom";
 import "./LayoutMain.css";
 import { useLogout } from "@/hooks/useLogout";
-import { ConfirmModal } from "@/components/Modals/LoadingModal/ConfirmModal";
-import { AuthContext } from "@/context/AuthContext";
+import { ConfirmModal } from "@/components";
+import { AuthContext } from "@/context";
 
 declare global {
   interface Window {

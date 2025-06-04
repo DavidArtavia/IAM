@@ -33,7 +33,7 @@ export const Monitor = () => {
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [confirmModalMessage, setconfirmModalMessage] = useState("");
   const [confirmContext, setConfirmContext] = useState<
-    "cancel" | "delete" | null
+    "cancelAdd" | "delete" | null
   >(null);
   const [accountToDelete, setAccountToDelete] =
     useState<DTO_CuentasPorPagar | null>(null);
@@ -90,7 +90,7 @@ export const Monitor = () => {
 
   const handleCancel = () => {
     setconfirmModalMessage("¿Estás seguro de que deseas cancelar?");
-    setConfirmContext("cancel");
+    setConfirmContext("cancelAdd");
     setIsConfirmOpen(true);
   };
 
@@ -157,7 +157,7 @@ export const Monitor = () => {
   // ========== “Confirmaciones” ==========
   const confirmModalAcion = (action: boolean | null) => {
     if (action) {
-      if (confirmContext === "cancel") {
+      if (confirmContext === "cancelAdd") {
         setIsModalFormOpen(false);
         notificationHelpers.infoAlert("Cambios descartados correctamente");
       } else if (confirmContext === "delete" && accountToDelete) {

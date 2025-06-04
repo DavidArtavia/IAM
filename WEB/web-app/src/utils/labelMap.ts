@@ -23,5 +23,6 @@ export const labelMapNegocio: Record<string, string> = {
     telefonoNegocio: "Teléfono del Negocio",
     correoNegocio: "Correo del Negocio",
     fechaRegistro: "Fecha de Registro",
-    referenciaJSON: "Referencia JSON",
+    "referenciaJSON.Placa": "Placa",
+    "referenciaJSON.Marca": "Marca",
 };

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { ChatSidebar, ChatMessages, ChatInputBar } from "@/components";
-import { chatService } from "@/services"; // ajusta imports según tu estructura
+import { chatService, negocioService } from "@/services"; // ajusta imports según tu estructura
 import { DTO_Negocio, DTO_ChatIA, DTO_Mensaje, DTO_Respuesta } from "@/models";
 import { errorHelpers, procesarRespuesta, processResponse } from "@/utils";
 import { BusinessButtons } from "../Buttons/BusinessButtons";
@@ -20,7 +20,7 @@ export const ChatAi = () => {
 
   // 1) Cargo negocios al montar
   useEffect(() => {
-    chatService.obtenerNegocios().subscribe({
+    negocioService.obtenerNegocios().subscribe({
       next: (result) =>
         setBusinesses(
           processResponse(result as DTO_Respuesta) as Array<DTO_Negocio>

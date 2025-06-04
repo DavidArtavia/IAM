@@ -1,5 +1,5 @@
 import { DTO_Negocio, DTO_Respuesta } from '@/models';
-import { chatService } from '@/services';
+import { negocioService } from '@/services/negocios.service';
 import { errorHelpers, procesarRespuesta } from '@/utils';
 import { useEffect, useState } from 'react'
 
@@ -15,7 +15,7 @@ export const BusinessButtons = ({ title, selectedBusiness, handleSelectBusiness 
     
     // 1) Cargo negocios al montar
     useEffect(() => {
-        chatService.obtenerNegocios().subscribe({
+        negocioService.obtenerNegocios().subscribe({
             next: (result) =>
                 setBusinesses(
                     procesarRespuesta(result as DTO_Respuesta) as Array<DTO_Negocio>

@@ -101,12 +101,37 @@ namespace DAL
                             negocio.TelefonoNegocio = UTL_DBHelper.ReadNullSafeString(reader["TelefonoNegocio"]);
                             negocio.CorreoNegocio = UTL_DBHelper.ReadNullSafeString(reader["CorreoNegocio"]);
                             negocio.FechaRegistro = (DateTime)UTL_DBHelper.ReadNullSafeDateTime(reader["FechaRegistro"]);
-                            negocio.ReferenciaJSON = new List<DTO_Param>();//UTL_DBHelper.ReadNullSafeString(reader["ReferenciaJSON"]);
                             negocio.Estado.ID_Estado = UTL_DBHelper.ReadNullSafeInt(reader["ID_Estado"]);
                             negocio.Estado.Nombre = UTL_DBHelper.ReadNullSafeString(reader["Nombre"]);
 
-                            listaNegocios.Add(negocio);
+                            //  ↓↓↓ Aquí es donde antes hacías new List<DTO_Param>(), 
+                            //     ahora leemos la cadena JSON real de la base y la deserializamos:
+                            string jsonReferencia = UTL_DBHelper.ReadNullSafeString(reader["ReferenciaJSON"]);
+                            if (!string.IsNullOrWhiteSpace(jsonReferencia))
+                            {
+                                try
+                                {
+                                    // Deserializamos a List<DTO_Param>:
+                                    negocio.ReferenciaJSON =
+                                        Newtonsoft.Json.JsonConvert
+                                            .DeserializeObject<List<DTO_Param>>(jsonReferencia)
+                                        ?? new List<DTO_Param>();
+                                }
+                                catch (Exception jsonEx)
+                                {
+                                    // Si falla la deserialización, optar por:
+                                    // - Lanzar excepción
+                                    // - O asignar lista vacía e ignorar el error
+                                    negocio.ReferenciaJSON = new List<DTO_Param>();
+                                }
+                            }
+                            else
+                            {
+                                // Si el campo estuvo vacío o nulo:
+                                negocio.ReferenciaJSON = new List<DTO_Param>();
+                            }
 
+                            listaNegocios.Add(negocio);
                         }
 
                         if (reader.NextResult())

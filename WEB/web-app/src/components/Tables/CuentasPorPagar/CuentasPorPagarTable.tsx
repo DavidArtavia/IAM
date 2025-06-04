@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import ReactDOM from "react-dom/client";
 import $ from "jquery";
 import "datatables.net-bs5";
 import { DTO_CuentasPorPagar } from "@/models";
@@ -21,38 +22,66 @@ export const CuentasPorPagarTable = ({
   disableButtonAdd,
 }: DataTableProps) => {
   const tableRef = useRef<HTMLTableElement>(null);
-
-  const columns = [
-    { title: "ID", data: "iD_CuentasPorPagar" },
-    { title: "Negocio", data: "iD_Negocio" },
-    { title: "Concepto", data: "concepto" },
-    { title: "Descripción", data: "descripcion" },
+  // Use DataTables.ColumnSettings[] for proper typing
+  const columns: DataTables.ColumnSettings[] = [
     {
-      title: "Saldo",
+      title: labelCuentasPorPagar.iD_CuentasPorPagar,
+      data: "iD_CuentasPorPagar",
+    },
+    {
+      title: labelCuentasPorPagar.iD_Negocio,
+      data: "iD_Negocio",
+    },
+    {
+      title: labelCuentasPorPagar.concepto,
+      data: "concepto",
+    },
+    {
+      title: labelCuentasPorPagar.descripcion,
+      data: "descripcion",
+    },
+    {
+      title: labelCuentasPorPagar.saldo,
       data: "saldo",
       render: $.fn.dataTable.render.number(",", ".", 2, "₡"),
     },
     {
-      title: "Fecha Inicial",
+      title: labelCuentasPorPagar.fechaInicial,
       data: "fechaInicial",
       render: (data: string) => new Date(data).toLocaleDateString(),
     },
     {
-      title: "Fecha Modificación",
+      title: labelCuentasPorPagar.fechaModificacion,
       data: "fechaModificacion",
       render: (data: string) => new Date(data).toLocaleDateString(),
     },
     {
-      title: "Estado",
+      title: labelCuentasPorPagar.estado,
       data: null,
-      render: (_data: unknown, _type: unknown, row: DTO_CuentasPorPagar) => {
-        const isActivo = row.estado?.nombre?.toLowerCase() === "activo";
-        const badgeClass = isActivo
-          ? "badge badge-light-success"
-          : "badge badge-light-primary";
-        return `<span class="${badgeClass}">${
-          row.estado?.nombre || "N/A"
-        }</span>`;
+      orderable: false,
+      defaultContent: "<div></div>",
+      createdCell: (
+        cell: Node,
+        _cellData: unknown,
+        rowData: DTO_CuentasPorPagar
+      ) => {
+        // 1) Convertimos "cell" a HTMLTableCellElement
+        const td = cell as HTMLTableCellElement;
+        td.innerHTML = "";
+
+        // 2) Sacamos el nombre del estado (no todo el objeto)
+        const nombreEstado = rowData.estado?.nombre ?? "N/A";
+        // 3) Definimos la clase según el texto de "nombreEstado"
+        const badgeClass =
+          nombreEstado.toLowerCase() === "activo"
+            ? "badge badge-light-success"
+            : nombreEstado.toLowerCase() === "pendiente"
+            ? "badge badge-light-warning"
+            : "badge badge-light-primary";
+
+        // 4) Montamos un <span> con React dentro de ese <td>
+        const root = ReactDOM.createRoot(td);
+        root.render(<span className={badgeClass}>{nombreEstado}</span>);
       },
     },
   ];

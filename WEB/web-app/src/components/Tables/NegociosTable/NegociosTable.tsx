@@ -19,38 +19,26 @@ export const NegociosTable = ({
   onDelete,
   disableButtonAdd,
 }: DataTableProps) => {
-    console.log("NegociosTable data:", data);
-    
+
   const tableRef = useRef<HTMLTableElement>(null);
 
-  // Extrae todas las claves únicas de los objetos dentro de referenciaJSON
-  const referenciaKeys = Array.from(
-    new Set(
-      data.flatMap((row) =>
-        Array.isArray(row.referenciaJSON)
-          ? (row.referenciaJSON as Array<{ Nombre: string }>).map(
-              (item) => item.Nombre
-            )
-          : []
-      )
-    )
-  );
-
   const columns = [
-    { title: "ID Negocio", data: "iD_Negocio" },
-    { title: "ID Usuario", data: "iD_Usuario" },
-    { title: "Negocio", data: "nombreNegocio" },
-    { title: "Descripción", data: "descripcion" },
-    { title: "Dirección", data: "direccion" },
-    { title: "Telefono", data: "telefonoNegocio" },
-    { title: "Correo", data: "correoNegocio" },
+    { title: labelMapNegocio.iD_Negocio, data: "iD_Negocio" },
+    { title: labelMapNegocio.iD_Usuario, data: "iD_Usuario" },
+    { title: labelMapNegocio.nombreNegocio, data: "nombreNegocio" },
+    { title: labelMapNegocio.descripcion, data: "descripcion" },
+    { title: labelMapNegocio.direccion, data: "direccion" },
+    { title: labelMapNegocio.telefonoNegocio, data: "telefonoNegocio" },
+    { title: labelMapNegocio.correoNegocio, data: "correoNegocio" },
     {
-      title: "Fecha Registro",
+      title: labelMapNegocio.fechaRegistro,
       data: "fechaRegistro",
-      render: (data: string) => new Date(data).toLocaleDateString(),
+      render: (fecha: string) => {
+        return fecha ? new Date(fecha).toLocaleDateString() : "";
+      },
     },
     {
-      title: "Estado",
+      title: labelMapNegocio.estado,
       data: null,
       render: (_data: unknown, _type: unknown, row: DTO_Negocio) => {
         const isActivo = row.estado?.nombre?.toLowerCase() === "activo";
@@ -62,18 +50,8 @@ export const NegociosTable = ({
         }</span>`;
       },
     },
-    // Agrega una columna por cada clave encontrada en referenciaJSON
-    ...referenciaKeys.map((key) => ({
-      title: key,
-      data: "referenciaJSON",
-      render: (data: Array<{ Nombre: string; Valor: string }>) => {
-        if (!Array.isArray(data)) return "";
-        const found = data.find((item) => item.Nombre === key);
-        return found ? found.Valor : "";
-      },
-    })),
   ];
-
+  
   useEffect(() => {
     if (tableRef.current) {
       const table = $(tableRef.current).DataTable({
@@ -85,7 +63,7 @@ export const NegociosTable = ({
         table.destroy();
       };
     }
-  }, [data, onEdit, onDelete]);
+  }, [data]);
 
   return (
     <CoreDataTable<DTO_Negocio>
