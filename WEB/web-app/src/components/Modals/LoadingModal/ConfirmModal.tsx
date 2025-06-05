@@ -11,10 +11,10 @@ export const ConfirmModal = ({
 }: ConfirmModalProps) => {
   if (!show) return null;
 
+  
   return (
     <div
-      className="modal fade show"
-      style={{ display: "block", backgroundColor: "rgba(0, 0, 0, 0.20)" }}
+      className="modal fade show d-block shadowBackground"
       onClick={() => onAction(null)} // clic afuera cierra
     >
       <div

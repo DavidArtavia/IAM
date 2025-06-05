@@ -14,6 +14,8 @@ export const API_ENDPOINTS = {
     },
     BUSINESS: {
         GET_BUSINESS: "/Negocio/obtenerNegocios",
+        ADD_BUSINESS: "/Negocio/registrarNegocio",
+        UPDATE_BUSINESS: "/Negocio/actualizarNegocio",
     },
     CHAT: {
         GET_CHATS:     "/ChatIA/obtenerChats",
