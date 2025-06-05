@@ -172,6 +172,7 @@ namespace DAL
 
                     sqlcmd.Parameters.Add("@ID_Negocio", SqlDbType.Int).Value = negocio.ID_Negocio;
                     sqlcmd.Parameters.Add("@ID_Usuario", SqlDbType.Int).Value = negocio.ID_Usuario;
+                    sqlcmd.Parameters.Add("@ID_Estado", SqlDbType.Int).Value = negocio.Estado.ID_Estado;
                     sqlcmd.Parameters.Add("@NombreNegocio", SqlDbType.VarChar).Value = negocio.NombreNegocio;
                     sqlcmd.Parameters.Add("@Descripcion", SqlDbType.NVarChar).Value = negocio.Descripcion;
                     sqlcmd.Parameters.Add("@Direccion", SqlDbType.NVarChar).Value = negocio.Direccion;

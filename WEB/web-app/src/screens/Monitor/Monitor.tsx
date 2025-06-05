@@ -1,37 +1,48 @@
 // src/pages/Monitor.tsx
-import { CuentasPorPagarTable, ConfirmModal, GenericFormModal } from "@/components";
-import { BusinessButtons } from "@/components/Buttons/BusinessButtons";
-
+import React, { useEffect, useState } from "react";
 import { DTO_Negocio, DTO_CuentasPorPagar, DTO_Respuesta } from "@/models";
 import { cuentasService } from "@/services";
-import { cuentasFormFields, errorHelpers, notificationHelpers, procesarRespuesta } from "@/utils";
-import { useEffect, useState } from "react";
+import {
+  errorHelpers,
+  notificationHelpers,
+  procesarRespuesta,
+  labelMapCuentasPorPagar,
+  cuentasFormEditFields,
+  columnKeysCuentasPorPagar,
+} from "@/utils";
+import {
+  BusinessButtons,
+  ConfirmModal,
+  GenericDataTable,
+  GenericFormModal,
+} from "@/components";
+import { STATUS_TBL } from "@/constants";
 
 export const Monitor = () => {
-  // === Estados principales ===
+  // Estado de negocio seleccionado
   const [selectedBusiness, setSelectedBusiness] = useState<DTO_Negocio | null>(
     null
   );
-  const [accountsPayable, setAccountsPayable] = useState<
-    Array<DTO_CuentasPorPagar>
-  >([]);
+  // Arreglo con DTO_CuentasPorPagar
+  const [accountsPayable, setAccountsPayable] = useState<DTO_CuentasPorPagar[]>(
+    []
+  );
   const [disableButtonAdd, setDisableButtonAdd] = useState<boolean>(true);
 
-  // === Modal “Registrar” (Genérico) ===
+  // --------- Modales “Registrar” y “Editar” -----------
   const [isModalFormOpen, setIsModalFormOpen] = useState(false);
   const [formData, setFormData] = useState<DTO_CuentasPorPagar>(
     new DTO_CuentasPorPagar()
   );
 
-  // === Modal “Editar” (Genérico) ===
   const [showEditModal, setShowEditModal] = useState(false);
   const [editData, setEditData] = useState<DTO_CuentasPorPagar | null>(null);
   const [rowEditSelected, setRowEditSelected] =
     useState<DTO_CuentasPorPagar | null>(null);
 
-  // === Modal de Confirmación ===
+  // --------- Modal de Confirmación de Borrar / Cancelar -----------
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
-  const [confirmModalMessage, setconfirmModalMessage] = useState("");
+  const [confirmModalMessage, setConfirmModalMessage] = useState("");
   const [confirmContext, setConfirmContext] = useState<
     "cancelAdd" | "delete" | null
   >(null);
@@ -45,40 +56,36 @@ export const Monitor = () => {
     }
   }, [selectedBusiness]);
 
-  // === Selección de negocio ===
   const handleSelectBusiness = (negocio: DTO_Negocio) => {
     setSelectedBusiness(negocio);
     setDisableButtonAdd(false);
   };
 
-  // === Refetch de Cuentas ===
+  // Refetch de Cuentas por Pagar
   const refetchAccounts = () => {
     if (!selectedBusiness) return;
     cuentasService.obtenerCuentasPorPagar(selectedBusiness).subscribe({
       next: (result) =>
         setAccountsPayable(
-          procesarRespuesta(
+          (procesarRespuesta(
             result as unknown as DTO_Respuesta
-          ) as Array<DTO_CuentasPorPagar>
+          ) as DTO_CuentasPorPagar[]) || []
         ),
       error: (err) => errorHelpers.serverError(err),
     });
   };
 
-  // ========== “Registrar” ==========
+  // ======== “Registrar” ========
   const handleAddNew = () => {
-    // Limpiamos el DTO antes de abrir el modal
     setFormData(new DTO_CuentasPorPagar());
     setIsModalFormOpen(true);
   };
-
   const handleSave = () => {
-    // En este punto ya asumimos que formData está validado correctamente por FormModal
     formData.iD_Negocio = selectedBusiness?.iD_Negocio || 0;
     cuentasService.registrarCuentasPorPagar(formData).subscribe({
       next: (result: unknown) => {
         const mensaje =
-          (result as DTO_Respuesta)?.mensaje ??
+          (result as DTO_Respuesta)?.mensaje ||
           "Cuenta registrada correctamente";
         notificationHelpers.successAlert(mensaje);
         refetchAccounts();
@@ -87,26 +94,23 @@ export const Monitor = () => {
       error: (err) => errorHelpers.serverError(err),
     });
   };
-
-  const handleCancel = () => {
-    setconfirmModalMessage("¿Estás seguro de que deseas cancelar?");
+  const handleCancelAdd = () => {
+    setConfirmModalMessage("¿Estás seguro de que deseas cancelar el registro?");
     setConfirmContext("cancelAdd");
     setIsConfirmOpen(true);
   };
 
-  // ========== “Editar” ==========
+  // ======== “Editar” ========
   const handleEdit = (rowData: DTO_CuentasPorPagar) => {
     setRowEditSelected(rowData);
-    setEditData({ ...rowData }); // Creamos una copia del objeto para evitar mutaciones directas
+    setEditData({ ...rowData }); // Hacemos copia para evitar mutar el original
     setShowEditModal(true);
   };
-
   const handleSaveEdit = (updatedData: DTO_CuentasPorPagar) => {
     if (!rowEditSelected) return;
     updatedData.iD_CuentasPorPagar = rowEditSelected.iD_CuentasPorPagar;
     updatedData.iD_Negocio = selectedBusiness?.iD_Negocio || 0;
-
-    // Si no cambiaron el estado, lo dejamos como estaba
+    // Si no cambió “estado”, lo conservamos
     if (!updatedData.estado && rowEditSelected.estado) {
       updatedData.estado = { ...rowEditSelected.estado };
     }
@@ -114,7 +118,7 @@ export const Monitor = () => {
     cuentasService.actualizarCuentasPorPagar(updatedData).subscribe({
       next: (result: unknown) => {
         const mensaje =
-          (result as DTO_Respuesta)?.mensaje ??
+          (result as DTO_Respuesta)?.mensaje ||
           "Cuenta actualizada correctamente";
         notificationHelpers.successAlert(mensaje);
         refetchAccounts();
@@ -124,27 +128,26 @@ export const Monitor = () => {
     });
   };
 
-  // ========== “Eliminar” ==========
+  // ======== “Eliminar” ========
   const handleDelete = (rowData: DTO_CuentasPorPagar) => {
-    setconfirmModalMessage("¿Estás seguro de que deseas eliminar esta cuenta?");
+    setConfirmModalMessage("¿Estás seguro de que deseas eliminar esta cuenta?");
     setAccountToDelete(rowData);
     setConfirmContext("delete");
     setIsConfirmOpen(true);
   };
-
   const handleConfirmDelete = (action: boolean | null) => {
     if (action && accountToDelete) {
       const updatedData: DTO_CuentasPorPagar = {
         ...accountToDelete,
         estado: {
-          ...accountToDelete.estado,
-          iD_Estado: 7, // ID “Eliminado”
+          ...accountToDelete.estado!,
+          iD_Estado: STATUS_TBL.ACCOUNT_PAYABLE.DELETED,
         },
         iD_Negocio: selectedBusiness?.iD_Negocio || 0,
       };
       cuentasService.actualizarCuentasPorPagar(updatedData).subscribe({
-        next: () => {
-          notificationHelpers.infoAlert("Cuenta eliminada correctamente");
+        next: (result) => {
+          notificationHelpers.infoAlert( result.mensaje ?? "Cuenta eliminada correctamente" );
           refetchAccounts();
         },
         error: (err) => errorHelpers.serverError(err),
@@ -154,13 +157,13 @@ export const Monitor = () => {
     setIsConfirmOpen(false);
   };
 
-  // ========== “Confirmaciones” ==========
-  const confirmModalAcion = (action: boolean | null) => {
+  // ======== Manejo de confirmación de “Cancelar registro” o “Eliminar”  ========
+  const confirmModalAction = (action: boolean | null) => {
     if (action) {
       if (confirmContext === "cancelAdd") {
         setIsModalFormOpen(false);
-        notificationHelpers.infoAlert("Cambios descartados correctamente");
-      } else if (confirmContext === "delete" && accountToDelete) {
+        notificationHelpers.infoAlert("Registro cancelado");
+      } else if (confirmContext === "delete") {
         handleConfirmDelete(true);
       }
     }
@@ -168,43 +171,74 @@ export const Monitor = () => {
     setConfirmContext(null);
   };
 
-  // ========== Render ==========
+  // Si lo deseas, también puedes proveer un renderer específico:
+  const customRenderers: {
+    [K in keyof DTO_CuentasPorPagar]?: (
+      value: unknown,
+      rowData: DTO_CuentasPorPagar
+    ) => string | number | React.ReactNode;
+  } = {
+    saldo: (val: unknown) => {
+      // formateo de números en colones
+      return new Intl.NumberFormat("es-CR", {
+        style: "currency",
+        currency: "CRC",
+        minimumFractionDigits: 2,
+      }).format(Number(val) || 0);
+    },
+    fechaInicial: (val: unknown) => {
+      if (!val) return "";
+      return new Date(String(val)).toLocaleDateString();
+    },
+    fechaModificacion: (val: unknown) => {
+      if (!val) return "";
+      return new Date(String(val)).toLocaleDateString();
+    },
+  };
+
   return (
     <>
       <div className="row p-4 col-12 gx-0">
+        {/* Selección de negocio */}
         <BusinessButtons
           handleSelectBusiness={handleSelectBusiness}
           title="Negocios"
           selectedBusiness={selectedBusiness}
         />
 
-        <CuentasPorPagarTable
+        {/* Tabla GENÉRICA */}
+        <GenericDataTable<DTO_CuentasPorPagar>
+          title="Cuentas por Pagar"
+          columnKeys={columnKeysCuentasPorPagar}
+          labelMap={labelMapCuentasPorPagar}
           data={accountsPayable}
           onAdd={handleAddNew}
           onEdit={handleEdit}
           onDelete={handleDelete}
           disableButtonAdd={disableButtonAdd}
+          includeEstadoColumn={true} // añade automáticamente la columna “Estado”
+          customRenderers={customRenderers}
         />
 
-        {/* === Modal Genérico: Registrar CuentasPorPagar === */}
+        {/* Modal “Registrar” */}
         <GenericFormModal<DTO_CuentasPorPagar>
           title="Registrar Cuenta por Pagar"
           show={isModalFormOpen}
-          onHide={handleCancel}
+          onHide={handleCancelAdd}
           data={formData}
           setData={setFormData}
           onSubmit={handleSave}
-          fields={cuentasFormFields}
+          fields={cuentasFormEditFields}
         />
 
-        {/* === Modal Genérico: Confirmación === */}
+        {/* Modal “Confirmación” */}
         <ConfirmModal
           show={isConfirmOpen}
           confirmMessage={confirmModalMessage}
-          onAction={(action) => confirmModalAcion(action)}
+          onAction={confirmModalAction}
         />
 
-        {/* ====== Modal Genérico: Editar Cuenta por Pagar ====== */}
+        {/* Modal “Editar” */}
         <GenericFormModal<DTO_CuentasPorPagar>
           title="Editar Cuenta por Pagar"
           show={showEditModal}
@@ -212,12 +246,11 @@ export const Monitor = () => {
           data={editData!}
           setData={(x) => setEditData(x as DTO_CuentasPorPagar)}
           onSubmit={() => {
-            // Llamamos a handleSaveEdit con el objeto editData
             if (editData) {
               handleSaveEdit(editData);
             }
           }}
-          fields={cuentasFormFields}
+          fields={cuentasFormEditFields}
         />
       </div>
     </>

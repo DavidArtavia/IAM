@@ -64,7 +64,7 @@ export const GenericFormModal = <T,>({
     setErrors(emptyErrors);
     setTouched(emptyTouched);
     setLocalDisplay(initialDisplay);
-  }, [show, data, fields]);
+  }, [ fields]);
 
   // ------------------------------------------------------------
   // runValidator: recibe una key y su valor “value” y devuelve mensaje de error.

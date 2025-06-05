@@ -1,7 +1,32 @@
 import { FieldConfig } from "@/components/Modals/GenericFormModal/types";
 import { DTO_CuentasPorPagar, DTO_Negocio } from "@/models";
 
-export const labelCuentasPorPagar: Record<string, string> = {
+//  Define configuraciones de campos de formulario (FieldConfig) para construir formularios dinámicos relacionados con estos modelos.
+// Los label maps permiten mostrar nombres amigables en la UI, y los arreglos de campos de formulario se usan para generar formularios de manera flexible.
+export const columnKeysCuentasPorPagar: (keyof DTO_CuentasPorPagar)[] = [
+    "iD_CuentasPorPagar",
+    "iD_Negocio",
+    "concepto",
+    "descripcion",
+    "saldo",
+    "fechaInicial",
+    "fechaModificacion",
+];
+export const columnKeysNegocio: (keyof DTO_Negocio)[] = [
+    "iD_Negocio",
+    "iD_Usuario",
+    "nombreNegocio",
+    "descripcion",
+    "direccion",
+    "telefonoNegocio",
+    "correoNegocio",
+    "fechaRegistro",
+    // "referenciaJSON.Placa",
+    // "referenciaJSON.Marca",
+];
+
+// Este archivo define mapas de etiquetas (label maps) para mostrar nombres legibles en los titulos del DataTable de los modelos.
+export const labelMapCuentasPorPagar: Record<string, string> = {
     iD_CuentasPorPagar: "Cuenta por Pagar #",
     iD_Negocio: "Negocio #",
     concepto: "Concepto",
@@ -25,55 +50,23 @@ export const labelMapNegocio: Record<string, string> = {
     telefonoNegocio: "Teléfono del Negocio",
     correoNegocio: "Correo del Negocio",
     fechaRegistro: "Fecha de Registro",
-    "referenciaJSON.Placa": "Placa",
-    "referenciaJSON.Marca": "Marca",
+    referenciaJSON: "Referencias",
+    //    "referenciaJSON.Valor": "Valor",
 };
-export const negocioFormFields: Array<FieldConfig<DTO_Negocio>> = [
-    {
-        key: "nombreNegocio",
-        label: labelMapNegocio.nombreNegocio,
-        type: "text",
-    },
-    {
-        key: "descripcion",
-        label: labelMapNegocio.descripcion,
-        type: "text",
-    },
-    {
-        key: "direccion",
-        label: labelMapNegocio.direccion,
-        type: "text",
-    },
-    {
-        key: "telefonoNegocio",
-        label: labelMapNegocio.telefonoNegocio,
-        type: "text",
-    },
-    {
-        // este campo es opcional, puede que no se le permta al usuario cambiarlo 
-        key: "correoNegocio",
-        label: labelMapNegocio.correoNegocio,
-        type: "text",
-    },
-];
-export const cuentasFormFields: Array<FieldConfig<DTO_CuentasPorPagar>> = [
 
-    {
-        key: "concepto",
-        label: labelCuentasPorPagar.concepto,
-        type: "text"
-    },
+// Exportación de los campos del formulario editar para los modelos
+export const negocioFormEditFields: Array<FieldConfig<DTO_Negocio>> = columnKeysNegocio
+    .filter(key => key !== "iD_Negocio" && key !== "iD_Usuario" && key !== "fechaRegistro") // Excluye campos que no se editan
+    .map(key => ({
+        key,
+        label: labelMapNegocio[key] ?? key,
+        type: "text",
+    }));
 
-    { 
-        key: "descripcion",
-        label: labelCuentasPorPagar.descripcion,
-        type: "text"
-    },
-
-    { 
-        key: "saldo",
-        label: labelCuentasPorPagar.saldo,
-        type: "number"
-    },
-
-];
+export const cuentasFormEditFields: Array<FieldConfig<DTO_CuentasPorPagar>> = columnKeysCuentasPorPagar
+    .filter(key => key !== "iD_CuentasPorPagar" && key !== "iD_Negocio" && key !== "fechaInicial" && key !== "fechaModificacion") // Excluye campos que no se editan
+    .map(key => ({
+        key,
+        label: labelMapCuentasPorPagar[key] ?? key,
+        type: key === "saldo" ? "number" : "text",
+    }));

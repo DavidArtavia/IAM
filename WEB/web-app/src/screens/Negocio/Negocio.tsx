@@ -1,8 +1,16 @@
-import { ConfirmModal, GenericFormModal, NegociosTable } from "@/components";
+import { ConfirmModal, GenericDataTable, GenericFormModal } from "@/components";
+import { STATUS_TBL } from "@/constants";
 import { AuthContext } from "@/context";
 import { DTO_Negocio, DTO_Respuesta } from "@/models";
 import { negocioService } from "@/services";
-import { errorHelpers, labelMapNegocio, negocioFormFields, notificationHelpers, procesarRespuesta } from "@/utils";
+import {
+  columnKeysNegocio,
+  errorHelpers,
+  labelMapNegocio,
+  negocioFormEditFields,
+  notificationHelpers,
+  procesarRespuesta,
+} from "@/utils";
 import { useContext, useEffect, useState } from "react";
 
 export const Negocio = () => {
@@ -16,17 +24,22 @@ export const Negocio = () => {
   const [isModalFormOpen, setIsModalFormOpen] = useState(false);
   const [formData, setFormData] = useState<DTO_Negocio>(new DTO_Negocio());
 
-    // === Modal “Editar” (Genérico) ===
-    const [showBusiness, setShowBusinessModal] = useState(false);
-    const [editData, setEditData] = useState<DTO_Negocio | null>(null);
-    const [rowBusinessSelected, setRowBusinessSelected] = useState<DTO_Negocio | null>(null);
+  // === Modal “Editar” (Genérico) ===
+  const [showBusiness, setShowBusinessModal] = useState(false);
+  const [editData, setEditData] = useState<DTO_Negocio | null>(null);
+  const [rowBusinessSelected, setRowBusinessSelected] =
+    useState<DTO_Negocio | null>(null);
 
-  // === Modal de Confirmación ===
+  // --------- Modal de Confirmación de Borrar / Cancelar -----------
+
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
-  const [confirmModalMessage, setconfirmModalMessage] = useState("");
+  const [confirmModalMessage, setConfirmModalMessage] = useState("");
   const [confirmContext, setConfirmContext] = useState<
     "cancelAdd" | "delete" | null
   >(null);
+  const [businessToDelete, setBusinessToDelete] = useState<DTO_Negocio | null>(
+    null
+  );
 
   // === Efecto para cargar los negocios al iniciar ===
   useEffect(() => {
@@ -44,7 +57,7 @@ export const Negocio = () => {
       error: (err) => errorHelpers.serverError(err),
       complete: () => {
         if (business.length <= 3) {
-          // setDisableButtonAdd(true);
+          setDisableButtonAdd(true);
         }
       },
     });
@@ -73,22 +86,22 @@ export const Negocio = () => {
 
   //
   const handleCancel = () => {
-    setconfirmModalMessage("¿Estás seguro de que deseas cancelar?");
+    setConfirmModalMessage("¿Estás seguro de que deseas cancelar?");
     setConfirmContext("cancelAdd");
     setIsConfirmOpen(true);
   };
 
   // ========== “Editar” ==========
- const handleEdit = (rowData: DTO_Negocio) => {
+  const handleEdit = (rowData: DTO_Negocio) => {
     setRowBusinessSelected(rowData);
     setEditData({ ...rowData });
     setShowBusinessModal(true);
   };
 
- const handleSaveBusiness = (updatedData: DTO_Negocio) => {
+  const handleSaveBusiness = (updatedData: DTO_Negocio) => {
     if (!rowBusinessSelected) return;
     updatedData.iD_Negocio = rowBusinessSelected.iD_Negocio;
-    updatedData.iD_Usuario = user?.iD_Usuario  || 0;
+    updatedData.iD_Usuario = user?.iD_Usuario || 0;
 
     // Si no cambiaron el estado, lo dejamos como estaba
     if (!updatedData.estado && rowBusinessSelected.estado) {
@@ -108,30 +121,79 @@ export const Negocio = () => {
     });
   };
 
-  // ========== “Confirmaciones” ==========
+  // ======== “Eliminar” ========
+  const handleDelete = (rowData: DTO_Negocio) => {
+    setConfirmModalMessage(
+      `¿Estás seguro de que deseas eliminar el negocio ${rowData.nombreNegocio} ?`
+    );
+    setBusinessToDelete(rowData);
+    setConfirmContext("delete");
+    setIsConfirmOpen(true);
+  };
+  const handleConfirmDelete = (action: boolean | null) => {
+    if (action && businessToDelete) {
+      const updatedData: DTO_Negocio = {
+        ...businessToDelete,
+        estado: {
+          ...businessToDelete.estado!,
+          iD_Estado: STATUS_TBL.BUSINESS.DELETED, // Marcamos como eliminado
+        },
+      };
+      negocioService.actualizarNegocio(updatedData).subscribe({
+        next: (result) => {
+          notificationHelpers.infoAlert( result?.mensaje );
+          refetchAccounts();
+        },
+        error: (err) => errorHelpers.serverError(err),
+      });
+      setBusinessToDelete(null);
+    }
+    setIsConfirmOpen(false);
+  };
+
+  // ======== Manejo de confirmación de “Cancelar registro” o “Eliminar”  ========
+
   const confirmModalAcion = (action: boolean | null) => {
     if (action) {
       if (confirmContext === "cancelAdd") {
         setIsModalFormOpen(false);
         notificationHelpers.infoAlert("Cambios descartados correctamente");
+      } else if (confirmContext === "delete") {
+        handleConfirmDelete(true);
       }
-      // else if (confirmContext === "delete" && accountToDelete) {
-      //   handleConfirmDelete(true);
-      // }
     }
     setIsConfirmOpen(false);
     setConfirmContext(null);
   };
 
+  // ========== Renderizado de columnas personalizadas ==========
+  const customRenderers: {
+    [K in keyof DTO_Negocio]?: (
+      value: unknown,
+      rowData: DTO_Negocio
+    ) => string | number | React.ReactNode;
+  } = {
+    fechaRegistro: (val: unknown) => {
+      if (!val) return "";
+      return new Date(String(val)).toLocaleDateString();
+    },
+  };
+
   return (
     <>
       <div className="row p-4 col-12 gx-0">
-        <NegociosTable
+        {/* Tabla GENÉRICA */}
+        <GenericDataTable<DTO_Negocio>
+          title="Negocios"
+          columnKeys={columnKeysNegocio}
+          labelMap={labelMapNegocio}
           data={business}
           onAdd={handleAddNewBusiness}
           onEdit={handleEdit}
-          onDelete={() => {}}
+          onDelete={handleDelete}
           disableButtonAdd={disableButtonAdd}
+          includeEstadoColumn={true} // añade automáticamente la columna “Estado”
+          customRenderers={customRenderers}
         />
 
         {/* === Modal Genérico: Registrar Negocios === */}
@@ -142,7 +204,7 @@ export const Negocio = () => {
           data={formData}
           setData={setFormData}
           onSubmit={handleSave}
-          fields={negocioFormFields}
+          fields={negocioFormEditFields}
         />
 
         {/* ====== Modal Genérico: Editar Cuenta por Pagar ====== */}
@@ -158,7 +220,7 @@ export const Negocio = () => {
               handleSaveBusiness(editData);
             }
           }}
-          fields={negocioFormFields}
+          fields={negocioFormEditFields}
         />
 
         {/* === Modal Genérico: Confirmación === */}
@@ -167,34 +229,7 @@ export const Negocio = () => {
           confirmMessage={confirmModalMessage}
           onAction={(action) => confirmModalAcion(action)}
         />
-
-        <div>
-          {/* {business.map((negocio, idx) =>
-          negocio.referenciaJSON && negocio.referenciaJSON.length > 0 ? (
-            <div key={idx} style={{ marginTop: 24 }}>
-            <h5>Referencia JSON - Negocio {negocio.nombreNegocio || idx + 1}</h5>
-            {negocio.referenciaJSON.map((ref, refIdx) => (
-              <pre
-              key={refIdx}
-              style={{
-                background: "#f6f8fa",
-                borderRadius: 8,
-                padding: 16,
-                fontSize: 14,
-                color: "#24292f",
-                maxHeight: 300,
-                overflow: "auto",
-                }}
-                >
-                {JSON.stringify(ref, null, 2)}
-                </pre>
-                ))}
-                </div>
-                ) : null
-                )} */}
-        </div>
       </div>
     </>
   );
 };
-

@@ -17,25 +17,97 @@ export const InfoModal = ({
 }: InfoModalProps) => {
   if (!show) return null;
 
+  /**
+   * Esta función recibe un value que puede ser:
+   * - Un objeto simple (p.ej. { iD_Estado: 4, nombre: "Activo", tabla: "" })
+   * - Un arreglo de objetos (p.ej. referenciaJSON: [ { nombre, valor }, ... ] )
+   * - Un tipo primitivo (string, number, boolean)
+   *
+   * Primero detectamos si es un Array (de cualquier tipo).
+   *   - Si es un array y cada elemento tiene "nombre" y "valor", lo pintamos como lista.
+   *   - Si es un array de otro tipo, lo convertimos a JSON.stringify o lo listamos genéricamente.
+   *
+   * Luego, si es un objeto normal con clave "nombre", pintamos solo el nombre.
+   * Si es un objeto genérico, recorremos keys:values.
+   * Finalmente, si no es objeto (p.ej. un string/number), lo mostramos crudo.
+   */
   const renderValue = (value: unknown): React.ReactNode => {
-    if (typeof value === "object" && value !== null) {
-      if ("nombre" in value) {
-        // Si el objeto tiene la propiedad 'nombre', solo mostrarla
-        // @ts-expect-error: sabemos que puede tener 'nombre'
-        return <span>{value.nombre}</span>;
+    // 1) Si es un array
+    if (Array.isArray(value)) {
+      // Revisamos si el array está vacío o su primer elemento es un objeto con { nombre, valor }
+      if (value.length === 0) {
+        return <span className="text-muted">[Sin datos]</span>;
       }
-      // Si es un objeto, mostrar sus propiedades clave:valor
+      // Si todos los elementos tienen { nombre, valor }
+      const todosConNombreValor = (value as undefined[]).every(
+        (item) =>
+          typeof item === "object" &&
+          item !== null &&
+          "nombre" in item &&
+          "valor" in item
+      );
+
+      if (todosConNombreValor) {
+        return (
+          <div className="d-flex flex-column">
+            {(value as Array<{ nombre: string; valor: string }>).map(
+              (refObj, idx) => (
+                <div key={idx} className="d-flex justify-content-between mb-1">
+                  <strong>{refObj.nombre}:</strong> {refObj.valor || "(vacío)"}
+                </div>
+              )
+            )}
+          </div>
+        );
+      }
+
+      // Si es un array de otro tipo (p.ej. strings, números u objetos mixtos),
+      // lo convertimos a un JSON formateado para legibilidad:
       return (
-        <span>
-          {Object.entries(value).map(([key, val], idx, arr) => (
-            <span key={key}>
-              <strong>{labelMap[key] ?? key}:</strong> {String(val)}
-              {idx < arr.length - 1 ? ", " : ""}
-            </span>
-          ))}
-        </span>
+        <pre
+          style={{
+            background: "#f6f8fa",
+            borderRadius: 8,
+            padding: 8,
+            fontSize: 14,
+            color: "#24292f",
+            maxHeight: 200,
+            overflow: "auto",
+          }}
+        >
+          {JSON.stringify(value, null, 2)}
+        </pre>
       );
     }
+
+    // 2) Si es un objeto simple (no array)
+    if (typeof value === "object" && value !== null) {
+      // Si dentro del objeto hay la clave 'nombre', simplemente mostramos ese nombre
+      if ("nombre" in (value as Record<string, unknown>)) {
+        return (
+          <span className="badge badge-light-success">
+            {(value as { nombre: string }).nombre}
+          </span>
+        );
+      }
+      // Si es otro objeto genérico, recorremos pares clave:valor
+      return (
+        <div>
+          {Object.entries(value as Record<string, unknown>).map(
+            ([key, val]) => (
+              <div key={key} className="d-flex justify-content-between mb-1">
+                <strong>{labelMap[key] ?? key}:</strong>{" "}
+                {typeof val === "object" && val !== null
+                  ? JSON.stringify(val) // si el valor es otro objeto, lo stringify‐amos
+                  : String(val)}
+              </div>
+            )
+          )}
+        </div>
+      );
+    }
+
+    // 3) Cualquier otro caso: string, number, boolean, null, undefined
     return <span>{String(value)}</span>;
   };
 
@@ -64,6 +136,7 @@ export const InfoModal = ({
                   key={key}
                   className="d-flex flex-stack py-5 border-bottom border-gray-300 border-bottom-dashed"
                 >
+                  {/* Columna izquierda: etiqueta / label */}
                   <div className="d-flex align-items-center">
                     <div className="ms-6">
                       <a
@@ -77,6 +150,8 @@ export const InfoModal = ({
                       </a>
                     </div>
                   </div>
+
+                  {/* Columna derecha: valor (o renderValue) */}
                   <div className="d-flex align-items-center">
                     <div className="ms-6">{renderValue(val)}</div>
                   </div>
