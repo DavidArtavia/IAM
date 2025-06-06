@@ -297,11 +297,6 @@ namespace BLL
                     //logear
                 }
             }
-            Azure.AI.Inference.
-           // ChatMessageAudioContentItem audioContentItem = new ChatMessageAudioContentItem(new Uri("https://example.com/audio.mp3"));
-
-            //guardamos el mensaje en DB
-            bLL_Mensaje.guardarMensaje(mensaje);
 
 
             //guardamos la respuesta serializada
