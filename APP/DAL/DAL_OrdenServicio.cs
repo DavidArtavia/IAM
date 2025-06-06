@@ -48,6 +48,7 @@ namespace DAL
                         while (reader.Read())
                         {
                             ordenServicio.ID_OrdenServicio = UTL_DBHelper.ReadNullSafeInt(reader["ID_OrdenServicio"]);
+                            ordenServicio.Estado.ID_Estado = UTL_DBHelper.ReadNullSafeInt(reader["ID_Estado"]);
                         }
 
                         if (reader.NextResult())
@@ -106,6 +107,11 @@ namespace DAL
                         {
                             respuesta = manejarRespuesta(reader);
                         }
+                    }
+
+                    if (respuesta.TipoRespuesta)
+                    {
+                        respuesta.Resultado.Add(ordenServicio);
                     }
                     return respuesta;
                 }

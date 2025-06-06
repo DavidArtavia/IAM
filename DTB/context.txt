@@ -37,11 +37,16 @@ INSERT INTO [SECU].[TBL_CONTEXTO] ([Nombre],[Tipo],[Prompt]) VALUES
  
 /* 7 ─ Esquema Estado */
 (N'contexto',N'system',
- N'Schema DTO_Estado → Nombre, ID_Estado, Tabla'),
+ N'Schema DTO_Estado → Nombre, ID_Estado*, Tabla'),
 
 /* 8 ─ Esquema ORDEN_SERVICIO (ReferenciaJSON detallado) */
-(N'contexto',N'system',
- N'Schema ORDEN_SERVICIO → ID_Cliente*, ID_Negocio*(DATOS DE CONTEXTO INICIAL), Estado*[DTO_Estado], FechaOrdenServicio*(sys), FechaEstimadaEntrega*, FechaInicio, FechaFinal, FechaEntrega, ReferenciaJSON(array DTO_Param), NotaOrdenServicio.\nReferenciaJSON debe enviarse como array JSON de objetos {\"Nombre\":\"…\",\"Valor\":\"…\"}
+(N'contexto', N'system',
+ N'Schema ORDEN_SERVICIO → ' +
+ N'ID_Cliente*, ID_Negocio*(dato de contexto inicial), ' +
+ N'Estado* (DTO_Estado; debe incluirse SIEMPRE, al menos como {"ID_Estado":0,"Nombre":"","Tabla":""}), ' +
+ N'FechaOrdenServicio*(sys), FechaEstimadaEntrega*, FechaInicio, FechaFinal, FechaEntrega, ' +
+ N'ReferenciaJSON(array DTO_Param), NotaOrdenServicio. ' +
+ N'ReferenciaJSON se envía como array JSON [{"Nombre":"…","Valor":"…"}].'),
 
 /* 9 ─ Reglas generales de flujo y validación */
 (N'contexto',N'system',
@@ -64,5 +69,35 @@ INSERT INTO [SECU].[TBL_CONTEXTO] ([Nombre],[Tipo],[Prompt]) VALUES
 
 /*13 ─ Manejo de error backend */
 (N'contexto',N'system',
- N'Si Contenido.TipoRespuesta=false, IAM responde a USUARIO con Mensaje (HTML) y Parametros=[].');
+ N'Si Contenido.TipoRespuesta=false, IAM responde a USUARIO con Mensaje (HTML) y Parametros=[].'),
+ 
+ /*14 ─ Insertar la regla actual ─ */
+ (N'contexto',N'system',
+ N'Extracción automática de parámetros: si el primer mensaje del USUARIO ya contiene datos suficientes (ej.: \"Quiero agregar una orden de servicio para Juan Pérez con un Toyota Corolla placa QWE789, cambio de aceite, entrega en 2 días\"), IAM debe:\n • Identificar y rellenar Parametros con cada dato detectado conforme a los esquemas.\n • Preguntar solo por los campos obligatorios que falten (ej. ID_Estado, ID_Negocio) o por confirmaciones necesarias (cliente existente / nuevo).\n • Después de completar los obligatorios y resumir la información, pedir confirmación final antes de enviar la acción correspondiente al BAKEND.'),
+ 
+ /* ─ Inserta la nueva regla ─ */
+ (N'contexto', N'system',
+ N'Actualizar orden recién creada: si la última acción fue guardarOrdenServicio (respuesta exitosa del BAKEND con ID_OrdenServicio) y el USUARIO solicita inmediatamente “actualizar esa orden” o usa referencias como “esa misma orden”, “la orden #<ID>”, IAM debe:\n' +
+ N'• Reutilizar los Parametros del flujo actual (incluido ID_OrdenServicio) y SOLO modificar los campos mencionados por el usuario (p. ej. nueva FechaEstimadaEntrega).\n' +
+ N'• Enviar directamente la acción \"actualizarOrdenServicio\" al BAKEND con los Parametros actualizados.\n' +
+ N'• NO ejecutar buscarOrdenServicio de nuevo, a menos que el usuario no especifique cuál orden o se refiera claramente a una diferente.\n' +
+ N'• Si hay ambigüedad (el usuario no confirma si es la orden recién creada), IAM debe preguntar: «¿Deseas actualizar la orden #<ID reciente> o buscar otra orden?»'),
+
+(N'contexto', N'system',
+ N'Estado siempre debe enviarse como objeto DTO_Estado: ' +
+ N'{"ID_Estado":<int>,"Nombre":"","Tabla":""} . ' +
+ N'NUNCA envíes solo el número ID_Estado. ' +
+ N'Esto aplica tanto en guardarOrdenServicio como en actualizarOrdenServicio; ' +
+ N'los campos no modificados deben preservarse y reenviarse tal cual, incluyendo Estado con su estructura completa.'),
+ 
+
+(N'contexto', N'system',
+ N'Finalización de acción backend: cuando IAM recibe de BAKEND ' +
+ N'`{"TipoRespuesta":true,…}` para cualquier acción, debe:\n' +
+ N'• Enviar exactamente **un** mensaje IAM→USUARIO resumiendo el resultado.\n' +
+ N'• Restablecer Parametros=[] y considerar completada la intención.\n' +
+ N'• No iniciar NINGUNA nueva acción IAM→BAKEND hasta que llegue un nuevo mensaje del USUARIO.\n' +
+ N'• Si no hay modificaciones pendientes, espera la respuesta del usuario; no repitas la misma acción con los mismos parámetros.');
+GO
+
 GO
