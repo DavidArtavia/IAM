@@ -38,7 +38,7 @@ GO
 
 CREATE TABLE UTIL.TBL_ESTADOS
 (
-	ID_Estado INT IDENTITY(1,1) NOT NULL, --PK
+	ID_Estado INT NOT NULL, --PK
 	Nombre VARCHAR(50) NOT NULL,
 	Tabla VARCHAR(50) NOT NULL --Nombre de la tabla a la que pertenecen stos estados
 )

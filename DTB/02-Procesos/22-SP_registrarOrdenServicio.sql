@@ -26,7 +26,6 @@ GO -- =============================================
     -- =============================================
     ALTER PROCEDURE [CORE].[SP_registrarOrdenServicio] @ID_Cliente INT,
     @ID_Negocio INT,
-    @ID_Estado INT,
     @FechaEstimadaEntrega DATETIME = NULL,
     @FechaInicio DATETIME = NULL,
     -- Acepta NULL
@@ -63,7 +62,7 @@ OUTPUT
 VALUES (
         @ID_Cliente,
         @ID_Negocio,
-        @ID_Estado, -- PUEDE SER 6 (Activo) por defecto
+        6, -- PUEDE SER 6 (Activo) por defecto
         GETDATE(),
         @FechaEstimadaEntrega,
         @FechaInicio, -- puede ser NULL
