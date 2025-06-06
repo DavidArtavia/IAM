@@ -334,7 +334,7 @@ export const LayoutMain = () => {
                 rel="noreferrer"
                 className="text-gray-800 text-hover-primary"
               >
-                Desarrollado por
+                Desarrollado por DAV
               </a>
             </div>
           </div>
