@@ -262,8 +262,8 @@ export function GenericDataTable<T,>({
           </div>
           <div className="card-body table-responsive">
             <table
+              className="table table-responsive table-hover align-middle text-center"
               ref={tableRef}
-              className="table table-striped table-hover align-middle text-center"
             />
           </div>
         </div>

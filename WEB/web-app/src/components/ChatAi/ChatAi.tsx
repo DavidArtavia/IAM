@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 import { ChatSidebar, ChatMessages, ChatInputBar } from "@/components";
 import { chatService, negocioService } from "@/services"; // ajusta imports según tu estructura
-import { DTO_Negocio, DTO_ChatIA, DTO_Mensaje, DTO_Respuesta } from "@/models";
+import { DTO_Negocio, DTO_ChatIA, DTO_Mensaje, DTO_Respuesta, DTO_FiltroEstado } from "@/models";
 import { errorHelpers, procesarRespuesta, processResponse } from "@/utils";
 import { BusinessButtons } from "../Buttons/BusinessButtons";
+import { FILTER_STATUS } from "@/constants";
 
 export const ChatAi = () => {
   const [businesses, setBusinesses] = useState<Array<DTO_Negocio>>(
@@ -18,9 +19,13 @@ export const ChatAi = () => {
   );
   const [selectedChat, setChat] = useState<DTO_ChatIA | null>(null);
 
+  const [filterStatus] = useState<DTO_FiltroEstado>({
+    filtroEstado: FILTER_STATUS.ACTIVO,
+  });
+
   // 1) Cargo negocios al montar
   useEffect(() => {
-    negocioService.obtenerNegocios().subscribe({
+    negocioService.obtenerNegocios(filterStatus).subscribe({
       next: (result) =>
         setBusinesses(
           processResponse(result as DTO_Respuesta) as Array<DTO_Negocio>

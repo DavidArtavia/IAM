@@ -2,6 +2,8 @@ import { createRoot } from 'react-dom/client';
 import './styles.css';
 import { App } from '@/App';
 import 'datatables.net-bs5/css/dataTables.bootstrap5.min.css';
+import "@/assets/plugins/global/plugins.bundle.css";
+import "@/assets/css/style.bundle.css";
 import $ from 'jquery';
 import { StrictMode } from 'react';
 

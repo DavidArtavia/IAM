@@ -41,13 +41,13 @@ namespace API.Controllers
         [Produces("application/json")]
         [Route("obtenerNegocios")]
         [HttpPost]
-        public DTO_Respuesta obtenerNegocios()
+        public DTO_Respuesta obtenerNegocios([FromBody] DTO_FiltroEstado filtro)
         {
             try
             {
                 DTO_Usuario usuario = new();
                 usuario.ID_Usuario = Convert.ToInt32(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
-                respuesta = bLL_Negocio.obtenerNegocios(usuario);
+                respuesta = bLL_Negocio.obtenerNegocios(usuario, filtro);
             }
             catch (Exception ex)
             {

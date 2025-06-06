@@ -55,16 +55,7 @@ export const LayoutMain = () => {
     setIsConfirmOpen(true);
   };
 
-  // const cerrarconfirmModal = () => {
-  //   setconfirmModalType("");
-  //   setconfirmModalMessage("");
-  //   //@ts-expect-error - aqui se abre el modal
-  //   const myModal = new bootstrap.Modal(
-  //     document.getElementById("confirmModal"),
-  //     { keyboard: false }
-  //   );
-  //   myModal.hide();
-  // };
+
 
   const confirmModalAcion = (action: boolean | null) => {
     setIsConfirmOpen(false);
@@ -343,7 +334,7 @@ export const LayoutMain = () => {
                 rel="noreferrer"
                 className="text-gray-800 text-hover-primary"
               >
-                Desarrollado por
+                Desarrollado por DAV
               </a>
             </div>
           </div>
