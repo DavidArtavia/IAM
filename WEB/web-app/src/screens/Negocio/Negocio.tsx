@@ -1,7 +1,7 @@
 import { ConfirmModal, GenericDataTable, GenericFormModal } from "@/components";
-import { STATUS_TBL } from "@/constants";
+import { FILTER_STATUS, STATUS_TBL } from "@/constants";
 import { AuthContext } from "@/context";
-import { DTO_Negocio, DTO_Respuesta } from "@/models";
+import { DTO_Negocio, DTO_Respuesta, DTO_FiltroEstado } from "@/models";
 import { negocioService } from "@/services";
 import {
   columnKeysNegocio,
@@ -19,6 +19,10 @@ export const Negocio = () => {
   // === Estados principales ===
   const [business, setBusiness] = useState<Array<DTO_Negocio>>([]);
   const [disableButtonAdd, setDisableButtonAdd] = useState<boolean>(false);
+  // Estado para el filtro de estado, inicia en "ACTIVO"
+  const [filtroEstado, setFiltroEstado] = useState<DTO_FiltroEstado>({
+    filtroEstado: FILTER_STATUS.ACTIVO,
+  });
 
   // === Modal “Registrar” (Genérico) ===
   const [isModalFormOpen, setIsModalFormOpen] = useState(false);
@@ -44,11 +48,12 @@ export const Negocio = () => {
   // === Efecto para cargar los negocios al iniciar ===
   useEffect(() => {
     refetchAccounts();
-  }, []);
+  }, [filtroEstado]);
 
-  // === Refetch de Negocios ===
+  // === Refetch O obtener Negocios ===
   const refetchAccounts = () => {
-    negocioService.obtenerNegocios().subscribe({
+    
+    negocioService.obtenerNegocios(filtroEstado).subscribe({
       next: (result) => {
         setBusiness(
           procesarRespuesta(result as DTO_Respuesta) as Array<DTO_Negocio>
@@ -56,9 +61,9 @@ export const Negocio = () => {
       },
       error: (err) => errorHelpers.serverError(err),
       complete: () => {
-        if (business.length <= 3) {
-          setDisableButtonAdd(true);
-        }
+        // if (business.length <= 3) {
+        //   setDisableButtonAdd(true);
+        // }
       },
     });
   };

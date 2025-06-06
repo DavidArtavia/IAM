@@ -63,7 +63,7 @@ namespace DAL
             }
         }
 
-        public DTO_Respuesta obtenerNegocios(DTO_Usuario usuario)
+        public DTO_Respuesta obtenerNegocios(DTO_Usuario usuario, DTO_FiltroEstado filtro)
         {
             DTO_Negocio negocio = new();
             List<DTO_Negocio> listaNegocios = [];
@@ -77,6 +77,7 @@ namespace DAL
                 {
                     sqlcmd.CommandType = CommandType.StoredProcedure;
                     sqlcmd.Parameters.Add("@ID_Usuario", SqlDbType.Int).Value = usuario.ID_Usuario;
+                    sqlcmd.Parameters.Add("@FiltroEstado", SqlDbType.VarChar).Value = filtro.FiltroEstado;
 
                     // Establecer la dirección de los parámetros
                     foreach (SqlParameter param in sqlcmd.Parameters)
@@ -102,7 +103,7 @@ namespace DAL
                             negocio.CorreoNegocio = UTL_DBHelper.ReadNullSafeString(reader["CorreoNegocio"]);
                             negocio.FechaRegistro = (DateTime)UTL_DBHelper.ReadNullSafeDateTime(reader["FechaRegistro"]);
                             negocio.Estado.ID_Estado = UTL_DBHelper.ReadNullSafeInt(reader["ID_Estado"]);
-                            negocio.Estado.Nombre = UTL_DBHelper.ReadNullSafeString(reader["Nombre"]);
+                            negocio.Estado.Nombre = UTL_DBHelper.ReadNullSafeString(reader["EstadoNombre"]);
 
                             //  ↓↓↓ Aquí es donde antes hacías new List<DTO_Param>(), 
                             //     ahora leemos la cadena JSON real de la base y la deserializamos:

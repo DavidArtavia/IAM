@@ -1,4 +1,5 @@
-import { DTO_Negocio, DTO_Respuesta } from '@/models';
+import { FILTER_STATUS } from '@/constants';
+import { DTO_FiltroEstado, DTO_Negocio, DTO_Respuesta } from '@/models';
 import { negocioService } from '@/services/negocios.service';
 import { errorHelpers, procesarRespuesta } from '@/utils';
 import { useEffect, useState } from 'react'
@@ -11,17 +12,20 @@ type Props = {
 
 export const BusinessButtons = ({ title, selectedBusiness, handleSelectBusiness }: Props) => {
 
-    const [businesses, setBusinesses] = useState<Array<DTO_Negocio>>([]);
+  const [businesses, setBusinesses] = useState<Array<DTO_Negocio>>([]);
+  const [filtroEstado] = useState<DTO_FiltroEstado>({
+    filtroEstado: FILTER_STATUS.ACTIVO,
+  });
     
     // 1) Cargo negocios al montar
     useEffect(() => {
-        negocioService.obtenerNegocios().subscribe({
-            next: (result) =>
-                setBusinesses(
-                    procesarRespuesta(result as DTO_Respuesta) as Array<DTO_Negocio>
-                ),
-            error: (err) => errorHelpers.serverError(err), //controlamos el error del servidor
-            complete: () => { },
+        negocioService.obtenerNegocios(filtroEstado).subscribe({
+          next: (result) =>
+            setBusinesses(
+              procesarRespuesta(result as DTO_Respuesta) as Array<DTO_Negocio>
+            ),
+          error: (err) => errorHelpers.serverError(err), //controlamos el error del servidor
+          complete: () => {},
         });
     }, []);
     return (
