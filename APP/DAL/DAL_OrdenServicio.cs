@@ -29,7 +29,6 @@ namespace DAL
                     sqlcmd.CommandType = System.Data.CommandType.StoredProcedure;
                     sqlcmd.Parameters.AddWithValue("@ID_Cliente", ordenServicio.ID_Cliente);
                     sqlcmd.Parameters.AddWithValue("@ID_Negocio", ordenServicio.ID_Negocio);
-                    sqlcmd.Parameters.AddWithValue("@ID_Estado", ordenServicio.Estado.ID_Estado);
                     sqlcmd.Parameters.AddWithValue("@FechaEstimadaEntrega", ordenServicio.FechaEstimadaEntrega);
                     sqlcmd.Parameters.AddWithValue("@FechaInicio", ordenServicio.FechaInicio);
                     sqlcmd.Parameters.AddWithValue("@FechaFinal", ordenServicio.FechaFinal);
@@ -85,6 +84,7 @@ namespace DAL
                 {
                     sqlcmd.CommandType = CommandType.StoredProcedure;
 
+                    sqlcmd.Parameters.Add("@ID_OrdenServicio", SqlDbType.Int).Value = ordenServicio.ID_OrdenServicio;
                     sqlcmd.Parameters.Add("@ID_Estado", SqlDbType.Int).Value = ordenServicio.Estado.ID_Estado;
                     sqlcmd.Parameters.Add("@FechaEstimadaEntrega", SqlDbType.DateTime).Value = ordenServicio.FechaEstimadaEntrega;
                     sqlcmd.Parameters.Add("@FechaInicio", SqlDbType.DateTime).Value = ordenServicio.FechaInicio;
