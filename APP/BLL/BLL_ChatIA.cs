@@ -292,17 +292,21 @@ namespace BLL
                     //Ejecutamos el procesamiento con IA
                     msjRespIA = formatearRespuestaIA(new ChatRequestAssistantMessage(response.Value.Choices[0].Message).Content);
                 }
-                else
-                {
-                    //logear
-                }
+
             }
+
+            if (respuestCorecta == false && contadorIntentos == 3)
+            {
+                //loguear el error
+                throw new Exception("Error de interpetación IAM");
+            }
+
+            //guardamos la respuesta serializada
+            bLL_Mensaje.guardarMensaje(mensaje);
 
 
             //guardamos la respuesta serializada
             bLL_Mensaje.guardarMensaje(msjRespIA);
-
-            //damos forma a la respuesta
             
 
             //Si está vacío quiere decir que el procesamiento continuará por lo que procedemos a meter el mensaje al contexto
@@ -454,13 +458,9 @@ namespace BLL
                     ordenServicio.NotaOrdenServicio = repuestaIA.Parametros.Find(p => p.Nombre.Equals("NotaOrdenServicio", StringComparison.OrdinalIgnoreCase))?.Valor ?? "";
                     ordenServicio.ID_Negocio = Convert.ToInt32(repuestaIA.Parametros.Find(p => p.Nombre.Equals("ID_Negocio", StringComparison.OrdinalIgnoreCase))?.Valor ?? "0");
                     ordenServicio.FechaEstimadaEntrega = DateTime.TryParse(repuestaIA.Parametros.Find(p => p.Nombre.Equals("FechaEstimadaEntrega", StringComparison.OrdinalIgnoreCase))?.Valor, out var FechaEstimadaEntrega) ? FechaEstimadaEntrega : (DateTime?)null;
-                        //Convert.ToDateTime(repuestaIA.Parametros.Find(p => p.Nombre.Equals("FechaEstimadaEntrega", StringComparison.OrdinalIgnoreCase))?.Valor ?? null);
                     ordenServicio.FechaInicio = DateTime.TryParse(repuestaIA.Parametros.Find(p => p.Nombre.Equals("FechaInicio", StringComparison.OrdinalIgnoreCase))?.Valor, out var FechaInicio) ? FechaInicio : (DateTime?)null;
-                        //Convert.ToDateTime(repuestaIA.Parametros.Find(p => p.Nombre.Equals("FechaInicio", StringComparison.OrdinalIgnoreCase))?.Valor ?? null);
                     ordenServicio.FechaFinal = DateTime.TryParse(repuestaIA.Parametros.Find(p => p.Nombre.Equals("FechaFinal", StringComparison.OrdinalIgnoreCase))?.Valor, out var FechaFinal) ? FechaFinal : (DateTime?)null;
-                        //Convert.ToDateTime(repuestaIA.Parametros.Find(p => p.Nombre.Equals("FechaFinal", StringComparison.OrdinalIgnoreCase))?.Valor ?? null);
                     ordenServicio.FechaEntrega = DateTime.TryParse(repuestaIA.Parametros.Find(p => p.Nombre.Equals("FechaEntrega", StringComparison.OrdinalIgnoreCase))?.Valor, out var FechaEntrega) ? FechaEntrega : (DateTime?)null;
-                        //Convert.ToDateTime(repuestaIA.Parametros.Find(p => p.Nombre.Equals("FechaEntrega", StringComparison.OrdinalIgnoreCase))?.Valor ?? null);
                     ordenServicio.Estado = JsonConvert.DeserializeObject<DTO_Estado>(repuestaIA.Parametros.Find(p => p.Nombre.Equals("Estado", StringComparison.OrdinalIgnoreCase))?.Valor ?? string.Empty) ?? new DTO_Estado();
                     ordenServicio.ID_Cliente = Convert.ToInt32(repuestaIA.Parametros.Find(p => p.Nombre.Equals("ID_Cliente", StringComparison.OrdinalIgnoreCase))?.Valor ?? "0");
 
