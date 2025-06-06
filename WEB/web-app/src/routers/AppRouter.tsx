@@ -1,8 +1,8 @@
 import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { ROUTES } from "@/constants";
-import { Home, LayoutMain } from "@/screens";
+import { Home, LayoutMain, Monitor, Negocio } from "@/screens";
 import { Login, SignUp } from "@/auth";
-import { ChatAi, Monitor, Negocio } from "@/components";
+import { ChatAi} from "@/components";
 import { RedirectIfAuth, RequireAuth } from "@/utils";
 import { useEffect } from "react";
 export const AppRouter = () => {

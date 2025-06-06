@@ -9,9 +9,8 @@ export const RequireAuth = () => {
   const { pathname, search } = useLocation();
 
   const lastPath = pathname + search;
-  localStorage.setItem('lastPath', lastPath); 
+  localStorage.setItem("lastPath", lastPath);
 
   if (isAuth === null) return <LoadingModal loadingMessage="Verificando..." />;
   return isAuth ? <Outlet /> : <Navigate to={ROUTES.LOGIN} replace />;
 };
-

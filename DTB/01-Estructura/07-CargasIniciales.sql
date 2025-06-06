@@ -8,12 +8,13 @@ INSERT INTO [UTIL].[TBL_ESTADOS]
            ,[Tabla])
      VALUES
            ('Activo','TBL_USUARIOS'),
-		   ('Inactivo','TBL_USUARIOS'),
-		   ('Activo','TBL_CHAT_IA'),
-		   ('Activo','TBL_NEGOCIOS')
-GO
-
-USE [IAMDB]
+	     ('Inactivo','TBL_USUARIOS'),
+	     ('Activo','TBL_CHAT_IA'),
+	     ('Activo','TBL_NEGOCIOS')
+	     ('Eliminado','TBL_NEGOCIOS')
+	     ('Activo','TBL_CUENTAS_POR_PAGAR')
+	     ('Eliminado','TBL_CUENTAS_POR_PAGAR')
+	     ('Activo','TBL_ORDEN_SERVICIO')
 GO
 
 --Se coloca N para que se interprete como NVARCHAR segun la configuracion de la base de datos
@@ -70,8 +71,8 @@ INSERT INTO [UTIL].[TBL_ALERTAS] ([COD_ALERTA], [Nombre], [Mensaje], [Tipo]) VAL
 ('B023', N'Actualizar OrdenServicio', N'La orden de servicio se actualizó correctamente.', 'I'),
 ('B024', N'Actualizar OrdenServicio', N'La orden de servicio especificada no existe.', 'E'),
 ('B025', N'Actualizar OrdenServicio', N'No se realizaron cambios en la orden de servicio.', 'I')
+('B026', N'Negocio', N'Negocio eliminado correctamente.', 'I')
 GO
-
 
 INSERT INTO [SECU].[TBL_ROLES]
            ([NombreRol]

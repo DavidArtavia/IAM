@@ -58,7 +58,7 @@ namespace API.Controllers
         [Produces("application/json")]
         [Route("actualizarCuentas")]
         [HttpPost]
-        public DTO_Respuesta actualizarCuentaPorPagar([FromBody] DTO_CuentaPorPagar cuentaPorPagar )
+        public DTO_Respuesta actualizarCuentaPorPagar([FromBody] DTO_CuentaPorPagar cuentaPorPagar)
         {
             try
             {

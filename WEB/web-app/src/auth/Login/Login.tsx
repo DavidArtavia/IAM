@@ -54,7 +54,8 @@ export const Login = () => {
       
       localStorage.setItem("accesToken", accesToken);
       notificationHelpers.successAlert(`Hola ${user.nombreUsuario + " " + user.apellido}, bienvenido de nuevo 👋`)
-      navigate(ROUTES.HOME);
+      const lastPath = localStorage.getItem("lastPath") || ROUTES.HOME;
+      navigate(lastPath, { replace: true });
     } else {
       //Controlamos el error del sistema
       errorHelpers.systemError(respuesta);

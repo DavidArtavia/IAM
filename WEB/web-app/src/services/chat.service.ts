@@ -7,10 +7,7 @@ import { AxiosResponse } from 'axios';
 
 export class chatService {
 
-  static obtenerNegocios(): Observable<DTO_Respuesta> {
-    return defer(() => api.post<DTO_Respuesta>(API_ENDPOINTS.BUSINESS.GET_BUSINESS)).pipe(map((r: AxiosResponse<DTO_Respuesta>) => r.data));
-  }
-
+  
   static obtenerChatsPorNegocio(negocio: DTO_Negocio): Observable<DTO_Respuesta> {
     return defer(() => api.post<DTO_Respuesta>(API_ENDPOINTS.CHAT.GET_CHATS, negocio)).pipe(map((r: AxiosResponse<DTO_Respuesta>) => r.data));
   }
