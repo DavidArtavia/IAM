@@ -325,7 +325,7 @@ namespace BLL
 
             foreach (DTO_Mensaje msj in mensajesObtenidos)
             {
-                if (msj.Recibe != "BAKEND")
+                if (msj.Recibe != "BAKEND" && msj.Envia != "BAKEND")
                 {
 
                     mensajesProcesados.Add(msj);
