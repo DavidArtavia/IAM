@@ -1,6 +1,6 @@
 import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { ROUTES } from "@/constants";
-import { Home, LayoutMain, Monitor, Negocio } from "@/screens";
+import { Cuentas, Home, LayoutMain, Monitor, Negocio } from "@/screens";
 import { Login, SignUp } from "@/auth";
 import { ChatAi} from "@/components";
 import { RedirectIfAuth, RequireAuth } from "@/utils";
@@ -32,6 +32,7 @@ const { pathname } = useLocation(); //ruta actual
           <Route path={ROUTES.HOME} element={<Home />} />
           <Route path={ROUTES.NEGOCIO} element={<Negocio />} />
           <Route path={ROUTES.MONITOR} element={<Monitor />} />
+          <Route path={ROUTES.CUENTAS} element={<Cuentas />} />
         </Route>
       </Route>
 

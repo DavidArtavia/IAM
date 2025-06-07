@@ -17,6 +17,7 @@ export const ROUTES = {
     PRIVACY: "/privacy",
     NEGOCIO: "/negocio",
     MONITOR: "/monitor",
+    CUENTAS: "/cuentas",
     NOT_FOUND: "*", // Ruta para manejar páginas no encontradas
 } as const;
 

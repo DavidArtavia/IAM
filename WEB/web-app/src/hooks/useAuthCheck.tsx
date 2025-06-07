@@ -15,7 +15,6 @@ export const useAuthCheck = () => {
         setIsAuth(false);
         return;
       }
-
       try {
         const res = await api.post(
           API_ENDPOINTS.USERS.GET_BY_ID,
@@ -36,7 +35,7 @@ export const useAuthCheck = () => {
     };
 
     checkAuth();
-  }, [setUser]);
+  }, []);
 
   return isAuth;
 };

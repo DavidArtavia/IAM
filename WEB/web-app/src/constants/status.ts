@@ -31,7 +31,7 @@ export const STATUS_TBL = {
 }
 
 export const FILTER_STATUS = {
-    ACTIVO: 'ACTIVOS',
+    ACTIVO: 'Activo',
     INACTIVO: 'INACTIVO',
     ELIMINADO: 'ELIMINADOS',
     PENDIENTE: 'PENDIENTE',
