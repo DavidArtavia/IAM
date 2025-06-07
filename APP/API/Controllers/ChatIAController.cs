@@ -86,9 +86,7 @@ namespace API.Controllers
 
             try
             {
-                respuesta = bLL_Mensaje.obtenerMensajes(chatIA);
-                respuesta.Resultado.Clear();
-                respuesta.Resultado.Add(bll_chatIA.formatearMensajesParaChat((List<DTO_Mensaje>)respuesta.Resultado[0]));
+                respuesta.Resultado.Add(bll_chatIA.formatearMensajesParaChat((List<DTO_Mensaje>)bLL_Mensaje.obtenerMensajes(chatIA).Resultado[0]));
 
             }
             catch (Exception ex)
