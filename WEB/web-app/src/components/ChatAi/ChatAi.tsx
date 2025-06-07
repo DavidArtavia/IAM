@@ -1,10 +1,9 @@
-import { useEffect, useState } from "react";
+import {  useState } from "react";
 import { ChatSidebar, ChatMessages, ChatInputBar } from "@/components";
-import { chatService, negocioService } from "@/services"; // ajusta imports según tu estructura
-import { DTO_Negocio, DTO_ChatIA, DTO_Mensaje, DTO_Respuesta, DTO_FiltroEstado } from "@/models";
+import { chatService } from "@/services"; // ajusta imports según tu estructura
+import { DTO_Negocio, DTO_ChatIA, DTO_Mensaje, DTO_Respuesta } from "@/models";
 import { errorHelpers, procesarRespuesta, processResponse } from "@/utils";
 import { BusinessButtons } from "../Buttons/BusinessButtons";
-import { FILTER_STATUS } from "@/constants";
 
 export const ChatAi = () => {
   const [businesses, setBusinesses] = useState<Array<DTO_Negocio>>(
@@ -19,21 +18,6 @@ export const ChatAi = () => {
   );
   const [selectedChat, setChat] = useState<DTO_ChatIA | null>(null);
 
-  const [filterStatus] = useState<DTO_FiltroEstado>({
-    filtroEstado: FILTER_STATUS.ACTIVO,
-  });
-
-  // 1) Cargo negocios al montar
-  useEffect(() => {
-    negocioService.obtenerNegocios(filterStatus).subscribe({
-      next: (result) =>
-        setBusinesses(
-          processResponse(result as DTO_Respuesta) as Array<DTO_Negocio>
-        ),
-      error: (err) => errorHelpers.serverError(err), //controlamos el error del servidor
-      complete: () => {},
-    });
-  }, []);
 
   // 2) Cuando elijo negocio, cargo sus chats
   const handleSelectBusiness = (negocio: DTO_Negocio) => {
@@ -71,9 +55,9 @@ export const ChatAi = () => {
     if (!selectedChat) return;
     const userMsg = new DTO_Mensaje();
     userMsg.iD_ChatIA = selectedChat.iD_ChatIA;
-    userMsg.tipo = "user";
-    userMsg.textoMensaje = text;
-    userMsg.fromUser = true;
+    userMsg.envia = "USUARIO";
+    userMsg.contenido = text;
+    userMsg.recibe = "IAM";
 
     chatService.enviarMensajeTexto(userMsg).subscribe({
       next: (result) =>
@@ -91,9 +75,9 @@ export const ChatAi = () => {
     if (!selectedChat) return;
     const userMsg = new DTO_Mensaje();
     userMsg.iD_ChatIA = selectedChat.iD_ChatIA;
-    userMsg.tipo = "user";
+    userMsg.envia = "USUARIO";
     userMsg.audio = new File([blob], "audio.wav", { type: blob.type });
-    userMsg.fromUser = true;
+    userMsg.recibe = "IAM";
 
     chatService.enviarMensajeAudio(userMsg).subscribe({
       next: (result) =>
@@ -112,6 +96,7 @@ export const ChatAi = () => {
         title={
           "Seleccione un negocio para conversar con el asistente inteligente:"
         }
+        onLoadBusinesses={(businesses: DTO_Negocio[]) => setBusinesses(businesses)}
         handleSelectBusiness={handleSelectBusiness}
         selectedBusiness={selectedBusiness}
       />

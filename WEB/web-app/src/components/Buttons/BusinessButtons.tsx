@@ -5,12 +5,13 @@ import { errorHelpers, procesarRespuesta } from '@/utils';
 import { useEffect, useState } from 'react'
 
 type Props = {
-    title: string;
-    selectedBusiness: DTO_Negocio | null;
-    handleSelectBusiness: (business: DTO_Negocio) => void;
-}
+  title: string;
+  selectedBusiness: DTO_Negocio | null;
+  onLoadBusinesses?: (businesses: DTO_Negocio[]) => void;
+  handleSelectBusiness: (business: DTO_Negocio) => void;
+};
 
-export const BusinessButtons = ({ title, selectedBusiness, handleSelectBusiness }: Props) => {
+export const BusinessButtons = ({ title, onLoadBusinesses,  selectedBusiness, handleSelectBusiness }: Props) => {
 
   const [businesses, setBusinesses] = useState<Array<DTO_Negocio>>([]);
   const [filtroEstado] = useState<DTO_FiltroEstado>({
@@ -20,10 +21,11 @@ export const BusinessButtons = ({ title, selectedBusiness, handleSelectBusiness 
     // 1) Cargo negocios al montar
     useEffect(() => {
         negocioService.obtenerNegocios(filtroEstado).subscribe({
-          next: (result) =>
-            setBusinesses(
-              procesarRespuesta(result as DTO_Respuesta) as Array<DTO_Negocio>
-            ),
+          next: (result) => {
+            const arr = procesarRespuesta(result as DTO_Respuesta) as DTO_Negocio[];
+            setBusinesses(arr);
+            onLoadBusinesses?.(arr);
+          },
           error: (err) => errorHelpers.serverError(err), //controlamos el error del servidor
           complete: () => {},
         });

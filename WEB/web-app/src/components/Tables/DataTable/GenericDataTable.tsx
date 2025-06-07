@@ -57,8 +57,8 @@ export interface GenericDataTableProps<T> {
     ) => string | number | React.ReactNode;
   };
   /**
-   * Opcional: Si quieres que se muestre la columna “Estado”
-   * (previo a que tú la definas en columnKeys),
+   * Opcional: Para que se muestre la columna “Estado”
+   * (previo a que se definas en columnKeys),
    * tu objeto T debe tener la propiedad “estado” de la forma { nombre: string }.
    */
   includeEstadoColumn?: boolean;

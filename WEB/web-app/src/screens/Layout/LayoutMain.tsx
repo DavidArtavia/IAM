@@ -55,8 +55,6 @@ export const LayoutMain = () => {
     setIsConfirmOpen(true);
   };
 
-
-
   const confirmModalAcion = (action: boolean | null) => {
     setIsConfirmOpen(false);
     // cerrarconfirmModal();
@@ -162,6 +160,22 @@ export const LayoutMain = () => {
                 </Link>
               </div>
 
+              <div className="menu-item py-2">
+                <Link
+                  to={ROUTES.CUENTAS}
+                  className={`menu-link menu-center${
+                    pathname === ROUTES.CUENTAS ? " active" : ""
+                  }`}
+                  data-bs-trigger="hover"
+                  data-bs-dismiss="click"
+                  data-bs-placement="right"
+                >
+                  <span className="menu-icon me-0">
+                    <i className="bi bi-cash-stack fs-2" />
+                  </span>
+                  <span className="menu-title">Cuentas</span>
+                </Link>
+              </div>
               <div className="menu-item py-2">
                 <Link
                   to={ROUTES.MONITOR}
