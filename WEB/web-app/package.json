@@ -19,8 +19,10 @@
     "modern-normalize": "^3.0.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "react-markdown": "^10.1.0",
     "react-router-dom": "^6.30.0",
     "recorder-js": "^1.0.7",
+    "remark-gfm": "^4.0.1",
     "rxjs": "^7.8.2"
   },
   "devDependencies": {

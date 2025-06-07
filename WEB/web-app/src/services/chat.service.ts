@@ -18,20 +18,19 @@ export class chatService {
   static enviarMensajeTexto(mensaje: DTO_Mensaje): Observable<DTO_Respuesta> {
     const formData = new FormData();
     formData.append('iD_ChatIA', mensaje.iD_ChatIA.toString());
-    formData.append('tipo', mensaje.tipo);
-    formData.append('textoMensaje', mensaje.textoMensaje);
-    formData.append('audio', mensaje.audio!);
+    formData.append('envia', mensaje.envia);
+    formData.append('contenido', mensaje.contenido);
+    formData.append('recibe', mensaje.recibe);
 
     return defer(() => api.post<DTO_Respuesta>(API_ENDPOINTS.CHAT.SEND_MESSAGE, formData, { headers: { 'Content-Type': 'multipart/form-data' } })).pipe(map((r: AxiosResponse<DTO_Respuesta>) => r.data));
   }
 
   static enviarMensajeAudio(mensaje: DTO_Mensaje): Observable<DTO_Respuesta> {
-
     const formData = new FormData();
     formData.append('iD_ChatIA', mensaje.iD_ChatIA.toString());
-    formData.append('tipo', mensaje.tipo);
-    formData.append('textoMensaje', mensaje.textoMensaje);
+    formData.append('contenido', mensaje.contenido);
     formData.append('audio', mensaje.audio!);
+    formData.append('recibe', mensaje.recibe);
 
     return defer(() => api.post<DTO_Respuesta>(API_ENDPOINTS.CHAT.SEND_MESSAGE, formData, { headers: { 'Content-Type': 'multipart/form-data' } })).pipe(map((r: AxiosResponse<DTO_Respuesta>) => r.data));
   }

@@ -1,57 +1,48 @@
-import {  useState } from "react";
+import { useState } from "react";
 import { ChatSidebar, ChatMessages, ChatInputBar } from "@/components";
-import { chatService } from "@/services"; // ajusta imports según tu estructura
+import { chatService } from "@/services";
 import { DTO_Negocio, DTO_ChatIA, DTO_Mensaje, DTO_Respuesta } from "@/models";
 import { errorHelpers, procesarRespuesta, processResponse } from "@/utils";
 import { BusinessButtons } from "../Buttons/BusinessButtons";
 
 export const ChatAi = () => {
-  const [businesses, setBusinesses] = useState<Array<DTO_Negocio>>(
-    new Array<DTO_Negocio>()
-  );
-  const [chats, setChats] = useState<Array<DTO_ChatIA>>([]);
-  const [messages, setMessages] = useState<Array<DTO_Mensaje>>(
-    new Array<DTO_Mensaje>()
-  );
+  const [businesses, setBusinesses] = useState<DTO_Negocio[]>([]);
+  const [chats, setChats] = useState<DTO_ChatIA[]>([]);
+  const [messages, setMessages] = useState<DTO_Mensaje[]>([]);
   const [selectedBusiness, setSelectedBusiness] = useState<DTO_Negocio | null>(
     null
   );
   const [selectedChat, setChat] = useState<DTO_ChatIA | null>(null);
 
-
-  // 2) Cuando elijo negocio, cargo sus chats
   const handleSelectBusiness = (negocio: DTO_Negocio) => {
     setSelectedBusiness(negocio);
     setChat(null);
     setMessages([]);
     chatService.obtenerChatsPorNegocio(negocio).subscribe({
-      next: (result) =>
-        setChats(
-          processResponse(result as DTO_Respuesta) as Array<DTO_ChatIA>
-        ),
-      error: (err) => errorHelpers.serverError(err), //controlamos el error del servidor
-      complete: () => {},
+      next: (result) => {
+        setChats(processResponse(result as DTO_Respuesta) as DTO_ChatIA[]);
+      },
+      error: (err) => errorHelpers.serverError(err),
     });
   };
 
-  // 3) Cuando elijo chat, cargo sus mensajes
   const handleSelectChat = (chat: DTO_ChatIA) => {
-    //Nos dirigimos al campo de texto automáticamente
-    window.location.hash = "#kt_chat_messenger_footer";
     setChat(chat);
-    setMessages(new Array<DTO_Mensaje>());
+    setMessages([]);
     chatService.obtenerMensajesPorChat(chat).subscribe({
-      next: (result) =>
-        setMessages(
-          processResponse(result as DTO_Respuesta) as Array<DTO_Mensaje>
-        ),
-      error: (err) => errorHelpers.serverError(err), //controlamos el error del servidor
-      complete: () => {},
+      next: (result: DTO_Respuesta) => {
+        // si vienen anidados, los aplana; si no, deja tal cual
+        const raw = result.resultado as DTO_Mensaje[] | DTO_Mensaje[][];
+        const flat: DTO_Mensaje[] = Array.isArray(raw[0])
+          ? (raw as DTO_Mensaje[][]).flat()
+          : (raw as DTO_Mensaje[]);
+        setMessages(flat);
+      },
+      error: (err) => errorHelpers.serverError(err),
     });
   };
 
-  // 4) Envío texto
-  const handleSendText = async (text: string) => {
+  const handleSendText = (text: string) => {
     if (!selectedChat) return;
     const userMsg = new DTO_Mensaje();
     userMsg.iD_ChatIA = selectedChat.iD_ChatIA;
@@ -60,18 +51,15 @@ export const ChatAi = () => {
     userMsg.recibe = "IAM";
 
     chatService.enviarMensajeTexto(userMsg).subscribe({
-      next: (result) =>
-        setMessages((m) => [
-          ...m,
-          processResponse(result as DTO_Respuesta) as DTO_Mensaje,
-        ]),
-      error: (err) => errorHelpers.serverError(err), //controlamos el error del servidor
-      complete: () => {},
+      next: (result) => {
+        const newMsg = processResponse(result as DTO_Respuesta) as DTO_Mensaje;
+        setMessages((m) => [...m, newMsg]);
+      },
+      error: (err) => errorHelpers.serverError(err),
     });
   };
 
-  // 5) Envío audio
-  const handleSendAudio = async (blob: Blob) => {
+  const handleSendAudio = (blob: Blob) => {
     if (!selectedChat) return;
     const userMsg = new DTO_Mensaje();
     userMsg.iD_ChatIA = selectedChat.iD_ChatIA;
@@ -80,29 +68,27 @@ export const ChatAi = () => {
     userMsg.recibe = "IAM";
 
     chatService.enviarMensajeAudio(userMsg).subscribe({
-      next: (result) =>
-        setMessages((m) => [
-          ...m,
-          procesarRespuesta(result as DTO_Respuesta) as DTO_Mensaje,
-        ]),
-      error: (err) => errorHelpers.serverError(err), //controlamos el error del servidor
-      complete: () => {},
+      next: (result) => {
+        const newMsg = procesarRespuesta(
+          result as DTO_Respuesta
+        ) as DTO_Mensaje;
+        setMessages((m) => [...m, newMsg]);
+      },
+      error: (err) => errorHelpers.serverError(err),
     });
   };
 
   return (
     <div className="row p-4 col-12 gx-0">
       <BusinessButtons
-        title={
-          "Seleccione un negocio para conversar con el asistente inteligente:"
-        }
-        onLoadBusinesses={(businesses: DTO_Negocio[]) => setBusinesses(businesses)}
+        title="Seleccione un negocio para conversar con el asistente inteligente:"
+        onLoadBusinesses={setBusinesses}
         handleSelectBusiness={handleSelectBusiness}
         selectedBusiness={selectedBusiness}
       />
       <div
         className={`d-flex flex-column flex-lg-row mt-10${
-          businesses.length > 0 ? " " : " d-none"
+          businesses.length ? "" : " d-none"
         }`}
       >
         <div className="flex-column flex-lg-row-auto w-100 w-lg-300px w-xl-400px mb-10 mb-lg-0 p-2">
@@ -114,23 +100,7 @@ export const ChatAi = () => {
         </div>
         <div className="flex-lg-row-fluid ms-lg-7 ms-xl-10 p-2">
           <div className="card" id="kt_chat_messenger">
-            <div className="card-header" id="kt_chat_messenger_header">
-              <div className="card-title">
-                <div className="d-flex justify-content-center flex-column me-3">
-                  <a
-                    href="#"
-                    className="fs-4 fw-bolder text-gray-900 text-hover-primary me-1 mb-2 lh-1"
-                  >
-                    IAM Asistente
-                  </a>
-                  <div className="mb-0 lh-1">
-                    <span className="badge badge-success badge-circle w-10px h-10px me-1"></span>
-                    <span className="fs-7 fw-bold text-muted">Active</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-            {<ChatMessages messages={messages} />}
+            <ChatMessages messages={messages} />
             <ChatInputBar
               disabled={!selectedChat}
               onSendText={handleSendText}
