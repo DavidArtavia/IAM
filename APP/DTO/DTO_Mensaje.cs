@@ -6,12 +6,12 @@ namespace DTO
     public class DTO_Mensaje
     {
         #region Atributos
+        private int id_Mensaje;
+        private int id_ChatIA;
         private string envia; // puede ser IAM, USUARIO, BAKEND
         private string recibe;
         private string contenido;
         private List<DTO_Param> parametros;
-        private int id_Mensaje;
-        private int id_ChatIA;
         private string rutaAudio; 
         private DateTime fechaMensaje;
         private IFormFile audio; //Cuando venga del código toca enviar en este campo el binario del audio en formato WAV
