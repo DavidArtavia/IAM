@@ -86,6 +86,7 @@ namespace API.Controllers
 
             try
             {
+                
                 respuesta.Resultado.Add(bll_chatIA.formatearMensajesParaChat((List<DTO_Mensaje>)bLL_Mensaje.obtenerMensajes(chatIA).Resultado[0]));
 
             }

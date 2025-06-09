@@ -321,8 +321,6 @@ namespace BLL
         public List<DTO_Mensaje> formatearMensajesParaChat(List<DTO_Mensaje> mensajesObtenidos)
         {
             List<DTO_Mensaje> mensajesProcesados = new();
-            DTO_MensajeIA respIA = new();
-
             foreach (DTO_Mensaje msj in mensajesObtenidos)
             {
                 if (msj.Recibe != "BAKEND" && msj.Envia != "BAKEND")
