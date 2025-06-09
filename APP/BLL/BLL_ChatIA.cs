@@ -2,8 +2,10 @@
 using Azure;
 using Azure.AI.Inference;
 using Azure.Core.Pipeline;
+using BLL.Hubs;
 using DAL;
 using DTO;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.CognitiveServices.Speech;
 using Microsoft.CognitiveServices.Speech.Audio;
 using Newtonsoft.Json;
@@ -16,6 +18,9 @@ namespace BLL
 {
     public class BLL_ChatIA
     {
+        //SignalR 
+        private readonly BLL_Notificador _notificador;
+
         //Globales
         public ChatCompletionsClient client;
         public ChatCompletionsOptions requestOptions;
@@ -39,8 +44,9 @@ namespace BLL
         BLL_OrdenServicio bLL_OrdenServicio = new();
         BLL_Mensaje bLL_Mensaje = new();
 
-        public BLL_ChatIA()
+        public BLL_ChatIA(BLL_Notificador notificador)
         {
+            _notificador = notificador;
 
             ChatCompletionsClientOptions options = new ChatCompletionsClientOptions(ChatCompletionsClientOptions.ServiceVersion.V2024_05_01_Preview);
             options.RetryPolicy = new RetryPolicy(2);
@@ -54,6 +60,11 @@ namespace BLL
                 Temperature = (float) 0.5
                 
             };
+        }
+
+        public async void notificar(DTO_Usuario usuario)
+        {
+            await _notificador.EnviarNotificacion(usuario, "Notificacion");
         }
 
         public async Task<DTO_Respuesta> guardarAudioTemp(DTO_Mensaje mensaje)

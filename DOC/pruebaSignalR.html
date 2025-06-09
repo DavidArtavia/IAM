@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Cliente SignalR autenticado</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js"></script>
+</head>
+<body>
+  <h1>SignalR con autenticación</h1>
+  <div id="estado">Conectando...</div>
+  <div id="mensajes"></div>
+  <script>
+    const log = (msg) => {
+      document.getElementById("mensajes").innerHTML += `<div>${msg}</div>`;
+    };
+
+const connection = new signalR.HubConnectionBuilder()
+  .withUrl("https://localhost:44330/hub/monitorOSHub", {
+    accessTokenFactory: () => "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjMiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9lbWFpbGFkZHJlc3MiOiJhZG1pbkBnbWFpbC5jb20iLCJodHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL3dzLzIwMDgvMDYvaWRlbnRpdHkvY2xhaW1zL3JvbGUiOiIxIiwiZXhwIjoxNzQ5NDkxNTQ3LCJpc3MiOiJVc3VhcmlvcyIsImF1ZCI6IlFBIn0.VZsKSQn8etvDgm1HKe1P9zkYZB38jSpEBDgHbqZ_TFE"
+  })
+  .withAutomaticReconnect()
+  .build();
+
+    connection.on("RecibirNotificacion", mensaje => {
+      log("📩 " + mensaje);
+    });
+
+    connection.start()
+      .then(() => {
+        document.getElementById("estado").innerText = "✅ Conectado al Hub";
+        log("Esperando mensajes...");
+      })
+      .catch(err => {
+        document.getElementById("estado").innerText = "❌ Error de conexión";
+        console.error(err);
+      });
+  </script>
+</body>
+</html>
+
+
+
+<!-- npx http-server . -->

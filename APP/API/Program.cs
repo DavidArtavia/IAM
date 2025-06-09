@@ -1,7 +1,9 @@
 using Azure;
 using BLL;
+using BLL.Hubs;
 using DTO;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
@@ -31,9 +33,22 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
         options.Events = new JwtBearerEvents
         {
+            OnMessageReceived = context =>
+            {
+                // ✅ Para SignalR: permitir token por query string
+                var accessToken = context.Request.Query["access_token"];
+                var path = context.HttpContext.Request.Path;
+
+                if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/hub/monitorOSHub"))
+                {
+                    context.Token = accessToken;
+                }
+
+                return Task.CompletedTask;
+            },
+
             OnAuthenticationFailed = context =>
             {
-                
                 UTL_Cipher uTL_Cipher = new UTL_Cipher();
                 BLL_Usuario bLL_Usuario = new BLL_Usuario();
                 BLL_Sesion bLL_Sesion = new BLL_Sesion();
@@ -42,55 +57,39 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 DTO_Sesion sesion = new DTO_Sesion();
                 DTO_Respuesta respuesta = new DTO_Respuesta();
 
-
                 if (context.Exception is SecurityTokenExpiredException)
                 {
                     if (context.HttpContext.Request.Cookies.TryGetValue("refreshToken", out var refreshToken))
                     {
-                        
-
                         var authHeader = context.Request.Headers["Authorization"].ToString();
                         var token = authHeader.StartsWith("Bearer ") ? authHeader.Substring(7) : authHeader;
 
-                        // Decodificar token sin validar (solo para leer claims)
                         var handler = new JwtSecurityTokenHandler();
                         var jwtToken = handler.ReadJwtToken(token);
 
-                        // Extraer userId
                         var userId = jwtToken.Claims.FirstOrDefault(c =>
                             c.Type == ClaimTypes.NameIdentifier || c.Type == "id")?.Value;
 
-
-                        //asigmanos los valores a la sesión
                         sesion.RefreshToken = refreshToken;
                         sesion.ID_Usuario = Convert.ToInt32(userId);
 
-                        //Aqui mandamos a validar el refreshToken y si es válido entonces creamos un nuevo acces token
-                        
                         respuesta = bLL_Sesion.validarRefreshToken(sesion);
 
-
-
-                        //Validamos si todo bien con el token y solo debe reintentar o si es un 401 definitivo que lo lleva al login
                         if (respuesta.TipoRespuesta)
                         {
-                            sesion = (DTO_Sesion) respuesta.Resultado[0];
+                            sesion = (DTO_Sesion)respuesta.Resultado[0];
 
-                            //Agregamos el refreshToken a una Cookie HttpOnly
                             var cookieOptions = uTL_Cipher.cookieOptions();
                             context.Response.Cookies.Append("refreshToken", sesion.RefreshToken, cookieOptions);
 
-
                             usuario.ID_Usuario = sesion.ID_Usuario;
-                            usuario = (DTO_Usuario) bLL_Usuario.obtenerUsuarioPorId(usuario).Resultado[0];
+                            usuario = (DTO_Usuario)bLL_Usuario.obtenerUsuarioPorId(usuario).Resultado[0];
 
-                            //Generar nuevo acces token
-                            String accesToken = uTL_Cipher.generarAccessToken(usuario);
-                            //quitamos el refresh token de la respuesta
+                            string accesToken = uTL_Cipher.generarAccessToken(usuario);
+
                             respuesta.Resultado.Clear();
                             respuesta.Resultado.Add(new { accesToken = accesToken });
 
-                            //403
                             context.Response.StatusCode = 403;
                             context.Response.ContentType = "application/json";
                             var result = JsonSerializer.Serialize(respuesta);
@@ -108,10 +107,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                             });
                             return context.Response.WriteAsync(result);
                         }
-
                     }
-
-                   
                 }
 
                 if (context.Exception is SecurityTokenSignatureKeyNotFoundException)
@@ -131,6 +127,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             }
         };
 
+
     });
 
 // Personalizar respuestas de error
@@ -139,6 +136,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSingleton<IUserIdProvider, EmailUserIdProvider>();
 
 builder.Services.AddSwaggerGen(options =>
 {
@@ -150,16 +148,21 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 
+//SiganlR Notificador
+builder.Services.AddScoped<BLL_Notificador>();
+builder.Services.AddScoped<BLL_ChatIA>();
 
 // ✅ CORS configuration => CORS significa Cross-Origin Resource Sharing ("compartición de recursos entre orígenes cruzados").
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontendDev", policy =>
-       policy.WithOrigins("http://localhost:5173")
+       policy.WithOrigins("http://localhost:5173", "http://127.0.0.1:8080")
              .AllowAnyHeader()
              .AllowAnyMethod()
              .AllowCredentials());
 });
+
+builder.Services.AddSignalR();
 
 var app = builder.Build();
 
@@ -169,6 +172,10 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+
+app.MapHub<MonitorOSHub>("/hub/monitorOSHub");
+
 
 app.UseCors("AllowFrontendDev");
 app.UseHttpsRedirection();
