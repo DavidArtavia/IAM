@@ -11,7 +11,7 @@ GO -- =============================================
     --              incluyendo el estado y seleccionando alertas.
     -- =============================================
     IF OBJECT_ID(N'[CORE].[SP_obtenerCuentasPorPagar]', N'P') IS NULL BEGIN EXEC(
-        N '
+        N'
         CREATE PROCEDURE [CORE].[SP_obtenerCuentasPorPagar]
         AS
         BEGIN

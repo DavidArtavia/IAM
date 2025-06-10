@@ -9,8 +9,8 @@ GO -- =============================================
     -- Descripción: Procedimiento para actualizar un negocio
     -- =============================================
     -- 1) Validar existencia del SP
-    IF OBJECT_ID(N '[CORE].[SP_actualizarNegocio]', N'P') IS NULL BEGIN EXEC(
-        N '
+    IF OBJECT_ID(N'[CORE].[SP_actualizarNegocio]', N'P') IS NULL BEGIN EXEC(
+        N'
         CREATE PROCEDURE [CORE].[SP_actualizarNegocio]
         AS
         BEGIN
@@ -28,7 +28,7 @@ GO -- 2) Alterar contenido
     @Direccion NVARCHAR(255) = NULL,
     @TelefonoNegocio VARCHAR(20) = NULL,
     @CorreoNegocio NVARCHAR(100) = NULL,
-    @ReferenciaJSON NVARCHAR(MAX) = NULL AS BEGIN AS BEGIN
+    @ReferenciaJSON NVARCHAR(MAX) = NULL AS BEGIN
 SET NOCOUNT ON;
 DECLARE @EstadoAnterior INT;
 -- Obtenemos el estado actual del negocio (si existe y pertenece al usuario)

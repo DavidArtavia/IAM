@@ -7,7 +7,7 @@ INSERT INTO [UTIL].[TBL_ESTADOS] ([ID_Estado], [Nombre], [Tabla])
 VALUES (1, 'Activo', 'TBL_USUARIOS'),
       (2, 'Inactivo', 'TBL_USUARIOS'),
       (3, 'Activo', 'TBL_CLIENTES'),
-      (4, 'Inactivo', 'TBL_CLIENTES'),
+      (4, 'Eliminado', 'TBL_CLIENTES'),
       (5, 'Activo', 'TBL_CHAT_IA'),
       (6, 'Activo', 'TBL_NEGOCIOS'),
       (7, 'Eliminado', 'TBL_NEGOCIOS'),
@@ -99,8 +99,8 @@ INSERT INTO [CORE].[TBL_NEGOCIOS]
            ,[FechaRegistro]
            ,[ReferenciaJSON])
      VALUES
-           (3,4,'Taller Mata','Taller automotris','Sarch�','12345678','123@gmail.com',GETDATE(),'{"PARAMS": ["placa", "marca", "modelo"]}'),
-		   (3,4,'Taller Mata 2','Taller automotris','Naranjo','12345678','123@gmail.com',GETDATE(),'{"PARAMS": ["placa", "marca", "modelo"]}')
+           (1,4,'Taller Mata','Taller automotris','Sarch�','12345678','123@gmail.com',GETDATE(),'{"PARAMS": ["placa", "marca", "modelo"]}'),
+		   (1,4,'Taller Mata 2','Taller automotris','Naranjo','12345678','123@gmail.com',GETDATE(),'{"PARAMS": ["placa", "marca", "modelo"]}')
 GO
 
 
@@ -117,7 +117,35 @@ INSERT INTO [CORE].[TBL_CHAT_IA]
 		   (2,1,GETDATE(),NULL)
 GO
 
-
+INSERT INTO [SECU].[TBL_USUARIOS] (
+            ID_Estado,
+            ID_Rol,
+            NombreUsuario,
+            Apellido,
+            TelefonoUsuario,
+            CorreoUsuario,
+            Pass
+      )
+VALUES -- Usuario admin
+      (
+            1,
+            1,
+            'Admin',
+            'Principal',
+            '88888888',
+            'admin@gmail.com',
+            '123'
+      ),
+      -- Usuario inventado
+      (
+            1,
+            1,
+            'Admin2',
+            'Principal2',
+            '87123456',
+            'admin2@gmail.com',
+            '123'
+      );
 
 -- USE [IAMDB] <- no es funcinal xq cambio la tabla 
 -- GO
