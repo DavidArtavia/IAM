@@ -9,3 +9,4 @@ export * from "./DTO_CuentasPorPagar";
 export * from "./DTO_FiltroEstado";
 export * from "./DTO_Param";
 export * from "./DTO_OrdenesDeServicio";
+export * from "./DTO_Cliente";

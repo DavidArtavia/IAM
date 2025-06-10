@@ -3,18 +3,20 @@
 USE [IAMDB]
 GO
 
-INSERT INTO [UTIL].[TBL_ESTADOS]
-           ([Nombre]
-           ,[Tabla])
-     VALUES
-           ('Activo','TBL_USUARIOS'),
-	     ('Inactivo','TBL_USUARIOS'),
-	     ('Activo','TBL_CHAT_IA'),
-	     ('Activo','TBL_NEGOCIOS')
-	     ('Eliminado','TBL_NEGOCIOS')
-	     ('Activo','TBL_CUENTAS_POR_PAGAR')
-	     ('Eliminado','TBL_CUENTAS_POR_PAGAR')
-	     ('Activo','TBL_ORDEN_SERVICIO')
+INSERT INTO [UTIL].[TBL_ESTADOS] ([ID_Estado], [Nombre], [Tabla])
+VALUES (1, 'Activo', 'TBL_USUARIOS'),
+      (2, 'Inactivo', 'TBL_USUARIOS'),
+      (3, 'Activo', 'TBL_CLIENTES'),
+      (4, 'Inactivo', 'TBL_CLIENTES'),
+      (5, 'Activo', 'TBL_CHAT_IA'),
+      (6, 'Activo', 'TBL_NEGOCIOS'),
+      (7, 'Eliminado', 'TBL_NEGOCIOS'),
+      (8, 'Activo', 'TBL_CUENTAS_POR_PAGAR'),
+      (9, 'Eliminado', 'TBL_CUENTAS_POR_PAGAR'),
+      (10, 'Activo', 'TBL_ORDEN_SERVICIO'),
+      (11, 'Eliminado', 'TBL_ORDEN_SERVICIO'),
+      (12, 'Activo', 'TBL_ITEMS_ORDEN_SERVICIO'),
+      (13, 'Eliminado', 'TBL_ITEMS_ORDEN_SERVICIO')
 GO
 
 --Se coloca N para que se interprete como NVARCHAR segun la configuracion de la base de datos
@@ -71,7 +73,9 @@ INSERT INTO [UTIL].[TBL_ALERTAS] ([COD_ALERTA], [Nombre], [Mensaje], [Tipo]) VAL
 ('B023', N'Actualizar OrdenServicio', N'La orden de servicio se actualizó correctamente.', 'I'),
 ('B024', N'Actualizar OrdenServicio', N'La orden de servicio especificada no existe.', 'E'),
 ('B025', N'Actualizar OrdenServicio', N'No se realizaron cambios en la orden de servicio.', 'I')
-('B026', N'Negocio', N'Negocio eliminado correctamente.', 'I')
+('B026', N'Negocio', N'Negocio eliminado correctamente.', 'I'),
+('B027', N'Cliente', N'Cliente eliminado correctamente.', 'I')
+
 GO
 
 INSERT INTO [SECU].[TBL_ROLES]
@@ -115,26 +119,26 @@ GO
 
 
 
-USE [IAMDB]
-GO
+-- USE [IAMDB] <- no es funcinal xq cambio la tabla 
+-- GO
 
-INSERT INTO [CORE].[TBL_MENSAJES_CHAT]
-           ([ID_ChatIA]
-           ,[Tipo]
-           ,[TextoMensaje]
-           ,[TranscripcionAudio]
-           ,[RutaAudio]
-           ,[FechaMensaje])
-     VALUES
-           (1,'Usuario','Mensaje 1 de prueba','','',GETDATE()),
-		   (1,'IA','Mensaje 2 de prueba','','',GETDATE()),
-		   (1,'Usuario','Mensaje 3 de prueba','','',GETDATE()),
-		   (1,'IA','Mensaje 4 de prueba','','',GETDATE()),
-		   (1,'Usuario','','Una trancripci�n X','https://iamhub7185441083.blob.core.windows.net/audios/11052025215100505.WAV',GETDATE()),
-		   (1,'IA','Mensaje 5 de prueba','','',GETDATE()),
-		   (2,'Usuario','Mensaje 1 de prueba','','',GETDATE()),
-		   (2,'IA','Mensaje 2 de prueba','','',GETDATE())
-GO
+-- INSERT INTO [CORE].[TBL_MENSAJES_CHAT]
+--            ([ID_ChatIA]
+--            ,[Tipo]
+--            ,[TextoMensaje]
+--            ,[TranscripcionAudio]
+--            ,[RutaAudio]
+--            ,[FechaMensaje])
+--      VALUES
+--            (1,'Usuario','Mensaje 1 de prueba','','',GETDATE()),
+-- 		   (1,'IA','Mensaje 2 de prueba','','',GETDATE()),
+-- 		   (1,'Usuario','Mensaje 3 de prueba','','',GETDATE()),
+-- 		   (1,'IA','Mensaje 4 de prueba','','',GETDATE()),
+-- 		   (1,'Usuario','','Una trancripci�n X','https://iamhub7185441083.blob.core.windows.net/audios/11052025215100505.WAV',GETDATE()),
+-- 		   (1,'IA','Mensaje 5 de prueba','','',GETDATE()),
+-- 		   (2,'Usuario','Mensaje 1 de prueba','','',GETDATE()),
+-- 		   (2,'IA','Mensaje 2 de prueba','','',GETDATE())
+-- GO
 
 
 

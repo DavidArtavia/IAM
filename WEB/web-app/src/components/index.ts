@@ -11,3 +11,4 @@ export * from "./Modals/GenericFormModal/GenericFormModal";
 export * from "./Modals/InfoModal/InfoModal";
 export * from "./Tables/DataTable/GenericDataTable";
 export * from "./ReferenciasJson/ReferenciasJson";
+export * from "./Modals/GenericFormModal/types";
