@@ -10,3 +10,4 @@ export * from "./Modals/LoadingModal/ConfirmModal";
 export * from "./Modals/GenericFormModal/GenericFormModal";
 export * from "./Modals/InfoModal/InfoModal";
 export * from "./Tables/DataTable/GenericDataTable";
+export * from "./ReferenciasJson/ReferenciasJson";

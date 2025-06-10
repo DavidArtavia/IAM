@@ -212,7 +212,6 @@ export const GenericFormModal = <T,>({
                 const hasTouched = touched[key] === true;
                 const errorMsg = hasTouched ? errors[key] || "" : "";
 
-                // Bootstrap classes
                 let inputClass = "form-control form-control-solid";
                 if (errorMsg) {
                   inputClass += " is-invalid";

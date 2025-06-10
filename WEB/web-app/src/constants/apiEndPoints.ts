@@ -26,6 +26,10 @@ export const API_ENDPOINTS = {
         GET_ACCOUNTS: "/Cuenta/obtenerCuentas",
         ADD_ACCOUNT: "/Cuenta/registrarCuenta",
         UPDATE_ACCOUNT: "/Cuenta/actualizarCuentas",
-        DELETE_ACCOUNT: "/Cuenta/eliminarCuenta",
+    },
+    ORDERS: {
+        GET_ORDERS: "/OrdenServicio/obtenerOrdenDeServicio",
+        ADD_ORDER: "/OrdenServicio/registrarOrdenServicio",
+        UPDATE_ORDER: "/OrdenServicio/actualizarOrdenServicio",
     },
 } as const;

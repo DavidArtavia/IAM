@@ -198,6 +198,7 @@ export const Negocio = () => {
           onDelete={handleDelete}
           disableButtonAdd={disableButtonAdd}
           includeEstadoColumn={true} // añade automáticamente la columna “Estado”
+          includeReferenceColumn={true} // añade automáticamente la columna “Referencias”
           customRenderers={customRenderers}
         />
 

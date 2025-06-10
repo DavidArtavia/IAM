@@ -176,6 +176,24 @@ export const LayoutMain = () => {
                   <span className="menu-title">Cuentas</span>
                 </Link>
               </div>
+
+              <div className="menu-item py-2">
+                <Link
+                  to={ROUTES.SERVICE_ORDER}
+                  className={`menu-link menu-center${
+                    pathname === ROUTES.SERVICE_ORDER ? " active" : ""
+                  }`}
+                  data-bs-trigger="hover"
+                  data-bs-dismiss="click"
+                  data-bs-placement="right"
+                >
+                    <span className="menu-icon me-0">
+                    <i className="bi bi-clipboard-check fs-2" />
+                    </span>
+                    <span className="menu-title">Ordenes</span>
+                </Link>
+              </div>
+
               <div className="menu-item py-2">
                 <Link
                   to={ROUTES.MONITOR}
