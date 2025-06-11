@@ -40,9 +40,11 @@ BEGIN
         ORDEN.FechaEntrega,
         ORDEN.ReferenciaJSON,
         -- Concatenamos el nombre del cliente al final de la nota
-        ORDEN.NotaOrdenServicio 
-          + ' | Cliente: ' 
+          'Cliente: ' 
           + CLIENTE.NombreCliente 
+		  + ' | '
+		  + ORDEN.NotaOrdenServicio 
+         
         AS NotaOrdenConCliente
     FROM CORE.TBL_ORDENES_SERVICIO AS ORDEN
     INNER JOIN CORE.TBL_CLIENTES        AS CLIENTE
@@ -61,4 +63,4 @@ BEGIN
     FROM UTIL.TBL_ALERTAS
     WHERE COD_ALERTA = 'B028';
 END
-GO
+
