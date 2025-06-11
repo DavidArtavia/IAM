@@ -22,12 +22,9 @@ export const columnKeysNegocio: (keyof DTO_Negocio)[] = [
     "fechaRegistro"
 ];
 export const columnKeysOrdenDeServicio: (keyof DTO_OrdenServicio)[] = [
-    "iD_Negocio",
+    "iD_OrdenServicio",
+    "fechaOrdenServicio",
     "fechaEstimadaEntrega",
-    "fechaInicio",
-    "fechaFinal",
-    "fechaEntrega",
-    // "referenciaJSON",
     "notaOrdenServicio"
 ];
 
@@ -59,10 +56,10 @@ export const labelMapNegocio: Record<string, string> = {
 };
 
 export const labelMapOrdenDeServicio: Record<string, string> = {
-    iD_Negocio: "Negocio #",
-    fechaInicio: "Fecha de Inicio",
-    fechaEstimadaEntrega: "Fecha Estimada de Entrega",
-    fechaFinal: "Fecha Final",
+    iD_OrdenServicio: "Orden Servicio #",
+    estado: "Estado",
+    fechaOrdenServicio: "Fecha de servicio",
+    fechaEstimadaEntrega: "Entrega Estimada",
     fechaEntrega: "Fecha de Entrega",
     notaOrdenServicio: "Nota",
     referenciaJSON: "Referencias"
@@ -90,8 +87,8 @@ export const ordenServicioFormEditFields: Array<
 > = [
         // Campo fechaInicio fijo
         {
-            key: "fechaInicio",
-            label: labelMapOrdenDeServicio["fechaInicio"] ?? "fechaInicio",
+        key: "fechaOrdenServicio",
+        label: labelMapOrdenDeServicio["fechaOrdenServicio"] ?? "fechaOrdenServicio",
             type: "date", // aquí TS sabe que es literal "date"
         },
         // Resto de campos automáticos
@@ -99,10 +96,12 @@ export const ordenServicioFormEditFields: Array<
             .filter(
                 (key) =>
                     key !== "iD_Negocio" &&
+                    key !== "iD_Cliente" &&
                     key !== "fechaEntrega" &&
                     key !== "fechaInicio" &&
                     key !== "referenciaJSON" &&
-                    key !== "fechaFinal"
+                    key !== "fechaFinal" &&
+                    key !== "fechaOrdenServicio" // Excluimos el ID de la orden de servicio
             )
             .map((key) => {
                 // convertimos el resultado a un literal

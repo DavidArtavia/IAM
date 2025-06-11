@@ -199,7 +199,7 @@ export const Negocio = () => {
           disableButtonAdd={disableButtonAdd}
           includeEstadoColumn={true} // añade automáticamente la columna “Estado”
           includeReferenceColumn={true} // añade automáticamente la columna “Referencias”
-          customRenderers={customRenderers}
+          customRenderers={customRenderers} 
         />
 
         {/* === Modal Genérico: Registrar Negocios === */}
