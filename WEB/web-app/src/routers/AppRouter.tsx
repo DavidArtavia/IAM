@@ -1,6 +1,13 @@
 import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { ROUTES } from "@/constants";
-import { Cuentas, Home, LayoutMain, Monitor, Negocio } from "@/screens";
+import {
+  Cuentas,
+  Home,
+  LayoutMain,
+  Monitor,
+  Negocio,
+  OrdenDeServicio,
+} from "@/screens";
 import { Login, SignUp } from "@/auth";
 import { ChatAi} from "@/components";
 import { RedirectIfAuth, RequireAuth } from "@/utils";
@@ -28,11 +35,12 @@ const { pathname } = useLocation(); //ruta actual
       {/* Rutas privadas (requieren autenticación) */}
       <Route element={<RequireAuth />}>
         <Route element={<LayoutMain />}>
-          <Route path={ROUTES.CHAT_AI} element={<ChatAi />} />
           <Route path={ROUTES.HOME} element={<Home />} />
+          <Route path={ROUTES.CHAT_AI} element={<ChatAi />} />
           <Route path={ROUTES.NEGOCIO} element={<Negocio />} />
           <Route path={ROUTES.MONITOR} element={<Monitor />} />
           <Route path={ROUTES.CUENTAS} element={<Cuentas />} />
+          <Route path={ROUTES.SERVICE_ORDER} element={<OrdenDeServicio />} />
         </Route>
       </Route>
 

@@ -6,8 +6,9 @@ namespace DTO
     {
         #region Atributos
 
-        private int id_Cliente;
-        private int id_Usuario;  // Corresponde al ID de Usuario (FK)
+        private int iD_Cliente;
+        private int iD_Usuario;  // Corresponde al ID de Usuario (FK)
+        private DTO_Estado estado;  
         private string nombreCliente;
         private string apellidoCliente;
         private string telefonoCliente;
@@ -22,6 +23,7 @@ namespace DTO
             // Inicializamos los valores por defecto
             ID_Cliente = 0;
             ID_Usuario = 0;
+            Estado = new();
             NombreCliente = string.Empty;
             ApellidoCliente = string.Empty;
             TelefonoCliente = string.Empty;
@@ -32,8 +34,10 @@ namespace DTO
 
         #region Propiedades
 
-        public int ID_Cliente { get => id_Cliente; set => id_Cliente = value; }
-        public int ID_Usuario { get => id_Usuario; set => id_Usuario = value; }
+        public int ID_Cliente { get => iD_Cliente; set => iD_Cliente = value; }
+        public int ID_Usuario { get => iD_Usuario; set => iD_Usuario = value; }
+        public int ID_Estado { get => iD_Usuario; set => iD_Usuario = value; }
+        public DTO_Estado Estado { get => estado; set => estado = value; }
         public string NombreCliente { get => nombreCliente; set => nombreCliente = value; }
         public string ApellidoCliente { get => apellidoCliente; set => apellidoCliente = value; }
         public string TelefonoCliente { get => telefonoCliente; set => telefonoCliente = value; }

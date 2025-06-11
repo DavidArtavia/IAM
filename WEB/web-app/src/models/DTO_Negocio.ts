@@ -1,4 +1,5 @@
 import { DTO_Estado } from '@/models';
+import { DTO_Param } from './DTO_Param';
 
 export class DTO_Negocio {
     iD_Negocio: number = 0;
@@ -10,5 +11,5 @@ export class DTO_Negocio {
     telefonoNegocio: string = '';
     correoNegocio: string = '';
     fechaRegistro: Date = new Date();
-    referenciaJSON: Array<unknown> = [];
+    referenciaJSON: Array<DTO_Param> = [];
 }

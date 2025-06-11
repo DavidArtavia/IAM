@@ -1,3 +1,4 @@
+import { ReferenciaCards } from "@/components/ReferenciasJson/ReferenciasJson";
 import React from "react";
 
 interface InfoModalProps {
@@ -39,7 +40,7 @@ export const InfoModal = ({
         return <span className="text-muted">[Sin datos]</span>;
       }
       // Si todos los elementos tienen { nombre, valor }
-      const todosConNombreValor = (value as undefined[]).every(
+      const elemetosJsonConNombreValor = (value as undefined[]).every(
         (item) =>
           typeof item === "object" &&
           item !== null &&
@@ -47,18 +48,8 @@ export const InfoModal = ({
           "valor" in item
       );
 
-      if (todosConNombreValor) {
-        return (
-          <div className="d-flex flex-column">
-            {(value as Array<{ nombre: string; valor: string }>).map(
-              (refObj, idx) => (
-                <div key={idx} className="d-flex justify-content-between mb-1">
-                  <strong>{refObj.nombre}:</strong> {refObj.valor || "(vacío)"}
-                </div>
-              )
-            )}
-          </div>
-        );
+      if (elemetosJsonConNombreValor) {
+        return <ReferenciaCards items={value}/> 
       }
 
       // Si es un array de otro tipo (p.ej. strings, números u objetos mixtos),

@@ -18,6 +18,7 @@ export const ROUTES = {
     NEGOCIO: "/negocio",
     MONITOR: "/monitor",
     CUENTAS: "/cuentas",
+    SERVICE_ORDER: "/orden-servicio", // OrdenServicio en inglés
     NOT_FOUND: "*", // Ruta para manejar páginas no encontradas
 } as const;
 

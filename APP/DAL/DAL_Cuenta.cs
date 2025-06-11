@@ -98,7 +98,7 @@ namespace DAL
                         {
                             while (reader.Read())
                             {
-                                respuesta = respuesta = manejarRespuesta(reader);
+                                respuesta = manejarRespuesta(reader);
 
                             }
                         }

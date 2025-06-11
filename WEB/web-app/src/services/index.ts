@@ -2,3 +2,5 @@ export * from "./chat.service";
 export * from "./cuentas.service";
 export * from "./usuario.service";
 export * from "./negocios.service";
+export * from "./ordenes.service";
+export * from "./clientes.service";

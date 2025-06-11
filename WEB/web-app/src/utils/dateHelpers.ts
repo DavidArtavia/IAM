@@ -1,20 +1,20 @@
 export class dateHelpers {
 
-    constructor() { }
-    static formatFechaDDMMYYYY(fecha?: Date | string): string {
-        if (!fecha) { return ""; }
+  constructor() { }
+  static formatFechaDDMMYYYY(fecha?: Date | string): string {
+    if (!fecha) { return ""; }
 
-        const d = fecha instanceof Date ? fecha : new Date(fecha);
-        if (isNaN(d.getTime())) { return ""; }
+    const d = fecha instanceof Date ? fecha : new Date(fecha);
+    if (isNaN(d.getTime())) { return ""; }
 
-        return d.toLocaleDateString("es-ES", {
-            day: "2-digit",
-            month: "2-digit",
-            year: "numeric",
-        });
-    }
+    return d.toLocaleDateString("es-ES", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    });
+  }
 
-    static formatTimeDifference(fecha?: Date | string): string {
+  static formatTimeDifference(fecha?: Date | string): string {
     if (!fecha) return "";
     const d = fecha instanceof Date ? fecha : new Date(fecha);
     if (isNaN(d.getTime())) return "";
@@ -25,9 +25,9 @@ export class dateHelpers {
 
     const msInSecond = 1000;
     const msInMinute = msInSecond * 60;
-    const msInHour   = msInMinute * 60;
-    const msInDay    = msInHour   * 24;
-    const msInMonth  = msInDay    * 30; // aproximación
+    const msInHour = msInMinute * 60;
+    const msInDay = msInHour * 24;
+    const msInMonth = msInDay * 30; // aproximación
 
     if (diff >= msInMonth) {
       const months = Math.floor(diff / msInMonth);
@@ -47,5 +47,15 @@ export class dateHelpers {
     }
     const seconds = Math.floor(diff / msInSecond);
     return `${seconds}s`;
+  }
+
+  static formatRelativeOrDate(fecha?: Date | string): string {
+    if (!fecha) return "Ahora";
+
+    // 1) etiqueta tipo "5s", "10m", "3H", "2D", "1M"
+    const diffLabel = this.formatTimeDifference(fecha);
+
+    // 3) para "s", "m" o "H" devolvemos la etiqueta directa
+    return diffLabel === "0s" ? "Ahora" : diffLabel;
   }
 }

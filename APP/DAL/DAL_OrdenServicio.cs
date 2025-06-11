@@ -1,5 +1,6 @@
 ﻿using DTO;
 using Microsoft.Data.SqlClient;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -21,8 +22,7 @@ namespace DAL
             try
             {
                 string query = "CORE.SP_registrarOrdenServicio";
-                string json = JsonSerializer.Serialize(ordenServicio.ReferenciaJSON);
-
+                string json = System.Text.Json.JsonSerializer.Serialize(ordenServicio.ReferenciaJSON);
 
                 using (SqlCommand sqlcmd = new(query, this.GetObjConexion()))
                 {
@@ -74,12 +74,103 @@ namespace DAL
                 this.Close();
             }
         }
+
+        public DTO_Respuesta obtenerOrdenDeServicio(DTO_Negocio negocio)
+        {
+            var listaOrdenes = new List<DTO_OrdenServicio>();
+            var respuesta = new DTO_Respuesta();       
+
+            try
+            {
+                using (var sqlcmd = new SqlCommand("CORE.SP_obtenerOrdenesServicioPorNegocio", this.GetObjConexion()))
+                {
+                    sqlcmd.CommandType = CommandType.StoredProcedure;
+                    sqlcmd.Parameters.Add("@ID_Negocio", SqlDbType.Int).Value = negocio.ID_Negocio;
+                    this.Open();
+
+                    using (var reader = sqlcmd.ExecuteReader())
+                    {
+                        // ——— Primer result set: órdenes de servicio ———
+                        while (reader.Read())
+                        {
+                            var orden = new DTO_OrdenServicio
+                            {
+                                ID_OrdenServicio = UTL_DBHelper.ReadNullSafeInt(reader["ID_OrdenServicio"]),
+                                ID_Cliente = UTL_DBHelper.ReadNullSafeInt(reader["ID_Cliente"]),
+                                ID_Negocio = UTL_DBHelper.ReadNullSafeInt(reader["ID_Negocio"]),
+                                Estado = new DTO_Estado
+                                {
+                                    ID_Estado = UTL_DBHelper.ReadNullSafeInt(reader["ID_Estado"]),
+                                    Nombre = UTL_DBHelper.ReadNullSafeString(reader["EstadoNombre"])
+                                },
+                                FechaOrdenServicio = UTL_DBHelper.ReadNullSafeDateTime(reader["FechaOrdenServicio"]),
+                                FechaEstimadaEntrega = UTL_DBHelper.ReadNullSafeDateTime(reader["FechaEstimadaEntrega"]),
+                                FechaInicio = UTL_DBHelper.ReadNullSafeDateTime(reader["FechaInicio"]),
+                                FechaFinal = UTL_DBHelper.ReadNullSafeDateTime(reader["FechaFinal"]),
+                                FechaEntrega = UTL_DBHelper.ReadNullSafeDateTime(reader["FechaEntrega"]),
+                                NotaOrdenServicio = UTL_DBHelper.ReadNullSafeString(reader["NotaOrdenConCliente"]),
+                            };
+
+                            // parse del JSON de referencia
+                            var jsonRef = UTL_DBHelper.ReadNullSafeString(reader["ReferenciaJSON"]);
+                            if (!string.IsNullOrWhiteSpace(jsonRef))
+                            {
+                                try
+                                {
+                                    orden.ReferenciaJSON =
+                                        JsonConvert.DeserializeObject<List<DTO_Param>>(jsonRef)
+                                        ?? new List<DTO_Param>();
+                                }
+                                catch
+                                {
+                                    orden.ReferenciaJSON = new List<DTO_Param>();
+                                }
+                            }
+
+                            listaOrdenes.Add(orden);
+                        }
+
+                        // ——— Segundo result set: alertas ———
+                        if (reader.NextResult())
+                        {
+                            while (reader.Read())
+                            {
+                                // manejarRespuesta debería rellenar tipoRespuesta, mensaje y código
+                                respuesta = manejarRespuesta(reader);
+                            }
+                        }
+                    }
+
+                    // ——— Asignar las órdenes **individualmente** al Resultado ———
+                    // Si Resultado es List<DTO_OrdenServicio>:
+                    // respuesta.Resultado = listaOrdenes;
+
+                    // Si Resultado es List<object> o List<dynamic>, haz:
+                    foreach (var o in listaOrdenes)
+                        respuesta.Resultado.Add(o);
+
+                    return respuesta;
+                }
+            }
+            catch (Exception ex)
+            {
+                // cerrar conexión, loguear, etc.
+                throw;
+            }
+            finally
+            {
+                this.Close();
+            }
+        }
+
+
         public async Task<DTO_Respuesta> actualizarOrdenServicio(DTO_OrdenServicio ordenServicio)
         {
             try
             {
                 string query = "CORE.SP_actualizarOrdenServicio";
-                string json = JsonSerializer.Serialize(ordenServicio.ReferenciaJSON);
+                string json = System.Text.Json.JsonSerializer.Serialize(ordenServicio.ReferenciaJSON);
+
 
                 using (SqlCommand sqlcmd = new(query, this.GetObjConexion()))
                 {
@@ -126,16 +217,12 @@ namespace DAL
                 this.Close();
             }
         }
-        public DTO_Respuesta obtenerOrdenesServicio(DTO_Usuario usuario)
-        {
-            return null;
-        }
         public async Task<DTO_Respuesta> buscarOrdenServicio(DTO_OrdenServicio ordenServicio, DTO_Cliente cliente)
         {
             try
             {
                 string query = "CORE.SP_buscarOrdenServicio";
-                string json = JsonSerializer.Serialize(ordenServicio.ReferenciaJSON);
+                string json = System.Text.Json.JsonSerializer.Serialize(ordenServicio.ReferenciaJSON);
                 List<DTO_OrdenServicio> listaOrdenServicio = new();
 
                 using (SqlCommand sqlcmd = new(query, this.GetObjConexion()))
@@ -162,7 +249,7 @@ namespace DAL
                         while (reader.Read())
                         {
                             ordenServicio = new();
-                            ordenServicio.ReferenciaJSON = (JsonSerializer.Deserialize<List<DTO_Param>>(UTL_DBHelper.ReadNullSafeString(reader["ReferenciaJSON"]))) ?? new List<DTO_Param>();
+                            ordenServicio.ReferenciaJSON = (System.Text.Json.JsonSerializer.Deserialize<List<DTO_Param>>(UTL_DBHelper.ReadNullSafeString(reader["ReferenciaJSON"]))) ?? new List<DTO_Param>();
                             ordenServicio.ID_Negocio = UTL_DBHelper.ReadNullSafeInt(reader["ID_Negocio"]);
                             ordenServicio.ID_OrdenServicio = UTL_DBHelper.ReadNullSafeInt(reader["ID_OrdenServicio"]);
                             ordenServicio.ID_Cliente = UTL_DBHelper.ReadNullSafeInt(reader["ID_Cliente"]);

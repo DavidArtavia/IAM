@@ -11,17 +11,16 @@ GO -- =============================================
     -- =============================================
 
     -- 1) Validar existencia de la cuenta por pagar
-    IF OBJECT_ID(N '[CORE].[SP_registrarNegocio]', N'P') IS NULL BEGIN EXEC(
-        N'
-        CREATE PROCEDURE [CORE].[SP_registrarNegocio]
-        AS
-        BEGIN
-            SET NOCOUNT ON;
-        END
-    '
-    );
+    IF NOT EXISTS (
+    SELECT 1
+    FROM sys.procedures
+    WHERE name = 'SP_registrarNegocio'
+) BEGIN EXEC(
+    'CREATE PROCEDURE CORE.SP_registrarNegocio AS BEGIN SET NOCOUNT ON; END'
+)
 END
-GO ALTER PROCEDURE [CORE].[SP_registrarNegocio] @ID_Usuario INT,
+GO 
+ALTER PROCEDURE [CORE].[SP_registrarNegocio] @ID_Usuario INT,
     --@ID_Estado          INT, Descomentar si el estado se define de Backend
     @NombreNegocio VARCHAR(100),
     @Descripcion NVARCHAR(255) = NULL,

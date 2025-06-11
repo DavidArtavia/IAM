@@ -63,6 +63,7 @@ CREATE TABLE CORE.TBL_CLIENTES
 (
 	ID_Cliente INT IDENTITY(1,1) NOT NULL, --PK
 	ID_Usuario INT NOT NULL, --FK
+	ID_Estado INT NOT NULL, --FK
 	NombreCliente VARCHAR(100) NOT NULL,
 	ApellidoCliente VARCHAR(100) NOT NULL,
 	TelefonoCliente VARCHAR(15) NULL,
@@ -140,7 +141,7 @@ CREATE TABLE CORE.TBL_MENSAJES_CHAT
 	[ID_Mensaje] [int] IDENTITY(1,1) NOT NULL,
 	[ID_ChatIA] [int] NOT NULL,
 	[Envia] [nvarchar](15) CHECK (Envia IN ('USUARIO', 'IAM', 'BAKEND')) NOT NULL,
-	[Recibe] [nvarchar](15) CHECK (Envia IN ('USUARIO', 'IAM', 'BAKEND')) NOT NULL,
+	[Recibe] [nvarchar](15) CHECK (Recibe IN ('USUARIO', 'IAM', 'BAKEND')) NOT NULL,
 	[Contenido] [nvarchar](MAX) NULL,
 	[Parametros] [nvarchar](MAX) NULL,
 	[RutaAudio] [nvarchar](500) NULL,
