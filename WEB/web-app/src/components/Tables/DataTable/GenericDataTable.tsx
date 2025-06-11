@@ -23,6 +23,7 @@ export interface GenericDataTableProps<T> {
   }>;
   includeEstadoColumn?: boolean;
   includeReferenceColumn?: boolean;
+  modalInfoFields?: (keyof T)[];
 }
 
 export function GenericDataTable<T>({
@@ -37,29 +38,48 @@ export function GenericDataTable<T>({
   customRenderers = {},
   includeEstadoColumn = false,
   includeReferenceColumn = false,
+  modalInfoFields,
 }: GenericDataTableProps<T>) {
   const tableRef = useRef<HTMLTableElement>(null);
   const [showInfo, setShowInfo] = useState(false);
   const [detailData, setDetailData] = useState<Record<string, unknown>>({});
 
-  // Generate DataTables columns only when schema or renderers change
+  // Generate DataTables columns - FILTRAR SOLO COLUMNAS QUE EXISTEN EN LOS DATOS
   const dtColumns = useMemo<ColumnSettings[]>(() => {
     const cols: ColumnSettings[] = [];
 
-    // Base columns
+    // Verificar qué columnas realmente existen en los datos
+    const availableKeys =
+      data.length > 0
+        ? Object.keys(data[0] as Record<string, unknown>)
+        : columnKeys.map(String);
+
+    // Base columns - solo incluir las que existen en los datos
     columnKeys.forEach((key) => {
-      const name = String(key);
-      const col: ColumnSettings = {
-        title: labelMap[name] || name,
-        data: name,
-      };
+      const keyStr = String(key);
 
-      if (customRenderers[key]) {
-        col.render = (dataValue, _, rowData) =>
-          customRenderers[key]!(dataValue, rowData as T);
+      // Solo agregar la columna si existe en los datos o si no hay datos aún
+      if (data.length === 0 || availableKeys.includes(keyStr)) {
+        const col: ColumnSettings = {
+          title: labelMap[keyStr] || keyStr,
+          data: keyStr,
+          // Agregar manejo de errores para columnas que no existen
+          defaultContent: "",
+        };
+
+        if (customRenderers[key]) {
+          col.render = (dataValue, _, rowData) => {
+            try {
+              return customRenderers[key]!(dataValue, rowData as T);
+            } catch (error) {
+              console.warn(`Error rendering column ${keyStr}:`, error);
+              return dataValue || "";
+            }
+          };
+        }
+
+        cols.push(col);
       }
-
-      cols.push(col);
     });
 
     // Optional reference column
@@ -69,14 +89,25 @@ export function GenericDataTable<T>({
         data: null,
         orderable: false,
         searchable: false,
+        defaultContent: "",
         createdCell: (cell, _, rowData) => {
-          const container = document.createElement("div");
-          (cell as HTMLElement).innerHTML = "";
-          cell.appendChild(container);
-          const root = ReactDOM.createRoot(container);
-          root.render(
-            <ReferenciaCards items={((rowData as T & { referenciaJSON?: RefItem[] }).referenciaJSON) || []} />
-          );
+          try {
+            const container = document.createElement("div");
+            (cell as HTMLElement).innerHTML = "";
+            cell.appendChild(container);
+            const root = ReactDOM.createRoot(container);
+            root.render(
+              <ReferenciaCards
+                items={
+                  (rowData as T & { referenciaJSON?: RefItem[] })
+                    .referenciaJSON || []
+                }
+              />
+            );
+          } catch (error) {
+            console.warn("Error rendering reference column:", error);
+            (cell as HTMLElement).innerHTML = "";
+          }
         },
       });
     }
@@ -88,21 +119,30 @@ export function GenericDataTable<T>({
         data: null,
         orderable: false,
         searchable: false,
+        defaultContent: "",
         createdCell: (cell, _, rowData) => {
-          const container = document.createElement("span");
-          (cell as HTMLElement).innerHTML = "";
-          cell.appendChild(container);
-          type Estado = { nombre?: string };
-          const estadoObj: Estado = (rowData as { estado?: Estado }).estado || {};
-          const nombre: string = estadoObj.nombre ?? "N/A";
-          const badgeClassMap: Record<string, string> = {
-            activo: "badge-light-success",
-            pendiente: "badge-light-warning",
-          };
-          const badgeClass =
-            badgeClassMap[nombre.toLowerCase()] || "badge-light-primary";
-          const root = ReactDOM.createRoot(container);
-          root.render(<span className={`badge ${badgeClass}`}>{nombre}</span>);
+          try {
+            const container = document.createElement("span");
+            (cell as HTMLElement).innerHTML = "";
+            cell.appendChild(container);
+            type Estado = { nombre?: string };
+            const estadoObj: Estado =
+              (rowData as { estado?: Estado }).estado || {};
+            const nombre: string = estadoObj.nombre ?? "N/A";
+            const badgeClassMap: Record<string, string> = {
+              activo: "badge-light-success",
+              pendiente: "badge-light-warning",
+            };
+            const badgeClass =
+              badgeClassMap[nombre.toLowerCase()] || "badge-light-primary";
+            const root = ReactDOM.createRoot(container);
+            root.render(
+              <span className={`badge ${badgeClass}`}>{nombre}</span>
+            );
+          } catch (error) {
+            console.warn("Error rendering estado column:", error);
+            (cell as HTMLElement).innerHTML = "N/A";
+          }
         },
       });
     }
@@ -113,18 +153,24 @@ export function GenericDataTable<T>({
       data: null,
       orderable: false,
       searchable: false,
+      defaultContent: "",
       createdCell: (cell, _, rowData) => {
-        const container = document.createElement("div");
-        (cell as HTMLElement).innerHTML = "";
-        cell.appendChild(container);
-        const root = ReactDOM.createRoot(container);
-        root.render(
-          <ActionButtons
-            rowData={rowData as T}
-            onEdit={() => onEdit(rowData as T)}
-            onDelete={() => onDelete(rowData as T)}
-          />
-        );
+        try {
+          const container = document.createElement("div");
+          (cell as HTMLElement).innerHTML = "";
+          cell.appendChild(container);
+          const root = ReactDOM.createRoot(container);
+          root.render(
+            <ActionButtons
+              rowData={rowData as T}
+              onEdit={() => onEdit(rowData as T)}
+              onDelete={() => onDelete(rowData as T)}
+            />
+          );
+        } catch (error) {
+          console.warn("Error rendering action buttons:", error);
+          (cell as HTMLElement).innerHTML = "";
+        }
       },
     });
 
@@ -137,6 +183,7 @@ export function GenericDataTable<T>({
     includeReferenceColumn,
     onEdit,
     onDelete,
+    data, // Agregar data como dependencia
   ]);
 
   // Initialize DataTable once
@@ -150,47 +197,84 @@ export function GenericDataTable<T>({
       $(tableEl).empty();
     }
 
-    $(tableEl).DataTable({
-      data,
-      columns: dtColumns,
-      columnDefs: [{ targets: "_all", className: "text-center" }],
-      order: [[0, "desc"]],
-      language: {
-        search: "Buscar:",
-        lengthMenu: "Mostrar _MENU_ registros por página",
-        zeroRecords: "No se encontraron resultados",
-        info: "Mostrando página _PAGE_ de _PAGES_",
-        infoEmpty: "No hay registros disponibles",
-        infoFiltered: "(filtrado de _MAX_ registros totales)",
-        paginate: {
-          first: "Primero",
-          last: "Último",
-          previous: "Anterior",
-          next: "Siguiente",
-        },
-      },
-      destroy: true,
-    });
+    // Solo inicializar si tenemos columnas válidas
+    if (dtColumns.length === 0) return;
 
-    // Row click handler
-    const table = $(tableEl).DataTable();
-    $(tableEl)
-      .off("click", "tbody tr")
-      .on("click", "tbody tr", function () {
-        const row = table.row(this);
-        if (row.any()) {
-          setDetailData(row.data() as Record<string, unknown>);
-          setShowInfo(true);
-        }
+    try {
+      $(tableEl).DataTable({
+        data,
+        columns: dtColumns,
+        columnDefs: [
+          {
+            targets: "_all",
+            className: "text-center",
+            // Manejar datos faltantes globalmente
+            defaultContent: "",
+          },
+        ],
+        order: [[0, "desc"]],
+        language: {
+          search: "Buscar:",
+          lengthMenu: "Mostrar _MENU_ registros por página",
+          zeroRecords: "No se encontraron resultados",
+          info: "Mostrando página _PAGE_ de _PAGES_",
+          infoEmpty: "No hay registros disponibles",
+          infoFiltered: "(filtrado de _MAX_ registros totales)",
+          paginate: {
+            first: "Primero",
+            last: "Último",
+            previous: "Anterior",
+            next: "Siguiente",
+          },
+        },
+        destroy: true,
+        // Configuraciones adicionales para manejar errores
+        deferRender: true,
+        processing: false,
+        serverSide: false,
       });
-  }, [dtColumns]);
+
+      // Row click handler
+      const table = $(tableEl).DataTable();
+      $(tableEl)
+        .off("click", "tbody tr")
+        .on("click", "tbody tr", function () {
+          const row = table.row(this);
+          if (!row.any()) return;
+
+          try {
+            const rawData = row.data() as T;
+            // Si nos pasaron modalFields, construimos un objeto sólo con esas claves;
+            // si no, usamos todo el rawData.
+            const detail = modalInfoFields
+              ? modalInfoFields.reduce<Record<string, unknown>>((acc, key) => {
+                  acc[String(key)] = rawData[key];
+                  return acc;
+                }, {})
+              : (rawData as Record<string, unknown>);
+
+            setDetailData(detail);
+            setShowInfo(true);
+          } catch (error) {
+            console.warn("Error handling row click:", error);
+          }
+        });
+    } catch (error) {
+      console.error("Error initializing DataTable:", error);
+    }
+  }, [dtColumns, modalInfoFields]);
 
   // Update rows when data changes
   useEffect(() => {
     const tableEl = tableRef.current;
     if (!tableEl || !$.fn.dataTable.isDataTable(tableEl)) return;
-    const table = $(tableEl).DataTable();
-    table.clear().rows.add(data).draw();
+
+    try {
+      const table = $(tableEl).DataTable();
+      table.clear().rows.add(data).draw();
+    } catch (error) {
+      console.warn("Error updating table data:", error);
+    }
   }, [data]);
 
   return (

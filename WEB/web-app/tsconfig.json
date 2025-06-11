@@ -6,6 +6,7 @@
   ],
   "compilerOptions": {
     "baseUrl": "src",
+    "noImplicitAny": true,// Disallow implicit 'any' types
     "paths": {
       "@/*": ["*"]
     }

@@ -28,6 +28,30 @@ export const columnKeysOrdenDeServicio: (keyof DTO_OrdenServicio)[] = [
     "notaOrdenServicio"
 ];
 
+// Define los atributos que se mostrarán en el infoModal de las filas de las tablas de los modelos.
+export const columnKeysInfoModalOrdenDeServicio: (keyof DTO_OrdenServicio)[] = [
+
+    "iD_OrdenServicio",
+    "fechaOrdenServicio",
+    "fechaEstimadaEntrega",
+    "notaOrdenServicio",
+    "referenciaJSON",
+    "estado"
+];
+export const columnKeysInfoModalNegocio: (keyof DTO_Negocio)[] = [
+
+"iD_Negocio",
+"nombreNegocio",
+"descripcion",
+"direccion",
+"telefonoNegocio",
+"correoNegocio",
+"fechaRegistro",
+"estado",
+"referenciaJSON"
+];
+
+
 // Este archivo define mapas de etiquetas (label maps) para mostrar nombres legibles en los titulos del DataTable de los modelos.
 export const labelMapCuentasPorPagar: Record<string, string> = {
     iD_CuentasPorPagar: "Cuenta por Pagar #",
@@ -101,7 +125,8 @@ export const ordenServicioFormEditFields: Array<
                     key !== "fechaInicio" &&
                     key !== "referenciaJSON" &&
                     key !== "fechaFinal" &&
-                    key !== "fechaOrdenServicio" // Excluimos el ID de la orden de servicio
+                    key !== "fechaOrdenServicio" &&
+                    key !== "iD_OrdenServicio" // Excluimos el ID de la orden de servicio
             )
             .map((key) => {
                 // convertimos el resultado a un literal

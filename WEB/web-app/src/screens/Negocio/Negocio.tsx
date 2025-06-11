@@ -4,6 +4,7 @@ import { AuthContext } from "@/context";
 import { DTO_Negocio, DTO_Respuesta, DTO_FiltroEstado } from "@/models";
 import { negocioService } from "@/services";
 import {
+  columnKeysInfoModalNegocio,
   columnKeysNegocio,
   errorHelpers,
   labelMapNegocio,
@@ -199,7 +200,8 @@ export const Negocio = () => {
           disableButtonAdd={disableButtonAdd}
           includeEstadoColumn={true} // añade automáticamente la columna “Estado”
           includeReferenceColumn={true} // añade automáticamente la columna “Referencias”
-          customRenderers={customRenderers} 
+          customRenderers={customRenderers}
+          modalInfoFields={columnKeysInfoModalNegocio}
         />
 
         {/* === Modal Genérico: Registrar Negocios === */}

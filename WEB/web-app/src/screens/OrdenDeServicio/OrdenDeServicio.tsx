@@ -7,45 +7,104 @@ import {
   GenericDataTable,
   GenericFormModal,
 } from "@/components";
-import { DTO_CuentasPorPagar, DTO_Negocio, DTO_OrdenServicio, DTO_Respuesta } from "@/models";
-import {ordenesService } from "@/services";
-import { columnKeysOrdenDeServicio, errorHelpers, labelMapOrdenDeServicio, notificationHelpers, ordenServicioFormEditFields, procesarRespuesta } from "@/utils";
-import { useEffect, useState } from "react";
+import { DTO_Negocio, DTO_OrdenServicio, DTO_Respuesta } from "@/models";
+import { ordenesService } from "@/services";
+import {
+  columnKeysInfoModalOrdenDeServicio,
+  columnKeysOrdenDeServicio,
+  errorHelpers,
+  labelMapOrdenDeServicio,
+  notificationHelpers,
+  ordenServicioFormEditFields,
+} from "@/utils";
+import { useEffect, useMemo, useState } from "react";
 
 export const OrdenDeServicio = () => {
-  // Estado para manejar el negocio seleccionado
   const [selectedBusiness, setSelectedBusiness] = useState<DTO_Negocio | null>(
     null
   );
-  const [ordenDeServicio, setOrdenDeServicio] = useState<Array<DTO_OrdenServicio>>(
-    []
-  );
-  
+  const [ordenes, setOrdenes] = useState<DTO_OrdenServicio[]>([]);
   const [loading, setLoading] = useState(false);
+  const [disableButtonAdd, setDisableButtonAdd] = useState(true);
+  const [selectedClientOption, setSelectedClientOption] =
+    useState<ClientOption | null>(null);
 
-  const [selectedClientOption, setSelectedClientOption] = useState<ClientOption | null>(null);
-  // --------- Modal de Confirmación de Borrar / Cancelar -----------
-  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
-  const [confirmModalMessage, setConfirmModalMessage] = useState("");
-  const [confirmContext, setConfirmContext] = useState<
-    "cancelAdd" | "delete" | null
-  >(null);
-  const [disableButtonAdd, setDisableButtonAdd] = useState<boolean>(true);
+  // 1) Fetch once per business selection
+  useEffect(() => {
+    if (!selectedBusiness) return;
+    setLoading(true);
+    const sub = ordenesService
+      .obtenerOrdensDeServicio(selectedBusiness)
+      .subscribe({
+        next: (res) =>
+          setOrdenes(((res as any).resultado || []) as DTO_OrdenServicio[]),
+        error: (err) => errorHelpers.serverError(err),
+        complete: () => setLoading(false),
+      });
+    return () => sub.unsubscribe();
+  }, [selectedBusiness]);
 
-  // --------- Modales “Registrar” y “Editar” -----------
-  const [isModalFormOpen, setIsModalFormOpen] = useState(false);
-  const [formData, setFormData] = useState<DTO_OrdenServicio>(
-    new DTO_OrdenServicio()
-  );
+  const handleSelectBusiness = (neg: DTO_Negocio) => {
+    setSelectedBusiness(neg);
+    setDisableButtonAdd(false);
+  };
 
-    useEffect(() => {
-      if (selectedBusiness) {
-        refetchOrders();
-      }
-    }, [selectedBusiness]);
+  // 2) Prepare todo junto - datos y configuración de columnas en un solo useMemo
+  const tableConfig = useMemo(() => {
+    // Construir el mapa de referencias
+    const referenceMap = new Map<string, string>();
+    ordenes.forEach((o) => {
+      o.referenciaJSON?.forEach((r) => {
+        const safe = r.nombre
+          .trim()
+          .toLowerCase()
+          .replace(/\s+/g, "_")
+          .replace(/[^\w_]/g, "");
+        if (!referenceMap.has(r.nombre)) {
+          referenceMap.set(r.nombre, safe);
+        }
+      });
+    });
 
-// Construye el array de campos del formulario para la orden de servicio:
-  //    agregamos un select de cliente **al final** de los campos base
+    // Preparar los datos con las propiedades dinámicas
+    const preparedOrders = ordenes.map((o) => {
+      const copy: any = { ...o };
+      o.referenciaJSON?.forEach((r) => {
+        const safeKey = referenceMap.get(r.nombre);
+        if (safeKey) {
+          copy[safeKey] = r.valor ?? "";
+        }
+      });
+      return copy;
+    });
+
+    // Construir las columnas dinámicas
+    const referenceCols = Array.from(referenceMap.values());
+
+    // Construir el labelMap extendido
+    const extendedLabelMap = { ...labelMapOrdenDeServicio } as Record<
+      string,
+      string
+    >;
+    referenceMap.forEach((safe, raw) => {
+      extendedLabelMap[safe] = raw;
+    });
+
+    // Construir las keys finales
+    const finalKeys = [
+      ...columnKeysOrdenDeServicio.map(String),
+      ...referenceCols,
+    ];
+
+    return {
+      data: preparedOrders,
+      columnKeys: finalKeys,
+      labelMap: extendedLabelMap,
+      hasReferences: referenceMap.size > 0,
+    };
+  }, [ordenes]);
+
+  // 3) Form fields
   const formFields: FieldConfig<DTO_OrdenServicio>[] = [
     ...ordenServicioFormEditFields,
     {
@@ -56,9 +115,7 @@ export const OrdenDeServicio = () => {
         <AsyncClientSelect
           value={selectedClientOption}
           onChange={(opt) => {
-            // 1) guardamos la opción completa para que la veas en el input
             setSelectedClientOption(opt);
-            // 2) y actualizamos el formData con el id
             onChange(opt ? opt.value : 0);
           }}
         />
@@ -66,147 +123,71 @@ export const OrdenDeServicio = () => {
     },
   ];
 
-  const handleSelectBusiness = (negocio: DTO_Negocio) => {
-    setSelectedBusiness(negocio);
-    setDisableButtonAdd(false);
-    console.log("Negocio seleccionado:", negocio);
-    
-    refetchOrders();
-  };
+  // 4) Add / Save handlers
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [formData, setFormData] = useState(new DTO_OrdenServicio());
 
-    // === Refetch O obtener Negocios ===
-  const refetchOrders = () => {      
-    setLoading(true);
-    if (!selectedBusiness) return;
-    ordenesService.obtenerOrdensDeServicio(selectedBusiness).subscribe({
-        next: (result) => {
-          console.log("Resultado de obtenerOrdensDeServicio:", result);
-            // Extraer solo el array de órdenes de servicio desde la respuesta
-            const respuesta = result as { resultado?: Array<DTO_OrdenServicio> };
-            setOrdenDeServicio(respuesta.resultado || []);
-        },
-        error: (err) => errorHelpers.serverError(err),
-      complete: () => {
-        setLoading(false);
-        },
-      });
-  };
-  
-  
-  // ======== “Registrar” ========
-  const handleAddNew = () => {
-    setFormData(new DTO_OrdenServicio());
-    setIsModalFormOpen(true);
-  };
+  const handleAddNew = () => setIsFormOpen(true);
   const handleSave = () => {
-
-    formData.iD_Negocio = selectedBusiness?.iD_Negocio || 0;
-    formData.referenciaJSON = selectedBusiness?.referenciaJSON ?? [];
+    formData.iD_Negocio = selectedBusiness!.iD_Negocio;
     ordenesService.registrarOrdensDeServicio(formData).subscribe({
-      next: (result: unknown) => {
-        const mensaje =
-        (result as DTO_Respuesta)?.mensaje ||
-        "Orden registrada correctamente";
-        notificationHelpers.successAlert(mensaje);
-        setIsModalFormOpen(false);
+      next: (res: unknown) => {
+        notificationHelpers.successAlert((res as DTO_Respuesta).mensaje);
+        setIsFormOpen(false);
       },
-      error: (err) => errorHelpers.serverError(err),
+      error: (e) => errorHelpers.serverError(e),
     });
   };
 
-  const handleCancelAdd = () => {
-    setConfirmModalMessage("¿Estás seguro de que deseas cancelar el registro?");
-    setConfirmContext("cancelAdd");
-    setIsConfirmOpen(true);
-  };
-
-  // ======== Manejo de confirmación de “Cancelar registro” o “Eliminar”  ========
-  const confirmModalAction = (action: boolean | null) => {
-    if (action) {
-      if (confirmContext === "cancelAdd") {
-        setIsModalFormOpen(false);
-        notificationHelpers.infoAlert("Registro cancelado");
-      } else if (confirmContext === "delete") {
-        // handleConfirmDelete(true);
-      }
-    }
-    setIsConfirmOpen(false);
-    setConfirmContext(null);
-  };
-
-  const customRenderers: {
-    [K in keyof DTO_OrdenServicio]?: (
-      value: unknown,
-      rowData: DTO_OrdenServicio
-    ) => string | number | React.ReactNode;
-  } = {
-    fechaOrdenServicio: (val: unknown) => {
-      if (!val) return "";
-      return new Date(String(val)).toLocaleDateString();
-    },
-    fechaEstimadaEntrega: (val: unknown) => {
-      if (!val) return "";
-      return new Date(String(val)).toLocaleDateString();
-    },
-  };
-
   return (
-    <div className="row p-4 col-12 gx-0">
-      {/* Selección de negocio */}
+    <div className="row p-4 gx-0">
       <BusinessButtons
-        title="Seleccione un negocio para gestionar órdenes de servicio:"
-        handleSelectBusiness={handleSelectBusiness}
+        title="Seleccione un negocio"
         selectedBusiness={selectedBusiness}
+        handleSelectBusiness={handleSelectBusiness}
       />
-      {/* Tabla GENÉRICA */}
+
       {loading ? (
-        <div
-          className="d-flex justify-content-center align-items-center"
-          style={{ minHeight: 200 }}
-        >
-          <div
-            className="spinner-border text-primary"
-            role="status"
-            style={{ width: "3rem", height: "3rem" }}
-          >
-            <span className="visually-hidden">Cargando...</span>
-          </div>
-          <span className="ms-3 fs-5 text-primary">
-            Cargando órdenes de servicio...
-          </span>
+        <div className="d-flex justify-content-center my-5">
+          <span className="spinner-border" /> Cargando…
         </div>
-      ) : (
-        <GenericDataTable<DTO_OrdenServicio>
-          title="Orden de Servicio"
-          columnKeys={columnKeysOrdenDeServicio}
-          labelMap={labelMapOrdenDeServicio}
-          data={ordenDeServicio}
+      ) : selectedBusiness ? (
+        <GenericDataTable<DTO_OrdenServicio & Record<string, string>>
+          title="Órdenes de Servicio"
+          columnKeys={tableConfig.columnKeys}
+          labelMap={tableConfig.labelMap}
+          data={tableConfig.data}
           onAdd={handleAddNew}
           onEdit={() => {}}
           onDelete={() => {}}
           disableButtonAdd={disableButtonAdd}
-          includeEstadoColumn={true} // añade automáticamente la columna “Estado”
-          includeReferenceColumn={true}
-          customRenderers={customRenderers}
+          includeEstadoColumn
+          customRenderers={{
+            fechaOrdenServicio: (v) => new Date(String(v)).toLocaleDateString(),
+            fechaEstimadaEntrega: (v) =>
+              new Date(String(v)).toLocaleDateString(),
+          }}
+          modalInfoFields={columnKeysInfoModalOrdenDeServicio.map(String)}
         />
+      ) : (
+        <div className="d-flex justify-content-center my-5">
+          <p className="text-muted">
+            Seleccione un negocio para ver las órdenes de servicio
+          </p>
+        </div>
       )}
-      {/* Modal “Registrar” */}
+
       <GenericFormModal<DTO_OrdenServicio>
-        title="Registrar Orden de Servicio"
-        show={isModalFormOpen}
-        onHide={handleCancelAdd}
+        title="Registrar Orden"
+        show={isFormOpen}
+        onHide={() => setIsFormOpen(false)}
         data={formData}
         setData={setFormData}
         onSubmit={handleSave}
         fields={formFields}
       />
 
-      {/* Modal “Confirmación” */}
-      <ConfirmModal
-        show={isConfirmOpen}
-        confirmMessage={confirmModalMessage}
-        onAction={confirmModalAction}
-      />
+      <ConfirmModal show={false} confirmMessage="" onAction={() => {}} />
     </div>
   );
 };
