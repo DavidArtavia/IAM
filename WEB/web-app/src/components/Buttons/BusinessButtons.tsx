@@ -6,8 +6,11 @@ import { useEffect, useState } from 'react'
 
 type Props = {
   title: string;
+  // Negocio seleccionado, puede ser null si no hay ninguno
   selectedBusiness: DTO_Negocio | null;
+  // Callback para cargar negocios al montar
   onLoadBusinesses?: (businesses: DTO_Negocio[]) => void;
+  // Callback para manejar la selección de un negocio
   handleSelectBusiness: (business: DTO_Negocio) => void;
 };
 

@@ -1,9 +1,11 @@
-// src/components/GenericDataTable.tsx
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useMemo, useState } from "react";
 import $ from "jquery";
 import "datatables.net-bs5";
 import ReactDOM from "react-dom/client";
 import { InfoModal, ActionButtons, ReferenciaCards } from "@/components";
+
+// Import RefItem type from ReferenciasJson
+import type { RefItem } from "@/components/ReferenciasJson/ReferenciasJson";
 
 type ColumnSettings = DataTables.ColumnSettings;
 
@@ -16,12 +18,9 @@ export interface GenericDataTableProps<T> {
   onEdit: (rowData: T) => void;
   onDelete: (rowData: T) => void;
   disableButtonAdd?: boolean;
-  customRenderers?: {
-    [K in keyof T]?: (
-      value: unknown,
-      rowData: T
-    ) => string | number | React.ReactNode;
-  };
+  customRenderers?: Partial<{
+    [K in keyof T]: (value: unknown, rowData: T) => React.ReactNode;
+  }>;
   includeEstadoColumn?: boolean;
   includeReferenceColumn?: boolean;
 }
@@ -34,121 +33,124 @@ export function GenericDataTable<T>({
   onAdd,
   onEdit,
   onDelete,
-  disableButtonAdd,
+  disableButtonAdd = false,
   customRenderers = {},
   includeEstadoColumn = false,
   includeReferenceColumn = false,
 }: GenericDataTableProps<T>) {
   const tableRef = useRef<HTMLTableElement>(null);
-  const [showInfoModal, setShowInfoModal] = useState(false);
-  const [selectedData, setSelectedData] = useState<Record<string, unknown>>({});
+  const [showInfo, setShowInfo] = useState(false);
+  const [detailData, setDetailData] = useState<Record<string, unknown>>({});
 
-  useEffect(() => {
-    if (!tableRef.current) return;
+  // Generate DataTables columns only when schema or renderers change
+  const dtColumns = useMemo<ColumnSettings[]>(() => {
+    const cols: ColumnSettings[] = [];
 
-    // Destruir previa
-    if ($.fn.dataTable.isDataTable(tableRef.current)) {
-      const inst = $(tableRef.current).DataTable();
-      inst.clear().destroy();
-      $(tableRef.current).empty();
-    }
-
-    const dtColumns: ColumnSettings[] = [];
-
-    // Columnas base
+    // Base columns
     columnKeys.forEach((key) => {
+      const name = String(key);
       const col: ColumnSettings = {
-        title: labelMap[String(key)] || String(key),
-        data: String(key),
+        title: labelMap[name] || name,
+        data: name,
       };
-      // personalizaciones...
+
       if (customRenderers[key]) {
-        col.render = (cv, _, rd) => {
-          const out = customRenderers[key]!(cv, rd);
-          return React.isValidElement(out) ? String(out) : out;
-        };
+        col.render = (dataValue, _, rowData) =>
+          customRenderers[key]!(dataValue, rowData as T);
       }
-      dtColumns.push(col);
+
+      cols.push(col);
     });
 
-    //  columna “Referencias” SOLO si includeReferenceColumn===true
+    // Optional reference column
     if (includeReferenceColumn && labelMap["referenciaJSON"]) {
-      dtColumns.push({
+      cols.push({
         title: labelMap["referenciaJSON"],
-        data: "referenciaJSON",
+        data: null,
         orderable: false,
         searchable: false,
-        defaultContent: "<div></div>",
-        createdCell: (cell: Node, _cellData: unknown, rowData: T) => {
-          const td = cell as HTMLTableCellElement;
-          td.innerHTML = "";
-          const items = (
-            rowData as T & {
-              referenciaJSON?: Array<{ nombre: string; valor: string }>;
-            }
-          )?.referenciaJSON as Array<{
-            nombre: string;
-            valor: string;
-          }>;
-          const root = ReactDOM.createRoot(td);
+        createdCell: (cell, _, rowData) => {
+          const container = document.createElement("div");
+          (cell as HTMLElement).innerHTML = "";
+          cell.appendChild(container);
+          const root = ReactDOM.createRoot(container);
           root.render(
-            <ReferenciaCards items={Array.isArray(items) ? items : []} />
+            <ReferenciaCards items={((rowData as T & { referenciaJSON?: RefItem[] }).referenciaJSON) || []} />
           );
         },
       });
     }
 
+    // Optional estado column
     if (includeEstadoColumn && labelMap["estado"]) {
-      dtColumns.push({
+      cols.push({
         title: labelMap["estado"] || "Estado",
-        data: null, // ya no viene directo de un key: lo procesaremos en createdCell
+        data: null,
         orderable: false,
         searchable: false,
-        defaultContent: "<div></div>",
-        createdCell: (cell: Node, _cellData: unknown, rowData: T) => {
-          const td = cell as HTMLTableCellElement;
-          td.innerHTML = "";
-          const estado = (rowData as T & { estado?: { nombre?: string } })
-            .estado;
-          const nombreEstado = estado?.nombre ?? "N/A";
-          const cls =
-            nombreEstado.toLowerCase() === "activo"
-              ? "badge badge-light-success"
-              : nombreEstado.toLowerCase() === "pendiente" //<<<<<<< CAMBIAR
-              ? "badge badge-light-warning"
-              : "badge badge-light-primary";
-
-          const root = ReactDOM.createRoot(td);
-          root.render(<span className={cls}>{nombreEstado}</span>);
+        createdCell: (cell, _, rowData) => {
+          const container = document.createElement("span");
+          (cell as HTMLElement).innerHTML = "";
+          cell.appendChild(container);
+          type Estado = { nombre?: string };
+          const estadoObj: Estado = (rowData as { estado?: Estado }).estado || {};
+          const nombre: string = estadoObj.nombre ?? "N/A";
+          const badgeClassMap: Record<string, string> = {
+            activo: "badge-light-success",
+            pendiente: "badge-light-warning",
+          };
+          const badgeClass =
+            badgeClassMap[nombre.toLowerCase()] || "badge-light-primary";
+          const root = ReactDOM.createRoot(container);
+          root.render(<span className={`badge ${badgeClass}`}>{nombre}</span>);
         },
       });
     }
 
-    // Acciones
-    const actionRoots: ReactDOM.Root[] = [];
-    dtColumns.push({
+    // Actions column
+    cols.push({
       title: "Acciones",
       data: null,
       orderable: false,
       searchable: false,
-      defaultContent: "<div></div>",
-      createdCell: (cell: Node, _cd, rd) => {
-        const td = cell as HTMLTableCellElement;
-        td.innerHTML = "";
-        const root = ReactDOM.createRoot(td);
-        actionRoots.push(root);
+      createdCell: (cell, _, rowData) => {
+        const container = document.createElement("div");
+        (cell as HTMLElement).innerHTML = "";
+        cell.appendChild(container);
+        const root = ReactDOM.createRoot(container);
         root.render(
           <ActionButtons
-            rowData={rd}
-            onEdit={() => onEdit(rd)}
-            onDelete={() => onDelete(rd)}
+            rowData={rowData as T}
+            onEdit={() => onEdit(rowData as T)}
+            onDelete={() => onDelete(rowData as T)}
           />
         );
       },
     });
 
-    // Inicializar DataTable
-    const table = $(tableRef.current).DataTable({
+    return cols;
+  }, [
+    columnKeys,
+    labelMap,
+    customRenderers,
+    includeEstadoColumn,
+    includeReferenceColumn,
+    onEdit,
+    onDelete,
+  ]);
+
+  // Initialize DataTable once
+  useEffect(() => {
+    const tableEl = tableRef.current;
+    if (!tableEl) return;
+
+    // Destroy old instance if any
+    if ($.fn.dataTable.isDataTable(tableEl)) {
+      $(tableEl).DataTable().destroy();
+      $(tableEl).empty();
+    }
+
+    $(tableEl).DataTable({
       data,
       columns: dtColumns,
       columnDefs: [{ targets: "_all", className: "text-center" }],
@@ -170,30 +172,33 @@ export function GenericDataTable<T>({
       destroy: true,
     });
 
-    // Click en fila
-    $(tableRef.current).off("click", "tbody tr");
-    $(tableRef.current).on("click", "tbody tr", function () {
-      const row = table.row(this);
-      if (row.any()) {
-        setSelectedData(row.data() as Record<string, unknown>);
-        setShowInfoModal(true);
-      }
-    });
+    // Row click handler
+    const table = $(tableEl).DataTable();
+    $(tableEl)
+      .off("click", "tbody tr")
+      .on("click", "tbody tr", function () {
+        const row = table.row(this);
+        if (row.any()) {
+          setDetailData(row.data() as Record<string, unknown>);
+          setShowInfo(true);
+        }
+      });
+  }, [dtColumns]);
 
-    return () => {
-      table.destroy();
-      setTimeout(() => {
-        actionRoots.forEach((r) => r.unmount());
-      }, 0);
-    };
-  }, [ data ]);
+  // Update rows when data changes
+  useEffect(() => {
+    const tableEl = tableRef.current;
+    if (!tableEl || !$.fn.dataTable.isDataTable(tableEl)) return;
+    const table = $(tableEl).DataTable();
+    table.clear().rows.add(data).draw();
+  }, [data]);
 
   return (
     <>
       <InfoModal
-        show={showInfoModal}
-        onHide={() => setShowInfoModal(false)}
-        data={selectedData}
+        show={showInfo}
+        onHide={() => setShowInfo(false)}
+        data={detailData}
         labelMap={labelMap}
       />
       <div className="card shadow-sm mt-5">

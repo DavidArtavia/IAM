@@ -54,23 +54,21 @@ namespace API.Controllers
             return respuesta;
         }
 
-        //[Authorize(Roles = "1")]
-        //[Produces("application/json")]
-        //[Route("obtenerNegocios")]
-        //[HttpPost]
-        //public DTO_Respuesta obtenerNegocios()
-        //{
-        //    try
-        //    {
-        //        DTO_Usuario usuario = new();
-        //        usuario.ID_Usuario = Convert.ToInt32(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
-        //        respuesta = bLL_Negocio.obtenerNegocios(usuario);
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        respuesta = manejoError.errorNoControlado(ex);
-        //    }
-        //    return respuesta;
-        //}
+        [Authorize(Roles = "1")]
+        [Produces("application/json")]
+        [Route("obtenerOrdenDeServicio")]
+        [HttpPost]
+        public DTO_Respuesta obtenerOrdenDeServicio(DTO_Negocio negocio)
+        {
+            try
+            {
+                respuesta = bLL_OrdenServicio.obtenerOrdenDeServicio(negocio);
+            }
+            catch (Exception ex)
+            {
+                respuesta = manejoError.errorNoControlado(ex);
+            }
+            return respuesta;
+        }
     }
 }

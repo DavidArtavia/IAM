@@ -21,10 +21,6 @@ namespace BLL
                 throw new Exception(respuesta.Mensaje);
             return respuesta;
         }
-        public DTO_Respuesta obtenerOrdenesServicio(DTO_Usuario usuario)
-        {
-            return dal_OrdenServicio.obtenerOrdenesServicio(usuario);
-        }
         public async Task<DTO_Respuesta> actualizarOrdenServicio(DTO_OrdenServicio ordenServicio)
         {
             respuesta = await dal_OrdenServicio.actualizarOrdenServicio(ordenServicio);
@@ -36,6 +32,13 @@ namespace BLL
         public async Task<DTO_Respuesta> buscarOrdenServicio(DTO_OrdenServicio ordenServicio, DTO_Cliente cliente)
         {
             respuesta = await dal_OrdenServicio.buscarOrdenServicio(ordenServicio, cliente);
+            if (!respuesta.TipoRespuesta)
+                throw new Exception(respuesta.Mensaje);
+            return respuesta;
+        } 
+        public DTO_Respuesta obtenerOrdenDeServicio(DTO_Negocio negocio)
+        {
+            respuesta = dal_OrdenServicio.obtenerOrdenDeServicio(negocio);
             if (!respuesta.TipoRespuesta)
                 throw new Exception(respuesta.Mensaje);
             return respuesta;

@@ -27,7 +27,7 @@ export const columnKeysOrdenDeServicio: (keyof DTO_OrdenServicio)[] = [
     "fechaInicio",
     "fechaFinal",
     "fechaEntrega",
-    "referenciaJSON",
+    // "referenciaJSON",
     "notaOrdenServicio"
 ];
 
@@ -56,7 +56,6 @@ export const labelMapNegocio: Record<string, string> = {
     correoNegocio: "Correo",
     fechaRegistro: "Registrado",
     referenciaJSON: "Referencias",
-    //    "referenciaJSON.Valor": "Valor",
 };
 
 export const labelMapOrdenDeServicio: Record<string, string> = {
@@ -66,6 +65,7 @@ export const labelMapOrdenDeServicio: Record<string, string> = {
     fechaFinal: "Fecha Final",
     fechaEntrega: "Fecha de Entrega",
     notaOrdenServicio: "Nota",
+    referenciaJSON: "Referencias"
 };
 
 // Exportación de los campos del formulario editar para los modelos

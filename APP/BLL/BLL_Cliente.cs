@@ -12,6 +12,12 @@ namespace BLL
     {
         DAL_Cliente dAL_Cliente = new DAL_Cliente();
         DTO_Respuesta respuesta = new();
+
+        public DTO_Respuesta obtenerClientes()
+        {
+
+            return dAL_Cliente.obtenerClientes();
+        }
         public async Task<DTO_Respuesta> buscarCliente(DTO_Cliente cliente)
         {
             respuesta = await dAL_Cliente.buscarCliente(cliente);
@@ -19,6 +25,13 @@ namespace BLL
                 throw new Exception(respuesta.Mensaje);
             return respuesta;
         }
+
+        public async Task<List<DTO_Cliente>> BuscarClientesAsync(DTO_SolicitudDeBusquedaDeCliente solicitud, DTO_Usuario usuario)
+        {
+            // Removed unnecessary assignment to 'lista'
+            return await dAL_Cliente.BuscarClientesAsync(solicitud, usuario);
+        }
+
 
         public async Task<DTO_Respuesta> guardarCliente(DTO_Usuario usuario, DTO_Cliente cliente)
         {

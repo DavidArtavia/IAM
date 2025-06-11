@@ -75,6 +75,7 @@ INSERT INTO [UTIL].[TBL_ALERTAS] ([COD_ALERTA], [Nombre], [Mensaje], [Tipo]) VAL
 ('B025', N'Actualizar OrdenServicio', N'No se realizaron cambios en la orden de servicio.', 'I')
 ('B026', N'Negocio', N'Negocio eliminado correctamente.', 'I'),
 ('B027', N'Cliente', N'Cliente eliminado correctamente.', 'I')
+('B028', N'Obtener OrdenDeServicios', N'Órdenes obtenidas correctamente.', 'I')
 
 GO
 

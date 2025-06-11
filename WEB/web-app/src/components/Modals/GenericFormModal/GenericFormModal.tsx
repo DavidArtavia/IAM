@@ -32,7 +32,7 @@ export const GenericFormModal = <T,>({
   if (!show) return null;
 
   const renderField = (field: FieldConfig<T>, idx: number) => {
-    const { key, label, type = "text", options } = field;
+    const { key, label, type = "text", options, renderer } = field;
     const rawVal = data[key];
     const displayVal =
       type === "number" || type === "date"
@@ -59,29 +59,45 @@ export const GenericFormModal = <T,>({
     };
 
     let element;
-    if (type === "textarea") {
+    // **1) Caso custom: delegamos al renderer**
+    if (type === "custom" && renderer) {
+      element = renderer({
+        value: data[key],
+        onChange: (opt: unknown) => {
+          setData({ ...data, [key]: opt as T[typeof key] });
+          handleBlur(key);
+        },
+      });
+
+    // 2) textarea
+    } else if (type === "textarea") {
       element = <textarea {...baseProps} />;
+
+    // 3) select normal
     } else if (type === "select") {
       element = (
         <select {...baseProps}>
           <option value="">– Seleccione –</option>
-          {options?.map((opt) => (
+          {options?.map(opt => (
             <option key={String(opt.value)} value={String(opt.value)}>
               {opt.label}
             </option>
           ))}
         </select>
       );
+
+    // 4) input text|number|date
     } else {
-      element = <input type={type} {...baseProps} />;
+      element = <input type={type} {...(baseProps)} />;
     }
 
-    const wrapperClass =
-      idx < 2 ? "col-md-6 fv-row" : "d-flex flex-column mb-5 fv-row";
-    const labelClass =
-      idx < 2
-        ? "required fs-5 fw-bold mb-2"
-        : "required fs-5 fw-bold mb-2 mt-6";
+  const wrapperClass =
+    idx < 2 ? "col-md-6 fv-row" : "d-flex flex-column mb-5 fv-row";
+  const labelClass =
+    idx < 2
+      ? "required fs-5 fw-bold mb-2"
+      : "required fs-5 fw-bold mb-2 mt-6";
+
 
     return (
       <div className={wrapperClass} key={String(key)}>

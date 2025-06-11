@@ -32,4 +32,10 @@ export const API_ENDPOINTS = {
         ADD_ORDER: "/OrdenServicio/registrarOrdenServicio",
         UPDATE_ORDER: "/OrdenServicio/actualizarOrdenServicio",
     },
+    CLIENTS: {
+        GET_CLIENTS: "Cliente/obtenerClientes",
+        SEARCH_CLIENTS: "/Cliente/buscarClientes",
+        ADD_CLIENT: "/Cliente/registrarCliente",
+        UPDATE_CLIENT: "/Cliente/actualizarCliente",
+    },
 } as const;

@@ -1,6 +1,9 @@
+import { DTO_Estado } from "./DTO_Estado";
+
 export class DTO_Cliente {
-    id_Cliente: number = 0;
-    id_Usuario: number = 0; // Corresponde al ID de Usuario (FK)
+    iD_Cliente: number = 0;
+    iD_Usuario: number = 0; // Corresponde al ID de Usuario (FK)
+    Estado : DTO_Estado = new DTO_Estado(); // Corresponde al ID de Estado (FK)
     nombreCliente: string = "";
     apellidoCliente: string = "";
     telefonoCliente: string = "";
