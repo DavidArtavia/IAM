@@ -17,6 +17,34 @@ declare global {
 }
 
 export const LayoutMain = () => {
+
+
+useEffect(() => {
+  // Este useEffect habilita el sonido de la notificación previamente
+  const habilitarSonido = () => {
+    try {
+      const audioTemp = new Audio("../../assets/media/audios/Monitor.mp3");
+      audioTemp.play().then(() => {
+        audioTemp.pause();
+        audioTemp.currentTime = 0;
+      }).catch(() => {});
+    } catch (err) {
+      // Captura errores inesperados en caso de fallo de Audio
+      console.warn("⚠️ Error al intentar habilitar el sonido:", err);
+    }
+
+    // Quitamos el listener
+    window.removeEventListener("click", habilitarSonido);
+  };
+
+  window.addEventListener("click", habilitarSonido);
+  return () => window.removeEventListener("click", habilitarSonido);
+}, []);
+
+
+
+
+
   const { user } = useContext(AuthContext);
   const asideRef = useRef<HTMLDivElement>(null);
   const { pathname } = useLocation();
@@ -112,9 +140,8 @@ export const LayoutMain = () => {
               <div className="menu-item py-2">
                 <Link
                   to={ROUTES.HOME}
-                  className={`menu-link menu-center${
-                    pathname === ROUTES.HOME ? " active" : ""
-                  }`}
+                  className={`menu-link menu-center${pathname === ROUTES.HOME ? " active" : ""
+                    }`}
                   data-bs-trigger="hover"
                   data-bs-dismiss="click"
                   data-bs-placement="right"
@@ -129,9 +156,8 @@ export const LayoutMain = () => {
               <div className="menu-item py-2">
                 <Link
                   to={ROUTES.CHAT_AI}
-                  className={`menu-link menu-center${
-                    pathname === ROUTES.CHAT_AI ? " active" : ""
-                  }`}
+                  className={`menu-link menu-center${pathname === ROUTES.CHAT_AI ? " active" : ""
+                    }`}
                   data-bs-trigger="hover"
                   data-bs-dismiss="click"
                   data-bs-placement="right"
@@ -146,9 +172,8 @@ export const LayoutMain = () => {
               <div className="menu-item py-2">
                 <Link
                   to={ROUTES.NEGOCIO}
-                  className={`menu-link menu-center${
-                    pathname === ROUTES.NEGOCIO ? " active" : ""
-                  }`}
+                  className={`menu-link menu-center${pathname === ROUTES.NEGOCIO ? " active" : ""
+                    }`}
                   data-bs-trigger="hover"
                   data-bs-dismiss="click"
                   data-bs-placement="right"
@@ -163,9 +188,8 @@ export const LayoutMain = () => {
               <div className="menu-item py-2">
                 <Link
                   to={ROUTES.CUENTAS}
-                  className={`menu-link menu-center${
-                    pathname === ROUTES.CUENTAS ? " active" : ""
-                  }`}
+                  className={`menu-link menu-center${pathname === ROUTES.CUENTAS ? " active" : ""
+                    }`}
                   data-bs-trigger="hover"
                   data-bs-dismiss="click"
                   data-bs-placement="right"
@@ -180,26 +204,24 @@ export const LayoutMain = () => {
               <div className="menu-item py-2">
                 <Link
                   to={ROUTES.SERVICE_ORDER}
-                  className={`menu-link menu-center${
-                    pathname === ROUTES.SERVICE_ORDER ? " active" : ""
-                  }`}
+                  className={`menu-link menu-center${pathname === ROUTES.SERVICE_ORDER ? " active" : ""
+                    }`}
                   data-bs-trigger="hover"
                   data-bs-dismiss="click"
                   data-bs-placement="right"
                 >
-                    <span className="menu-icon me-0">
+                  <span className="menu-icon me-0">
                     <i className="bi bi-clipboard-check fs-2" />
-                    </span>
-                    <span className="menu-title">Ordenes</span>
+                  </span>
+                  <span className="menu-title">Ordenes</span>
                 </Link>
               </div>
 
               <div className="menu-item py-2">
                 <Link
                   to={ROUTES.MONITOR}
-                  className={`menu-link menu-center${
-                    pathname === ROUTES.MONITOR ? " active" : ""
-                  }`}
+                  className={`menu-link menu-center${pathname === ROUTES.MONITOR ? " active" : ""
+                    }`}
                   data-bs-trigger="hover"
                   data-bs-dismiss="click"
                   data-bs-placement="right"

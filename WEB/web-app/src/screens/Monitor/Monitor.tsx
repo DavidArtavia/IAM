@@ -1,15 +1,113 @@
+import React, { useEffect, useRef, useState } from "react";
+import * as signalR from "@microsoft/signalr";
+import sonidoMonitor from "../../assets/media/audios/Monitor.mp3";
+import { notificationHelpers } from "@/utils"
+
 export const Monitor = () => {
+  const [mensajes, setMensajes] = useState<string[]>([]);
+  const [estadoConexion, setEstadoConexion] = useState("Desconectado");
+  const connectionRef = useRef<signalR.HubConnection | null>(null);
+  const audio = useRef(new Audio(sonidoMonitor)); // evitar crear múltiples instancias
+  const token = localStorage.getItem("accesToken");
+  // Solicitar permiso para notificaciones una sola vez
+  useEffect(() => {
+    if (Notification.permission !== "granted") {
+      Notification.requestPermission();
+    }
+  }, []);
+
+ useEffect(() => {
+  let connection: signalR.HubConnection;
+
+  const iniciarConexion = async () => {
+    
+    if (!token) {
+      console.warn("⚠️ Token no disponible.");
+      return;
+    }
+
+    // Detener conexión previa si existe
+    if (connectionRef.current) {
+      console.log("🔁 Deteniendo conexión previa...");
+      await connectionRef.current.stop();
+      connectionRef.current = null;
+    }
+
+    connection = new signalR.HubConnectionBuilder()
+      .withUrl("https://localhost:44330/hub/monitorOSHub", {
+        accessTokenFactory: () => token,
+      })
+      .withAutomaticReconnect()
+      .build();
+
+    connectionRef.current = connection;
+
+    const onMensaje = (mensaje: string) => {
+      setMensajes((prev) => [...prev, mensaje]);
+      notificationHelpers.infoAlert("Orden de servicio modificada");
+
+      if (Notification.permission === "granted") {
+        new Notification("📢 Nuevo mensaje", {
+          body: mensaje,
+          icon: "/assets/media/icons/ni.ico",
+          silent: true
+        });
+      }
+
+      audio.current.play().catch((err) => {
+        console.warn("🔇 No se pudo reproducir el audio:", err);
+      });
+    };
+
+    connection.on("RecibirNotificacion", onMensaje);
+
+    connection.onreconnecting(() => {setEstadoConexion("Reconectando..."); notificationHelpers.infoAlert("Monitor desconectado");});
+    connection.onreconnected(() => {setEstadoConexion("Conectado"); notificationHelpers.successAlert(`Monitor Conectado`);});
+    connection.onclose(() => {setEstadoConexion("Desconectado"); notificationHelpers.infoAlert("Monitor desconectado"); });
+  
+    try {
+      await connection.start();
+      notificationHelpers.successAlert(`Monitor Conectado`);
+      setEstadoConexion("Conectado");
+    } catch (err: any) {
+      
+      setEstadoConexion("Error");
+
+      if (err.name === "AbortError") {
+        setTimeout(() => iniciarConexion(), 1500);
+      }
+    }
+  };
+
+  iniciarConexion();
+
+  // Cleanup al desmontar la vista
+  return () => {
+    if (connectionRef.current) {
+      
+      connectionRef.current.stop().then(() => {
+        connectionRef.current = null;
+        setEstadoConexion("Desconectado");
+      });
+    }
+  };
+}, []);
+
   return (
     <div id="kt_content_container" className="container-xxl">
 
-<div className="d-flex flex-wrap flex-stack pt-10 pb-8">
+      <div className="d-flex flex-wrap flex-stack pt-10 pb-8">
 
-  <h3 className="fw-bolder my-2">
-    Taller Mata
-    <span className="fs-6 text-gray-400 fw-bold ms-1">En línea</span>
-  </h3>
+        <h3 className="fw-bolder my-2">
+          
+          <span style={{marginRight: '5px',marginBottom: '-5px'}} className={`badge badge-circle ${(estadoConexion === "Conectado") ? " badge-success" : " badge-danger"}`}> </span>
+          Taller Mata
+          <span className="fs-6 text-gray-400 fw-bold ms-1">
+           
+            {estadoConexion}</span>
+        </h3>
 
-</div>
+      </div>
 
 
       <div className="tab-content">
