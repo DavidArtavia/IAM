@@ -49,17 +49,22 @@ export function GenericDataTable<T>({
     const cols: ColumnSettings[] = [];
 
     // Verificar qué columnas realmente existen en los datos
-    const availableKeys =
-      data.length > 0
-        ? Object.keys(data[0] as Record<string, unknown>)
-        : columnKeys.map(String);
+    // const availableKeys =
+    //   data.length > 0
+    //     ? Object.keys(data[0] as Record<string, unknown>)
+    //     : columnKeys.map(String);
+
+    const availableKeys = data.reduce<Set<string>>((set, row) => {
+      Object.keys(row as Record<string, unknown>).forEach((k) => set.add(k));
+      return set;
+    }, new Set<string>());
 
     // Base columns - solo incluir las que existen en los datos
     columnKeys.forEach((key) => {
       const keyStr = String(key);
 
       // Solo agregar la columna si existe en los datos o si no hay datos aún
-      if (data.length === 0 || availableKeys.includes(keyStr)) {
+      if (data.length === 0 || availableKeys.has(keyStr)) {
         const col: ColumnSettings = {
           title: labelMap[keyStr] || keyStr,
           data: keyStr,
@@ -191,7 +196,7 @@ export function GenericDataTable<T>({
     const tableEl = tableRef.current;
     if (!tableEl) return;
 
-    // Destroy old instance if any
+    // Destroy old instance if 
     if ($.fn.dataTable.isDataTable(tableEl)) {
       $(tableEl).DataTable().destroy();
       $(tableEl).empty();

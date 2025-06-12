@@ -30,7 +30,7 @@ export const Negocio = () => {
   const [formData, setFormData] = useState<DTO_Negocio>(new DTO_Negocio());
 
   // === Modal “Editar” (Genérico) ===
-  const [showBusiness, setShowBusinessModal] = useState(false);
+  const [showModalUpdateBusiness, setShowModalUpdateBusiness] = useState(false);
   const [editData, setEditData] = useState<DTO_Negocio | null>(null);
   const [rowBusinessSelected, setRowBusinessSelected] =
     useState<DTO_Negocio | null>(null);
@@ -101,7 +101,7 @@ export const Negocio = () => {
   const handleEdit = (rowData: DTO_Negocio) => {
     setRowBusinessSelected(rowData);
     setEditData({ ...rowData });
-    setShowBusinessModal(true);
+    setShowModalUpdateBusiness(true);
   };
 
   const handleSaveBusiness = (updatedData: DTO_Negocio) => {
@@ -121,7 +121,7 @@ export const Negocio = () => {
           "Negocio actualizado correctamente";
         notificationHelpers.successAlert(mensaje);
         refetchAccounts();
-        setShowBusinessModal(false);
+        setShowModalUpdateBusiness(false);
       },
       error: (err) => errorHelpers.serverError(err),
     });
@@ -218,8 +218,8 @@ export const Negocio = () => {
         {/* ====== Modal Genérico: Editar Cuenta por Pagar ====== */}
         <GenericFormModal<DTO_Negocio>
           title="Editar datos del Negocio"
-          show={showBusiness}
-          onHide={() => setShowBusinessModal(false)}
+          show={showModalUpdateBusiness}
+          onHide={() => setShowModalUpdateBusiness(false)}
           data={editData!}
           setData={(x) => setEditData(x as DTO_Negocio)}
           onSubmit={() => {

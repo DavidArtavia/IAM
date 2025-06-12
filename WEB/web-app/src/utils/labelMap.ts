@@ -36,7 +36,8 @@ export const columnKeysInfoModalOrdenDeServicio: (keyof DTO_OrdenServicio)[] = [
     "fechaEstimadaEntrega",
     "notaOrdenServicio",
     "referenciaJSON",
-    "estado"
+    "estado",
+    
 ];
 export const columnKeysInfoModalNegocio: (keyof DTO_Negocio)[] = [
 
