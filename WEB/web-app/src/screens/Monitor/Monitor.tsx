@@ -1,15 +1,18 @@
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import * as signalR from "@microsoft/signalr";
 import sonidoMonitor from "../../assets/media/audios/Monitor.mp3";
-import { notificationHelpers } from "@/utils"
+import { notificationHelpers } from "@/utils";
 
 export const Monitor = () => {
   const [mensajes, setMensajes] = useState<string[]>([]);
   const [estadoConexion, setEstadoConexion] = useState("Desconectado");
   const connectionRef = useRef<signalR.HubConnection | null>(null);
-  const audio = useRef(new Audio(sonidoMonitor)); // evitar crear múltiples instancias
-  const token = localStorage.getItem("accesToken");
-  // Solicitar permiso para notificaciones una sola vez
+  const audio = useRef(new Audio(sonidoMonitor));
+  const intentoRef = useRef(false);
+  const abortedRef = useRef(false);
+
+  const getToken = () => localStorage.getItem("accesToken") || "";
+
   useEffect(() => {
     if (Notification.permission !== "granted") {
       Notification.requestPermission();
@@ -17,89 +20,136 @@ export const Monitor = () => {
   }, []);
 
   useEffect(() => {
-    let connection: signalR.HubConnection;
+    // 🔄 Resetear el flag en cada montaje
+    abortedRef.current = false;
+
+    let retryTimeout: any;
+
+    const limpiarConexion = async () => {
+      if (connectionRef.current) {
+        connectionRef.current.off("RecibirNotificacion");
+        try { await connectionRef.current.stop(); } catch {}
+        connectionRef.current = null;
+      }
+    };
+
+    const construirConexion = () =>
+      new signalR.HubConnectionBuilder()
+        .withUrl("https://localhost:44330/hub/monitorOSHub", {
+          accessTokenFactory: () => getToken(),
+          withCredentials: true,
+        })
+        .configureLogging(signalR.LogLevel.None)
+        .build();
 
     const iniciarConexion = async () => {
+      if (abortedRef.current || intentoRef.current) return;
+      intentoRef.current = true;
 
+      await limpiarConexion();
+      if (abortedRef.current) { intentoRef.current = false; return; }
+
+      const token = getToken();
       if (!token) {
-        console.warn("⚠️ Token no disponible.");
+        notificationHelpers.errorAlert("Token no disponible.");
+        intentoRef.current = false;
         return;
       }
 
-      // Detener conexión previa si existe
-      if (connectionRef.current) {
-        //console.log("🔁 Deteniendo conexión previa...");
-        await connectionRef.current.stop();
-        connectionRef.current = null;
-      }
-
-      connection = new signalR.HubConnectionBuilder()
-        .withUrl("https://localhost:44330/hub/monitorOSHub", {
-          accessTokenFactory: () => token,
-          withCredentials: true 
-        })
-        .configureLogging(signalR.LogLevel.None)
-        .withAutomaticReconnect({
-          nextRetryDelayInMilliseconds: (retryContext) => {
-            const delays = [1000, 2000, 5000, 10000];
-            return delays[retryContext.previousRetryCount] ?? 10000;
-          }
-        })
-        .build();
-
+      const connection = construirConexion();
       connectionRef.current = connection;
 
-      const onMensaje = (mensaje: string) => {
-        setMensajes((prev) => [...prev, mensaje]);
+      connection.on("RecibirNotificacion", msg => {
+        if (abortedRef.current) return;
+        setMensajes(prev => [...prev, msg]);
         notificationHelpers.infoAlert("Orden de servicio modificada");
-
         if (Notification.permission === "granted") {
-          new Notification("📢 Nuevo mensaje", {
-            body: mensaje,
-            icon: "/assets/media/icons/ni.ico",
-            silent: true
-          });
+          new Notification("📢 Nuevo mensaje", { body: msg, silent: true });
         }
+        audio.current.play().catch(() => {});
+      });
 
-        audio.current.play().catch(() => {
-          //console.warn("🔇 No se pudo reproducir el audio:", err);
-        });
-      };
+      connection.onreconnecting(() => {
+        if (abortedRef.current) return;
+        setEstadoConexion("Reconectando...");
+      });
 
-      connection.on("RecibirNotificacion", onMensaje);
+      connection.onreconnected(() => {
+        if (abortedRef.current) return;
+        setEstadoConexion("Conectado");
+        notificationHelpers.successAlert("Reconectado al monitor");
+      });
 
-      connection.onreconnecting(() => { setEstadoConexion("Reconectando..."); notificationHelpers.infoAlert("Monitor desconectado"); });
-      connection.onreconnected(() => { setEstadoConexion("Conectado"); notificationHelpers.successAlert(`Monitor Conectado`); });
-      connection.onclose(() => { setEstadoConexion("Desconectado"); notificationHelpers.infoAlert("Monitor desconectado"); });
+      connection.onclose(async error => {
+        if (abortedRef.current) return;
+        setEstadoConexion("Desconectado");
+        notificationHelpers.errorAlert("Monitor desconectado");
+
+        // renovar token si viene en el error
+        if (error?.message.includes('"accesToken"')) {
+          const m = error.message.match(/{.*}/s);
+          if (m) {
+            try {
+              const j = JSON.parse(m[0]);
+              const nt = j?.resultado?.[0]?.accesToken;
+              if (nt) {
+                localStorage.setItem("accesToken", nt);
+                await new Promise(r => setTimeout(r, 500));
+                if (!abortedRef.current) iniciarConexion();
+                intentoRef.current = false;
+                return;
+              }
+            } catch {}
+          }
+        }
+        if (!abortedRef.current) {
+          retryTimeout = setTimeout(iniciarConexion, 3000);
+        }
+      });
 
       try {
         await connection.start();
-        notificationHelpers.successAlert(`Monitor Conectado`);
+        if (abortedRef.current) { intentoRef.current = false; return; }
         setEstadoConexion("Conectado");
+        notificationHelpers.successAlert("Monitor conectado");
       } catch (err: any) {
-
+        if (abortedRef.current) { intentoRef.current = false; return; }
         setEstadoConexion("Error");
-
-        console.log('Error *****************');
-        console.log(err);
-
-        if (err.name === "AbortError") {
-          setTimeout(() => iniciarConexion(), 1500);
+        const msg = err.message as string;
+        if (msg.includes('"accesToken"')) {
+          const m = msg.match(/{.*}/s);
+          if (m) {
+            try {
+              const j = JSON.parse(m[0]);
+              const nt = j?.resultado?.[0]?.accesToken;
+              if (nt) {
+                localStorage.setItem("accesToken", nt);
+                await new Promise(r => setTimeout(r, 500));
+                if (!abortedRef.current) iniciarConexion();
+                intentoRef.current = false;
+                return;
+              }
+            } catch {}
+          }
         }
+        if (!abortedRef.current) {
+          retryTimeout = setTimeout(iniciarConexion, 3000);
+        }
+      } finally {
+        intentoRef.current = false;
       }
     };
 
     iniciarConexion();
 
-    // Cleanup al desmontar la vista
     return () => {
-      if (connectionRef.current) {
-
-        connectionRef.current.stop().then(() => {
-          connectionRef.current = null;
-          setEstadoConexion("Desconectado");
-        });
-      }
+      // Marcar abortado y limpiar timeouts/conexiones
+      abortedRef.current = true;
+      clearTimeout(retryTimeout);
+      limpiarConexion().then(() => {
+        setEstadoConexion("Desconectado");
+        notificationHelpers.infoAlert("Monitor cerrado al salir de la vista");
+      });
     };
   }, []);
 
