@@ -49,13 +49,17 @@ export const Login = () => {
       const user = respuesta.resultado[0] as DTO_Usuario
       //@ts-expect-error - Aqui se obtiene el token 
        const accesToken = respuesta.resultado[1].accesToken;
-      setUsuario(user);
-      login(user, accesToken);
+       localStorage.setItem("accesToken", accesToken);
+       setUsuario(user);
+       login(user, accesToken);
       
-      localStorage.setItem("accesToken", accesToken);
+      
       notificationHelpers.successAlert(`Hola ${user.nombreUsuario + " " + user.apellido}, bienvenido de nuevo 👋`)
       const lastPath = localStorage.getItem("lastPath") || ROUTES.HOME;
-      navigate(lastPath, { replace: true });
+      setTimeout(() => {
+        navigate(lastPath, { replace: true });
+      }, 200);
+      
     } else {
       //Controlamos el error del sistema
       errorHelpers.systemError(respuesta);

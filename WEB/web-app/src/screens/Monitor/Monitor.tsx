@@ -36,6 +36,7 @@ export const Monitor = () => {
       connection = new signalR.HubConnectionBuilder()
         .withUrl("https://localhost:44330/hub/monitorOSHub", {
           accessTokenFactory: () => token,
+          withCredentials: true 
         })
         .configureLogging(signalR.LogLevel.None)
         .withAutomaticReconnect({
@@ -78,6 +79,9 @@ export const Monitor = () => {
       } catch (err: any) {
 
         setEstadoConexion("Error");
+
+        console.log('Error *****************');
+        console.log(err);
 
         if (err.name === "AbortError") {
           setTimeout(() => iniciarConexion(), 1500);
