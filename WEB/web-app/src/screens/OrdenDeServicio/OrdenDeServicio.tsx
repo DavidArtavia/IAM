@@ -20,9 +20,7 @@ import {
 } from "@/utils";
 import { useEffect, useMemo, useState } from "react";
 
-/**
- * Genera una clave segura a partir de un nombre (para propiedades dinámicas).
- */
+/** Genera una clave segura a partir de un nombre (para campos dinámicos) */
 const generateSafeKey = (name: string) =>
   name
     .trim()
@@ -34,7 +32,9 @@ const generateSafeKey = (name: string) =>
  * Componente principal para gestionar la pantalla de Órdenes de Servicio.
  */
 export const OrdenDeServicio = () => {
-  // 1. Estados locales y hooks
+  // --------------------------------------------------
+  // 1. HOOKS Y ESTADOS
+  // --------------------------------------------------
   const [selectedBusiness, setSelectedBusiness] = useState<DTO_Negocio | null>(
     null
   );
@@ -44,23 +44,34 @@ export const OrdenDeServicio = () => {
   const [selectedClientOption, setSelectedClientOption] =
     useState<ClientOption | null>(null);
 
-  // 2. Estado para crear nueva orden
+  // Formulario “Registrar Orden” (fechas inician en null)
   const [isFormOpen, setIsFormOpen] = useState(false);
-  const [formData, setFormData] = useState<DTO_OrdenServicio>(
-    new DTO_OrdenServicio()
-  );
+  const [formData, setFormData] = useState<DTO_OrdenServicio>(() => {
+    const dto = new DTO_OrdenServicio();
+    dto.fechaInicio = null;
+    dto.fechaFinal = null;
+    dto.fechaEntrega = null;
+    dto.fechaEstimadaEntrega = null;
+    return dto;
+  });
 
-  // 3. Estado para editar orden existente
+  // Formulario “Editar Orden” (fechas inician en null)
   const [showEditForm, setShowEditForm] = useState(false);
-  const [editData, setEditData] = useState<DTO_OrdenServicio>(
-    new DTO_OrdenServicio()
-  );
+  const [editData, setEditData] = useState<DTO_OrdenServicio>(() => {
+    const dto = new DTO_OrdenServicio();
+    dto.fechaInicio = null;
+    dto.fechaFinal = null;
+    dto.fechaEntrega = null;
+    dto.fechaEstimadaEntrega = null;
+    return dto;
+  });
 
-  // 4. Cargar órdenes al seleccionar un negocio
+  // --------------------------------------------------
+  // 2. EFECTO: CARGAR ÓRDENES CUANDO CAMBIA selectedBusiness
+  // --------------------------------------------------
   useEffect(() => {
     if (!selectedBusiness) return;
     setLoading(true);
-
     const sub = ordenesService
       .obtenerOrdensDeServicio(selectedBusiness)
       .subscribe({
@@ -71,17 +82,17 @@ export const OrdenDeServicio = () => {
         error: (err) => errorHelpers.serverError(err),
         complete: () => setLoading(false),
       });
-
     return () => sub.unsubscribe();
   }, [selectedBusiness]);
 
-  // Maneja la selección de un negocio
+  // --------------------------------------------------
+  // 3. HANDLERS BÁSICOS
+  // --------------------------------------------------
   const handleSelectBusiness = (neg: DTO_Negocio) => {
     setSelectedBusiness(neg);
     setDisableButtonAdd(false);
   };
 
-  // 5. Abrir formulario de nueva orden e inicializar referenciaJSON
   const handleAddNew = () => {
     if (!selectedBusiness) return;
     const initial = new DTO_OrdenServicio();
@@ -90,36 +101,45 @@ export const OrdenDeServicio = () => {
         nombre: r.nombre,
         valor: "",
       })) || [];
+    // Fechas opcionales arrancan en null (input date vacío)
+    initial.fechaInicio = null;
+    initial.fechaFinal = null;
+    initial.fechaEntrega = null;
+    initial.fechaEstimadaEntrega = null;
     setFormData(initial);
     setSelectedClientOption(null);
     setIsFormOpen(true);
   };
 
-  // 7. Guardar nueva orden
+  // --------------------------------------------------
+  // 4. GUARDAR NUEVA ORDEN
+  // --------------------------------------------------
   const handleSave = () => {
     if (!selectedBusiness) return;
-    formData.iD_Negocio = selectedBusiness.iD_Negocio;
-    // formData.fechaOrdenServicio = new Date();
-    // const sanitized = { ...formData } as any;
-    // const todayIso = new Date().toISOString().slice(0, 10);
-    // [
-    //   "fechaInicio",
-    //   "fechaFinal",
-    //   "fechaEntrega",
-    //   "fechaEstimadaEntrega",
-    // ].forEach((key) => {
-    //   const raw = sanitized[key] as string | undefined;
-    //   const d = raw ? new Date(raw) : null;
-    //   if (!d || isNaN(d.getTime()) || d.getFullYear() < 1753) {
-    //     sanitized[key] = todayIso;
-    //   }
-    // });
+    const toSave: any = { ...formData };
+    toSave.iD_Negocio = selectedBusiness.iD_Negocio;
+    toSave.fechaOrdenServicio = new Date();
 
-    ordenesService.registrarOrdensDeServicio(formData).subscribe({
+    // Solo convertir a Date si el usuario tipeó algo, sino null
+    [
+      "fechaInicio",
+      "fechaFinal",
+      "fechaEntrega",
+      "fechaEstimadaEntrega",
+    ].forEach((key) => {
+      const raw = (toSave[key] as string | null) ?? null;
+      if (raw) {
+        const d = new Date(raw);
+        toSave[key] = !isNaN(d.getTime()) && d.getFullYear() >= 1753 ? d : null;
+      } else {
+        toSave[key] = null;
+      }
+    });
+
+    ordenesService.registrarOrdensDeServicio(toSave).subscribe({
       next: (res) => {
         notificationHelpers.successAlert((res as DTO_Respuesta).mensaje);
         setIsFormOpen(false);
-        // Recargar lista
         setOrdenes((prev) => [
           ...((res as DTO_Respuesta).resultado as DTO_OrdenServicio[]),
           ...prev,
@@ -129,64 +149,83 @@ export const OrdenDeServicio = () => {
     });
   };
 
-  // 8.  Menejo y edición de orden
+  // --------------------------------------------------
+  // 5. EDITAR ORDEN: preparar datos
+  // --------------------------------------------------
+  const normalizeIncomingDate = (raw?: string | Date | null): string | null => {
+    if (!raw) return null;
+    const date = typeof raw === "string" ? new Date(raw) : raw;
+    if (
+      !(date instanceof Date) ||
+      isNaN(date.getTime()) ||
+      date.getFullYear() < 1753
+    ) {
+      return null;
+    }
+    // Mantenemos el string original para que el <input type="date"> lo parsee bien
+    return typeof raw === "string" ? raw : date.toISOString();
+  };
   const handleEdit = (row: DTO_OrdenServicio) => {
     if (!selectedBusiness) return;
-    console.log("Editando orden:", row);
 
-    // 0) Limpiar la nota dejando solo lo que hay después de la última '|'
+    // Quitar todo antes de la última '|'
     const rawNote = row.notaOrdenServicio || "";
     const cleanedNote = rawNote.includes("|")
       ? rawNote.substring(rawNote.lastIndexOf("|") + 1).trim()
       : rawNote.trim();
-    // Prepara objeto de ediciónpas lo editado a referenciaJSON
-    const copy = { ...row, notaOrdenServicio: cleanedNote } as DTO_OrdenServicio;
-    copy.referenciaJSON =
-      row.referenciaJSON?.map((r) => ({ nombre: r.nombre, valor: r.valor })) ||
-      [];
-    setEditData(copy);
-    // Opcional: precargar cliente
-    // Extraer el nombre del cliente desde la nota, por ejemplo: "Cliente: nombre | ..."
+
+    const copy: any = {
+      ...row,
+      notaOrdenServicio: cleanedNote,
+      iD_Negocio: selectedBusiness.iD_Negocio,
+      fechaInicio: normalizeIncomingDate(row.fechaInicio),
+      fechaFinal: normalizeIncomingDate(row.fechaFinal),
+      fechaEntrega: normalizeIncomingDate(row.fechaEntrega),
+      fechaEstimadaEntrega: normalizeIncomingDate(row.fechaEstimadaEntrega),
+    };
+
+    // Pre-cargar cliente si aparece en la nota
     const clienteMatch = row.notaOrdenServicio.match(/Cliente:\s*([^|]+)/);
     const clienteNombre = clienteMatch ? clienteMatch[1].trim() : "";
     setSelectedClientOption({
       value: row.iD_Cliente || 0,
       label: clienteNombre,
     });
+
+    setEditData(copy);
     setShowEditForm(true);
   };
- 
 
+  // --------------------------------------------------
+  // 6. GUARDAR EDICIÓN
+  // --------------------------------------------------
   const handleSaveEdit = () => {
     if (!selectedBusiness) return;
+    const sanitized: any = { ...editData };
+    sanitized.iD_Negocio = selectedBusiness.iD_Negocio;
 
+    [
+      "fechaInicio",
+      "fechaFinal",
+      "fechaEntrega",
+      "fechaEstimadaEntrega",
+    ].forEach((key) => {
+      const raw = (sanitized[key] as string | null) ?? null;
+      if (raw) {
+        const d = dateHelpers.parseDateInput(raw as any);
+        sanitized[key] = d && d.getFullYear() >= 1753 ? d : null;
+      } else {
+        sanitized[key] = null;
+      }
+    });
 
-    // 1) Preparamos un objeto completamente nuevo, sin mutar editData
-    const sanitized: DTO_OrdenServicio = {
-      ...editData,
-      iD_Negocio: selectedBusiness.iD_Negocio,
-      fechaOrdenServicio: new Date(), // marca el momento de la edición
-
-      // parseamos cada campo de fecha a Date local a medianoche:
-      fechaInicio: dateHelpers.parseDateInput(editData.fechaInicio as any),
-      fechaFinal: dateHelpers.parseDateInput(editData.fechaFinal as any),
-      fechaEntrega: dateHelpers.parseDateInput(editData.fechaEntrega as any),
-      fechaEstimadaEntrega: dateHelpers.parseDateInput(
-        editData.fechaEstimadaEntrega as any
-      ),
-    };
-
-    // 2) Reflejamos ya en el modal
-    setEditData(sanitized);
-
-    // 3) Refrescamos la tabla al instante
+    // Refrescar tabla local
     setOrdenes((prev) =>
       prev.map((o) =>
         o.iD_OrdenServicio === sanitized.iD_OrdenServicio ? sanitized : o
       )
     );
 
-    // 4) Llamamos al servicio con los datos saneados
     ordenesService.actualizarOrdensDeServicio(sanitized).subscribe({
       next: (res: DTO_Respuesta) => {
         notificationHelpers.successAlert(res.mensaje);
@@ -196,26 +235,30 @@ export const OrdenDeServicio = () => {
     });
   };
 
-  // 9. Preparar datos para DataTable y modal de info
-  const tableConfig = useMemo(() => {
+  // --------------------------------------------------
+  // 7. CONFIGURACIÓN DE TABLA Y MODAL DE INFO
+  // --------------------------------------------------
+  const { data, columnKeys, labelMap, modalFields } = useMemo(() => {
     const referenceMap = new Map<string, string>();
+
     ordenes.forEach((o) =>
       o.referenciaJSON?.forEach((r) => {
         const key = generateSafeKey(r.nombre);
-        if (!referenceMap.has(r.nombre)) referenceMap.set(r.nombre, key);
+        if (!referenceMap.has(r.nombre)) {
+          referenceMap.set(r.nombre, key);
+        }
       })
     );
 
     const prepared = ordenes.map((o) => {
       const copy: any = { ...o };
       o.referenciaJSON?.forEach((r) => {
-        const key = referenceMap.get(r.nombre);
-        if (key) copy[key] = r.valor;
+        const key = referenceMap.get(r.nombre)!;
+        copy[key] = r.valor;
       });
       return copy;
     });
 
-    const refCols = Array.from(referenceMap.values());
     const extLabelMap = { ...labelMapOrdenDeServicio } as Record<
       string,
       string
@@ -224,13 +267,11 @@ export const OrdenDeServicio = () => {
       extLabelMap[safe] = raw;
     });
 
+    const refCols = Array.from(referenceMap.values());
     const finalKeys = [...columnKeysOrdenDeServicio.map(String), ...refCols];
     const staticKeys = columnKeysInfoModalOrdenDeServicio as string[];
     const dynKeys = finalKeys.filter((k) => !staticKeys.includes(k));
-    const modalFields = [
-      ...staticKeys,
-      ...dynKeys,
-    ] as (keyof DTO_OrdenServicio)[];
+    const modalFields = [...staticKeys, ...dynKeys];
 
     return {
       data: prepared,
@@ -240,14 +281,14 @@ export const OrdenDeServicio = () => {
     };
   }, [ordenes]);
 
-  const { data, columnKeys, labelMap, modalFields } = tableConfig;
-
-  // 10. Campos dinámicos de referenciaJSON para formularios
+  // --------------------------------------------------
+  // 8. BUILDER PARA CAMPOS DINÁMICOS referenceJSON
+  // --------------------------------------------------
   const buildRefFields = (item: DTO_OrdenServicio) =>
     item.referenciaJSON?.map((r, idx) => ({
       key: generateSafeKey(r.nombre) as keyof DTO_OrdenServicio,
       label: r.nombre,
-      type: "custom" as FieldConfig<DTO_OrdenServicio>["type"],
+      type: "custom" as const,
       renderer: () => (
         <input
           className="form-control"
@@ -255,21 +296,25 @@ export const OrdenDeServicio = () => {
           onChange={(e) => {
             const arr = [...(item.referenciaJSON || [])];
             arr[idx] = { nombre: r.nombre, valor: e.target.value };
-            if (item === formData)
+            if (item === formData) {
               setFormData({
                 ...item,
                 referenciaJSON: arr,
               } as DTO_OrdenServicio);
-            else
+            } else {
               setEditData({
                 ...item,
                 referenciaJSON: arr,
               } as DTO_OrdenServicio);
+            }
           }}
         />
       ),
     })) || [];
 
+  // --------------------------------------------------
+  // 9. CAMPOS PARA LOS FORMULARIOS (Registrar y Editar)
+  // --------------------------------------------------
   const newFormFields: FieldConfig<DTO_OrdenServicio>[] = [
     ...ordenServicioFormEditFields,
     {
@@ -305,11 +350,12 @@ export const OrdenDeServicio = () => {
         />
       ),
     },
-    // Campos dinámicos de referenciaJSON
     ...buildRefFields(editData),
   ];
 
-  // 11. Renderizado
+  // --------------------------------------------------
+  // 10. RENDERIZADO
+  // --------------------------------------------------
   return (
     <div className="row p-4 gx-0">
       <BusinessButtons
@@ -317,6 +363,7 @@ export const OrdenDeServicio = () => {
         selectedBusiness={selectedBusiness}
         handleSelectBusiness={handleSelectBusiness}
       />
+
       {loading ? (
         <div className="d-flex justify-content-center my-5">
           <span className="spinner-border" /> Cargando…
@@ -342,13 +389,12 @@ export const OrdenDeServicio = () => {
       ) : (
         <div className="d-flex justify-content-center my-5">
           <p className="text-muted">
-            Seleccione un negocio para ver las ordenes
+            Seleccione un negocio para ver las órdenes
           </p>
         </div>
       )}
 
-      {/* // 12. Modales para formularios */}
-      {/* // Modal Genérico: Registrar Orden de Servicio */}
+      {/* Modal Registrar */}
       <GenericFormModal<DTO_OrdenServicio>
         title="Registrar Orden"
         show={isFormOpen}
@@ -358,7 +404,8 @@ export const OrdenDeServicio = () => {
         onSubmit={handleSave}
         fields={newFormFields}
       />
-      {/* // Modal Genérico: Editar Orden de Servicio */}
+
+      {/* Modal Editar */}
       <GenericFormModal<DTO_OrdenServicio>
         title="Editar Orden de Servicio"
         show={showEditForm}
