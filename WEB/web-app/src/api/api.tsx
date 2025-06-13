@@ -1,22 +1,21 @@
+import axios, { AxiosResponse } from "axios";
 import { API_ENDPOINTS } from "@/constants/apiEndPoints";
 import { STATUS } from "@/constants/status";
 import { logoutUser } from "@/utils/authHelpers";
-import axios from "axios";
 
 export const api = axios.create({
   baseURL: API_ENDPOINTS.BASE_URL,
   withCredentials: true,
-  timeout: 10000,
+  timeout: 1500000,
   headers: {
     "Content-Type": "application/json",
   },
 });
 
-// Interceptor de solicitud
+// Interceptor de solicitud: adjunta el token
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('accesToken');
-
+    const token = localStorage.getItem("accesToken");
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -25,18 +24,43 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
+// Interceptor de respuesta
 api.interceptors.response.use(
-  r => r,
-  err => {
-    const cfg: import("axios").AxiosRequestConfig = err.config;
-    // si pediste skipAuthHandler, aquí no forzamos logoutUser()
-    if (cfg.skipAuthHandler) return Promise.reject(err);
+  (res: AxiosResponse) => res,
+  async (error) => {
+    const originalRequest = error.config;
 
-    // solo en el error 401 forzamos logoutUser()
-    if ([STATUS.UNAUTHORIZED].includes(err.response?.status)) {
-      logoutUser();
+    // TIMEOUT
+    if (error.code === "ECONNABORTED") {
+      console.warn("⏱ Timeout excedido");
+      return Promise.reject(error);
     }
-    return Promise.reject(err);
+
+    // NETWORK ERROR sin respuesta
+    if (!error.response) {
+      console.warn("🌐 Network error sin response");
+      return Promise.reject(error);
+    }
+
+    // 401 → cerrar sesión
+    if (error.response.status === STATUS.UNAUTHORIZED) {
+      logoutUser();
+      return Promise.reject(error);
+    }
+
+    // 403 → posible renovación de token
+    if (error.response.status === 403 && !originalRequest._retry) {
+      originalRequest._retry = true;
+
+      const nuevoToken = error.response?.data?.resultado?.[0]?.accesToken;
+      if (nuevoToken) {
+        console.info("🔁 Token renovado automáticamente");
+        localStorage.setItem("accesToken", nuevoToken);
+        originalRequest.headers.Authorization = `Bearer ${nuevoToken}`;
+        return api(originalRequest); // 🔁 Reintenta la petición original
+      }
+    }
+
+    return Promise.reject(error);
   }
 );
-

@@ -95,7 +95,7 @@ namespace UTL
             {
                 HttpOnly = true,
                 Secure = true,
-                SameSite = SameSiteMode.Strict,
+                SameSite = SameSiteMode.None,
                 Expires = DateTime.UtcNow.AddDays(Convert.ToInt32(ConfigurationManager.AppSettings["SesionDaysExpiration"] ?? "7"))
             }; 
 

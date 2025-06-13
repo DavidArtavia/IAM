@@ -1,15 +1,174 @@
+import React, { useEffect, useRef, useState } from "react";
+import * as signalR from "@microsoft/signalr";
+import sonidoMonitor from "../../assets/media/audios/Monitor.mp3";
+import { notificationHelpers } from "@/utils";
+
 export const Monitor = () => {
+  const [mensajes, setMensajes] = useState<string[]>([]);
+  const [estadoConexion, setEstadoConexion] = useState("Desconectado");
+  const connectionRef = useRef<signalR.HubConnection | null>(null);
+  const audio = useRef(new Audio(sonidoMonitor));
+  const intentoRef = useRef(false);
+  const abortedRef = useRef(false);
+  let retryTimeout: number;
+
+  const getToken = () => localStorage.getItem("accesToken") || "";
+
+  useEffect(() => {
+    if (Notification.permission !== "granted") {
+      Notification.requestPermission();
+    }
+  }, []);
+
+  useEffect(() => {
+    abortedRef.current = false;
+
+    const limpiarConexion = async () => {
+      if (connectionRef.current) {
+        connectionRef.current.off("RecibirNotificacion");
+        try { await connectionRef.current.stop(); } catch {}
+        connectionRef.current = null;
+      }
+    };
+
+    const construirConexion = () =>
+      new signalR.HubConnectionBuilder()
+        .withUrl("https://localhost:44330/hub/monitorOSHub", {
+          accessTokenFactory: () => getToken(),
+          withCredentials: true,
+        })
+        .configureLogging(signalR.LogLevel.None)
+        .build();
+
+    const extraerYRenovarToken = async (payloadText: string) => {
+      const match = payloadText.match(/{.*}/s);
+      if (!match) return false;
+      try {
+        const json = JSON.parse(match[0]);
+        const nt = json?.resultado?.[0]?.accesToken;
+        if (nt) {
+          localStorage.setItem("accesToken", nt);
+          console.info("🆕 Token renovado desde negociación SignalR");
+          return true;
+        }
+      } catch {}
+      return false;
+    };
+
+    const handleDisconnect = async (error?: Error) => {
+      if (abortedRef.current) return;
+      setEstadoConexion("Desconectado");
+      notificationHelpers.errorAlert("Monitor desconectado");
+
+      // Intentar renovar token si viene en el error
+      if (error?.message.includes('"accesToken"')) {
+        const renovado = await extraerYRenovarToken(error.message);
+        if (renovado && !abortedRef.current) {
+          // Pequeño retardo antes de reconectar
+          await new Promise(r => setTimeout(r, 500));
+          return iniciarConexion();
+        }
+      }
+
+      // Reintento normal
+      if (!abortedRef.current) {
+        retryTimeout = window.setTimeout(iniciarConexion, 3000);
+      }
+    };
+
+    const handleMensaje = (msg: string) => {
+      if (abortedRef.current) return;
+      setMensajes(prev => [...prev, msg]);
+      notificationHelpers.infoAlert("Orden de servicio modificada");
+      if (Notification.permission === "granted") {
+        new Notification("📢 Nuevo mensaje", { body: msg, silent: true });
+      }
+      audio.current.play().catch(() => {});
+    };
+
+    const handleReconnecting = () => {
+      if (abortedRef.current) return;
+      setEstadoConexion("Reconectando...");
+      notificationHelpers.infoAlert("Conexión perdida, intentando reconectar...");
+    };
+
+    const handleReconnected = () => {
+      if (abortedRef.current) return;
+      setEstadoConexion("Conectado");
+      notificationHelpers.successAlert("Reconectado al monitor");
+    };
+
+    const iniciarConexion = async () => {
+      if (abortedRef.current || intentoRef.current) return;
+      intentoRef.current = true;
+
+      await limpiarConexion();
+      if (abortedRef.current) { intentoRef.current = false; return; }
+
+      const token = getToken();
+      if (!token) {
+        notificationHelpers.errorAlert("Token no disponible.");
+        intentoRef.current = false;
+        return;
+      }
+
+      const connection = construirConexion();
+      connectionRef.current = connection;
+
+      connection.on("RecibirNotificacion", handleMensaje);
+      connection.onreconnecting(handleReconnecting);
+      connection.onreconnected(handleReconnected);
+      connection.onclose(handleDisconnect);
+
+      try {
+        await connection.start();
+        if (abortedRef.current) { intentoRef.current = false; return; }
+        setEstadoConexion("Conectado");
+        notificationHelpers.successAlert("Monitor conectado");
+      } catch (err: unknown) {
+        // Primero, intentamos renovar token si aplica
+        const texto = err instanceof Error ? err.message : String(err);
+        const renovado = await extraerYRenovarToken(texto);
+        if (renovado && !abortedRef.current) {
+          await new Promise(r => setTimeout(r, 500));
+          intentoRef.current = false;
+          return iniciarConexion();
+        }
+        // Si no era token, o no pudimos renovar, manejamos desconexión
+        await handleDisconnect(err instanceof Error ? err : undefined);
+      } finally {
+        intentoRef.current = false;
+      }
+    };
+
+    // Conectar al montar
+    iniciarConexion();
+
+    return () => {
+      abortedRef.current = true;
+      clearTimeout(retryTimeout);
+      limpiarConexion().then(() => {
+        setEstadoConexion("Desconectado");
+        notificationHelpers.infoAlert("Monitor cerrado al salir de la vista");
+      });
+    };
+  }, []);
+
   return (
     <div id="kt_content_container" className="container-xxl">
 
-<div className="d-flex flex-wrap flex-stack pt-10 pb-8">
+      <div className="d-flex flex-wrap flex-stack pt-10 pb-8">
 
-  <h3 className="fw-bolder my-2">
-    Taller Mata
-    <span className="fs-6 text-gray-400 fw-bold ms-1">En línea</span>
-  </h3>
+        <h3 className="fw-bolder my-2">
 
-</div>
+          <span style={{ marginRight: '5px', marginBottom: '-5px' }} className={`badge badge-circle ${(estadoConexion === "Conectado") ? " badge-success" : " badge-danger"}`}> </span>
+          Taller Mata
+          <span className="fs-6 text-gray-400 fw-bold ms-1">
+
+            {estadoConexion}</span>
+        </h3>
+
+      </div>
 
 
       <div className="tab-content">

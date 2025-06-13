@@ -37,6 +37,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             {
                 // ✅ Para SignalR: permitir token por query string
                 var accessToken = context.Request.Query["access_token"];
+
                 var path = context.HttpContext.Request.Path;
 
                 if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/hub/monitorOSHub"))
@@ -47,84 +48,6 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 return Task.CompletedTask;
             },
 
-            OnAuthenticationFailed = context =>
-            {
-                UTL_Cipher uTL_Cipher = new UTL_Cipher();
-                BLL_Usuario bLL_Usuario = new BLL_Usuario();
-                BLL_Sesion bLL_Sesion = new BLL_Sesion();
-
-                DTO_Usuario usuario = new DTO_Usuario();
-                DTO_Sesion sesion = new DTO_Sesion();
-                DTO_Respuesta respuesta = new DTO_Respuesta();
-
-                if (context.Exception is SecurityTokenExpiredException)
-                {
-                    if (context.HttpContext.Request.Cookies.TryGetValue("refreshToken", out var refreshToken))
-                    {
-                        var authHeader = context.Request.Headers["Authorization"].ToString();
-                        var token = authHeader.StartsWith("Bearer ") ? authHeader.Substring(7) : authHeader;
-
-                        var handler = new JwtSecurityTokenHandler();
-                        var jwtToken = handler.ReadJwtToken(token);
-
-                        var userId = jwtToken.Claims.FirstOrDefault(c =>
-                            c.Type == ClaimTypes.NameIdentifier || c.Type == "id")?.Value;
-
-                        sesion.RefreshToken = refreshToken;
-                        sesion.ID_Usuario = Convert.ToInt32(userId);
-
-                        respuesta = bLL_Sesion.validarRefreshToken(sesion);
-
-                        if (respuesta.TipoRespuesta)
-                        {
-                            sesion = (DTO_Sesion)respuesta.Resultado[0];
-
-                            var cookieOptions = uTL_Cipher.cookieOptions();
-                            context.Response.Cookies.Append("refreshToken", sesion.RefreshToken, cookieOptions);
-
-                            usuario.ID_Usuario = sesion.ID_Usuario;
-                            usuario = (DTO_Usuario)bLL_Usuario.obtenerUsuarioPorId(usuario).Resultado[0];
-
-                            string accesToken = uTL_Cipher.generarAccessToken(usuario);
-
-                            respuesta.Resultado.Clear();
-                            respuesta.Resultado.Add(new { accesToken = accesToken });
-
-                            context.Response.StatusCode = 403;
-                            context.Response.ContentType = "application/json";
-                            var result = JsonSerializer.Serialize(respuesta);
-                            return context.Response.WriteAsync(result);
-                        }
-                        else
-                        {
-                            context.Response.StatusCode = 401;
-                            context.Response.ContentType = "application/json";
-                            var result = JsonSerializer.Serialize(new DTO_Respuesta
-                            {
-                                Codigo = "401",
-                                Mensaje = "La sesión no es válida, Por favor, inicie sesión nuevamente.",
-                                TipoRespuesta = false
-                            });
-                            return context.Response.WriteAsync(result);
-                        }
-                    }
-                }
-
-                if (context.Exception is SecurityTokenSignatureKeyNotFoundException)
-                {
-                    context.Response.StatusCode = 401;
-                    context.Response.ContentType = "application/json";
-                    var result = JsonSerializer.Serialize(new DTO_Respuesta
-                    {
-                        Codigo = "401",
-                        Mensaje = "La sesión no es válida, Por favor, inicie sesión nuevamente.",
-                        TipoRespuesta = false
-                    });
-                    return context.Response.WriteAsync(result);
-                }
-
-                return Task.CompletedTask;
-            }
         };
 
 
@@ -156,31 +79,90 @@ builder.Services.AddScoped<BLL_ChatIA>();
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontendDev", policy =>
-       policy.WithOrigins("http://localhost:5173", "http://127.0.0.1:8080")
+       policy.WithOrigins("http://localhost:5173")
              .AllowAnyHeader()
              .AllowAnyMethod()
-             .AllowCredentials());
+             .AllowCredentials()
+             .WithExposedHeaders("Content-Type", "Authorization", "Set-Cookie", "accesToken")); // <- clave);
 });
 
 builder.Services.AddSignalR();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+// Middleware orden correcto
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
 
-
-app.MapHub<MonitorOSHub>("/hub/monitorOSHub");
-
+app.UseHttpsRedirection();
 
 app.UseCors("AllowFrontendDev");
-app.UseHttpsRedirection();
+app.Use(async (context, next) =>
+{
+    await next();
+
+    if (context.Response.StatusCode == 401 &&
+        context.Request.Cookies.TryGetValue("refreshToken", out var refreshToken))
+    {
+        // Aquí puedes poner tu lógica de validación del refreshToken
+        // por ejemplo:
+
+        var bllSesion = new BLL_Sesion();
+        var bllUsuario = new BLL_Usuario();
+        var cipher = new UTL_Cipher();
+
+        // Extraer el userId desde el JWT vencido si lo deseas (opcional)
+        var authHeader = context.Request.Headers["Authorization"].ToString();
+        var token = authHeader.StartsWith("Bearer ") ? authHeader.Substring(7) : null;
+
+        var handler = new JwtSecurityTokenHandler();
+        var jwtToken = handler.ReadJwtToken(token);
+        var userId = jwtToken.Claims.FirstOrDefault(c =>
+            c.Type == ClaimTypes.NameIdentifier || c.Type == "id")?.Value;
+
+        DTO_Sesion sesion = new DTO_Sesion
+        {
+            RefreshToken = refreshToken,
+            ID_Usuario = Convert.ToInt32(userId)
+        };
+
+        var respuesta = bllSesion.validarRefreshToken(sesion);
+
+        if (respuesta.TipoRespuesta)
+        {
+            sesion = (DTO_Sesion)respuesta.Resultado[0];
+            DTO_Usuario usuario = new() { ID_Usuario = sesion.ID_Usuario };
+            usuario = (DTO_Usuario)bllUsuario.obtenerUsuarioPorId(usuario).Resultado[0];
+
+            var nuevoToken = cipher.generarAccessToken(usuario);
+
+            context.Response.StatusCode = 403;
+            context.Response.ContentType = "application/json";
+            context.Response.Headers["Access-Control-Allow-Origin"] = "http://localhost:5173";
+            context.Response.Headers["Access-Control-Allow-Credentials"] = "true";
+            context.Response.Headers["Access-Control-Expose-Headers"] = "Content-Type, Authorization, accesToken";
+
+            var result = JsonSerializer.Serialize(new
+            {
+                tipoRespuesta = true,
+                mensaje = "Token renovado automáticamente",
+                resultado = new[] { new { accesToken = nuevoToken } }
+            });
+
+            await context.Response.WriteAsync(result);
+        }
+    }
+});
+
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseCookiePolicy();
+
+app.MapHub<MonitorOSHub>("/hub/monitorOSHub");
 app.MapControllers();
+
 app.Run();
