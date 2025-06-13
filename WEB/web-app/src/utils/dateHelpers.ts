@@ -58,4 +58,17 @@ export class dateHelpers {
     // 3) para "s", "m" o "H" devolvemos la etiqueta directa
     return diffLabel === "0s" ? "Ahora" : diffLabel;
   }
+    // Helper: convierte un rawDate (string "YYYY-MM-DD" o Date) a Date local a medianoche
+    static parseDateInput = (raw?: string | Date | null): Date => {
+      if (!raw) return new Date(); // hoy
+      if (raw instanceof Date) return raw; // ya es Date
+      // raw es "YYYY-MM-DD"
+      const [y, m, d] = raw.split("-").map(Number);
+      const dt = new Date(y, m - 1, d);
+      // Si inválida o año <1753, devolvemos hoy
+      if (isNaN(dt.getTime()) || dt.getFullYear() < 1753) {
+        return new Date();
+      }
+      return dt;
+    };
 }

@@ -112,20 +112,25 @@ export const ordenServicioFormEditFields: Array<
 > = [
         // Campo fechaInicio fijo
         {
-        key: "fechaOrdenServicio",
-        label: labelMapOrdenDeServicio["fechaOrdenServicio"] ?? "fechaOrdenServicio",
+        key: "fechaInicio",
+        label: labelMapOrdenDeServicio["fechaInicio"] ?? "Fecha de Inicio",
+            type: "date", // aquí TS sabe que es literal "date"
+        },
+        {
+        key: "fechaFinal",
+        label: labelMapOrdenDeServicio["fechaFinal"] ?? "Fecha Final",
+            type: "date", // aquí TS sabe que es literal "date"
+        },
+        {
+        key: "fechaEntrega",
+            label: labelMapOrdenDeServicio["fechaEntrega"] ?? "Fecha de Entrega",
             type: "date", // aquí TS sabe que es literal "date"
         },
         // Resto de campos automáticos
         ...columnKeysOrdenDeServicio
             .filter(
                 (key) =>
-                    key !== "iD_Negocio" &&
-                    key !== "iD_Cliente" &&
-                    key !== "fechaEntrega" &&
-                    key !== "fechaInicio" &&
                     key !== "referenciaJSON" &&
-                    key !== "fechaFinal" &&
                     key !== "fechaOrdenServicio" &&
                     key !== "iD_OrdenServicio" // Excluimos el ID de la orden de servicio
             )

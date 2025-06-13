@@ -12,6 +12,7 @@ import { ordenesService } from "@/services";
 import {
   columnKeysInfoModalOrdenDeServicio,
   columnKeysOrdenDeServicio,
+  dateHelpers,
   errorHelpers,
   labelMapOrdenDeServicio,
   notificationHelpers,
@@ -94,26 +95,26 @@ export const OrdenDeServicio = () => {
     setIsFormOpen(true);
   };
 
-  // 6. Abrir formulario de edición y precargar datos
-  const handleEdit = (row: DTO_OrdenServicio) => {
-    if (!selectedBusiness) return;
-    // Prepara objeto de edición copiando referenciaJSON
-    const copy = { ...row };
-    copy.referenciaJSON =
-      row.referenciaJSON?.map((r) => ({ nombre: r.nombre, valor: r.valor })) ||
-      [];
-    setEditData(copy);
-    // Opcional: precargar cliente
-    setSelectedClientOption(
-      row.iD_Cliente ? ({ label: "", value: row.iD_Cliente } as any) : null
-    );
-    setShowEditForm(true);
-  };
-
   // 7. Guardar nueva orden
   const handleSave = () => {
     if (!selectedBusiness) return;
     formData.iD_Negocio = selectedBusiness.iD_Negocio;
+    // formData.fechaOrdenServicio = new Date();
+    // const sanitized = { ...formData } as any;
+    // const todayIso = new Date().toISOString().slice(0, 10);
+    // [
+    //   "fechaInicio",
+    //   "fechaFinal",
+    //   "fechaEntrega",
+    //   "fechaEstimadaEntrega",
+    // ].forEach((key) => {
+    //   const raw = sanitized[key] as string | undefined;
+    //   const d = raw ? new Date(raw) : null;
+    //   if (!d || isNaN(d.getTime()) || d.getFullYear() < 1753) {
+    //     sanitized[key] = todayIso;
+    //   }
+    // });
+
     ordenesService.registrarOrdensDeServicio(formData).subscribe({
       next: (res) => {
         notificationHelpers.successAlert((res as DTO_Respuesta).mensaje);
@@ -128,20 +129,68 @@ export const OrdenDeServicio = () => {
     });
   };
 
-  // 8. Guardar edición de orden
+  // 8.  Menejo y edición de orden
+  const handleEdit = (row: DTO_OrdenServicio) => {
+    if (!selectedBusiness) return;
+    console.log("Editando orden:", row);
+
+    // 0) Limpiar la nota dejando solo lo que hay después de la última '|'
+    const rawNote = row.notaOrdenServicio || "";
+    const cleanedNote = rawNote.includes("|")
+      ? rawNote.substring(rawNote.lastIndexOf("|") + 1).trim()
+      : rawNote.trim();
+    // Prepara objeto de ediciónpas lo editado a referenciaJSON
+    const copy = { ...row, notaOrdenServicio: cleanedNote } as DTO_OrdenServicio;
+    copy.referenciaJSON =
+      row.referenciaJSON?.map((r) => ({ nombre: r.nombre, valor: r.valor })) ||
+      [];
+    setEditData(copy);
+    // Opcional: precargar cliente
+    // Extraer el nombre del cliente desde la nota, por ejemplo: "Cliente: nombre | ..."
+    const clienteMatch = row.notaOrdenServicio.match(/Cliente:\s*([^|]+)/);
+    const clienteNombre = clienteMatch ? clienteMatch[1].trim() : "";
+    setSelectedClientOption({
+      value: row.iD_Cliente || 0,
+      label: clienteNombre,
+    });
+    setShowEditForm(true);
+  };
+ 
+
   const handleSaveEdit = () => {
     if (!selectedBusiness) return;
-    editData.iD_Negocio = selectedBusiness.iD_Negocio;
-    ordenesService.actualizarOrdensDeServicio(editData).subscribe({
-      next: (res) => {
-        notificationHelpers.successAlert((res as DTO_Respuesta).mensaje);
+
+
+    // 1) Preparamos un objeto completamente nuevo, sin mutar editData
+    const sanitized: DTO_OrdenServicio = {
+      ...editData,
+      iD_Negocio: selectedBusiness.iD_Negocio,
+      fechaOrdenServicio: new Date(), // marca el momento de la edición
+
+      // parseamos cada campo de fecha a Date local a medianoche:
+      fechaInicio: dateHelpers.parseDateInput(editData.fechaInicio as any),
+      fechaFinal: dateHelpers.parseDateInput(editData.fechaFinal as any),
+      fechaEntrega: dateHelpers.parseDateInput(editData.fechaEntrega as any),
+      fechaEstimadaEntrega: dateHelpers.parseDateInput(
+        editData.fechaEstimadaEntrega as any
+      ),
+    };
+
+    // 2) Reflejamos ya en el modal
+    setEditData(sanitized);
+
+    // 3) Refrescamos la tabla al instante
+    setOrdenes((prev) =>
+      prev.map((o) =>
+        o.iD_OrdenServicio === sanitized.iD_OrdenServicio ? sanitized : o
+      )
+    );
+
+    // 4) Llamamos al servicio con los datos saneados
+    ordenesService.actualizarOrdensDeServicio(sanitized).subscribe({
+      next: (res: DTO_Respuesta) => {
+        notificationHelpers.successAlert(res.mensaje);
         setShowEditForm(false);
-        // Actualizar lista localmente
-        setOrdenes((prev) =>
-          prev.map((o) =>
-            o.iD_OrdenServicio === editData.iD_OrdenServicio ? editData : o
-          )
-        );
       },
       error: (err) => errorHelpers.serverError(err),
     });
@@ -256,6 +305,7 @@ export const OrdenDeServicio = () => {
         />
       ),
     },
+    // Campos dinámicos de referenciaJSON
     ...buildRefFields(editData),
   ];
 
@@ -297,6 +347,8 @@ export const OrdenDeServicio = () => {
         </div>
       )}
 
+      {/* // 12. Modales para formularios */}
+      {/* // Modal Genérico: Registrar Orden de Servicio */}
       <GenericFormModal<DTO_OrdenServicio>
         title="Registrar Orden"
         show={isFormOpen}
@@ -306,7 +358,7 @@ export const OrdenDeServicio = () => {
         onSubmit={handleSave}
         fields={newFormFields}
       />
-
+      {/* // Modal Genérico: Editar Orden de Servicio */}
       <GenericFormModal<DTO_OrdenServicio>
         title="Editar Orden de Servicio"
         show={showEditForm}
