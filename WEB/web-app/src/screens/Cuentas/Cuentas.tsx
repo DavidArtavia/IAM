@@ -173,7 +173,7 @@ export const Cuentas = () => {
     setConfirmContext(null);
   };
 
-  // Si lo deseas, también puedes proveer un renderer específico:
+  //este renderizador personalizado formatea los valores de las columnas
   const customRenderers: {
     [K in keyof DTO_CuentasPorPagar]?: (
       value: unknown,

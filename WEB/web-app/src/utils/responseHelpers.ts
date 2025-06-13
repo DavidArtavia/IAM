@@ -3,6 +3,7 @@ import { errorHelpers } from "./errorHelpers";
 
 //metodo generico para procesar lo que envía el server
 export const procesarRespuesta = (respuesta: DTO_Respuesta) => {
+    
     if (respuesta.tipoRespuesta) {
         return respuesta.resultado[0]
     } else {

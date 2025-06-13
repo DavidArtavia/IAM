@@ -19,6 +19,10 @@ export default tseslint.config(
     },
     rules: {
       ...reactHooks.configs.recommended.rules,
+      // desactiva la regla que prohíbe el uso de `any` explícito
+      '@typescript-eslint/no-explicit-any': 'off',
+      // opcional: relajar también implicit-any de TS
+      '@typescript-eslint/explicit-module-boundary-types': 'off',
       'react-refresh/only-export-components': [
         'warn',
         { allowConstantExport: true },

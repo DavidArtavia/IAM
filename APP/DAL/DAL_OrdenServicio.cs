@@ -177,6 +177,7 @@ namespace DAL
                     sqlcmd.CommandType = CommandType.StoredProcedure;
 
                     sqlcmd.Parameters.Add("@ID_OrdenServicio", SqlDbType.Int).Value = ordenServicio.ID_OrdenServicio;
+                    sqlcmd.Parameters.Add("@ID_Cliente", SqlDbType.Int).Value = ordenServicio.ID_Cliente;
                     sqlcmd.Parameters.Add("@ID_Estado", SqlDbType.Int).Value = ordenServicio.Estado.ID_Estado;
                     sqlcmd.Parameters.Add("@FechaEstimadaEntrega", SqlDbType.DateTime).Value = ordenServicio.FechaEstimadaEntrega;
                     sqlcmd.Parameters.Add("@FechaInicio", SqlDbType.DateTime).Value = ordenServicio.FechaInicio;

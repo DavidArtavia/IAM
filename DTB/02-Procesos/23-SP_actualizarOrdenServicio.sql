@@ -25,6 +25,7 @@ GO -- =============================================
     -- =============================================
     ALTER PROCEDURE [CORE].[SP_actualizarOrdenServicio] @ID_OrdenServicio INT,
     @ID_Estado INT = NULL,
+    [ID_Cliente] = @ID_Cliente,
     @FechaEstimadaEntrega DATETIME = NULL,
     @FechaInicio DATETIME = NULL,
     @FechaFinal DATETIME = NULL,

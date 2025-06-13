@@ -202,9 +202,6 @@ export const Monitor = () => {
                               <rect x="14" y="14" width="5" height="5" rx="1" fill="#000000" opacity="0.3" />
                             </g>
                           </svg>
-
-
-
                         </span>
                       </button>
                       <div className="menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-gray-800 menu-state-bg-light-primary fw-bold w-200px py-3" data-kt-menu="true">
