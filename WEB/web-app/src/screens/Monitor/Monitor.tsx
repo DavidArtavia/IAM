@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import * as signalR from "@microsoft/signalr";
 import sonidoMonitor from "../../assets/media/audios/Monitor.mp3";
 import { notificationHelpers } from "@/utils";
@@ -10,6 +10,7 @@ export const Monitor = () => {
   const audio = useRef(new Audio(sonidoMonitor));
   const intentoRef = useRef(false);
   const abortedRef = useRef(false);
+  let retryTimeout: number;
 
   const getToken = () => localStorage.getItem("accesToken") || "";
 
@@ -20,10 +21,7 @@ export const Monitor = () => {
   }, []);
 
   useEffect(() => {
-    // 🔄 Resetear el flag en cada montaje
     abortedRef.current = false;
-
-    let retryTimeout: any;
 
     const limpiarConexion = async () => {
       if (connectionRef.current) {
@@ -42,6 +40,64 @@ export const Monitor = () => {
         .configureLogging(signalR.LogLevel.None)
         .build();
 
+    const extraerYRenovarToken = async (payloadText: string) => {
+      const match = payloadText.match(/{.*}/s);
+      if (!match) return false;
+      try {
+        const json = JSON.parse(match[0]);
+        const nt = json?.resultado?.[0]?.accesToken;
+        if (nt) {
+          localStorage.setItem("accesToken", nt);
+          console.info("🆕 Token renovado desde negociación SignalR");
+          return true;
+        }
+      } catch {}
+      return false;
+    };
+
+    const handleDisconnect = async (error?: Error) => {
+      if (abortedRef.current) return;
+      setEstadoConexion("Desconectado");
+      notificationHelpers.errorAlert("Monitor desconectado");
+
+      // Intentar renovar token si viene en el error
+      if (error?.message.includes('"accesToken"')) {
+        const renovado = await extraerYRenovarToken(error.message);
+        if (renovado && !abortedRef.current) {
+          // Pequeño retardo antes de reconectar
+          await new Promise(r => setTimeout(r, 500));
+          return iniciarConexion();
+        }
+      }
+
+      // Reintento normal
+      if (!abortedRef.current) {
+        retryTimeout = window.setTimeout(iniciarConexion, 3000);
+      }
+    };
+
+    const handleMensaje = (msg: string) => {
+      if (abortedRef.current) return;
+      setMensajes(prev => [...prev, msg]);
+      notificationHelpers.infoAlert("Orden de servicio modificada");
+      if (Notification.permission === "granted") {
+        new Notification("📢 Nuevo mensaje", { body: msg, silent: true });
+      }
+      audio.current.play().catch(() => {});
+    };
+
+    const handleReconnecting = () => {
+      if (abortedRef.current) return;
+      setEstadoConexion("Reconectando...");
+      notificationHelpers.infoAlert("Conexión perdida, intentando reconectar...");
+    };
+
+    const handleReconnected = () => {
+      if (abortedRef.current) return;
+      setEstadoConexion("Conectado");
+      notificationHelpers.successAlert("Reconectado al monitor");
+    };
+
     const iniciarConexion = async () => {
       if (abortedRef.current || intentoRef.current) return;
       intentoRef.current = true;
@@ -59,91 +115,36 @@ export const Monitor = () => {
       const connection = construirConexion();
       connectionRef.current = connection;
 
-      connection.on("RecibirNotificacion", msg => {
-        if (abortedRef.current) return;
-        setMensajes(prev => [...prev, msg]);
-        notificationHelpers.infoAlert("Orden de servicio modificada");
-        if (Notification.permission === "granted") {
-          new Notification("📢 Nuevo mensaje", { body: msg, silent: true });
-        }
-        audio.current.play().catch(() => {});
-      });
-
-      connection.onreconnecting(() => {
-        if (abortedRef.current) return;
-        setEstadoConexion("Reconectando...");
-      });
-
-      connection.onreconnected(() => {
-        if (abortedRef.current) return;
-        setEstadoConexion("Conectado");
-        notificationHelpers.successAlert("Reconectado al monitor");
-      });
-
-      connection.onclose(async error => {
-        if (abortedRef.current) return;
-        setEstadoConexion("Desconectado");
-        notificationHelpers.errorAlert("Monitor desconectado");
-
-        // renovar token si viene en el error
-        if (error?.message.includes('"accesToken"')) {
-          const m = error.message.match(/{.*}/s);
-          if (m) {
-            try {
-              const j = JSON.parse(m[0]);
-              const nt = j?.resultado?.[0]?.accesToken;
-              if (nt) {
-                localStorage.setItem("accesToken", nt);
-                await new Promise(r => setTimeout(r, 500));
-                if (!abortedRef.current) iniciarConexion();
-                intentoRef.current = false;
-                return;
-              }
-            } catch {}
-          }
-        }
-        if (!abortedRef.current) {
-          retryTimeout = setTimeout(iniciarConexion, 3000);
-        }
-      });
+      connection.on("RecibirNotificacion", handleMensaje);
+      connection.onreconnecting(handleReconnecting);
+      connection.onreconnected(handleReconnected);
+      connection.onclose(handleDisconnect);
 
       try {
         await connection.start();
         if (abortedRef.current) { intentoRef.current = false; return; }
         setEstadoConexion("Conectado");
         notificationHelpers.successAlert("Monitor conectado");
-      } catch (err: any) {
-        if (abortedRef.current) { intentoRef.current = false; return; }
-        setEstadoConexion("Error");
-        const msg = err.message as string;
-        if (msg.includes('"accesToken"')) {
-          const m = msg.match(/{.*}/s);
-          if (m) {
-            try {
-              const j = JSON.parse(m[0]);
-              const nt = j?.resultado?.[0]?.accesToken;
-              if (nt) {
-                localStorage.setItem("accesToken", nt);
-                await new Promise(r => setTimeout(r, 500));
-                if (!abortedRef.current) iniciarConexion();
-                intentoRef.current = false;
-                return;
-              }
-            } catch {}
-          }
+      } catch (err: unknown) {
+        // Primero, intentamos renovar token si aplica
+        const texto = err instanceof Error ? err.message : String(err);
+        const renovado = await extraerYRenovarToken(texto);
+        if (renovado && !abortedRef.current) {
+          await new Promise(r => setTimeout(r, 500));
+          intentoRef.current = false;
+          return iniciarConexion();
         }
-        if (!abortedRef.current) {
-          retryTimeout = setTimeout(iniciarConexion, 3000);
-        }
+        // Si no era token, o no pudimos renovar, manejamos desconexión
+        await handleDisconnect(err instanceof Error ? err : undefined);
       } finally {
         intentoRef.current = false;
       }
     };
 
+    // Conectar al montar
     iniciarConexion();
 
     return () => {
-      // Marcar abortado y limpiar timeouts/conexiones
       abortedRef.current = true;
       clearTimeout(retryTimeout);
       limpiarConexion().then(() => {
