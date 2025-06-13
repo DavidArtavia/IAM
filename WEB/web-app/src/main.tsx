@@ -5,7 +5,7 @@ import 'datatables.net-bs5/css/dataTables.bootstrap5.min.css';
 import "@/assets/plugins/global/plugins.bundle.css";
 import "@/assets/css/style.bundle.css";
 import $ from 'jquery';
-import { StrictMode } from 'react';
+//import { StrictMode } from 'react';
 
 // Extiende el objeto Window
 declare global {
@@ -22,7 +22,7 @@ window.jQuery = $;
 const rootElement = document.getElementById('root');
 const root = createRoot(rootElement!);
 root.render(
-  <StrictMode>
+  // <StrictMode>
     <App />
-  </StrictMode>
+  // </StrictMode>
 );
