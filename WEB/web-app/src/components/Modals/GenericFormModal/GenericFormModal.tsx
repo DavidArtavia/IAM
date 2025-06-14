@@ -7,14 +7,19 @@ interface GenericFormModalProps<T> {
   onHide: () => void;
   data: T;
   setData: React.Dispatch<React.SetStateAction<T>>;
-  onSubmit: () => void; // Callback original para enviar
+  onSubmit: () => void;
   fields: Array<FieldConfig<T>>;
 }
 
 /**
  * Modal genérico para creación/edición de entidades.
- * Soporta inputs custom, textarea, select, number, text y date.
- * Los date inválidos (null o <1753) se inicializan con hoy.
+ * Soporta:
+ * - type="custom"   → renderer personalizado
+ * - type="textarea"
+ * - type="select"
+ * - type="date"     → lógico: vacío si no hay fecha válida
+ * - type="number"
+ * - type="text"
  */
 export const GenericFormModal = <T,>({
   title,
@@ -25,7 +30,6 @@ export const GenericFormModal = <T,>({
   onSubmit,
   fields,
 }: GenericFormModalProps<T>) => {
-  // 2) Hook interno: validación, manejo display local y submit interceptado
   const {
     errors,
     touched,
@@ -37,14 +41,12 @@ export const GenericFormModal = <T,>({
 
   if (!show) return null;
 
-  // 3) Renderizado según tipo de campo
   const renderField = (field: FieldConfig<T>, idx: number) => {
     const { key, label, type = "text", options, renderer } = field;
     const rawVal = (data as any)[key];
     const localVal = localDisplay[key];
     const isTouched = touched[key];
     const errorMsg = isTouched ? errors[key] : "";
-
     const inputClass = `form-control form-control-solid ${
       errorMsg
         ? "is-invalid"
@@ -52,72 +54,148 @@ export const GenericFormModal = <T,>({
         ? "is-valid"
         : ""
     }`;
-
     const wrapperClass =
-      idx < 2 ? "col-md-6 fv-row" : "d-flex flex-column mb-5 fv-row";
+      type === "custom"
+        ? idx < 2
+          ? "col-md-6 fv-row"
+          : "d-flex flex-column mb-5 fv-row"
+        : type === "date"
+        ? "d-flex flex-column mb-5 fv-row"
+        : idx < 2
+        ? "col-md-6 fv-row"
+        : "d-flex flex-column mb-5 fv-row";
     const labelClass =
       idx < 2
         ? "required fs-5 fw-bold mb-2"
         : "required fs-5 fw-bold mb-2 mt-6";
 
-    let element: React.ReactNode;
-
+    // ────────────────────────────────
+    // 1) CUSTOM
+    // ────────────────────────────────
     if (type === "custom" && renderer) {
-      element = renderer({
-        value: rawVal,
-        onChange: (val) => {
-          setData({ ...data, [key]: val as any });
-          handleBlur(key);
-        },
-      });
-    } else if (type === "textarea") {
-      element = (
-        <textarea
-          id={String(key)}
-          className={inputClass}
-          value={String(rawVal ?? "")}
-          onChange={(e) => handleChange(key, e.target.value, "text")}
-          onBlur={() => handleBlur(key)}
-        />
+      return (
+        <div className={wrapperClass} key={String(key)}>
+          <label htmlFor={String(key)} className={labelClass}>
+            {label}
+          </label>
+          {renderer({
+            value: rawVal,
+            onChange: (val) => {
+              setData({ ...data, [key]: val as any });
+              handleBlur(key);
+            },
+          })}
+          {errorMsg ? (
+            <div className="invalid-feedback">{errorMsg}</div>
+          ) : isTouched && (localVal ?? rawVal) ? (
+            <div className="valid-feedback">¡Perfecto!</div>
+          ) : null}
+        </div>
       );
-    } else if (type === "select") {
-      element = (
-        <select
-          id={String(key)}
-          className={inputClass}
-          value={String(rawVal ?? "")}
-          onChange={(e) => handleChange(key, e.target.value, "select")}
-          onBlur={() => handleBlur(key)}
-          required
-        >
-          <option value="">– Seleccione –</option>
-          {options?.map((opt) => (
-        <option key={String(opt.value)} value={String(opt.value)}>
-          {opt.label}
-        </option>
-          ))}
-        </select>
+    }
+
+    // ────────────────────────────────
+    // 2) TEXTAREA
+    // ────────────────────────────────
+    if (type === "textarea") {
+      return (
+        <div className={wrapperClass} key={String(key)}>
+          <label htmlFor={String(key)} className={labelClass}>
+            {label}
+          </label>
+          <textarea
+            id={String(key)}
+            className={inputClass}
+            value={String(rawVal ?? "")}
+            onChange={(e) => handleChange(key, e.target.value, "text")}
+            onBlur={() => handleBlur(key)}
+          />
+          {errorMsg ? (
+            <div className="invalid-feedback">{errorMsg}</div>
+          ) : isTouched && (localVal ?? rawVal) ? (
+            <div className="valid-feedback">¡Perfecto!</div>
+          ) : null}
+        </div>
       );
-    } else if (type === "date") {
-      const today = new Date().toISOString().slice(0, 10);
-      const rawDate = rawVal ? new Date(String(rawVal)) : null;
+    }
+
+    // ────────────────────────────────
+    // 3) SELECT
+    // ────────────────────────────────
+    if (type === "select") {
+      return (
+        <div className={wrapperClass} key={String(key)}>
+          <label htmlFor={String(key)} className={labelClass}>
+            {label}
+          </label>
+          <select
+            id={String(key)}
+            className={inputClass}
+            value={String(rawVal ?? "")}
+            onChange={(e) => handleChange(key, e.target.value, "select")}
+            onBlur={() => handleBlur(key)}
+            required
+          >
+            <option value="">– Seleccione –</option>
+            {options?.map((opt) => (
+              <option key={String(opt.value)} value={String(opt.value)}>
+                {opt.label}
+              </option>
+            ))}
+          </select>
+          {errorMsg ? (
+            <div className="invalid-feedback">{errorMsg}</div>
+          ) : isTouched && (localVal ?? rawVal) ? (
+            <div className="valid-feedback">¡Perfecto!</div>
+          ) : null}
+        </div>
+      );
+    }
+
+    // ────────────────────────────────
+    // 4) DATE (Vacío si no hay fecha válida)
+    // ────────────────────────────────
+    if (type === "date") {
+      // Interpretar rawVal
+      const parsed = rawVal ? new Date(String(rawVal)) : null;
       const valid =
-        rawDate instanceof Date &&
-        !isNaN(rawDate.getTime()) &&
-        rawDate.getFullYear() >= 1753;
-      const dateVal = valid ? rawDate.toISOString().slice(0, 10) : null;
-      element = (
-        <input
-          id={String(key)}
-          type="date"
-          className={inputClass}
-          value={dateVal ?? ""}
-          onChange={(e) => handleChange(key, e.target.value, "date")}
-          onBlur={() => handleBlur(key)}
-        />
+        parsed instanceof Date &&
+        !isNaN(parsed.getTime()) &&
+        parsed.getFullYear() >= 1753;
+      // Valor: primero lo que el usuario tipeó, si no, la ISO válida, sino cadena vacía
+      const dateVal =
+        localVal ?? (valid ? parsed.toISOString().slice(0, 10) : "");
+
+      return (
+        <div className={wrapperClass} key={String(key)}>
+          <label htmlFor={String(key)} className={labelClass}>
+            {label}
+          </label>
+          <input
+            id={String(key)}
+            type="date"
+            className={inputClass}
+            value={dateVal}
+            onChange={(e) => handleChange(key, e.target.value, "date")}
+            onBlur={() => handleBlur(key)}
+          />
+          {errorMsg ? (
+            <div className="invalid-feedback">{errorMsg}</div>
+          ) : isTouched && dateVal ? (
+            <div className="valid-feedback">¡Perfecto!</div>
+          ) : null}
+        </div>
       );
-    } else {
-      element = (
+    }
+
+    // ────────────────────────────────
+    // 5) NUMBER Y TEXT POR DEFECTO
+    // ────────────────────────────────
+    return (
+      <div className={wrapperClass} key={String(key)}>
+        <label htmlFor={String(key)} className={labelClass}>
+          {label}
+        </label>
         <input
           id={String(key)}
           type={type}
@@ -130,15 +208,6 @@ export const GenericFormModal = <T,>({
           onChange={(e) => handleChange(key, e.target.value, type)}
           onBlur={() => handleBlur(key)}
         />
-      );
-    }
-
-    return (
-      <div className={wrapperClass} key={String(key)}>
-        <label htmlFor={String(key)} className={labelClass}>
-          {label}
-        </label>
-        {element}
         {errorMsg ? (
           <div className="invalid-feedback">{errorMsg}</div>
         ) : isTouched && (localVal ?? rawVal) ? (
@@ -148,7 +217,6 @@ export const GenericFormModal = <T,>({
     );
   };
 
-  // 4) Estructura general del modal
   return (
     <div className="modal fade show d-block shadowBackground" onClick={onHide}>
       <div
@@ -166,9 +234,11 @@ export const GenericFormModal = <T,>({
               ✕
             </button>
           </div>
+
           <div className="modal-body py-10 px-lg-17">
             <div className="row mb-5">{fields.map(renderField)}</div>
           </div>
+
           <div className="modal-footer flex-center">
             <button
               type="button"
