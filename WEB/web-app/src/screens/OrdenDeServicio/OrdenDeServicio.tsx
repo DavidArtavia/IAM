@@ -6,7 +6,10 @@ import {
   FieldConfig,
   GenericDataTable,
   GenericFormModal,
+  InfoPanel,
+  LoadingPanel,
 } from "@/components";
+import { STATUS_TBL } from "@/constants";
 import { DTO_Negocio, DTO_OrdenServicio, DTO_Respuesta } from "@/models";
 import { ordenesService } from "@/services";
 import {
@@ -65,6 +68,15 @@ export const OrdenDeServicio = () => {
     dto.fechaEstimadaEntrega = null;
     return dto;
   });
+
+  // --------- Modal de Confirmación de Borrar / Cancelar -----------
+  const [orderToDelete, setOrderToDelete] =
+    useState<DTO_OrdenServicio | null>();
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+  const [confirmModalMessage, setConfirmModalMessage] = useState("");
+  const [confirmContext, setConfirmContext] = useState<
+    "cancelAdd" | "delete" | null
+  >(null);
 
   // --------------------------------------------------
   // 2. EFECTO: CARGAR ÓRDENES CUANDO CAMBIA selectedBusiness
@@ -195,6 +207,72 @@ export const OrdenDeServicio = () => {
     setEditData(copy);
     setShowEditForm(true);
   };
+  // --------------------------------------------------
+  // 5.1 EDITAR ESTADO A ELIMINADO: preparar datos
+  // --------------------------------------------------
+
+  const handleDelete = (rowData: DTO_OrdenServicio) => {
+    setConfirmModalMessage(
+      `¿Estás seguro de que deseas eliminar la orden ${rowData.notaOrdenServicio} ?`
+    );
+    setOrderToDelete(rowData);
+    setConfirmContext("delete");
+    setIsConfirmOpen(true);
+  };
+
+  const handleConfirmDelete = (action: boolean | null) => {
+    if (action && orderToDelete) {
+      // 1) Clonamos la orden original y cambiamos solo el estado:
+      const updated: DTO_OrdenServicio = {
+        ...orderToDelete,
+        estado: {
+          ...orderToDelete.estado!,
+          iD_Estado: STATUS_TBL.ORDER_SERVICE.DELETED,
+        },
+      };
+
+      // 2) Normalizamos fechas inválidas (<1753 o 0001-01-01) a null,
+      //    pero mantenemos las fechas válidas sin tocarlas.
+      const sanitized: any = { ...updated };
+      const dateKeys = [
+        "fechaInicio",
+        "fechaFinal",
+        "fechaEntrega",
+        "fechaEstimadaEntrega",
+      ] as const;
+
+      dateKeys.forEach((key) => {
+        const raw = (sanitized[key] as string | Date | null) ?? null;
+        const date = raw ? new Date(raw) : null;
+        // Si la fecha es inválida o anterior a 1753, la dejamos como null
+        if (!date || isNaN(date.getTime()) || date.getFullYear() < 1753) {
+          sanitized[key] = null;
+        } else {
+          // Si viniera como string, conviértelo a Date para ser consistente
+          sanitized[key] = date;
+        }
+      });
+
+      // 3) Refrescar tabla local con las fechas saneadas únicamente cuando hacían falta
+      setOrdenes((prev) =>
+        prev.map((o) =>
+          o.iD_OrdenServicio === sanitized.iD_OrdenServicio ? sanitized : o
+        )
+      );
+
+      // 4) Llamar al servicio con el objeto limpio
+      ordenesService.actualizarOrdensDeServicio(sanitized).subscribe({
+        next: (result) => {
+          notificationHelpers.infoAlert(result?.mensaje);
+        },
+        error: (err) => errorHelpers.serverError(err),
+      });
+
+      setOrderToDelete(null);
+    }
+
+    setIsConfirmOpen(false);
+  };
 
   // --------------------------------------------------
   // 6. GUARDAR EDICIÓN
@@ -218,7 +296,6 @@ export const OrdenDeServicio = () => {
         sanitized[key] = null;
       }
     });
-
     // Refrescar tabla local
     setOrdenes((prev) =>
       prev.map((o) =>
@@ -352,6 +429,21 @@ export const OrdenDeServicio = () => {
     },
     ...buildRefFields(editData),
   ];
+  // ======== Manejo de confirmación de “Cancelar registro” o “Eliminar”  ========
+
+  const confirmModalAcion = (action: boolean | null) => {
+    if (action) {
+      // if (confirmContext === "cancelAdd") {
+      //   setIsModalFormOpen(false);
+      //   notificationHelpers.infoAlert("Cambios descartados correctamente");
+      // } else
+      if (confirmContext === "delete") {
+        handleConfirmDelete(true);
+      }
+    }
+    setIsConfirmOpen(false);
+    setConfirmContext(null);
+  };
 
   // --------------------------------------------------
   // 10. RENDERIZADO
@@ -363,11 +455,8 @@ export const OrdenDeServicio = () => {
         selectedBusiness={selectedBusiness}
         handleSelectBusiness={handleSelectBusiness}
       />
-
       {loading ? (
-        <div className="d-flex justify-content-center my-5">
-          <span className="spinner-border" /> Cargando…
-        </div>
+        <LoadingPanel msj="Cargando órdenes de servicio, por favor espere..." />
       ) : selectedBusiness ? (
         <GenericDataTable<DTO_OrdenServicio & Record<string, string>>
           title="Órdenes de Servicio"
@@ -376,7 +465,7 @@ export const OrdenDeServicio = () => {
           data={data}
           onAdd={handleAddNew}
           onEdit={handleEdit}
-          onDelete={() => {}}
+          onDelete={handleDelete}
           disableButtonAdd={disableButtonAdd}
           includeEstadoColumn
           customRenderers={{
@@ -387,11 +476,7 @@ export const OrdenDeServicio = () => {
           modalInfoFields={modalFields}
         />
       ) : (
-        <div className="d-flex justify-content-center my-5">
-          <p className="text-muted">
-            Seleccione un negocio para ver las órdenes
-          </p>
-        </div>
+        <InfoPanel msj="Seleccione un negocio para ver las órdenes de servicio" />
       )}
 
       {/* Modal Registrar */}
@@ -416,7 +501,12 @@ export const OrdenDeServicio = () => {
         fields={editFormFields}
       />
 
-      <ConfirmModal show={false} confirmMessage="" onAction={() => {}} />
+      {/* === Modal Genérico: Confirmación === */}
+      <ConfirmModal
+        show={isConfirmOpen}
+        confirmMessage={confirmModalMessage}
+        onAction={(action) => confirmModalAcion(action)}
+      />
     </div>
   );
 };

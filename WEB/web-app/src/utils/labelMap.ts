@@ -34,6 +34,9 @@ export const columnKeysInfoModalOrdenDeServicio: (keyof DTO_OrdenServicio)[] = [
     "iD_OrdenServicio",
     "fechaOrdenServicio",
     "fechaEstimadaEntrega",
+    "fechaInicio",
+    "fechaFinal",
+    "fechaEntrega",
     "notaOrdenServicio",
     "referenciaJSON",
     "estado",
@@ -85,6 +88,8 @@ export const labelMapOrdenDeServicio: Record<string, string> = {
     estado: "Estado",
     fechaOrdenServicio: "Fecha de servicio",
     fechaEstimadaEntrega: "Entrega Estimada",
+    fechaInicio: "Fecha de Inicio",
+    fechaFinal: "Fecha Final",    
     fechaEntrega: "Fecha de Entrega",
     notaOrdenServicio: "Nota",
     referenciaJSON: "Referencias"

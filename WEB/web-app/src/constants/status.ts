@@ -1,6 +1,6 @@
 export const STATUS = {
-    UNAUTHORIZED : 401,
-    FORBIDDEN : 403,
+    UNAUTHORIZED: 401,
+    FORBIDDEN: 403,
 } as const;
 
 export const STATUS_TBL = {
@@ -26,7 +26,10 @@ export const STATUS_TBL = {
     },
     ORDER_SERVICE: {
         ACTIVE: 6,
-        INACTIVE: 2,
+        IN_PROCESS: 7,
+        PENDING: 8,
+        COMPLETED: 9,
+        DELETED: 10,
     }
 }
 

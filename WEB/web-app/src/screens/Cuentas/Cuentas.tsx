@@ -15,6 +15,8 @@ import {
   ConfirmModal,
   GenericDataTable,
   GenericFormModal,
+  InfoPanel,
+  LoadingPanel,
 } from "@/components";
 import { STATUS_TBL } from "@/constants";
 
@@ -34,7 +36,7 @@ export const Cuentas = () => {
   const [formData, setFormData] = useState<DTO_CuentasPorPagar>(
     new DTO_CuentasPorPagar()
   );
-
+  const [loading, setLoading] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [editData, setEditData] = useState<DTO_CuentasPorPagar | null>(null);
   const [rowEditSelected, setRowEditSelected] =
@@ -64,6 +66,7 @@ export const Cuentas = () => {
   // Refetch de Cuentas por Pagar
   const refetchAccounts = () => {
     if (!selectedBusiness) return;
+    setLoading(true);
     cuentasService.obtenerCuentasPorPagar(selectedBusiness).subscribe({
       next: (result) =>
         setAccountsPayable(
@@ -72,6 +75,7 @@ export const Cuentas = () => {
           ) as DTO_CuentasPorPagar[]) || []
         ),
       error: (err) => errorHelpers.serverError(err),
+      complete: () => setLoading(false),
     });
   };
 
@@ -209,18 +213,24 @@ export const Cuentas = () => {
         />
 
         {/* Tabla GENÉRICA */}
-        <GenericDataTable<DTO_CuentasPorPagar>
-          title="Cuentas por Pagar"
-          columnKeys={columnKeysCuentasPorPagar}
-          labelMap={labelMapCuentasPorPagar}
-          data={accountsPayable}
-          onAdd={handleAddNew}
-          onEdit={handleEdit}
-          onDelete={handleDelete}
-          disableButtonAdd={disableButtonAdd}
-          includeEstadoColumn={true} // añade automáticamente la columna “Estado”
-          customRenderers={customRenderers}
-        />
+        {loading ? (
+          <LoadingPanel msj="Cargando cuentas por pagar..." />
+        ) : selectedBusiness ? (
+          <GenericDataTable<DTO_CuentasPorPagar>
+            title="Cuentas por Pagar"
+            columnKeys={columnKeysCuentasPorPagar}
+            labelMap={labelMapCuentasPorPagar}
+            data={accountsPayable}
+            onAdd={handleAddNew}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+            disableButtonAdd={disableButtonAdd}
+            includeEstadoColumn={true} // añade automáticamente la columna “Estado”
+            customRenderers={customRenderers}
+          />
+        ) : (
+          <InfoPanel msj="Por favor, selecciona un negocio para ver sus cuentas por pagar." />
+        )}
 
         {/* Modal “Registrar” */}
         <GenericFormModal<DTO_CuentasPorPagar>

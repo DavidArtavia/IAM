@@ -1,106 +1,148 @@
-import { ReferenciaCards } from "@/components/ReferenciasJson/ReferenciasJson";
+// -------------------------------------------------------------------------------------------------
+// InfoModal.tsx - Generic component to display detailed information in a modal,
+//                with automatic date detection, arrays, objects, and primitives,
+//                using Bootstrap for styling.
+// -------------------------------------------------------------------------------------------------
 import React from "react";
+import { ReferenciaCards } from "@/components/ReferenciasJson/ReferenciasJson";
+import { dateHelpers } from "@/utils";
 
+// -----------------------------------
+// Types & Interfaces
+// -----------------------------------
 interface InfoModalProps {
   show: boolean;
   onHide: () => void;
   data: Record<string, unknown>;
-  title?: string;
   labelMap: Record<string, string>;
+  title?: string;
 }
 
-export const InfoModal = ({
+// -----------------------------------
+// Helper Functions
+// -----------------------------------
+/**
+ * Attempts to parse any value as a Date if it looks date-like,
+ * and returns formatted dd/MM/yyyy. Otherwise returns null.
+ */
+const tryParseDate = (val: unknown): string | null => {
+  if (val == null) return null;
+
+  // If value is a Date instance
+  if (val instanceof Date) {
+    if (isNaN(val.getTime()) || val.getFullYear() < 1753) return null;
+    return dateHelpers.formatFechaDDMMYYYY(val);
+  }
+
+  // If value is a string that resembles an ISO date
+  const str = String(val);
+  const isoLike = /^\d{4}-\d{2}-\d{2}(T|$)/.test(str);
+  if (!isoLike) return null;
+
+  const date = new Date(str);
+  if (isNaN(date.getTime()) || date.getFullYear() < 1753) return null;
+  return dateHelpers.formatFechaDDMMYYYY(date);
+};
+
+// -----------------------------------
+// Value Renderer
+// -----------------------------------
+/**
+ * Renders a value based on its type:
+ *  - Detected date: formatted dd/MM/yyyy or 'No se ha definido aún'
+ *  - Array: ReferenciaCards or JSON
+ *  - Object: badge or key/value list
+ *  - Primitive: string
+ */
+const renderValue = (
+  key: string,
+  value: unknown,
+  labelMap: Record<string, string>
+): React.ReactNode => {
+  // 1) Automatic date detection for Date or ISO-like strings
+  let isDateCandidate = false;
+  let formattedDate: string | null = null;
+
+  if (value instanceof Date) {
+    isDateCandidate = true;
+    formattedDate = tryParseDate(value);
+  } else if (
+    typeof value === "string" &&
+    /^\d{4}-\d{2}-\d{2}(T|$)/.test(String(value))
+  ) {
+    isDateCandidate = true;
+    formattedDate = tryParseDate(value);
+  }
+
+  if (isDateCandidate) {
+    if (formattedDate) {
+      return <span>{formattedDate}</span>;
+    }
+    return (
+      <span className="badge bg-warning text-dark">No se ha definido aún</span>
+    );
+  }
+
+  // 2) Array handling
+  if (Array.isArray(value)) {
+    if (value.length === 0) {
+      return <span className="text-muted">[Sin datos]</span>;
+    }
+
+    const allNamed = (value as unknown[]).every(
+      (item) =>
+        typeof item === "object" &&
+        item !== null &&
+        "nombre" in item &&
+        "valor" in item
+    );
+
+    if (allNamed) {
+      return <ReferenciaCards items={value as any} />;
+    }
+
+    return (
+      <pre
+        className="bg-light rounded p-2"
+        style={{ maxHeight: 200, overflowY: "auto" }}
+      >
+        {JSON.stringify(value, null, 2)}
+      </pre>
+    );
+  }
+
+  // 3) Object handling
+  if (typeof value === "object" && value !== null) {
+    if ("nombre" in (value as Record<string, unknown>)) {
+      return <span className="badge bg-success">{(value as any).nombre}</span>;
+    }
+    return (
+      <div className="row gx-2">
+        {Object.entries(value as Record<string, unknown>).map(([k, v]) => (
+          <div key={k} className="col-12 d-flex justify-content-between mb-1">
+            <strong>{labelMap[k] ?? k}:</strong>
+            <span>{String(v)}</span>
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  // 4) Primitive types
+  return <span>{String(value)}</span>;
+};
+
+// -----------------------------------
+// Component
+// -----------------------------------
+export const InfoModal: React.FC<InfoModalProps> = ({
   show,
   onHide,
   data,
   labelMap,
   title = "Información Detallada",
-}: InfoModalProps) => {
+}) => {
   if (!show) return null;
-
-  /**
-   * Esta función recibe un value que puede ser:
-   * - Un objeto simple (p.ej. { iD_Estado: 4, nombre: "Activo", tabla: "" })
-   * - Un arreglo de objetos (p.ej. referenciaJSON: [ { nombre, valor }, ... ] )
-   * - Un tipo primitivo (string, number, boolean)
-   *
-   * Primero detectamos si es un Array (de cualquier tipo).
-   *   - Si es un array y cada elemento tiene "nombre" y "valor", lo pintamos como lista.
-   *   - Si es un array de otro tipo, lo convertimos a JSON.stringify o lo listamos genéricamente.
-   *
-   * Luego, si es un objeto normal con clave "nombre", pintamos solo el nombre.
-   * Si es un objeto genérico, recorremos keys:values.
-   * Finalmente, si no es objeto (p.ej. un string/number), lo mostramos crudo.
-   */
-  const renderValue = (value: unknown): React.ReactNode => {
-    // 1) Si es un array
-    if (Array.isArray(value)) {
-      // Revisamos si el array está vacío o su primer elemento es un objeto con { nombre, valor }
-      if (value.length === 0) {
-        return <span className="text-muted">[Sin datos]</span>;
-      }
-      // Si todos los elementos tienen { nombre, valor }
-      const elemetosJsonConNombreValor = (value as undefined[]).every(
-        (item) =>
-          typeof item === "object" &&
-          item !== null &&
-          "nombre" in item &&
-          "valor" in item
-      );
-
-      if (elemetosJsonConNombreValor) {
-        return <ReferenciaCards items={value}/> 
-      }
-
-      // Si es un array de otro tipo (p.ej. strings, números u objetos mixtos),
-      // lo convertimos a un JSON formateado para legibilidad:
-      return (
-        <pre
-          style={{
-            background: "#f6f8fa",
-            borderRadius: 8,
-            padding: 8,
-            fontSize: 14,
-            color: "#24292f",
-            maxHeight: 200,
-            overflow: "auto",
-          }}
-        >
-          {JSON.stringify(value, null, 2)}
-        </pre>
-      );
-    }
-
-    // 2) Si es un objeto simple (no array)
-    if (typeof value === "object" && value !== null) {
-      // Si dentro del objeto hay la clave 'nombre', simplemente mostramos ese nombre
-      if ("nombre" in (value as Record<string, unknown>)) {
-        return (
-          <span className="badge badge-light-success">
-            {(value as { nombre: string }).nombre}
-          </span>
-        );
-      }
-      // Si es otro objeto genérico, recorremos pares clave:valor
-      return (
-        <div>
-          {Object.entries(value as Record<string, unknown>).map(
-            ([key, val]) => (
-              <div key={key} className="d-flex justify-content-between mb-1">
-                <strong>{labelMap[key] ?? key}:</strong>{" "}
-                {typeof val === "object" && val !== null
-                  ? JSON.stringify(val) // si el valor es otro objeto, lo stringify‐amos
-                  : String(val)}
-              </div>
-            )
-          )}
-        </div>
-      );
-    }
-
-    // 3) Cualquier otro caso: string, number, boolean, null, undefined
-    return <span>{String(value)}</span>;
-  };
 
   return (
     <div className="modal fade show d-block shadowBackground" onClick={onHide}>
@@ -144,7 +186,9 @@ export const InfoModal = ({
 
                   {/* Columna derecha: valor (o renderValue) */}
                   <div className="d-flex align-items-center">
-                    <div className="ms-6">{renderValue(val)}</div>
+                    <div className="ms-6">
+                      {renderValue(key, val, labelMap)}
+                    </div>
                   </div>
                 </div>
               ))}

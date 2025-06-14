@@ -13,3 +13,6 @@ export * from "./Tables/DataTable/GenericDataTable";
 export * from "./ReferenciasJson/ReferenciasJson";
 export * from "./Modals/GenericFormModal/types";
 export * from "./AsyncClientSelect/AsyncClientSelect";
+export * from "./Panel/InfoPanel";
+export * from "./Panel/LoadingPanel";
+export * from "./ReferenciasJson/ReferenciasJson";
