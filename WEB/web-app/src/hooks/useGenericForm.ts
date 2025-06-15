@@ -1,5 +1,6 @@
 import { FieldConfig, FieldType } from "@/components";
 import { useState, useEffect, useMemo, useCallback } from "react";
+
 type FormState<T> = {
     errors: Record<keyof T, string>;
     touched: Record<keyof T, boolean>;
@@ -16,9 +17,10 @@ export function useGenericForm<T>(
     const [errors, setErrors] = useState<FormState<T>["errors"]>({} as Record<keyof T, string>);
     const [touched, setTouched] = useState<FormState<T>["touched"]>({} as Record<keyof T, boolean>);
     const [localDisplay, setLocalDisplay] = useState<FormState<T>["localDisplay"]>({} as Record<keyof T, string>);
+    const [wasSubmitted, setWasSubmitted] = useState<boolean>(false);
     const emojiRegex = useMemo(() => /[\p{Extended_Pictographic}]/u, []);
 
-    // Inicialización al abrir modal
+    // Inicialización
     useEffect(() => {
         if (!show) return;
         const initErr = {} as Record<keyof T, string>;
@@ -36,23 +38,44 @@ export function useGenericForm<T>(
         setErrors(initErr);
         setTouched(initTouch);
         setLocalDisplay(initDisp);
+        setWasSubmitted(false);
     }, [show, fields, data]);
 
     const validate = useCallback(
         (key: keyof T, value: unknown) => {
             const conf = fields.find(f => f.key === key);
             if (!conf) return "";
-            const type = conf.type ?? "text";
+
             let msg = "";
 
-            if (type === "text" || type === "textarea") {
-                const v = String(value ?? "").trim();
-                if (!v) msg = "Este campo es obligatorio";
-                else if (emojiRegex.test(v)) msg = "No se permiten emoticones";
-            } else if (type === "number") {
-                const num = parseFloat(String(value ?? ""));
-                if (isNaN(num)) msg = "Ingrese un número válido";
-                else if (num <= 0) msg = "El valor debe ser mayor que cero";
+            // Si el campo tiene validación personalizada
+            if (conf.validate) {
+                msg = conf.validate(value);
+            } else if (conf.required) {
+                const strVal = String(value ?? "").trim();
+                const type = conf.type ?? "text";
+
+                switch (type) {
+                    case "text":
+                    case "textarea":
+                        if (!strVal) msg = "Este campo es obligatorio";
+                        else if (emojiRegex.test(strVal)) msg = "No se permiten emoticones";
+                        break;
+
+                    case "number": {
+                        const num = parseFloat(strVal);
+                        if (isNaN(num)) msg = "Ingrese un número válido";
+                        else if (num <= 0) msg = "El valor debe ser mayor que cero";
+                        break;
+                    }
+
+                    case "select":
+                    case "custom":
+                        if (!value || value === "0") msg = "Debe seleccionar una opción válida";
+                        break;
+
+                    // "date" no requiere validación según lógica previa
+                }
             }
 
             setErrors(prev => ({ ...prev, [key]: msg }));
@@ -100,5 +123,16 @@ export function useGenericForm<T>(
         if (!hasError) onSubmit();
     }, [fields, validate, data, onSubmit]);
 
-    return { errors, touched, localDisplay, handleChange, handleBlur, handleSubmit: handleSubmitForm };
+    const hasErrors = Object.values(errors).some(e => !!e);
+
+    return {
+        errors,
+        touched,
+        wasSubmitted,
+        localDisplay,
+        handleChange,
+        handleBlur,
+        handleSubmit: handleSubmitForm,
+        hasErrors,
+    };
 }

@@ -5,7 +5,7 @@ import ReactDOM from "react-dom/client";
 import { InfoModal, ActionButtons, ReferenciaCards } from "@/components";
 
 // Import RefItem type from ReferenciasJson
-import type { RefItem } from "@/components/ReferenciasJson/ReferenciasJson";
+import type { RefItem } from "@/components/ReferenciasJson/ReferenciasCard";
 
 type ColumnSettings = DataTables.ColumnSettings;
 
@@ -196,7 +196,7 @@ export function GenericDataTable<T>({
     const tableEl = tableRef.current;
     if (!tableEl) return;
 
-    // Destroy old instance if 
+    // Destroy old instance if
     if ($.fn.dataTable.isDataTable(tableEl)) {
       $(tableEl).DataTable().destroy();
       $(tableEl).empty();
@@ -226,7 +226,7 @@ export function GenericDataTable<T>({
           thousands: ".",
           loadingRecords: "Cargando...",
           processing: "Procesando...",
-          infoFiltered: "(filtrado de _MAX_ registros totales)",       
+          infoFiltered: "(filtrado de _MAX_ registros totales)",
           lengthMenu: "Mostrar _MENU_ registros por página",
           zeroRecords: "No se encontraron resultados",
           info: "Mostrando página _PAGE_ de _PAGES_",

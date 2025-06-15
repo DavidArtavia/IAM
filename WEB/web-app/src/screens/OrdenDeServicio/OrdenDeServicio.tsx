@@ -105,9 +105,13 @@ export const OrdenDeServicio = () => {
     setDisableButtonAdd(false);
   };
 
+  // --------------------------------------------------
+  // 4. GUARDAR NUEVA ORDEN
+  // --------------------------------------------------
   const handleAddNew = () => {
     if (!selectedBusiness) return;
     const initial = new DTO_OrdenServicio();
+    //
     initial.referenciaJSON =
       selectedBusiness.referenciaJSON?.map((r) => ({
         nombre: r.nombre,
@@ -123,9 +127,6 @@ export const OrdenDeServicio = () => {
     setIsFormOpen(true);
   };
 
-  // --------------------------------------------------
-  // 4. GUARDAR NUEVA ORDEN
-  // --------------------------------------------------
   const handleSave = () => {
     if (!selectedBusiness) return;
     const toSave: any = { ...formData };
@@ -159,6 +160,14 @@ export const OrdenDeServicio = () => {
       },
       error: (err) => errorHelpers.serverError(err),
     });
+  };
+
+  const handleCancelAdd = () => {
+    setConfirmModalMessage(
+      "¿Estás seguro de que deseas cancelar la nueva orden?"
+    );
+    setConfirmContext("cancelAdd");
+    setIsConfirmOpen(true);
   };
 
   // --------------------------------------------------
@@ -315,46 +324,53 @@ export const OrdenDeServicio = () => {
   // --------------------------------------------------
   // 7. CONFIGURACIÓN DE TABLA Y MODAL DE INFO
   // --------------------------------------------------
+  // ✅ Memoriza el resultado para evitar recalcular en cada render si no cambian las órdenes
   const { data, columnKeys, labelMap, modalFields } = useMemo(() => {
+    // 🧠 Mapa para asociar cada nombre de referencia con una clave segura
     const referenceMap = new Map<string, string>();
 
+    // 🔄 Paso 1: construir el referenceMap dinámicamente a partir de los nombres únicos
     ordenes.forEach((o) =>
       o.referenciaJSON?.forEach((r) => {
-        const key = generateSafeKey(r.nombre);
+        const key = generateSafeKey(r.nombre); // p. ej. "Placa" → "placa"
         if (!referenceMap.has(r.nombre)) {
-          referenceMap.set(r.nombre, key);
+          referenceMap.set(r.nombre, key); // Evita duplicados
         }
       })
     );
 
+    // 🔄 Paso 2: aplanar las referencias dentro del objeto de orden
     const prepared = ordenes.map((o) => {
-      const copy: any = { ...o };
+      const copy: any = { ...o }; // Copia de la orden original
       o.referenciaJSON?.forEach((r) => {
-        const key = referenceMap.get(r.nombre)!;
-        copy[key] = r.valor;
+        const key = referenceMap.get(r.nombre)!; // Obtiene clave segura
+        copy[key] = r.valor; // Asigna como propiedad normal
       });
-      return copy;
+      return copy; // Devuelve la orden modificada
     });
 
+    // 🏷️ Paso 3: extender el labelMap con nombres dinámicos amigables
     const extLabelMap = { ...labelMapOrdenDeServicio } as Record<
       string,
       string
     >;
     referenceMap.forEach((safe, raw) => {
-      extLabelMap[safe] = raw;
+      extLabelMap[safe] = raw; // ej. extLabelMap["placa"] = "Placa"
     });
 
-    const refCols = Array.from(referenceMap.values());
-    const finalKeys = [...columnKeysOrdenDeServicio.map(String), ...refCols];
-    const staticKeys = columnKeysInfoModalOrdenDeServicio as string[];
-    const dynKeys = finalKeys.filter((k) => !staticKeys.includes(k));
-    const modalFields = [...staticKeys, ...dynKeys];
+    // 🧩 Paso 4: preparar claves finales para columnas y modal
+    const refCols = Array.from(referenceMap.values()); // columnas extra dinámicas
+    const finalKeys = [...columnKeysOrdenDeServicio.map(String), ...refCols]; // claves para tabla
+    const staticKeys = columnKeysInfoModalOrdenDeServicio as string[]; // campos del modal fijos
+    const dynKeys = finalKeys.filter((k) => !staticKeys.includes(k)); // solo dinámicos
+    const modalFields = [...staticKeys, ...dynKeys]; // orden final en modal
 
+    // 🧾 Resultado final del useMemo
     return {
-      data: prepared,
-      columnKeys: finalKeys,
-      labelMap: extLabelMap,
-      modalFields,
+      data: prepared, // datos transformados
+      columnKeys: finalKeys, // claves para tabla
+      labelMap: extLabelMap, // etiquetas extendidas
+      modalFields, // campos ordenados para modal
     };
   }, [ordenes]);
 
@@ -398,6 +414,7 @@ export const OrdenDeServicio = () => {
       key: "iD_Cliente",
       label: "Cliente",
       type: "custom",
+      required: true,
       renderer: ({ onChange }) => (
         <AsyncClientSelect
           value={selectedClientOption}
@@ -417,6 +434,7 @@ export const OrdenDeServicio = () => {
       key: "iD_Cliente",
       label: "Cliente",
       type: "custom",
+      required: true,
       renderer: ({ onChange }) => (
         <AsyncClientSelect
           value={selectedClientOption}
@@ -433,11 +451,10 @@ export const OrdenDeServicio = () => {
 
   const confirmModalAcion = (action: boolean | null) => {
     if (action) {
-      // if (confirmContext === "cancelAdd") {
-      //   setIsModalFormOpen(false);
-      //   notificationHelpers.infoAlert("Cambios descartados correctamente");
-      // } else
-      if (confirmContext === "delete") {
+      if (confirmContext === "cancelAdd") {
+        setIsFormOpen(false);
+        notificationHelpers.infoAlert("Nueva Orden descartada correctamente");
+      } else if (confirmContext === "delete") {
         handleConfirmDelete(true);
       }
     }
@@ -483,7 +500,7 @@ export const OrdenDeServicio = () => {
       <GenericFormModal<DTO_OrdenServicio>
         title="Registrar Orden"
         show={isFormOpen}
-        onHide={() => setIsFormOpen(false)}
+        onHide={handleCancelAdd}
         data={formData}
         setData={setFormData}
         onSubmit={handleSave}
