@@ -1,4 +1,4 @@
-import { ConfirmModal, GenericDataTable, GenericFormModal } from "@/components";
+import { ConfirmModal, FieldConfig, GenericDataTable, GenericFormModal, ReferenciasJsonInput } from "@/components";
 import { FILTER_STATUS, STATUS_TBL } from "@/constants";
 import { AuthContext } from "@/context";
 import { DTO_Negocio, DTO_Respuesta, DTO_FiltroEstado } from "@/models";
@@ -19,9 +19,10 @@ export const Negocio = () => {
   const { user } = useContext(AuthContext);
   // === Estados principales ===
   const [business, setBusiness] = useState<Array<DTO_Negocio>>([]);
-  const [disableButtonAdd, setDisableButtonAdd] = useState<boolean>(false);
+  const [disableButtonAdd /* setDisableButtonAdd */] = useState<boolean>(false);
+
   // Estado para el filtro de estado, inicia en "ACTIVO"
-  const [filtroEstado, setFiltroEstado] = useState<DTO_FiltroEstado>({
+  const [filtroEstado /*setFiltroEstado*/] = useState<DTO_FiltroEstado>({
     filtroEstado: FILTER_STATUS.ACTIVO,
   });
 
@@ -53,7 +54,6 @@ export const Negocio = () => {
 
   // === Refetch O obtener Negocios ===
   const refetchAccounts = () => {
-    
     negocioService.obtenerNegocios(filtroEstado).subscribe({
       next: (result) => {
         setBusiness(
@@ -147,7 +147,7 @@ export const Negocio = () => {
       };
       negocioService.actualizarNegocio(updatedData).subscribe({
         next: (result) => {
-          notificationHelpers.infoAlert( result?.mensaje );
+          notificationHelpers.infoAlert(result?.mensaje);
           refetchAccounts();
         },
         error: (err) => errorHelpers.serverError(err),
@@ -156,6 +156,62 @@ export const Negocio = () => {
     }
     setIsConfirmOpen(false);
   };
+
+  // --------------------------------------------------
+  // 9. CAMPOS PARA LOS FORMULARIOS (Registrar y Editar)
+  // --------------------------------------------------
+
+  const newFormFields: FieldConfig<DTO_Negocio>[] = [
+    ...negocioFormEditFields,
+    {
+      key: "referenciaJSON",
+      label: "Referencias",
+      type: "custom",
+      renderer: () => (
+        <ReferenciasJsonInput
+          value={formData.referenciaJSON}
+          onChange={(val) =>
+            setFormData((prev) => ({ ...prev, referenciaJSON: val }))
+          }
+        />
+      ),
+      validate: (val) => {
+        if (!Array.isArray(val) || val.length === 0) return "";
+        for (const ref of val) {
+          if (!ref.nombre)
+            return "Todos los campos deben estar completos.";
+        }
+        return "";
+      },
+    },
+  ];
+  const editFormFields: FieldConfig<DTO_Negocio>[] = [
+    ...negocioFormEditFields,
+    {
+      key: "referenciaJSON",
+      label: "Referencias",
+      type: "custom",
+      renderer: () => (
+        <ReferenciasJsonInput
+          value={editData?.referenciaJSON || []}
+          onChange={(val) =>
+            setEditData((prev) =>
+              prev ? { ...prev, referenciaJSON: val } : null
+            )
+          }
+        />
+      ),
+      validate: (val) => {
+        if (!Array.isArray(val) || val.length === 0) return "";
+        for (const ref of val) {
+          if (!ref.nombre)
+            return "Todos los campos deben estar completos.";
+        }
+        return "";
+      },
+    },
+  ];
+  
 
   // ======== Manejo de confirmación de “Cancelar registro” o “Eliminar”  ========
 
@@ -212,7 +268,7 @@ export const Negocio = () => {
           data={formData}
           setData={setFormData}
           onSubmit={handleSave}
-          fields={negocioFormEditFields}
+          fields={newFormFields}
         />
 
         {/* ====== Modal Genérico: Editar Cuenta por Pagar ====== */}
@@ -228,7 +284,7 @@ export const Negocio = () => {
               handleSaveBusiness(editData);
             }
           }}
-          fields={negocioFormEditFields}
+          fields={editFormFields}
         />
 
         {/* === Modal Genérico: Confirmación === */}

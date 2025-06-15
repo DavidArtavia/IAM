@@ -4,7 +4,7 @@
 //                using Bootstrap for styling.
 // -------------------------------------------------------------------------------------------------
 import React from "react";
-import { ReferenciaCards } from "@/components/ReferenciasJson/ReferenciasJson";
+import { ReferenciaCards } from "@/components/ReferenciasJson/ReferenciasCard";
 import { dateHelpers } from "@/utils";
 
 // -----------------------------------

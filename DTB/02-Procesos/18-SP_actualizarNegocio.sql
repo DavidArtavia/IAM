@@ -20,60 +20,45 @@ GO -- =============================================
     );
 END
 GO -- 2) Alterar contenido
-    ALTER PROCEDURE [CORE].[SP_actualizarNegocio] @ID_Negocio INT,
-    @ID_Usuario INT,
-    @ID_Estado INT,
-    @NombreNegocio VARCHAR(100),
-    @Descripcion NVARCHAR(255) = NULL,
-    @Direccion NVARCHAR(255) = NULL,
-    @TelefonoNegocio VARCHAR(20) = NULL,
-    @CorreoNegocio NVARCHAR(100) = NULL,
-    @ReferenciaJSON NVARCHAR(MAX) = NULL AS BEGIN
+ALTER PROCEDURE [CORE].[SP_actualizarNegocio] @ID_Negocio INT,
+@ID_Usuario INT,
+-- Para verificar propietario
+@ID_Estado INT = NULL,
+@NombreNegocio VARCHAR(100),
+@Descripcion NVARCHAR(255) = NULL,
+@Direccion NVARCHAR(255) = NULL,
+@TelefonoNegocio VARCHAR(20) = NULL,
+@CorreoNegocio NVARCHAR(100) = NULL,
+@ReferenciaJSON NVARCHAR(MAX) = NULL AS BEGIN
 SET NOCOUNT ON;
-DECLARE @EstadoAnterior INT;
--- Obtenemos el estado actual del negocio (si existe y pertenece al usuario)
-SELECT @EstadoAnterior = ID_Estado
-FROM [CORE].[TBL_NEGOCIOS]
-WHERE ID_Negocio = @ID_Negocio
-    AND ID_Usuario = @ID_Usuario;
--- Si no se encuentra el negocio, salimos con alerta de error
-IF @EstadoAnterior IS NULL BEGIN
-SELECT [COD_ALERTA],
-    [Nombre],
-    [Mensaje],
-    [Tipo]
-FROM [UTIL].[TBL_ALERTAS]
-WHERE [COD_ALERTA] = 'B004';
--- No encontrado o sin permiso
-RETURN;
-END -- Hacemos el update
+-- Intentamos hacer el UPDATE sólo si el negocio existe
+-- y pertenece al usuario que lo solicita
 UPDATE [CORE].[TBL_NEGOCIOS]
-SET [NombreNegocio] = @NombreNegocio,
-    [ID_Estado] = @ID_Estado,
+SET [ID_Estado] = ISNULL(@ID_Estado, [ID_Estado]),
+    [NombreNegocio] = @NombreNegocio,
     [Descripcion] = @Descripcion,
     [Direccion] = @Direccion,
     [TelefonoNegocio] = @TelefonoNegocio,
     [CorreoNegocio] = @CorreoNegocio,
     [ReferenciaJSON] = @ReferenciaJSON
-WHERE ID_Negocio = @ID_Negocio
-    AND ID_Usuario = @ID_Usuario;
--- Retornamos mensaje específico si cambió a eliminado
-IF @EstadoAnterior <> @ID_Estado
-AND @ID_Estado = 1009 BEGIN
-SELECT [COD_ALERTA],
-    [Nombre],
-    [Mensaje],
-    [Tipo]
-FROM [UTIL].[TBL_ALERTAS]
-WHERE [COD_ALERTA] = 'B026';
--- B026 = Negocio eliminado correctamente
-RETURN;
-END -- Si solo fue una actualización normal
+WHERE [ID_Negocio] = @ID_Negocio
+    AND [ID_Usuario] = @ID_Usuario;
+IF @@ROWCOUNT > 0 BEGIN -- actualización exitosa
 SELECT [COD_ALERTA],
     [Nombre],
     [Mensaje],
     [Tipo]
 FROM [UTIL].[TBL_ALERTAS]
 WHERE [COD_ALERTA] = 'B003';
--- Negocio actualizado
+-- B003 = negocio actualizado
+END
+ELSE BEGIN -- no existe o no es del usuario
+SELECT [COD_ALERTA],
+    [Nombre],
+    [Mensaje],
+    [Tipo]
+FROM [UTIL].[TBL_ALERTAS]
+WHERE [COD_ALERTA] = 'B004';
+-- B004 = no encontrado o sin permiso
+END
 END

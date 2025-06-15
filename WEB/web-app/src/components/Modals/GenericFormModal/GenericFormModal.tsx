@@ -33,6 +33,7 @@ export const GenericFormModal = <T,>({
   const {
     errors,
     touched,
+    wasSubmitted,
     localDisplay,
     handleChange,
     handleBlur,
@@ -45,14 +46,12 @@ export const GenericFormModal = <T,>({
     const { key, label, type = "text", options, renderer } = field;
     const rawVal = (data as any)[key];
     const localVal = localDisplay[key];
-    const isTouched = touched[key];
-    const errorMsg = isTouched ? errors[key] : "";
+    const shouldShowError = touched[key] || wasSubmitted;
+    const errorMsg = shouldShowError ? errors[key] : "";    
     const inputClass = `form-control form-control-solid ${
-      errorMsg
-        ? "is-invalid"
-        : isTouched && (localVal ?? rawVal)
-        ? "is-valid"
-        : ""
+      errorMsg ? (
+        <div className="invalid-feedback d-block">{errorMsg}</div>
+      ) : null
     }`;
     const wrapperClass =
       type === "custom"
@@ -86,9 +85,7 @@ export const GenericFormModal = <T,>({
             },
           })}
           {errorMsg ? (
-            <div className="invalid-feedback">{errorMsg}</div>
-          ) : isTouched && (localVal ?? rawVal) ? (
-            <div className="valid-feedback">¡Perfecto!</div>
+            <div className="invalid-feedback d-block">{errorMsg}</div>
           ) : null}
         </div>
       );
@@ -111,9 +108,7 @@ export const GenericFormModal = <T,>({
             onBlur={() => handleBlur(key)}
           />
           {errorMsg ? (
-            <div className="invalid-feedback">{errorMsg}</div>
-          ) : isTouched && (localVal ?? rawVal) ? (
-            <div className="valid-feedback">¡Perfecto!</div>
+            <div className="invalid-feedback d-block">{errorMsg}</div>
           ) : null}
         </div>
       );
@@ -144,9 +139,7 @@ export const GenericFormModal = <T,>({
             ))}
           </select>
           {errorMsg ? (
-            <div className="invalid-feedback">{errorMsg}</div>
-          ) : isTouched && (localVal ?? rawVal) ? (
-            <div className="valid-feedback">¡Perfecto!</div>
+            <div className="invalid-feedback d-block">{errorMsg}</div>
           ) : null}
         </div>
       );
@@ -180,9 +173,7 @@ export const GenericFormModal = <T,>({
             onBlur={() => handleBlur(key)}
           />
           {errorMsg ? (
-            <div className="invalid-feedback">{errorMsg}</div>
-          ) : isTouched && dateVal ? (
-            <div className="valid-feedback">¡Perfecto!</div>
+            <div className="invalid-feedback d-block">{errorMsg}</div>
           ) : null}
         </div>
       );
@@ -209,9 +200,7 @@ export const GenericFormModal = <T,>({
           onBlur={() => handleBlur(key)}
         />
         {errorMsg ? (
-          <div className="invalid-feedback">{errorMsg}</div>
-        ) : isTouched && (localVal ?? rawVal) ? (
-          <div className="valid-feedback">¡Perfecto!</div>
+          <div className="invalid-feedback d-block">{errorMsg}</div>
         ) : null}
       </div>
     );
