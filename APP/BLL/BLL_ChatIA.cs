@@ -429,8 +429,9 @@ namespace BLL
                     cliente.ApellidoCliente = repuestaIA.Parametros.Find(p => p.Nombre.Equals("ApellidoCliente", StringComparison.OrdinalIgnoreCase))?.Valor ?? string.Empty;
                     cliente.TelefonoCliente = repuestaIA.Parametros.Find(p => p.Nombre.Equals("TelefonoCliente", StringComparison.OrdinalIgnoreCase))?.Valor ?? string.Empty;
                     cliente.CorreoCliente = repuestaIA.Parametros.Find(p => p.Nombre.Equals("CorreoCliente", StringComparison.OrdinalIgnoreCase))?.Valor ?? string.Empty;
+                    cliente.ID_Usuario = usuario.ID_Usuario;
 
-                    mensajeParaIAM.Contenido = JsonConvert.SerializeObject(await bLL_Cliente.guardarCliente(usuario, cliente));
+                    mensajeParaIAM.Contenido = JsonConvert.SerializeObject(await bLL_Cliente.guardarCliente(cliente));
 
                     break;
 
