@@ -31,22 +31,22 @@ INSERT INTO [UTIL].[TBL_ALERTAS] ([COD_ALERTA], [Nombre], [Mensaje], [Tipo]) VAL
 ('A007', N'Autenticación de usuario', N'Refresh token guardado correctamente', 'I'),
 ('A008', N'ChatIA', N'Audio guardado temporalmente', 'I'),
 ('A009', N'ChatIA', N'Transcrito correctamente', 'I'),
-('A0010', N'ChatIA', N'El audio no se pudo entender', 'E'),
-('A0011', N'ChatIA', N'Transcripción cancelada', 'E'),
-('A0012', N'ChatIA', N'Audio guardado en la nube', 'I'),
-('A0013', N'ChatIA', N'El audio no se pudo guardar en la nube', 'E'),
-('A0014', N'ChatIA', N'Mensaje guardado correctamente', 'I'),
-('A0015', N'Autenticación de usuario', N'El refresh token no coincide con el usuario', 'E'),
-('A0016', N'Autenticación de usuario', N'El refresh token se encuentra revocado', 'E'),
-('A0017', N'Autenticación de usuario', N'El refresh token se validó correctamente', 'I'),
-('A0018', N'Autenticación de usuario', N'El refresh token se encuentra vencido', 'E'),
-('A0019', N'Negocios', N'Negocios obtenidos correctamente', 'I'),
-('A0020', N'ChatIA', N'Mensajes obtenidos correctamente', 'I'),
-('A0021', N'ChatIA', N'Chats obtenidos correctamente', 'I'),
-('A0022', N'Cliente', N'Busqueda de clientes realizada correctamente', 'I'),
-('A0023', N'Contexto', N'Contexto consultado correctamente', 'I'),
-('A0024', N'Cliente', N'Cliente guardado correctamente', 'I'),
-('A0025', N'OrdenServicio', N'Busqueda de orden de servicio realizada correctamente', 'I'),
+('A010', N'ChatIA', N'El audio no se pudo entender', 'E'),
+('A011', N'ChatIA', N'Transcripción cancelada', 'E'),
+('A012', N'ChatIA', N'Audio guardado en la nube', 'I'),
+('A013', N'ChatIA', N'El audio no se pudo guardar en la nube', 'E'),
+('A014', N'ChatIA', N'Mensaje guardado correctamente', 'I'),
+('A015', N'Autenticación de usuario', N'El refresh token no coincide con el usuario', 'E'),
+('A016', N'Autenticación de usuario', N'El refresh token se encuentra revocado', 'E'),
+('A017', N'Autenticación de usuario', N'El refresh token se validó correctamente', 'I'),
+('A018', N'Autenticación de usuario', N'El refresh token se encuentra vencido', 'E'),
+('A019', N'Negocios', N'Negocios obtenidos correctamente', 'I'),
+('A020', N'ChatIA', N'Mensajes obtenidos correctamente', 'I'),
+('A021', N'ChatIA', N'Chats obtenidos correctamente', 'I'),
+('A022', N'Cliente', N'Busqueda de clientes realizada correctamente', 'I'),
+('A023', N'Contexto', N'Contexto consultado correctamente', 'I'),
+('A024', N'Cliente', N'Cliente guardado correctamente', 'I'),
+('A025', N'OrdenServicio', N'Busqueda de orden de servicio realizada correctamente', 'I'),
 -- Bloque nuevo
 ('B001', N'Negocio', N'El negocio se registró exitosamente.', 'I'),
 ('B002', N'Negocio', N'No puede registrar más de 3 negocios.', 'E'),
@@ -75,7 +75,9 @@ INSERT INTO [UTIL].[TBL_ALERTAS] ([COD_ALERTA], [Nombre], [Mensaje], [Tipo]) VAL
 ('B025', N'Actualizar OrdenServicio', N'No se realizaron cambios en la orden de servicio.', 'I')
 ('B026', N'Negocio', N'Negocio eliminado correctamente.', 'I'),
 ('B027', N'Cliente', N'Cliente eliminado correctamente.', 'I')
-('B028', N'Obtener OrdenDeServicios', N'Órdenes obtenidas correctamente.', 'I')
+('B028', N'Obtener OrdenDeServicios', N'Órdenes obtenidas correctamente.', 'I'),
+('B029', N'Actualizar Cliente', N'Los datos del cliente han sido actualizados exitosamente.','I');
+('B030', N'Obtener Cliente', N'Los datos del cliente han sido obtenidos exitosamente.','I');
 
 GO
 

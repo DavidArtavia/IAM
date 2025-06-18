@@ -15,21 +15,24 @@ GO -- =============================================
 GO -- Procedimiento real
     ALTER PROCEDURE [CORE].[SP_obtenerClientes] AS BEGIN
 SET NOCOUNT ON;
-SELECT TOP (1000) [ID_Cliente],
-    [ID_Usuario],
-    [NombreCliente],
-    [ApellidoCliente],
-    [TelefonoCliente],
-    [CorreoCliente]
-FROM [CORE].[TBL_CLIENTES]
-ORDER BY [ID_Cliente] DESC;
--- Más recientes
+SELECT TOP (1000) C.ID_Cliente,
+    C.ID_Usuario,
+    C.ID_Estado,
+    E.Nombre AS EstadoNombre,
+    C.NombreCliente,
+    C.ApellidoCliente,
+    C.TelefonoCliente,
+    C.CorreoCliente
+FROM [CORE].[TBL_CLIENTES] C
+    INNER JOIN [UTIL].[TBL_ESTADOS] E ON C.ID_Estado = E.ID_Estado
+ORDER BY C.ID_Cliente DESC;
 -- Alerta de éxito
 SELECT [COD_ALERTA],
     [Nombre],
     [Mensaje],
     [Tipo]
 FROM [UTIL].[TBL_ALERTAS]
-WHERE [COD_ALERTA] = 'B027';
+WHERE [COD_ALERTA] = 'B030';
 -- "Clientes obtenidos correctamente"
 END
+

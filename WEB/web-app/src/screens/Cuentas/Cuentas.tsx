@@ -9,6 +9,7 @@ import {
   labelMapCuentasPorPagar,
   cuentasFormEditFields,
   columnKeysCuentasPorPagar,
+  keysInfoModalCuentasPorPagar,
 } from "@/utils";
 import {
   BusinessButtons,
@@ -225,8 +226,9 @@ export const Cuentas = () => {
             onEdit={handleEdit}
             onDelete={handleDelete}
             disableButtonAdd={disableButtonAdd}
-            includeEstadoColumn={true} // añade automáticamente la columna “Estado”
+            includeEstadoColumn // añade automáticamente la columna “Estado”
             customRenderers={customRenderers}
+            modalInfoFields={keysInfoModalCuentasPorPagar}
           />
         ) : (
           <InfoPanel msj="Por favor, selecciona un negocio para ver sus cuentas por pagar." />

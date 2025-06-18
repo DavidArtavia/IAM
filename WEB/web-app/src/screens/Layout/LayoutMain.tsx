@@ -184,6 +184,22 @@ useEffect(() => {
                   <span className="menu-title">Negocio</span>
                 </Link>
               </div>
+              
+              <div className="menu-item py-2">
+                <Link
+                  to={ROUTES.CLIENTES}
+                  className={`menu-link menu-center${pathname === ROUTES.CLIENTES ? " active" : ""
+                    }`}
+                  data-bs-trigger="hover"
+                  data-bs-dismiss="click"
+                  data-bs-placement="right"
+                >
+                    <span className="menu-icon me-0">
+                    <i className="bi bi-people fs-2" />
+                    </span>
+                  <span className="menu-title">Clientes</span>
+                </Link>
+              </div>
 
               <div className="menu-item py-2">
                 <Link

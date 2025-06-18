@@ -1,10 +1,10 @@
 import { FieldConfig } from "@/components/Modals/GenericFormModal/types";
-import { DTO_CuentasPorPagar, DTO_Negocio, DTO_OrdenServicio } from "@/models";
+import { DTO_Cliente, DTO_CuentasPorPagar, DTO_Negocio, DTO_OrdenServicio } from "@/models";
 
 //  Define configuraciones de campos de formulario (FieldConfig) para construir formularios dinámicos relacionados con estos modelos.
 // Los label maps permiten mostrar nombres amigables en la UI, y los arreglos de campos de formulario se usan para generar formularios de manera flexible.
 export const columnKeysCuentasPorPagar: (keyof DTO_CuentasPorPagar)[] = [
-    "iD_CuentasPorPagar",
+    // "iD_CuentasPorPagar",
     "iD_Negocio",
     "concepto",
     "descripcion",
@@ -28,8 +28,17 @@ export const columnKeysOrdenDeServicio: (keyof DTO_OrdenServicio)[] = [
     "notaOrdenServicio"
 ];
 
+export const columnKeysCliente: (keyof DTO_Cliente)[] = [
+    "iD_Cliente",
+    "nombreCliente",
+    "apellidoCliente",
+    "telefonoCliente",
+    "correoCliente",
+];
+
+
 // Define los atributos que se mostrarán en el infoModal de las filas de las tablas de los modelos.
-export const columnKeysInfoModalOrdenDeServicio: (keyof DTO_OrdenServicio)[] = [
+export const keysInfoModalOrdenDeServicio: (keyof DTO_OrdenServicio)[] = [
 
     "iD_OrdenServicio",
     "fechaOrdenServicio",
@@ -40,21 +49,40 @@ export const columnKeysInfoModalOrdenDeServicio: (keyof DTO_OrdenServicio)[] = [
     "notaOrdenServicio",
     "referenciaJSON",
     "estado",
-    
-];
-export const columnKeysInfoModalNegocio: (keyof DTO_Negocio)[] = [
 
-"iD_Negocio",
-"nombreNegocio",
-"descripcion",
-"direccion",
-"telefonoNegocio",
-"correoNegocio",
-"fechaRegistro",
-"estado",
-"referenciaJSON"
+];
+export const keysInfoModalNegocio: (keyof DTO_Negocio)[] = [
+
+    "iD_Negocio",
+    "nombreNegocio",
+    "descripcion",
+    "direccion",
+    "telefonoNegocio",
+    "correoNegocio",
+    "fechaRegistro",
+    "estado",
+    "referenciaJSON"
 ];
 
+export const keysInfoModalCuentasPorPagar: (keyof DTO_CuentasPorPagar)[] = [
+    // "iD_CuentasPorPagar",
+    "iD_Negocio",
+    "concepto",
+    "descripcion",
+    "saldo",
+    "fechaInicial",
+    "fechaModificacion",
+    "estado",
+];
+
+export const keysInfoModalCliente: (keyof DTO_Cliente)[] = [
+    "iD_Cliente",
+    "nombreCliente",
+    "apellidoCliente",
+    "telefonoCliente",
+    "correoCliente",
+    "estado",
+];
 
 // Este archivo define mapas de etiquetas (label maps) para mostrar nombres legibles en los titulos del DataTable de los modelos.
 export const labelMapCuentasPorPagar: Record<string, string> = {
@@ -89,10 +117,19 @@ export const labelMapOrdenDeServicio: Record<string, string> = {
     fechaOrdenServicio: "Fecha de servicio",
     fechaEstimadaEntrega: "Entrega Estimada",
     fechaInicio: "Fecha de Inicio",
-    fechaFinal: "Fecha Final",    
+    fechaFinal: "Fecha Final",
     fechaEntrega: "Fecha de Entrega",
     notaOrdenServicio: "Nota",
     referenciaJSON: "Referencias"
+};
+
+export const labelMapCliente: Record<string, string> = {
+    iD_Cliente: "Cliente #",
+    nombreCliente: "Nombre",
+    apellidoCliente: "Apellido(s)",
+    telefonoCliente: "Teléfono",
+    correoCliente: "Correo",
+    estado: "Estado",
 };
 
 // Exportación de los campos del formulario editar para los modelos
@@ -112,22 +149,30 @@ export const cuentasFormEditFields: Array<FieldConfig<DTO_CuentasPorPagar>> = co
         type: key === "saldo" ? "number" : "text",
     }));
 
+export const clienteFormEditFields: Array<FieldConfig<DTO_Cliente>> = columnKeysCliente
+    .filter(key => key !== "iD_Cliente" && key !== "iD_Usuario") // Excluye campos que no se editan
+    .map(key => ({
+        key,
+        label: labelMapCliente[key] ?? key,
+        type: "text",
+    }));
+
 export const ordenServicioFormEditFields: Array<
     FieldConfig<DTO_OrdenServicio>
 > = [
         // Campo fechaInicio fijo
         {
-        key: "fechaInicio",
-        label: labelMapOrdenDeServicio["fechaInicio"] ?? "Fecha de Inicio",
+            key: "fechaInicio",
+            label: labelMapOrdenDeServicio["fechaInicio"] ?? "Fecha de Inicio",
             type: "date", // aquí TS sabe que es literal "date"
         },
         {
-        key: "fechaFinal",
-        label: labelMapOrdenDeServicio["fechaFinal"] ?? "Fecha Final",
+            key: "fechaFinal",
+            label: labelMapOrdenDeServicio["fechaFinal"] ?? "Fecha Final",
             type: "date", // aquí TS sabe que es literal "date"
         },
         {
-        key: "fechaEntrega",
+            key: "fechaEntrega",
             label: labelMapOrdenDeServicio["fechaEntrega"] ?? "Fecha de Entrega",
             type: "date", // aquí TS sabe que es literal "date"
         },
@@ -155,4 +200,3 @@ export const ordenServicioFormEditFields: Array<
             }),
     ];
 
-    

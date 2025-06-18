@@ -34,8 +34,8 @@ export const API_ENDPOINTS = {
     },
     CLIENTS: {
         GET_CLIENTS: "Cliente/obtenerClientes",
-        SEARCH_CLIENTS: "/Cliente/buscarClientes",
-        ADD_CLIENT: "/Cliente/registrarCliente",
-        UPDATE_CLIENT: "/Cliente/actualizarCliente",
+        SEARCH_CLIENTS: "Cliente/buscarClientes",
+        ADD_CLIENT: "Cliente/guardarCliente",
+        UPDATE_CLIENT: "Cliente/actualizarCliente",
     },
 } as const;

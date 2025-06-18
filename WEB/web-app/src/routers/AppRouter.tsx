@@ -1,6 +1,7 @@
 import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { ROUTES } from "@/constants";
 import {
+  Clientes,
   Cuentas,
   Home,
   LayoutMain,
@@ -40,6 +41,7 @@ const { pathname } = useLocation(); //ruta actual
           <Route path={ROUTES.NEGOCIO} element={<Negocio />} />
           <Route path={ROUTES.MONITOR} element={<Monitor />} />
           <Route path={ROUTES.CUENTAS} element={<Cuentas />} />
+          <Route path={ROUTES.CLIENTES} element={<Clientes/>} />
           <Route path={ROUTES.SERVICE_ORDER} element={<OrdenDeServicio />} />
         </Route>
       </Route>

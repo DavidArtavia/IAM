@@ -11,16 +11,16 @@ namespace BLL
     public class BLL_Negocio
     {
         DAL_Negocio dal_negocio = new DAL_Negocio();
-        public DTO_Respuesta obtenerNegocios(DTO_Usuario usuario, DTO_FiltroEstado filtro)
+        public Task<DTO_Respuesta> obtenerNegocios(DTO_Usuario usuario, DTO_FiltroEstado filtro)
         {
 
             return dal_negocio.obtenerNegocios(usuario, filtro);
         }
-        public DTO_Respuesta registrarNegocio(DTO_Negocio negocio)
+        public Task<DTO_Respuesta> registrarNegocio(DTO_Negocio negocio)
         {
             return dal_negocio.registrarNegocio(negocio);
         } 
-        public DTO_Respuesta actualizarNegocio(DTO_Negocio negocio)
+        public Task<DTO_Respuesta> actualizarNegocio(DTO_Negocio negocio)
         {
             return dal_negocio.actualizarNegocio(negocio);
         }

@@ -1,15 +1,11 @@
 // -------------------------------------------------------------------------------------------------
-// InfoModal.tsx - Generic component to display detailed information in a modal,
-//                with automatic date detection, arrays, objects, and primitives,
-//                using Bootstrap for styling.
+// InfoModal.tsx - Modal genérico para mostrar información detallada.
+// Renderiza valores según tipo: fechas, arrays, objetos y primitivos.
 // -------------------------------------------------------------------------------------------------
 import React from "react";
 import { ReferenciaCards } from "@/components/ReferenciasJson/ReferenciasCard";
 import { dateHelpers } from "@/utils";
 
-// -----------------------------------
-// Types & Interfaces
-// -----------------------------------
 interface InfoModalProps {
   show: boolean;
   onHide: () => void;
@@ -18,78 +14,40 @@ interface InfoModalProps {
   title?: string;
 }
 
-// -----------------------------------
-// Helper Functions
-// -----------------------------------
-/**
- * Attempts to parse any value as a Date if it looks date-like,
- * and returns formatted dd/MM/yyyy. Otherwise returns null.
- */
 const tryParseDate = (val: unknown): string | null => {
-  if (val == null) return null;
+  if (!val) return null;
 
-  // If value is a Date instance
-  if (val instanceof Date) {
-    if (isNaN(val.getTime()) || val.getFullYear() < 1753) return null;
-    return dateHelpers.formatFechaDDMMYYYY(val);
-  }
+  const asDate =
+    val instanceof Date
+      ? val
+      : typeof val === "string" || typeof val === "number"
+      ? new Date(val)
+      : new Date(NaN);
+  if (isNaN(asDate.getTime()) || asDate.getFullYear() < 1753) return null;
 
-  // If value is a string that resembles an ISO date
-  const str = String(val);
-  const isoLike = /^\d{4}-\d{2}-\d{2}(T|$)/.test(str);
-  if (!isoLike) return null;
-
-  const date = new Date(str);
-  if (isNaN(date.getTime()) || date.getFullYear() < 1753) return null;
-  return dateHelpers.formatFechaDDMMYYYY(date);
+  return dateHelpers.formatFechaDDMMYYYY(asDate);
 };
 
-// -----------------------------------
-// Value Renderer
-// -----------------------------------
-/**
- * Renders a value based on its type:
- *  - Detected date: formatted dd/MM/yyyy or 'No se ha definido aún'
- *  - Array: ReferenciaCards or JSON
- *  - Object: badge or key/value list
- *  - Primitive: string
- */
 const renderValue = (
   key: string,
   value: unknown,
   labelMap: Record<string, string>
 ): React.ReactNode => {
-  // 1) Automatic date detection for Date or ISO-like strings
-  let isDateCandidate = false;
-  let formattedDate: string | null = null;
-
-  if (value instanceof Date) {
-    isDateCandidate = true;
-    formattedDate = tryParseDate(value);
-  } else if (
-    typeof value === "string" &&
-    /^\d{4}-\d{2}-\d{2}(T|$)/.test(String(value))
-  ) {
-    isDateCandidate = true;
-    formattedDate = tryParseDate(value);
-  }
-
-  if (isDateCandidate) {
-    if (formattedDate) {
-      return <span>{formattedDate}</span>;
-    }
+  // 1) Fecha
+  const maybeDate = tryParseDate(value);
+  if (maybeDate !== null) return <span>{maybeDate}</span>;
+  if (typeof value === "string" && value.startsWith("0001-01-01")) {
     return (
       <span className="badge bg-warning text-dark">No se ha definido aún</span>
     );
   }
 
-  // 2) Array handling
+  // 2) Array
   if (Array.isArray(value)) {
-    if (value.length === 0) {
+    if (value.length === 0)
       return <span className="text-muted">[Sin datos]</span>;
-    }
 
-    const allNamed = (value as unknown[]).every(
+    const allNamed = value.every(
       (item) =>
         typeof item === "object" &&
         item !== null &&
@@ -97,11 +55,9 @@ const renderValue = (
         "valor" in item
     );
 
-    if (allNamed) {
-      return <ReferenciaCards items={value as any} />;
-    }
-
-    return (
+    return allNamed ? (
+      <ReferenciaCards items={value as any} />
+    ) : (
       <pre
         className="bg-light rounded p-2"
         style={{ maxHeight: 200, overflowY: "auto" }}
@@ -111,14 +67,22 @@ const renderValue = (
     );
   }
 
-  // 3) Object handling
+  // 3) Objeto
   if (typeof value === "object" && value !== null) {
-    if ("nombre" in (value as Record<string, unknown>)) {
-      return <span className="badge bg-success">{(value as any).nombre}</span>;
+    if ("nombre" in value) {
+      const nombre = (value as any).nombre;
+      if (nombre === "Activo") {
+      return <span className="badge badge-light-success">{nombre}</span>;
+      }
+      if (nombre === "Eliminado") {
+      return <span className="badge badge-light-primary">{nombre}</span>;
+      }
+      <span className="badge badge-light-info">{nombre}</span>;
     }
+
     return (
       <div className="row gx-2">
-        {Object.entries(value as Record<string, unknown>).map(([k, v]) => (
+        {Object.entries(value).map(([k, v]) => (
           <div key={k} className="col-12 d-flex justify-content-between mb-1">
             <strong>{labelMap[k] ?? k}:</strong>
             <span>{String(v)}</span>
@@ -127,14 +91,13 @@ const renderValue = (
       </div>
     );
   }
-
-  // 4) Primitive types
+  if (value === undefined || value === null) {
+    return <span className="badge bg-secondary">No disponible</span>;
+  }
+  // 4) Primitivos
   return <span>{String(value)}</span>;
 };
 
-// -----------------------------------
-// Component
-// -----------------------------------
 export const InfoModal: React.FC<InfoModalProps> = ({
   show,
   onHide,
@@ -155,7 +118,7 @@ export const InfoModal: React.FC<InfoModalProps> = ({
             <h2>{title}</h2>
             <button
               type="button"
-              className="btn btn-sm btn-icon btn-active-color-primary"
+              className="btn btn-sm btn-icon"
               onClick={onHide}
             >
               ✕
@@ -169,22 +132,14 @@ export const InfoModal: React.FC<InfoModalProps> = ({
                   key={key}
                   className="d-flex flex-stack py-5 border-bottom border-gray-300 border-bottom-dashed"
                 >
-                  {/* Columna izquierda: etiqueta / label */}
                   <div className="d-flex align-items-center">
                     <div className="ms-6">
-                      <a
-                        href="#"
-                        className="d-flex align-items-center fs-5 fw-bolder text-dark text-hover-primary"
-                        style={{ textDecoration: "none" }}
-                        tabIndex={-1}
-                        onClick={(e) => e.preventDefault()}
-                      >
-                        <strong>{labelMap[key] ?? key}</strong>
-                      </a>
+                      <strong className="fs-5 fw-bold text-dark">
+                        {labelMap[key] ?? key}
+                      </strong>
                     </div>
                   </div>
 
-                  {/* Columna derecha: valor (o renderValue) */}
                   <div className="d-flex align-items-center">
                     <div className="ms-6">
                       {renderValue(key, val, labelMap)}
