@@ -15,7 +15,7 @@ namespace DAL
         DTO_Respuesta respuesta = new();
         DTO_Cliente cliente = new();
 
-        public DTO_Respuesta obtenerClientes()
+        public async Task<DTO_Respuesta> obtenerClientes()
         {
             List<DTO_Cliente> listaClientes = [];
             try
@@ -38,7 +38,7 @@ namespace DAL
                     this.Open();
 
                     // Ejecutar el comando y obtener el lector de datos
-                    using (SqlDataReader reader = sqlcmd.ExecuteReader())
+                    using (SqlDataReader reader = await sqlcmd.ExecuteReaderAsync())
                     {
                         while (reader.Read())
                         {
@@ -46,6 +46,7 @@ namespace DAL
                             cliente.ID_Cliente = UTL_DBHelper.ReadNullSafeInt(reader["ID_Cliente"]);
                             cliente.ID_Usuario = UTL_DBHelper.ReadNullSafeInt(reader["ID_Usuario"]);
                             cliente.Estado.ID_Estado = UTL_DBHelper.ReadNullSafeInt(reader["ID_Estado"]);
+                            cliente.Estado.Nombre = UTL_DBHelper.ReadNullSafeString(reader["EstadoNombre"]);
                             cliente.NombreCliente = UTL_DBHelper.ReadNullSafeString(reader["NombreCliente"]);
                             cliente.ApellidoCliente = UTL_DBHelper.ReadNullSafeString(reader["ApellidoCliente"]);
                             cliente.TelefonoCliente = UTL_DBHelper.ReadNullSafeString(reader["TelefonoCliente"]);
@@ -247,6 +248,101 @@ namespace DAL
             {
                 this.Close();
                 throw e;  // Luego se guardan las ecepciones en un log
+            }
+            finally
+            {
+                this.Close();
+            }
+        }
+
+        public async Task<DTO_Respuesta> registrarCliente(DTO_Cliente cliente)
+        {
+            try
+            {
+
+                string query = "CORE.SP_registrarCliente";
+
+
+                using (SqlCommand sqlcmd = new SqlCommand(query, this.GetObjConexion()))
+                {
+                    sqlcmd.CommandType = CommandType.StoredProcedure;
+                    sqlcmd.Parameters.Add("@ID_Usuario", SqlDbType.Int).Value = cliente.ID_Usuario;
+                    sqlcmd.Parameters.Add("@ID_Estado", SqlDbType.Int).Value = cliente.Estado.ID_Estado;
+                    sqlcmd.Parameters.Add("@NombreCliente", SqlDbType.VarChar).Value = cliente.NombreCliente;
+                    sqlcmd.Parameters.Add("@ApellidoCliente", SqlDbType.VarChar).Value = cliente.ApellidoCliente;
+                    sqlcmd.Parameters.Add("@TelefonoCliente", SqlDbType.VarChar).Value = cliente.TelefonoCliente;
+                    sqlcmd.Parameters.Add("@CorreoCliente", SqlDbType.VarChar).Value = cliente.CorreoCliente;
+
+
+                    // Establecer la dirección de los parámetros
+                    foreach (SqlParameter param in sqlcmd.Parameters)
+                    {
+                        param.Direction = ParameterDirection.Input;
+                    }
+
+                    this.Open();
+
+                    using (SqlDataReader reader = await sqlcmd.ExecuteReaderAsync())
+                    {
+                        while (reader.Read())
+                        {
+                            respuesta = manejarRespuesta(reader);
+                        }
+                    }
+                    return respuesta;
+                }
+            }
+            catch (Exception e)
+            {
+                this.Close();
+                throw e;
+            }
+            finally
+            {
+                this.Close();
+            }
+        }
+
+        public async Task<DTO_Respuesta> actualizarCliente(DTO_Cliente cliente)
+        {
+            try
+            {
+                string query = "CORE.SP_actualizarCliente";
+
+                using (SqlCommand sqlcmd = new(query, this.GetObjConexion()))
+                {
+                    sqlcmd.CommandType = CommandType.StoredProcedure;
+
+                    sqlcmd.Parameters.Add("@ID_Cliente", SqlDbType.Int).Value = cliente.ID_Cliente;
+                    sqlcmd.Parameters.Add("@ID_Usuario", SqlDbType.Int).Value = cliente.ID_Usuario;
+                    sqlcmd.Parameters.Add("@ID_Estado", SqlDbType.Int).Value = cliente.Estado.ID_Estado;
+                    sqlcmd.Parameters.Add("@NombreCliente", SqlDbType.VarChar).Value = cliente.NombreCliente;
+                    sqlcmd.Parameters.Add("@ApellidoCliente", SqlDbType.VarChar).Value = cliente.ApellidoCliente;
+                    sqlcmd.Parameters.Add("@TelefonoCliente", SqlDbType.VarChar).Value = cliente.TelefonoCliente;
+                    sqlcmd.Parameters.Add("@CorreoCliente", SqlDbType.VarChar).Value = cliente.CorreoCliente;
+
+                    foreach (SqlParameter param in sqlcmd.Parameters)
+                    {
+                        param.Direction = ParameterDirection.Input;
+                    }
+
+                    this.Open();
+
+                    using (SqlDataReader reader = await sqlcmd.ExecuteReaderAsync())
+                    {
+                        while (reader.Read())
+                        {
+                            respuesta = manejarRespuesta(reader);
+                        }
+                    }
+                    return respuesta;
+                }
+            }
+
+            catch (Exception e)
+            {
+                this.Close();
+                throw e;
             }
             finally
             {

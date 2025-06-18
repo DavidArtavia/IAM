@@ -35,11 +35,11 @@ namespace API.Controllers
         [Produces("application/json")]
         [Route("obtenerClientes")]
         [HttpPost]
-        public DTO_Respuesta obtenerClientes()
+        public async Task<DTO_Respuesta> obtenerClientes() // Change method to async
         {
             try
             {
-                respuesta = bLL_Cliente.obtenerClientes();
+                respuesta = await bLL_Cliente.obtenerClientes(); // Await the Task<DTO_Respuesta>
             }
             catch (Exception ex)
             {
@@ -48,5 +48,52 @@ namespace API.Controllers
             return respuesta;
         }
 
+        [Authorize(Roles = "1")]
+        [Produces("application/json")]
+        [Route("registrarCliente")]
+        [HttpPost]
+        public async Task<DTO_Respuesta> registrarCliente([FromBody] DTO_Cliente cliente)
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+
+            try
+            {
+                if (userIdClaim == null) throw new UnauthorizedAccessException("User ID claim is missing.");
+                cliente.ID_Usuario = Convert.ToInt32(userIdClaim.Value);
+                respuesta = await bLL_Cliente.registrarCliente(cliente);
+            }
+            catch (Exception ex)
+            {
+                respuesta = manejoError.errorNoControlado(ex);
+            }
+
+            return respuesta;
+        }
+
+
+        [Authorize(Roles = "1")]
+        [Produces("application/json")]
+        [Route("actualizarCliente")]
+        [HttpPost]
+        public async Task<DTO_Respuesta> actualizarCliente([FromBody] DTO_Cliente cliente)
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+
+            try
+            {
+                if (userIdClaim == null) throw new UnauthorizedAccessException("User ID claim is missing.");
+                cliente.ID_Usuario = Convert.ToInt32(userIdClaim.Value);
+                respuesta = await bLL_Cliente.actualizarCliente(cliente);
+            }
+            catch (Exception ex)
+            {
+                respuesta = manejoError.errorNoControlado(ex);
+            }
+
+            return respuesta;
+        }
+
     }
+
+
 }

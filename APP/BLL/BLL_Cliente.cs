@@ -13,10 +13,10 @@ namespace BLL
         DAL_Cliente dAL_Cliente = new DAL_Cliente();
         DTO_Respuesta respuesta = new();
 
-        public DTO_Respuesta obtenerClientes()
+        public async Task<DTO_Respuesta> obtenerClientes()
         {
 
-            return dAL_Cliente.obtenerClientes();
+            return await dAL_Cliente.obtenerClientes();
         }
         public async Task<DTO_Respuesta> buscarCliente(DTO_Cliente cliente)
         {
@@ -32,6 +32,7 @@ namespace BLL
             return await dAL_Cliente.BuscarClientesAsync(solicitud, usuario);
         }
 
+        //No lo quite xq no se donde se usa, cree un registrar que puede hacer lo mismo
 
         public async Task<DTO_Respuesta> guardarCliente(DTO_Usuario usuario, DTO_Cliente cliente)
         {
@@ -39,6 +40,14 @@ namespace BLL
             if (!respuesta.TipoRespuesta)
                 throw new Exception(respuesta.Mensaje);
             return respuesta;
+        }
+        public async Task<DTO_Respuesta> registrarCliente(DTO_Cliente negocio)
+        {
+            return await dAL_Cliente.registrarCliente(negocio);
+        }
+        public async Task<DTO_Respuesta> actualizarCliente(DTO_Cliente negocio)
+        {
+            return await dAL_Cliente.actualizarCliente(negocio);
         }
     }
 }

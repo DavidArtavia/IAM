@@ -19,7 +19,7 @@ namespace API.Controllers
         [Produces("application/json")]
         [Route("registrarNegocio")]
         [HttpPost]
-        public DTO_Respuesta registrarNegocio([FromBody] DTO_Negocio negocio)
+        public async Task<DTO_Respuesta> registrarNegocio([FromBody] DTO_Negocio negocio)
         {
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
 
@@ -27,7 +27,7 @@ namespace API.Controllers
             {
                 if (userIdClaim == null) throw new UnauthorizedAccessException("User ID claim is missing.");
                 negocio.ID_Usuario = Convert.ToInt32(userIdClaim.Value);
-                respuesta = bLL_Negocio.registrarNegocio(negocio);
+                respuesta = await bLL_Negocio.registrarNegocio(negocio);
             }
             catch (Exception ex)
             {
@@ -41,13 +41,13 @@ namespace API.Controllers
         [Produces("application/json")]
         [Route("obtenerNegocios")]
         [HttpPost]
-        public DTO_Respuesta obtenerNegocios([FromBody] DTO_FiltroEstado filtro)
+        public async Task<DTO_Respuesta> obtenerNegocios([FromBody] DTO_FiltroEstado filtro)
         {
             try
             {
                 DTO_Usuario usuario = new();
                 usuario.ID_Usuario = Convert.ToInt32(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
-                respuesta = bLL_Negocio.obtenerNegocios(usuario, filtro);
+                respuesta = await bLL_Negocio.obtenerNegocios(usuario, filtro);
             }
             catch (Exception ex)
             {
@@ -60,7 +60,7 @@ namespace API.Controllers
         [Produces("application/json")]
         [Route("actualizarNegocio")]
         [HttpPost]
-        public DTO_Respuesta actualizarNegocio([FromBody] DTO_Negocio negocio)
+        public async Task<DTO_Respuesta> actualizarNegocio([FromBody] DTO_Negocio negocio)
         {
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
 
@@ -68,7 +68,7 @@ namespace API.Controllers
             {
                 if (userIdClaim == null) throw new UnauthorizedAccessException("User ID claim is missing.");
                 negocio.ID_Usuario = Convert.ToInt32(userIdClaim.Value);
-                respuesta = bLL_Negocio.actualizarNegocio(negocio);
+                respuesta = await bLL_Negocio.actualizarNegocio(negocio);
             }
             catch (Exception ex)
             {

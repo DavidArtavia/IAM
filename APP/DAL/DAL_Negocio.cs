@@ -15,7 +15,7 @@ namespace DAL
     {
 
         DTO_Respuesta respuesta = new();
-        public DTO_Respuesta registrarNegocio(DTO_Negocio negocio)
+        public async Task<DTO_Respuesta> registrarNegocio(DTO_Negocio negocio)
         {
 
             try
@@ -42,7 +42,7 @@ namespace DAL
 
                     this.Open();
 
-                    using (SqlDataReader reader = sqlcmd.ExecuteReader())
+                    using (SqlDataReader reader = await sqlcmd.ExecuteReaderAsync())
                     {
                         while (reader.Read())
                         {
@@ -63,7 +63,7 @@ namespace DAL
             }
         }
 
-        public DTO_Respuesta obtenerNegocios(DTO_Usuario usuario, DTO_FiltroEstado filtro)
+        public async Task<DTO_Respuesta> obtenerNegocios(DTO_Usuario usuario, DTO_FiltroEstado filtro)
         {
             DTO_Negocio negocio = new();
             List<DTO_Negocio> listaNegocios = [];
@@ -89,7 +89,7 @@ namespace DAL
                     this.Open();
 
                     // Ejecutar el comando y obtener el lector de datos
-                    using (SqlDataReader reader = sqlcmd.ExecuteReader())
+                    using (SqlDataReader reader = await sqlcmd.ExecuteReaderAsync())
                     {
                         while (reader.Read())
                         {
@@ -160,7 +160,7 @@ namespace DAL
             }
         }
 
-        public DTO_Respuesta actualizarNegocio(DTO_Negocio negocio)
+        public async Task<DTO_Respuesta> actualizarNegocio(DTO_Negocio negocio)
         {
             try
             {
@@ -188,7 +188,7 @@ namespace DAL
 
                     this.Open();
 
-                    using (SqlDataReader reader = sqlcmd.ExecuteReader())
+                    using (SqlDataReader reader = await sqlcmd.ExecuteReaderAsync())
                     {
                         while (reader.Read())
                         {

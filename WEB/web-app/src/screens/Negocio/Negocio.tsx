@@ -1,10 +1,16 @@
-import { ConfirmModal, FieldConfig, GenericDataTable, GenericFormModal, ReferenciasJsonInput } from "@/components";
+import {
+  ConfirmModal,
+  FieldConfig,
+  GenericDataTable,
+  GenericFormModal,
+  ReferenciasJsonInput,
+} from "@/components";
 import { FILTER_STATUS, STATUS_TBL } from "@/constants";
 import { AuthContext } from "@/context";
 import { DTO_Negocio, DTO_Respuesta, DTO_FiltroEstado } from "@/models";
 import { negocioService } from "@/services";
 import {
-  columnKeysInfoModalNegocio,
+  keysInfoModalNegocio,
   columnKeysNegocio,
   errorHelpers,
   labelMapNegocio,
@@ -178,8 +184,7 @@ export const Negocio = () => {
       validate: (val) => {
         if (!Array.isArray(val) || val.length === 0) return "";
         for (const ref of val) {
-          if (!ref.nombre)
-            return "Todos los campos deben estar completos.";
+          if (!ref.nombre) return "Todos los campos deben estar completos.";
         }
         return "";
       },
@@ -204,14 +209,12 @@ export const Negocio = () => {
       validate: (val) => {
         if (!Array.isArray(val) || val.length === 0) return "";
         for (const ref of val) {
-          if (!ref.nombre)
-            return "Todos los campos deben estar completos.";
+          if (!ref.nombre) return "Todos los campos deben estar completos.";
         }
         return "";
       },
     },
   ];
-  
 
   // ======== Manejo de confirmación de “Cancelar registro” o “Eliminar”  ========
 
@@ -257,7 +260,7 @@ export const Negocio = () => {
           includeEstadoColumn={true} // añade automáticamente la columna “Estado”
           includeReferenceColumn={true} // añade automáticamente la columna “Referencias”
           customRenderers={customRenderers}
-          modalInfoFields={columnKeysInfoModalNegocio}
+          modalInfoFields={keysInfoModalNegocio}
         />
 
         {/* === Modal Genérico: Registrar Negocios === */}

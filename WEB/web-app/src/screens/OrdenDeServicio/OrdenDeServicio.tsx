@@ -13,7 +13,7 @@ import { STATUS_TBL } from "@/constants";
 import { DTO_Negocio, DTO_OrdenServicio, DTO_Respuesta } from "@/models";
 import { ordenesService } from "@/services";
 import {
-  columnKeysInfoModalOrdenDeServicio,
+  keysInfoModalOrdenDeServicio,
   columnKeysOrdenDeServicio,
   dateHelpers,
   errorHelpers,
@@ -361,7 +361,7 @@ export const OrdenDeServicio = () => {
     // 🧩 Paso 4: preparar claves finales para columnas y modal
     const refCols = Array.from(referenceMap.values()); // columnas extra dinámicas
     const finalKeys = [...columnKeysOrdenDeServicio.map(String), ...refCols]; // claves para tabla
-    const staticKeys = columnKeysInfoModalOrdenDeServicio as string[]; // campos del modal fijos
+    const staticKeys = keysInfoModalOrdenDeServicio as string[]; // campos del modal fijos
     const dynKeys = finalKeys.filter((k) => !staticKeys.includes(k)); // solo dinámicos
     const modalFields = [...staticKeys, ...dynKeys]; // orden final en modal
 
@@ -477,7 +477,7 @@ export const OrdenDeServicio = () => {
       ) : selectedBusiness ? (
         <GenericDataTable<DTO_OrdenServicio & Record<string, string>>
           title="Órdenes de Servicio"
-          columnKeys={columnKeys}
+          columnKeys={columnKeys} // columnKeys incopora las referenciasJson dinámicas
           labelMap={labelMap}
           data={data}
           onAdd={handleAddNew}
@@ -485,6 +485,7 @@ export const OrdenDeServicio = () => {
           onDelete={handleDelete}
           disableButtonAdd={disableButtonAdd}
           includeEstadoColumn
+          includeReferenceColumn
           customRenderers={{
             fechaOrdenServicio: (v) => new Date(String(v)).toLocaleDateString(),
             fechaEstimadaEntrega: (v) =>

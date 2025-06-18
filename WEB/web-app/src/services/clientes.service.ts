@@ -20,9 +20,15 @@ export class clientesService {
             map(response => response.data)
         );
     }
-    
-     static obtenerClientes(): Observable<DTO_Respuesta> {
-            return defer(() => api.post<DTO_Respuesta>(API_ENDPOINTS.CLIENTS.GET_CLIENTS)).pipe(map((r: AxiosResponse<DTO_Respuesta>) => r.data));
-        }
- 
+
+    static obtenerClientes(): Observable<DTO_Respuesta> {
+        return defer(() => api.post<DTO_Respuesta>(API_ENDPOINTS.CLIENTS.GET_CLIENTS)).pipe(map((r: AxiosResponse<DTO_Respuesta>) => r.data));
+    }
+    static actualizarClientes(cliente: DTO_Cliente): Observable<DTO_Respuesta> {
+        return defer(() => api.post<DTO_Respuesta>(API_ENDPOINTS.CLIENTS.UPDATE_CLIENT, cliente)).pipe(map((r: AxiosResponse<DTO_Respuesta>) => r.data));
+    }
+    static registrarClientes(cliente: DTO_Cliente): Observable<DTO_Respuesta> {
+        return defer(() => api.post<DTO_Respuesta>(API_ENDPOINTS.CLIENTS.ADD_CLIENT, cliente)).pipe(map((r: AxiosResponse<DTO_Respuesta>) => r.data));
+    }
+
 }
