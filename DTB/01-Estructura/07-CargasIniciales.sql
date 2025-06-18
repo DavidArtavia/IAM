@@ -78,7 +78,6 @@ INSERT INTO [UTIL].[TBL_ALERTAS] ([COD_ALERTA], [Nombre], [Mensaje], [Tipo]) VAL
 ('B028', N'Obtener OrdenDeServicios', N'Órdenes obtenidas correctamente.', 'I'),
 ('B029', N'Actualizar Cliente', N'Los datos del cliente han sido actualizados exitosamente.','I');
 ('B030', N'Obtener Cliente', N'Los datos del cliente han sido obtenidos exitosamente.','I');
-('B031', N'Registrar Cliente', N'Los datos del cliente han sido registrado exitosamente.','I');
 
 GO
 

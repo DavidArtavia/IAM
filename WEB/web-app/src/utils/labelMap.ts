@@ -81,6 +81,7 @@ export const keysInfoModalCliente: (keyof DTO_Cliente)[] = [
     "apellidoCliente",
     "telefonoCliente",
     "correoCliente",
+    "estado",
 ];
 
 // Este archivo define mapas de etiquetas (label maps) para mostrar nombres legibles en los titulos del DataTable de los modelos.

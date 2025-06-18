@@ -37,6 +37,9 @@ export const Clientes = () => {
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [confirmModalMessage, setConfirmModalMessage] = useState("");
 
+  const [confirmContext, setConfirmContext] = useState<
+    "cancelAdd" | "delete" | null
+  >(null);
   // --------------------------------------------------
   // 2. EFECTO: CARGAR CLIENTES AL CAMBIAR NEGOCIO
   // --------------------------------------------------
@@ -86,7 +89,7 @@ export const Clientes = () => {
   };
 
   const handleSave = () => {
-    formData.Estado.iD_Estado = STATUS_TBL.CLIENT.ACTIVE;
+    formData.estado.iD_Estado = STATUS_TBL.CLIENT.ACTIVE;
     clientesService.registrarClientes(formData).subscribe({
       next: (res) => {
         const nuevoCliente = (
@@ -102,8 +105,9 @@ export const Clientes = () => {
   };
 
   const handleCancelAdd = () => {
-    setIsFormOpen(false);
-    notificationHelpers.infoAlert("Nuevo cliente descartado correctamente");
+    setConfirmModalMessage("¿Estás seguro de que deseas cancelar el registro?");
+    setConfirmContext("cancelAdd");
+    setIsConfirmOpen(true);
   };
 
   // --------------------------------------------------
@@ -134,15 +138,16 @@ export const Clientes = () => {
   // 6. ELIMINAR (DESACTIVAR) CLIENTE
   // --------------------------------------------------
   const handleDelete = (cliente: DTO_Cliente) => {
-    setClienteToDelete(cliente);
     setConfirmModalMessage(
       `¿Estás seguro de que deseas eliminar al cliente ${cliente.nombreCliente}?`
     );
+    setClienteToDelete(cliente);
+    setConfirmContext("delete");
     setIsConfirmOpen(true);
   };
 
   const handleConfirmDelete = (action: boolean | null) => {
-      if (action && clienteToDelete) {
+    if (action && clienteToDelete) {
       const updated: DTO_Cliente = {
         ...clienteToDelete,
         estado: {
@@ -163,6 +168,20 @@ export const Clientes = () => {
       setClienteToDelete(null);
     }
     setIsConfirmOpen(false);
+  };
+
+  // ======== Manejo de confirmación de “Cancelar registro” o “Eliminar”  ========
+  const confirmModalAction = (action: boolean | null) => {
+    if (action) {
+      if (confirmContext === "cancelAdd") {
+        setIsFormOpen(false);
+        notificationHelpers.infoAlert("Registro cancelado");
+      } else if (confirmContext === "delete") {
+        handleConfirmDelete(true);
+      }
+    }
+    setIsConfirmOpen(false);
+    setConfirmContext(null);
   };
 
   // --------------------------------------------------
@@ -214,7 +233,7 @@ export const Clientes = () => {
       <ConfirmModal
         show={isConfirmOpen}
         confirmMessage={confirmModalMessage}
-        onAction={handleConfirmDelete}
+        onAction={confirmModalAction}
       />
     </div>
   );

@@ -34,16 +34,12 @@ namespace BLL
 
         //No lo quite xq no se donde se usa, cree un registrar que puede hacer lo mismo
 
-        public async Task<DTO_Respuesta> guardarCliente(DTO_Usuario usuario, DTO_Cliente cliente)
+        public async Task<DTO_Respuesta> guardarCliente(DTO_Cliente cliente)
         {
-            respuesta = await dAL_Cliente.guardarCliente(usuario, cliente);
+            respuesta = await dAL_Cliente.guardarCliente(cliente);
             if (!respuesta.TipoRespuesta)
                 throw new Exception(respuesta.Mensaje);
             return respuesta;
-        }
-        public async Task<DTO_Respuesta> registrarCliente(DTO_Cliente negocio)
-        {
-            return await dAL_Cliente.registrarCliente(negocio);
         }
         public async Task<DTO_Respuesta> actualizarCliente(DTO_Cliente negocio)
         {

@@ -70,7 +70,14 @@ const renderValue = (
   // 3) Objeto
   if (typeof value === "object" && value !== null) {
     if ("nombre" in value) {
-      return <span className="badge bg-success">{(value as any).nombre}</span>;
+      const nombre = (value as any).nombre;
+      if (nombre === "Activo") {
+      return <span className="badge badge-light-success">{nombre}</span>;
+      }
+      if (nombre === "Eliminado") {
+      return <span className="badge badge-light-primary">{nombre}</span>;
+      }
+      <span className="badge badge-light-info">{nombre}</span>;
     }
 
     return (

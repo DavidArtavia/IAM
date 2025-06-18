@@ -50,9 +50,9 @@ namespace API.Controllers
 
         [Authorize(Roles = "1")]
         [Produces("application/json")]
-        [Route("registrarCliente")]
+        [Route("guardarCliente")]
         [HttpPost]
-        public async Task<DTO_Respuesta> registrarCliente([FromBody] DTO_Cliente cliente)
+        public async Task<DTO_Respuesta> guardarCliente([FromBody] DTO_Cliente cliente)
         {
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
 
@@ -60,7 +60,7 @@ namespace API.Controllers
             {
                 if (userIdClaim == null) throw new UnauthorizedAccessException("User ID claim is missing.");
                 cliente.ID_Usuario = Convert.ToInt32(userIdClaim.Value);
-                respuesta = await bLL_Cliente.registrarCliente(cliente);
+                respuesta = await bLL_Cliente.guardarCliente(cliente);
             }
             catch (Exception ex)
             {
