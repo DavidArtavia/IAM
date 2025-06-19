@@ -23,9 +23,9 @@ END
 GO -- =============================================
     -- Definición real del SP
     -- =============================================
-    ALTER PROCEDURE [CORE].[SP_actualizarOrdenServicio] @ID_OrdenServicio INT,
+     ALTER PROCEDURE [CORE].[SP_actualizarOrdenServicio] @ID_OrdenServicio INT,
     @ID_Estado INT = NULL,
-    [ID_Cliente] = @ID_Cliente,
+	@ID_Cliente INT = NULL,
     @FechaEstimadaEntrega DATETIME = NULL,
     @FechaInicio DATETIME = NULL,
     @FechaFinal DATETIME = NULL,
@@ -34,6 +34,7 @@ GO -- =============================================
     @NotaOrdenServicio VARCHAR(255) = NULL AS BEGIN
 UPDATE [CORE].[TBL_ORDENES_SERVICIO]
 SET [ID_Estado] = ISNULL(@ID_Estado, [ID_Estado]),
+    [ID_Cliente] = @ID_Cliente,
     [FechaEstimadaEntrega] = @FechaEstimadaEntrega,
     -- puede ser NULL
     [FechaInicio] = @FechaInicio,
@@ -54,3 +55,4 @@ FROM [UTIL].[TBL_ALERTAS]
 WHERE [COD_ALERTA] = 'B023';
 -- Actualización exitosa
 END
+GO

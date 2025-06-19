@@ -15,7 +15,7 @@ GO -- =============================================
 GO -- Procedimiento real
     ALTER PROCEDURE [CORE].[SP_obtenerClientes] AS BEGIN
 SET NOCOUNT ON;
-SELECT TOP (1000) C.ID_Cliente,
+SELECT C.ID_Cliente,
     C.ID_Usuario,
     C.ID_Estado,
     E.Nombre AS EstadoNombre,
