@@ -79,7 +79,7 @@ builder.Services.AddScoped<BLL_ChatIA>();
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontendDev", policy =>
-       policy.WithOrigins("http://localhost:5173")
+       policy.WithOrigins("http://localhost:5173", "https://nsx6swzr-5173.use2.devtunnels.ms/")
              .AllowAnyHeader()
              .AllowAnyMethod()
              .AllowCredentials()

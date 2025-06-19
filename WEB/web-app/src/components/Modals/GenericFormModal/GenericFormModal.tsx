@@ -207,7 +207,10 @@ export const GenericFormModal = <T,>({
   };
 
   return (
-    <div className="modal fade show d-block shadowBackground" onClick={onHide}>
+    <div
+      className="modal fade show d-block shadowBackground"
+      onClick={onHide}
+    >
       <div
         className="modal-dialog modal-dialog-centered mw-650px"
         onClick={(e) => e.stopPropagation()}
@@ -224,27 +227,33 @@ export const GenericFormModal = <T,>({
             </button>
           </div>
 
-          <div className="modal-body py-10 px-lg-17">
-            <div className="row mb-5">{fields.map(renderField)}</div>
-          </div>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleSubmit();
+            }}
+          >
+            <div className="modal-body py-10 px-lg-17">
+              <div className="row mb-5">{fields.map(renderField)}</div>
+            </div>
 
-          <div className="modal-footer flex-center">
-            <button
-              type="button"
-              className="btn btn-light me-3"
-              onClick={onHide}
-            >
-              Descartar
-            </button>
-            <button
-              type="button"
-              className="btn btn-primary"
-              onClick={handleSubmit}
-              disabled={Object.values(errors).some((e) => !!e)}
-            >
-              Enviar
-            </button>
-          </div>
+            <div className="modal-footer flex-center">
+              <button
+                type="button"
+                className="btn btn-light me-3"
+                onClick={onHide}
+              >
+                Descartar
+              </button>
+              <button
+                type="submit"
+                className="btn btn-primary"
+                disabled={Object.values(errors).some((e) => !!e)}
+              >
+                Enviar
+              </button>
+            </div>
+          </form>
         </div>
       </div>
     </div>

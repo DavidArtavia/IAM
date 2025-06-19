@@ -9,7 +9,7 @@ import {
   InfoPanel,
   LoadingPanel,
 } from "@/components";
-import { STATUS_TBL } from "@/constants";
+import { RESTRICCIONES, STATUS_TBL } from "@/constants";
 import { DTO_Negocio, DTO_OrdenServicio, DTO_Respuesta } from "@/models";
 import { ordenesService } from "@/services";
 import {
@@ -300,7 +300,7 @@ export const OrdenDeServicio = () => {
       const raw = (sanitized[key] as string | null) ?? null;
       if (raw) {
         const d = dateHelpers.parseDateInput(raw as any);
-        sanitized[key] = d && d.getFullYear() >= 1753 ? d : null;
+        sanitized[key] = d && d.getFullYear() >= RESTRICCIONES.MIN_ANNO_PERMITIDO ? d : null;
       } else {
         sanitized[key] = null;
       }
@@ -311,7 +311,6 @@ export const OrdenDeServicio = () => {
         o.iD_OrdenServicio === sanitized.iD_OrdenServicio ? sanitized : o
       )
     );
-
     ordenesService.actualizarOrdensDeServicio(sanitized).subscribe({
       next: (res: DTO_Respuesta) => {
         notificationHelpers.successAlert(res.mensaje);
@@ -325,7 +324,7 @@ export const OrdenDeServicio = () => {
   // 7. CONFIGURACIÓN DE TABLA Y MODAL DE INFO
   // --------------------------------------------------
   // ✅ Memoriza el resultado para evitar recalcular en cada render si no cambian las órdenes
-  const { data, columnKeys, labelMap, modalFields } = useMemo(() => {
+  const { data, /* columnKeys, */ labelMap, modalFields } = useMemo(() => {
     // 🧠 Mapa para asociar cada nombre de referencia con una clave segura
     const referenceMap = new Map<string, string>();
 
@@ -376,6 +375,8 @@ export const OrdenDeServicio = () => {
 
   // --------------------------------------------------
   // 8. BUILDER PARA CAMPOS DINÁMICOS referenceJSON
+  //Su propósito es generar una lista de campos de formulario
+  //-dinámicos basados en la propiedad referenciaJSON de ese objeto.
   // --------------------------------------------------
   const buildRefFields = (item: DTO_OrdenServicio) =>
     item.referenciaJSON?.map((r, idx) => ({
@@ -477,7 +478,7 @@ export const OrdenDeServicio = () => {
       ) : selectedBusiness ? (
         <GenericDataTable<DTO_OrdenServicio & Record<string, string>>
           title="Órdenes de Servicio"
-          columnKeys={columnKeys} // columnKeys incopora las referenciasJson dinámicas
+          columnKeys={columnKeysOrdenDeServicio} // columnKeys incopora las referenciasJson dinámicas -> cambiar por columnKeysOrdenDeServicio si se quiere no mostrar la referencias en la tabla
           labelMap={labelMap}
           data={data}
           onAdd={handleAddNew}
@@ -485,13 +486,19 @@ export const OrdenDeServicio = () => {
           onDelete={handleDelete}
           disableButtonAdd={disableButtonAdd}
           includeEstadoColumn
-          includeReferenceColumn
+          includeReferenceColumn // Si se quiere mostrar la columna de referenciasJson
+          modalInfoFields={modalFields}
+          showItemsButton
+            onOpenItemsModal={(rowData) => {
+              // Aquí podrías abrir un modal con los detalles del ítem
+              // Por ejemplo, usando un modal personalizado
+              console.log("Abrir modal de ítems para:", rowData);
+            }}
           customRenderers={{
             fechaOrdenServicio: (v) => new Date(String(v)).toLocaleDateString(),
             fechaEstimadaEntrega: (v) =>
               new Date(String(v)).toLocaleDateString(),
           }}
-          modalInfoFields={modalFields}
         />
       ) : (
         <InfoPanel msj="Seleccione un negocio para ver las órdenes de servicio" />

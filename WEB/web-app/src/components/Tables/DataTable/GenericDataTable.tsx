@@ -17,6 +17,7 @@ export interface GenericDataTableProps<T> {
   onAdd: () => void;
   onEdit: (rowData: T) => void;
   onDelete: (rowData: T) => void;
+  onOpenItemsModal?: (rowData: T) => void;
   disableButtonAdd?: boolean;
   customRenderers?: Partial<{
     [K in keyof T]: (value: unknown, rowData: T) => React.ReactNode;
@@ -24,6 +25,8 @@ export interface GenericDataTableProps<T> {
   includeEstadoColumn?: boolean;
   includeReferenceColumn?: boolean;
   modalInfoFields?: (keyof T)[];
+  showItemsButton?: boolean; // Si se debe mostrar el botón de items
+  
 }
 
 export function GenericDataTable<T>({
@@ -34,11 +37,13 @@ export function GenericDataTable<T>({
   onAdd,
   onEdit,
   onDelete,
+  onOpenItemsModal,
   disableButtonAdd = false,
   customRenderers = {},
   includeEstadoColumn = false,
   includeReferenceColumn = false,
   modalInfoFields,
+  showItemsButton = false,
 }: GenericDataTableProps<T>) {
   const tableRef = useRef<HTMLTableElement>(null);
   const [showInfo, setShowInfo] = useState(false);
@@ -170,6 +175,8 @@ export function GenericDataTable<T>({
               rowData={rowData as T}
               onEdit={() => onEdit(rowData as T)}
               onDelete={() => onDelete(rowData as T)}
+              showItemsButton={showItemsButton}
+              onOpenModal={() => onOpenItemsModal && onOpenItemsModal(rowData as T)}
             />
           );
         } catch (error) {
@@ -181,11 +188,6 @@ export function GenericDataTable<T>({
 
     return cols;
   }, [
-    columnKeys,
-    labelMap,
-    customRenderers,
-    includeEstadoColumn,
-    includeReferenceColumn,
     onEdit,
     onDelete,
     data, // Agregar data como dependencia
