@@ -32,6 +32,11 @@ export const API_ENDPOINTS = {
         ADD_ORDER: "/OrdenServicio/registrarOrdenServicio",
         UPDATE_ORDER: "/OrdenServicio/actualizarOrdenServicio",
     },
+    ITEMS_ORDERS: {
+        GET_ORDERS: "ItemOrdenServicio/obtenerItemOrdenServicio",
+        ADD_ORDER: "ItemOrdenServicio/guardarItemOrdenServicio",
+        UPDATE_ORDER: "ItemOrdenServicio/actualizarItemOrdenServicio",
+    },
     CLIENTS: {
         GET_CLIENTS: "Cliente/obtenerClientes",
         SEARCH_CLIENTS: "Cliente/buscarClientes",

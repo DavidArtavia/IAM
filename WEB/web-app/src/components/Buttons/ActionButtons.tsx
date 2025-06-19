@@ -1,13 +1,20 @@
-
 interface ActionButtonsProps<T = unknown> {
   rowData: T;
+  showItemsButton?: boolean;
   onEdit: (row: T) => void;
   onDelete: (row: T) => void;
+  onOpenModal?: (row: T) => void;
 }
 
-export const ActionButtons = ({ rowData,  onEdit, onDelete }: ActionButtonsProps) => {
+export const ActionButtons = ({
+  rowData,
+  onEdit,
+  onDelete,
+  onOpenModal,
+  showItemsButton = false,
+}: ActionButtonsProps) => {
   return (
-    <div className="d-flex">
+    <div className="d-flex align-items-center justify-content-center">
       <button
         type="button"
         className="btn btn-icon btn-bg-light btn-active-color-primary btn-sm me-1"
@@ -41,7 +48,7 @@ export const ActionButtons = ({ rowData,  onEdit, onDelete }: ActionButtonsProps
 
       <button
         type="button"
-        className="btn btn-icon btn-bg-light btn-active-color-primary btn-sm"
+        className="btn btn-icon btn-bg-light btn-active-color-primary btn-sm me-1"
         onClick={(e) => {
           e.stopPropagation();
           onDelete(rowData);
@@ -74,6 +81,26 @@ export const ActionButtons = ({ rowData,  onEdit, onDelete }: ActionButtonsProps
           {/* end icon delete */}
         </span>
       </button>
+
+      {showItemsButton && (
+        <button
+          type="button"
+          className="btn btn-icon btn-bg-light btn-active-color-primary btn-sm"
+          onClick={(e) => {
+            e.stopPropagation();
+            if (onOpenModal) {
+              onOpenModal(rowData);
+            }
+          }}
+        >
+          {/* Icon check */}
+          <i
+            className="bi bi-check2-square fs-1x"
+            style={{ fontSize: "1.2rem" }}
+          ></i>
+          {/* end icon check */}
+        </button>
+      )}
     </div>
   );
 };

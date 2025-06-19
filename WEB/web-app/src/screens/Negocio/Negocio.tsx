@@ -198,6 +198,8 @@ export const Negocio = () => {
       type: "custom",
       renderer: () => (
         <ReferenciasJsonInput
+          hideCheckbox={true} // Ocultamos el checkbox para edición
+          editable={false} // No Permitimos edición de inputs
           value={editData?.referenciaJSON || []}
           onChange={(val) =>
             setEditData((prev) =>

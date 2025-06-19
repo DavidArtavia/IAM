@@ -17,3 +17,4 @@ export * from "./Panel/InfoPanel";
 export * from "./Panel/LoadingPanel";
 export * from "./ReferenciasJson/ReferenciasCard";
 export * from "./ReferenciasJson/ReferenciasInput";
+export * from "./Modals/ItemsOrdenDeServicioModal/ItemsOrdenDeServicioModal";

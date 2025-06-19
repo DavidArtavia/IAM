@@ -8,34 +8,41 @@ export const STATUS_TBL = {
         ACTIVE: 1,
         INACTIVE: 2,
     },
-    BUSINESS: {
-        ACTIVE: 4,
-        DELETED: 18,
+    CLIENT: {
+        ACTIVE: 3, // Para clientes activos en produccion sera id = 3
+        INACTIVE: 0,
+        DELETED: 4, // Para clientes eliminados en produccion sera id = 4
+        PENDING: 0,
+    },
+    Chat_AI: {
+        ACTIVE: 5,
         INACTIVE: 0,
     },
-    CLIENT: {
-        ACTIVE: 16, // Para clientes activos en produccion sera id = 3
-        INACTIVE: 2,
-        DELETED: 17, // Para clientes eliminados en produccion sera id = 4
-        PENDING: 4,
+    BUSINESS: {
+        ACTIVE: 6,
+        DELETED: 7,
+        INACTIVE: 0,
     },
     ACCOUNT_PAYABLE: {
-        ACTIVE: 5,
-        DELETED: 7,
+        ACTIVE: 8,
+        DELETED: 9,
         INACTIVE: 0,
         PENDING: 0,
         PAID: 0,
     },
-    Chat_AI: {
-        ACTIVE: 3,
-        INACTIVE: 0,
-    },
     ORDER_SERVICE: {
-        ACTIVE: 6,
-        IN_PROCESS: 7,
-        PENDING: 8,
-        COMPLETED: 9,
-        DELETED: 10,
+        ACTIVE: 10,
+        DELETED: 11,
+        IN_PROCESS:0,
+        PENDING:0,
+        COMPLETED:0,
+    },
+    ITEMS_ORDER_SERVICE: {
+        ACTIVE: 13,
+        DELETED: 14, // -> debe ser 12 en produccion
+        IN_PROCESS:0,
+        PENDING:0,
+        COMPLETED:0,
     }
 }
 

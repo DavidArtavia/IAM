@@ -151,10 +151,8 @@ export const Cuentas = () => {
         iD_Negocio: selectedBusiness?.iD_Negocio || 0,
       };
       cuentasService.actualizarCuentasPorPagar(updatedData).subscribe({
-        next: (result) => {
-          notificationHelpers.infoAlert(
-            result.mensaje ?? "Cuenta eliminada correctamente"
-          );
+        next: () => {
+          notificationHelpers.infoAlert("Cuenta eliminada correctamente" );
           refetchAccounts();
         },
         error: (err) => errorHelpers.serverError(err),
