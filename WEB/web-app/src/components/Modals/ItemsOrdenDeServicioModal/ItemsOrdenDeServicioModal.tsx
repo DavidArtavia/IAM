@@ -5,10 +5,10 @@ import { errorHelpers, procesarRespuesta } from "@/utils";
 import { useEffect, useState } from "react";
 
 interface ItemsOrdenDeServicioModalProps {
-    open: boolean;
-    onHide: () => void;
-    title?: string;
-    rowData: Record<string, any>;
+  open: boolean;
+  onHide: () => void;
+  title?: string;
+  rowData: Record<string, any>;
 }
 
 export const ItemsOrdenDeServicioModal = ({
@@ -17,33 +17,37 @@ export const ItemsOrdenDeServicioModal = ({
   title = "Detalle del Ítem",
   rowData,
 }: ItemsOrdenDeServicioModalProps) => {
-    // cargas iniciales de los ítems de la orden de servicio
- console.log("Abriendo modal de ítems de orden de servicio con datos: ", rowData);
- 
-    const itemsOrden = new DTO_ItemOrdenServicio();
-    itemsOrden.ID_OrdenServicio = rowData.iD_OrdenServicio;
-    console.log("Envio el item de orden de servicio: ", itemsOrden);
+  // cargas iniciales de los ítems de la orden de servicio
+  console.log(
+    "Abriendo modal de ítems de orden de servicio con datos: ",
+    rowData
+  );
+    // useEffect(() => {
+    //   const itemsOrden = new DTO_ItemOrdenServicio();
+    //   itemsOrden.ID_OrdenServicio = rowData.iD_OrdenServicio;
+    //   console.log("Envio el item de orden de servicio: ", itemsOrden);
 
-    if (open) {
-        
-        itemsOrdenesService.obtenerItemsOrdensDeServicio(itemsOrden).subscribe({
-            next: (result) => {
-                console.log("Items de la orden de servicio: ", result);
-                
-                setItemsOrdenes(
-                    procesarRespuesta(
-                        result as DTO_Respuesta
-                    ) as Array<DTO_ItemOrdenServicio>
-                );
-            },
-            error: (err) => errorHelpers.serverError(err),
-            complete: () => {},
-        });
-        
-    }
-    const [itemsOrdenes, setItemsOrdenes] = useState<Array<DTO_ItemOrdenServicio>>([]);
-    if (!open) return null;
+    //   itemsOrdenesService.obtenerItemsOrdensDeServicio(itemsOrden).subscribe({
+    //     next: (result) => {
+    //       console.log("Items de la orden de servicio: ", result);
 
+    //       const respuesta = result as DTO_Respuesta;
+    //       const items = Array.isArray(respuesta.resultado) ? respuesta.resultado as DTO_ItemOrdenServicio[] : [];
+    //       setItemsOrdenes(procesarRespuesta(items) ?? []);
+    //     },
+    //     error: (err) => errorHelpers.serverError(err),
+    //     complete: () => {},
+    //   });
+    // }, [rowData]);
+
+
+  const [itemsOrdenes, setItemsOrdenes] = useState<
+    Array<DTO_ItemOrdenServicio>
+  >([]);
+  if (!open) return null;
+
+    console.log("Items de orden de servicio cargados: ", itemsOrdenes);
+    
   return (
     <div className="modal fade show d-block shadowBackground" onClick={onHide}>
       <div
@@ -65,13 +69,13 @@ export const ItemsOrdenDeServicioModal = ({
             <GenericDataTable<DTO_ItemOrdenServicio>
               title="Ítems de la Orden de Servicio"
               columnKeys={[
-                "id_ItemOrdenServicio",
-                "id_OrdenServicio",
-                "estado",
-                "nombreItemOrdenServicio",
-                "descripcion",
-                "monto",
-                "avance",
+                "ID_ItemOrdenServicio",
+                "ID_OrdenServicio",
+                "Estado",
+                "NombreItemOrdenServicio",
+                "Descripcion",
+                "Monto",
+                "Avance",
               ]}
               labelMap={{
                 id_ItemOrdenServicio: "ID Ítem",
@@ -82,7 +86,7 @@ export const ItemsOrdenDeServicioModal = ({
                 monto: "Monto",
                 avance: "Avance",
               }}
-              data={[]}
+              data={itemsOrdenes}
               onAdd={() => {}}
               onEdit={() => {}}
               onDelete={() => {}}
