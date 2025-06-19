@@ -1,7 +1,7 @@
 import { GenericDataTable } from "@/components/Tables/DataTable/GenericDataTable";
 import { DTO_ItemOrdenServicio, DTO_Respuesta } from "@/models";
 import { itemsOrdenesService } from "@/services";
-import { errorHelpers, procesarRespuesta } from "@/utils";
+import { errorHelpers, notificationHelpers } from "@/utils";
 import { useEffect, useState } from "react";
 
 interface ItemsOrdenDeServicioModalProps {
@@ -11,52 +11,66 @@ interface ItemsOrdenDeServicioModalProps {
   rowData: Record<string, any>;
 }
 
+/**
+ * Modal que despliega los ítems de una orden de servicio específica.
+ * - Consulta los ítems al abrirse (`open=true`)
+ * - Usa la tabla genérica con columnas definidas
+ */
 export const ItemsOrdenDeServicioModal = ({
   open,
   onHide,
   title = "Detalle del Ítem",
   rowData,
 }: ItemsOrdenDeServicioModalProps) => {
-  // cargas iniciales de los ítems de la orden de servicio
-  console.log(
-    "Abriendo modal de ítems de orden de servicio con datos: ",
-    rowData
-  );
-    // useEffect(() => {
-    //   const itemsOrden = new DTO_ItemOrdenServicio();
-    //   itemsOrden.ID_OrdenServicio = rowData.iD_OrdenServicio;
-    //   console.log("Envio el item de orden de servicio: ", itemsOrden);
+  const [itemsOrdenes, setItemsOrdenes] = useState<DTO_ItemOrdenServicio[]>([]);
 
-    //   itemsOrdenesService.obtenerItemsOrdensDeServicio(itemsOrden).subscribe({
-    //     next: (result) => {
-    //       console.log("Items de la orden de servicio: ", result);
+  // Carga inicial de ítems al abrir el modal
+  useEffect(() => {
+    if (!open || !rowData?.iD_OrdenServicio) return;
 
-    //       const respuesta = result as DTO_Respuesta;
-    //       const items = Array.isArray(respuesta.resultado) ? respuesta.resultado as DTO_ItemOrdenServicio[] : [];
-    //       setItemsOrdenes(procesarRespuesta(items) ?? []);
-    //     },
-    //     error: (err) => errorHelpers.serverError(err),
-    //     complete: () => {},
-    //   });
-    // }, [rowData]);
+    const request = {
+      ID_OrdenServicio: rowData.iD_OrdenServicio,
+    } as DTO_ItemOrdenServicio;
 
+    itemsOrdenesService.obtenerItemsOrdensDeServicio(request).subscribe({
+      next: (result) => {
+        const respuesta = result as DTO_Respuesta;
 
-  const [itemsOrdenes, setItemsOrdenes] = useState<
-    Array<DTO_ItemOrdenServicio>
-  >([]);
+        // Validación de estructura y tipoRespuesta
+        if (!respuesta.tipoRespuesta) {
+          // Notificar error usando notificationHelpers, no errorHelpers.serverError
+          notificationHelpers.errorAlert(respuesta.mensaje || "Error al cargar ítems");
+          return;
+        }
+
+        // El SP devuelve: resultado: [ [ array de DTO_ItemOrdenServicio ] ]
+        const raw = respuesta.resultado?.[0];
+        const items = Array.isArray(raw)
+          ? (raw as DTO_ItemOrdenServicio[])
+          : [];
+
+        console.log("Items obtenidos:", items);
+        
+        setItemsOrdenes(items);
+      },
+      error: errorHelpers.serverError,
+    });
+  }, [open, rowData]);
+
+  // Evita renderizar el modal si no está abierto
   if (!open) return null;
 
-    console.log("Items de orden de servicio cargados: ", itemsOrdenes);
-    
   return (
     <div className="modal fade show d-block shadowBackground" onClick={onHide}>
       <div
-        className="modal-dialog modal-dialog-centered mw-1000px"
+        className="modal-dialog modal-dialog-centered"
+        style={{ maxWidth: "95vw", width: "1200px", height: "auto" }}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="modal-content">
-          <div className="modal-header">
-            <h2>{title}</h2>
+        <div className="modal-content resizable-metronic-modal">
+          {/* Encabezado */}
+          <div className="modal-header cursor-move">
+            <h2 className="fw-bold">{title}</h2>
             <button
               type="button"
               className="btn btn-sm btn-icon btn-active-color-primary"
@@ -65,21 +79,22 @@ export const ItemsOrdenDeServicioModal = ({
               ✕
             </button>
           </div>
+
+          {/* Contenido */}
           <div className="modal-body py-10 px-lg-17">
-            <GenericDataTable<DTO_ItemOrdenServicio>
+            <GenericDataTable<any>
               title="Ítems de la Orden de Servicio"
               columnKeys={[
-                "ID_ItemOrdenServicio",
-                "ID_OrdenServicio",
-                "Estado",
-                "NombreItemOrdenServicio",
-                "Descripcion",
-                "Monto",
-                "Avance",
+                "iD_ItemOrdenServicio",
+                "iD_OrdenServicio",
+                "nombreItemOrdenServicio",
+                "descripcion",
+                "monto",
+                "avance",
               ]}
               labelMap={{
-                id_ItemOrdenServicio: "ID Ítem",
-                id_OrdenServicio: "ID Orden",
+                iD_ItemOrdenServicio: "ID Ítem",
+                iD_OrdenServicio: "ID Orden",
                 estado: "Estado",
                 nombreItemOrdenServicio: "Nombre",
                 descripcion: "Descripción",
@@ -93,11 +108,20 @@ export const ItemsOrdenDeServicioModal = ({
               onOpenItemsModal={() => {}}
               disableButtonAdd={false}
               customRenderers={{}}
-              includeEstadoColumn={false}
-              includeReferenceColumn={false}
-              modalInfoFields={[]}
+              includeEstadoColumn
+              modalInfoFields={[
+                "iD_ItemOrdenServicio",
+                "iD_OrdenServicio",
+                "nombreItemOrdenServicio",
+                "descripcion",
+                "monto",
+                "avance",
+                "estado",
+              ]}
             />
           </div>
+
+          {/* Footer */}
           <div className="modal-footer flex-center">
             <button type="button" className="btn btn-primary" onClick={onHide}>
               Cerrar

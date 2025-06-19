@@ -26,7 +26,7 @@ export interface GenericDataTableProps<T> {
   includeReferenceColumn?: boolean;
   modalInfoFields?: (keyof T)[];
   showItemsButton?: boolean; // Si se debe mostrar el botón de items
-  
+  datekeys?: string[]; // Claves que deben ser tratadas como fechas  
 }
 
 export function GenericDataTable<T>({
@@ -44,6 +44,7 @@ export function GenericDataTable<T>({
   includeReferenceColumn = false,
   modalInfoFields,
   showItemsButton = false,
+  datekeys,
 }: GenericDataTableProps<T>) {
   const tableRef = useRef<HTMLTableElement>(null);
   const [showInfo, setShowInfo] = useState(false);
@@ -165,24 +166,26 @@ export function GenericDataTable<T>({
       searchable: false,
       defaultContent: "",
       createdCell: (cell, _, rowData) => {
-      try {
-        const container = document.createElement("div");
-        (cell as HTMLElement).innerHTML = "";
-        cell.appendChild(container);
-        const root = ReactDOM.createRoot(container);
-        root.render(
-        <ActionButtons
-          rowData={rowData as T}
-          onEdit={() => onEdit(rowData as T)}
-          onDelete={() => onDelete(rowData as T)}
-          showItemsButton={showItemsButton}
-          onOpenModal={() => onOpenItemsModal && onOpenItemsModal(rowData as T)}
-        />
-        );
-      } catch (error) {
-        console.warn("Error rendering action buttons:", error);
-        (cell as HTMLElement).innerHTML = "";
-      }
+        try {
+          const container = document.createElement("div");
+          (cell as HTMLElement).innerHTML = "";
+          cell.appendChild(container);
+          const root = ReactDOM.createRoot(container);
+          root.render(
+            <ActionButtons
+              rowData={rowData as T}
+              onEdit={() => onEdit(rowData as T)}
+              onDelete={() => onDelete(rowData as T)}
+              showItemsButton={showItemsButton}
+              onOpenModal={() =>
+                onOpenItemsModal && onOpenItemsModal(rowData as T)
+              }
+            />
+          );
+        } catch (error) {
+          console.warn("Error rendering action buttons:", error);
+          (cell as HTMLElement).innerHTML = "";
+        }
       },
     });
 
@@ -297,9 +300,10 @@ export function GenericDataTable<T>({
         onHide={() => setShowInfo(false)}
         data={detailData}
         labelMap={labelMap}
+        dateKeys={datekeys && datekeys}
       />
-      <div className="card shadow-sm mt-5">
-        <div className="card-header d-flex justify-content-between align-items-center">
+      <div className="card shadow-sm mt-5 ">
+        <div className="card-header d-flex justify-content-between align-items-center py-10 px-lg-17">
           <h3 className="card-title text-gray-600">{title}</h3>
           <button
             disabled={disableButtonAdd}
@@ -309,7 +313,7 @@ export function GenericDataTable<T>({
             Agregar
           </button>
         </div>
-        <div className="card-body table-responsive p-2">
+        <div className="card-body table-responsive p-2 py-10 px-lg-17">
           <table
             ref={tableRef}
             className="table table-sm table-striped table-hover align-middle text-center w-auto"

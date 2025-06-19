@@ -263,6 +263,7 @@ export const Negocio = () => {
           includeReferenceColumn={true} // añade automáticamente la columna “Referencias”
           customRenderers={customRenderers}
           modalInfoFields={keysInfoModalNegocio}
+          datekeys={["fechaRegistro"]}
         />
 
         {/* === Modal Genérico: Registrar Negocios === */}

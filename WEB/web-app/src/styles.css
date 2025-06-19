@@ -55,3 +55,15 @@ table.dataTable thead th {
   padding: 20px;
   /* Espaciado interno */
 }
+
+.resizable-metronic-modal {
+  resize: both;
+  overflow: auto;
+  min-width: 600px;
+  min-height: 400px;
+  max-width: 95vw;
+  max-height: 90vh;
+  border-radius: 0.625rem;
+  /* compatible con Metronic */
+  box-shadow: var(--bs-box-shadow-lg);
+}
