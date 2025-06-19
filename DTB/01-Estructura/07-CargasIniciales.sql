@@ -59,7 +59,8 @@ INSERT INTO [UTIL].[TBL_ALERTAS] ([COD_ALERTA], [Nombre], [Mensaje], [Tipo]) VAL
 ('B030', N'Obtener Cliente', N'Los datos del cliente han sido obtenidos exitosamente.','I'),
 ('A026', N'Guardar Item Orden De Servicio', N'Item de orden de servicio guardada correctamente','I'),
 ('A027', N'Actualizar Item Orden De Servicio', N'Item de orden de servicio actualizada correctamente','I'),
-('A028', N'Obtener Item Orden De Servicio', N'Item de orden de servicio obtenidas correctamente','I');
+('A028', N'Obtener Item Orden De Servicio', N'Item de orden de servicio obtenidas correctamente','I'),
+('A029', N'MonitorOrdenDeServicio', N'Consulta de datos realizada correctamente', 'I');
 
 GO
 
