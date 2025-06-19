@@ -165,24 +165,24 @@ export function GenericDataTable<T>({
       searchable: false,
       defaultContent: "",
       createdCell: (cell, _, rowData) => {
-        try {
-          const container = document.createElement("div");
-          (cell as HTMLElement).innerHTML = "";
-          cell.appendChild(container);
-          const root = ReactDOM.createRoot(container);
-          root.render(
-            <ActionButtons
-              rowData={rowData as T}
-              onEdit={() => onEdit(rowData as T)}
-              onDelete={() => onDelete(rowData as T)}
-              showItemsButton={showItemsButton}
-              onOpenModal={() => onOpenItemsModal && onOpenItemsModal(rowData as T)}
-            />
-          );
-        } catch (error) {
-          console.warn("Error rendering action buttons:", error);
-          (cell as HTMLElement).innerHTML = "";
-        }
+      try {
+        const container = document.createElement("div");
+        (cell as HTMLElement).innerHTML = "";
+        cell.appendChild(container);
+        const root = ReactDOM.createRoot(container);
+        root.render(
+        <ActionButtons
+          rowData={rowData as T}
+          onEdit={() => onEdit(rowData as T)}
+          onDelete={() => onDelete(rowData as T)}
+          showItemsButton={showItemsButton}
+          onOpenModal={() => onOpenItemsModal && onOpenItemsModal(rowData as T)}
+        />
+        );
+      } catch (error) {
+        console.warn("Error rendering action buttons:", error);
+        (cell as HTMLElement).innerHTML = "";
+      }
       },
     });
 
@@ -309,10 +309,10 @@ export function GenericDataTable<T>({
             Agregar
           </button>
         </div>
-        <div className="card-body table-responsive">
+        <div className="card-body table-responsive p-2">
           <table
             ref={tableRef}
-            className="table table-striped table-hover align-middle text-center"
+            className="table table-sm table-striped table-hover align-middle text-center w-auto"
           />
         </div>
       </div>

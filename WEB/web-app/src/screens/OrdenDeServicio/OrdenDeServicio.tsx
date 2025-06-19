@@ -7,6 +7,7 @@ import {
   GenericDataTable,
   GenericFormModal,
   InfoPanel,
+  ItemsOrdenDeServicioModal,
   LoadingPanel,
 } from "@/components";
 import { RESTRICCIONES, STATUS_TBL } from "@/constants";
@@ -68,6 +69,11 @@ export const OrdenDeServicio = () => {
     dto.fechaEstimadaEntrega = null;
     return dto;
   });
+  
+  // Modal de Ítems de Orden de Servicio
+  const [showItemsOrdenFormModal, setShowItemsOrdenFormModal] = useState(false);
+  const [dataToItemsOrder, setDataToItemsOrder] =
+    useState<DTO_OrdenServicio | null>(null);
 
   // --------- Modal de Confirmación de Borrar / Cancelar -----------
   const [orderToDelete, setOrderToDelete] =
@@ -489,11 +495,10 @@ export const OrdenDeServicio = () => {
           includeReferenceColumn // Si se quiere mostrar la columna de referenciasJson
           modalInfoFields={modalFields}
           showItemsButton
-            onOpenItemsModal={(rowData) => {
-              // Aquí podrías abrir un modal con los detalles del ítem
-              // Por ejemplo, usando un modal personalizado
-              console.log("Abrir modal de ítems para:", rowData);
-            }}
+          onOpenItemsModal={(rowData) => {
+            setShowItemsOrdenFormModal(true);
+            setDataToItemsOrder(rowData as DTO_OrdenServicio);
+          }}
           customRenderers={{
             fechaOrdenServicio: (v) => new Date(String(v)).toLocaleDateString(),
             fechaEstimadaEntrega: (v) =>
@@ -524,6 +529,12 @@ export const OrdenDeServicio = () => {
         setData={setEditData}
         onSubmit={handleSaveEdit}
         fields={editFormFields}
+      />
+
+      <ItemsOrdenDeServicioModal
+        open={showItemsOrdenFormModal}
+        onHide={() => setShowItemsOrdenFormModal(false)}
+        rowData={dataToItemsOrder || new DTO_OrdenServicio()}
       />
 
       {/* === Modal Genérico: Confirmación === */}

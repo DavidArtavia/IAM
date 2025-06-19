@@ -14,7 +14,7 @@ export const ActionButtons = ({
   showItemsButton = false,
 }: ActionButtonsProps) => {
   return (
-    <div className="d-flex">
+    <div className="d-flex align-items-center justify-content-center">
       <button
         type="button"
         className="btn btn-icon btn-bg-light btn-active-color-primary btn-sm me-1"
