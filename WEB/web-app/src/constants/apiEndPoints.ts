@@ -43,4 +43,7 @@ export const API_ENDPOINTS = {
         ADD_CLIENT: "Cliente/guardarCliente",
         UPDATE_CLIENT: "Cliente/actualizarCliente",
     },
+        MONITOR: {
+        GET_MONITOR_OS: "Monitor/cargarMonitorOrdenServicio"
+    },
 } as const;
