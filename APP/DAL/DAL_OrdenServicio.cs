@@ -74,7 +74,6 @@ namespace DAL
                 this.Close();
             }
         }
-
         public DTO_Respuesta obtenerOrdenDeServicio(DTO_Negocio negocio)
         {
             var listaOrdenes = new List<DTO_OrdenServicio>();
@@ -162,8 +161,6 @@ namespace DAL
                 this.Close();
             }
         }
-
-
         public async Task<DTO_Respuesta> actualizarOrdenServicio(DTO_OrdenServicio ordenServicio)
         {
             try
