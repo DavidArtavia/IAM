@@ -339,28 +339,31 @@ export const Monitor = () => {
                       {items.filter(i => i.iD_OrdenServicio == m.iD_OrdenServicio).map((item, i) => (
                         <div className="mb-2" >
                           <div className="form-check form-check-custom form-check-solid">
-                            <input className="form-check-input" type="checkbox" value="" id="flexCheckDefault" />
+                            <input className="form-check-input" type="checkbox" value="" id="flexCheckDefault" checked={item.avance == 100} />
                             <label className="form-check-label" >{item.nombreItemOrdenServicio}</label>
                           </div>
                         </div>
                       ))}
 
                       <div className="d-flex flex-stack flex-wrapr"><div className="symbol-group symbol-hover" style={{ marginLeft: '0' }}>
-                        <div className="border border-dashed border-gray-300 rounded py-3 px-3">
-                          <i className="bi bi-check2-square fs-1x" style={{ fontSize: '1.5rem' }}></i>
-
-                          <span className="ms-1 fs-7 fw-bolder text-gray-600">8</span>
-                        </div><div className="border border-dashed border-gray-300 rounded py-3 px-3" style={{ marginLeft: '5px' }}>
-                          <span className="svg-icon svg-icon-3">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
-                              <path opacity="0.3" d="M20 3H4C2.89543 3 2 3.89543 2 5V16C2 17.1046 2.89543 18 4 18H4.5C5.05228 18 5.5 18.4477 5.5 19V21.5052C5.5 22.1441 6.21212 22.5253 6.74376 22.1708L11.4885 19.0077C12.4741 18.3506 13.6321 18 14.8167 18H20C21.1046 18 22 17.1046 22 16V5C22 3.89543 21.1046 3 20 3Z" fill="black"></path>
-                              <rect x="6" y="12" width="7" height="2" rx="1" fill="black"></rect>
-                              <rect x="6" y="7" width="12" height="2" rx="1" fill="black"></rect>
-                            </svg>
-                          </span>
-                          <span className="ms-1 fs-7 fw-bolder text-gray-600">4</span>
-                        </div>
-
+             
+                        {m.estado.iD_Estado != 8 ? (
+                          <div className="border border-dashed border-gray-300 rounded py-3 px-3 text-gray-600">
+                            <span className="svg-icon svg-icon-3">
+                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-pause-btn-fill" viewBox="0 0 16 16">
+                                <path d="M0 12V4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2m6.25-7C5.56 5 5 5.56 5 6.25v3.5a1.25 1.25 0 1 0 2.5 0v-3.5C7.5 5.56 6.94 5 6.25 5m3.5 0c-.69 0-1.25.56-1.25 1.25v3.5a1.25 1.25 0 1 0 2.5 0v-3.5C11 5.56 10.44 5 9.75 5" />
+                              </svg>
+                            </span>
+                          </div>
+                        ) : (
+                          <div className="border border-dashed border-gray-300 rounded py-3 px-3 text-gray-600" style={{ marginLeft: '5px' }}>
+                            <span className="svg-icon svg-icon-3">
+                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-play-btn-fill" viewBox="0 0 16 16">
+                                <path d="M0 12V4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2m6.79-6.907A.5.5 0 0 0 6 5.5v5a.5.5 0 0 0 .79.407l3.5-2.5a.5.5 0 0 0 0-.814z" />
+                              </svg>
+                            </span>
+                          </div>
+                        )}
                       </div>
 
                         <div className="d-flex my-1">
@@ -375,6 +378,8 @@ export const Monitor = () => {
                           </div>
                         </div>
                       </div>
+
+
                     </div>
                   </div>
 
@@ -466,27 +471,30 @@ export const Monitor = () => {
                       {items.filter(i => i.iD_OrdenServicio == m.iD_OrdenServicio).map((item, i) => (
                         <div className="mb-2" >
                           <div className="form-check form-check-custom form-check-solid">
-                            <input className="form-check-input" type="checkbox" value="" id="flexCheckDefault" />
+                            <input className="form-check-input" type="checkbox" value="" id="flexCheckDefault" checked={item.avance == 100} />
                             <label className="form-check-label" >{item.nombreItemOrdenServicio}</label>
                           </div>
                         </div>
                       ))}
                       <div className="d-flex flex-stack flex-wrapr"><div className="symbol-group symbol-hover" style={{ marginLeft: '0' }}>
-                        <div className="border border-dashed border-gray-300 rounded py-3 px-3">
-                          <i className="bi bi-check2-square fs-1x" style={{ fontSize: '1.5rem' }}></i>
-
-                          <span className="ms-1 fs-7 fw-bolder text-gray-600">0</span>
-                        </div><div className="border border-dashed border-gray-300 rounded py-3 px-3" style={{ marginLeft: '5px' }}>
-                          <span className="svg-icon svg-icon-3">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
-                              <path opacity="0.3" d="M20 3H4C2.89543 3 2 3.89543 2 5V16C2 17.1046 2.89543 18 4 18H4.5C5.05228 18 5.5 18.4477 5.5 19V21.5052C5.5 22.1441 6.21212 22.5253 6.74376 22.1708L11.4885 19.0077C12.4741 18.3506 13.6321 18 14.8167 18H20C21.1046 18 22 17.1046 22 16V5C22 3.89543 21.1046 3 20 3Z" fill="black"></path>
-                              <rect x="6" y="12" width="7" height="2" rx="1" fill="black"></rect>
-                              <rect x="6" y="7" width="12" height="2" rx="1" fill="black"></rect>
-                            </svg>
-                          </span>
-                          <span className="ms-1 fs-7 fw-bolder text-gray-600">0</span>
-                        </div>
-
+             
+                        {m.estado.iD_Estado != 8 ? (
+                          <div className="border border-dashed border-gray-300 rounded py-3 px-3 text-gray-600">
+                            <span className="svg-icon svg-icon-3">
+                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-pause-btn-fill" viewBox="0 0 16 16">
+                                <path d="M0 12V4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2m6.25-7C5.56 5 5 5.56 5 6.25v3.5a1.25 1.25 0 1 0 2.5 0v-3.5C7.5 5.56 6.94 5 6.25 5m3.5 0c-.69 0-1.25.56-1.25 1.25v3.5a1.25 1.25 0 1 0 2.5 0v-3.5C11 5.56 10.44 5 9.75 5" />
+                              </svg>
+                            </span>
+                          </div>
+                        ) : (
+                          <div className="border border-dashed border-gray-300 rounded py-3 px-3 text-gray-600" style={{ marginLeft: '5px' }}>
+                            <span className="svg-icon svg-icon-3">
+                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-play-btn-fill" viewBox="0 0 16 16">
+                                <path d="M0 12V4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2m6.79-6.907A.5.5 0 0 0 6 5.5v5a.5.5 0 0 0 .79.407l3.5-2.5a.5.5 0 0 0 0-.814z" />
+                              </svg>
+                            </span>
+                          </div>
+                        )}
                       </div>
 
                         <div className="d-flex my-1">
@@ -712,34 +720,37 @@ export const Monitor = () => {
                       {items.filter(i => i.iD_OrdenServicio == m.iD_OrdenServicio).map((item, i) => (
                         <div className="mb-2" >
                           <div className="form-check form-check-custom form-check-solid">
-                            <input className="form-check-input" type="checkbox" value="" id="flexCheckDefault" />
+                            <input className="form-check-input" type="checkbox" value="" id="flexCheckDefault" checked={item.avance == 100} />
                             <label className="form-check-label" >{item.nombreItemOrdenServicio}</label>
                           </div>
                         </div>
                       ))}
 
                       <div className="d-flex flex-stack flex-wrapr"><div className="symbol-group symbol-hover" style={{ marginLeft: '0' }}>
-                        <div className="border border-dashed border-gray-300 rounded py-3 px-3">
-                          <i className="bi bi-check2-square fs-1x" style={{ fontSize: '1.5rem' }}></i>
-
-                          <span className="ms-1 fs-7 fw-bolder text-gray-600">8</span>
-                        </div><div className="border border-dashed border-gray-300 rounded py-3 px-3" style={{ marginLeft: '5px' }}>
-                          <span className="svg-icon svg-icon-3">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
-                              <path opacity="0.3" d="M20 3H4C2.89543 3 2 3.89543 2 5V16C2 17.1046 2.89543 18 4 18H4.5C5.05228 18 5.5 18.4477 5.5 19V21.5052C5.5 22.1441 6.21212 22.5253 6.74376 22.1708L11.4885 19.0077C12.4741 18.3506 13.6321 18 14.8167 18H20C21.1046 18 22 17.1046 22 16V5C22 3.89543 21.1046 3 20 3Z" fill="black"></path>
-                              <rect x="6" y="12" width="7" height="2" rx="1" fill="black"></rect>
-                              <rect x="6" y="7" width="12" height="2" rx="1" fill="black"></rect>
-                            </svg>
-                          </span>
-                          <span className="ms-1 fs-7 fw-bolder text-gray-600">4</span>
-                        </div>
-
+             
+                        {m.estado.iD_Estado != 8 ? (
+                          <div className="border border-dashed border-gray-300 rounded py-3 px-3 text-gray-600">
+                            <span className="svg-icon svg-icon-3">
+                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-pause-btn-fill" viewBox="0 0 16 16">
+                                <path d="M0 12V4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2m6.25-7C5.56 5 5 5.56 5 6.25v3.5a1.25 1.25 0 1 0 2.5 0v-3.5C7.5 5.56 6.94 5 6.25 5m3.5 0c-.69 0-1.25.56-1.25 1.25v3.5a1.25 1.25 0 1 0 2.5 0v-3.5C11 5.56 10.44 5 9.75 5" />
+                              </svg>
+                            </span>
+                          </div>
+                        ) : (
+                          <div className="border border-dashed border-gray-300 rounded py-3 px-3 text-gray-600" style={{ marginLeft: '5px' }}>
+                            <span className="svg-icon svg-icon-3">
+                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-play-btn-fill" viewBox="0 0 16 16">
+                                <path d="M0 12V4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2m6.79-6.907A.5.5 0 0 0 6 5.5v5a.5.5 0 0 0 .79.407l3.5-2.5a.5.5 0 0 0 0-.814z" />
+                              </svg>
+                            </span>
+                          </div>
+                        )}
                       </div>
 
                         <div className="d-flex my-1">
 
                           <div className="border border-dashed border-gray-300 rounded py-3 px-3 text-gray-600">
-                            <span className="svg-icon svg-icon-3">
+                            <span className="svg-icon svg-icon-3" >
                               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-arrow-right-square-fill" viewBox="0 0 16 16">
                                 <path d="M0 14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H2a2 2 0 0 0-2 2zm4.5-6.5h5.793L8.146 5.354a.5.5 0 1 1 .708-.708l3 3a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708-.708L10.293 8.5H4.5a.5.5 0 0 1 0-1"></path>
                               </svg>
@@ -814,7 +825,7 @@ export const Monitor = () => {
                                 <div className="menu-item px-3">
                                   <div className="menu-content px-3">
                                     <label className="form-check form-switch form-check-custom form-check-solid">
-                                      <input className="form-check-input w-30px h-20px" type="checkbox" value="1" name="notifications" />
+                                      <input className="form-check-input w-30px h-20px" type="checkbox" value="1" name="notifications"  />
                                       <span className="form-check-label text-muted fs-6">Recuring</span>
                                     </label>
                                   </div>
@@ -837,28 +848,31 @@ export const Monitor = () => {
                       {items.filter(i => i.iD_OrdenServicio == m.iD_OrdenServicio).map((item, i) => (
                         <div className="mb-2" >
                           <div className="form-check form-check-custom form-check-solid">
-                            <input className="form-check-input" type="checkbox" value="" id="flexCheckDefault" />
+                            <input className="form-check-input" type="checkbox" value="" id="flexCheckDefault" checked={item.avance == 100} />
                             <label className="form-check-label" >{item.nombreItemOrdenServicio}</label>
                           </div>
                         </div>
                       ))}
                       <div className="separator" style={{ marginBottom: '15px' }}></div><p className="text-info py-3 fw-bold fw-6">Falta el producto para el tratamiento cerámico</p>
-                      <div className="d-flex flex-stack flex-wrapr"><div className="symbol-group symbol-hover" style={{ marginLeft: '0' }}>
-                        <div className="border border-dashed border-gray-300 rounded py-3 px-3">
-                          <i className="bi bi-check2-square fs-1x" style={{ fontSize: '1.5rem' }}></i>
-
-                          <span className="ms-1 fs-7 fw-bolder text-gray-600">8</span>
-                        </div><div className="border border-dashed border-gray-300 rounded py-3 px-3" style={{ marginLeft: '5px' }}>
-                          <span className="svg-icon svg-icon-3">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
-                              <path opacity="0.3" d="M20 3H4C2.89543 3 2 3.89543 2 5V16C2 17.1046 2.89543 18 4 18H4.5C5.05228 18 5.5 18.4477 5.5 19V21.5052C5.5 22.1441 6.21212 22.5253 6.74376 22.1708L11.4885 19.0077C12.4741 18.3506 13.6321 18 14.8167 18H20C21.1046 18 22 17.1046 22 16V5C22 3.89543 21.1046 3 20 3Z" fill="black"></path>
-                              <rect x="6" y="12" width="7" height="2" rx="1" fill="black"></rect>
-                              <rect x="6" y="7" width="12" height="2" rx="1" fill="black"></rect>
-                            </svg>
-                          </span>
-                          <span className="ms-1 fs-7 fw-bolder text-gray-600">4</span>
-                        </div>
-
+                                     <div className="d-flex flex-stack flex-wrapr"><div className="symbol-group symbol-hover" style={{ marginLeft: '0' }}>
+             
+                        {m.estado.iD_Estado != 8 ? (
+                          <div className="border border-dashed border-gray-300 rounded py-3 px-3 text-gray-600">
+                            <span className="svg-icon svg-icon-3">
+                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-pause-btn-fill" viewBox="0 0 16 16">
+                                <path d="M0 12V4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2m6.25-7C5.56 5 5 5.56 5 6.25v3.5a1.25 1.25 0 1 0 2.5 0v-3.5C7.5 5.56 6.94 5 6.25 5m3.5 0c-.69 0-1.25.56-1.25 1.25v3.5a1.25 1.25 0 1 0 2.5 0v-3.5C11 5.56 10.44 5 9.75 5" />
+                              </svg>
+                            </span>
+                          </div>
+                        ) : (
+                          <div className="border border-dashed border-gray-300 rounded py-3 px-3 text-gray-600" style={{ marginLeft: '5px' }}>
+                            <span className="svg-icon svg-icon-3">
+                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-play-btn-fill" viewBox="0 0 16 16">
+                                <path d="M0 12V4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2m6.79-6.907A.5.5 0 0 0 6 5.5v5a.5.5 0 0 0 .79.407l3.5-2.5a.5.5 0 0 0 0-.814z" />
+                              </svg>
+                            </span>
+                          </div>
+                        )}
                       </div>
 
                         <div className="d-flex my-1">
