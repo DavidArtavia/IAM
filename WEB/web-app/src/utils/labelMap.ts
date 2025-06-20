@@ -36,6 +36,16 @@ export const columnKeysCliente: (keyof DTO_Cliente)[] = [
     "correoCliente",
 ];
 
+export const columnKeysItemsOrdenServicio: string[] = [
+    "iD_ItemOrdenServicio",
+    "iD_OrdenServicio",
+    "nombreItemOrdenServicio",
+    "descripcion",
+    "monto",
+    "avance",
+];
+
+
 
 // Define los atributos que se mostrarán en el infoModal de las filas de las tablas de los modelos.
 export const keysInfoModalOrdenDeServicio: (keyof DTO_OrdenServicio)[] = [
@@ -81,6 +91,15 @@ export const keysInfoModalCliente: (keyof DTO_Cliente)[] = [
     "apellidoCliente",
     "telefonoCliente",
     "correoCliente",
+    "estado",
+];
+export const keysInfoModalItemsOrdenServicio: string[] = [
+    "iD_ItemOrdenServicio",
+    "iD_OrdenServicio",
+    "nombreItemOrdenServicio",
+    "descripcion",
+    "monto",
+    "avance",
     "estado",
 ];
 
@@ -132,6 +151,15 @@ export const labelMapCliente: Record<string, string> = {
     estado: "Estado",
 };
 
+export const labelMapItemsOrdenServicio: Record<string, string> = {
+    iD_ItemOrdenServicio: "Item #",
+    iD_OrdenServicio: "Orden Servicio #",
+    nombreItemOrdenServicio: "Nombre del Item",
+    descripcion: "Descripción",
+    monto: "Monto",
+    avance: "Avance",
+    estado: "Estado",
+};
 // Exportación de los campos del formulario editar para los modelos
 export const negocioFormEditFields: Array<FieldConfig<DTO_Negocio>> = columnKeysNegocio
     .filter(key => key !== "iD_Negocio" && key !== "iD_Usuario" && key !== "fechaRegistro") // Excluye campos que no se editan
@@ -155,6 +183,13 @@ export const clienteFormEditFields: Array<FieldConfig<DTO_Cliente>> = columnKeys
         key,
         label: labelMapCliente[key] ?? key,
         type: "text",
+    }));
+export const ItemsOrdenServicioFormEditFields: Array<FieldConfig<any>> = columnKeysItemsOrdenServicio
+    .filter(key => key !== "iD_ItemOrdenServicio" && key !== "iD_OrdenServicio") // Excluye campos que no se editan
+    .map(key => ({
+        key,
+        label: labelMapItemsOrdenServicio[key] ?? key,
+        type: key === "monto" || key === "avance" ? "number" : "text",
     }));
 
 export const ordenServicioFormEditFields: Array<

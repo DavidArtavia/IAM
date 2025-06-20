@@ -227,6 +227,7 @@ export const Cuentas = () => {
             includeEstadoColumn // añade automáticamente la columna “Estado”
             customRenderers={customRenderers}
             modalInfoFields={keysInfoModalCuentasPorPagar}
+            datekeys={["fechaInicial", "fechaModificacion"]}
           />
         ) : (
           <InfoPanel msj="Por favor, selecciona un negocio para ver sus cuentas por pagar." />

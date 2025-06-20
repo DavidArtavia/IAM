@@ -18,7 +18,7 @@ export class itemsOrdenesService {
     
     static actualizarItemsOrdensDeServicio(itemsOrden: DTO_ItemOrdenServicio | null): Observable<DTO_Respuesta> {
         return defer(() =>
-            api.post<DTO_Respuesta>(API_ENDPOINTS.ORDERS.UPDATE_ORDER, itemsOrden as DTO_ItemOrdenServicio)
+            api.post<DTO_Respuesta>(API_ENDPOINTS.ITEMS_ORDERS.UPDATE_ORDER, itemsOrden as DTO_ItemOrdenServicio)
         ).pipe(map((r: AxiosResponse<DTO_Respuesta>) => r.data));
     }
 }

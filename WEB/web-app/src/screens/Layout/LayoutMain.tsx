@@ -5,7 +5,7 @@ import { ROUTES } from "@/constants";
 import { Link } from "react-router-dom";
 import "./LayoutMain.css";
 import { useLogout } from "@/hooks/useLogout";
-import { ConfirmModal } from "@/components";
+import { ConfirmModal, ThemeToggleMetronic } from "@/components";
 import { AuthContext } from "@/context";
 
 declare global {
@@ -140,8 +140,9 @@ useEffect(() => {
               <div className="menu-item py-2">
                 <Link
                   to={ROUTES.HOME}
-                  className={`menu-link menu-center${pathname === ROUTES.HOME ? " active" : ""
-                    }`}
+                  className={`menu-link menu-center${
+                    pathname === ROUTES.HOME ? " active" : ""
+                  }`}
                   data-bs-trigger="hover"
                   data-bs-dismiss="click"
                   data-bs-placement="right"
@@ -156,8 +157,9 @@ useEffect(() => {
               <div className="menu-item py-2">
                 <Link
                   to={ROUTES.CHAT_AI}
-                  className={`menu-link menu-center${pathname === ROUTES.CHAT_AI ? " active" : ""
-                    }`}
+                  className={`menu-link menu-center${
+                    pathname === ROUTES.CHAT_AI ? " active" : ""
+                  }`}
                   data-bs-trigger="hover"
                   data-bs-dismiss="click"
                   data-bs-placement="right"
@@ -172,8 +174,9 @@ useEffect(() => {
               <div className="menu-item py-2">
                 <Link
                   to={ROUTES.NEGOCIO}
-                  className={`menu-link menu-center${pathname === ROUTES.NEGOCIO ? " active" : ""
-                    }`}
+                  className={`menu-link menu-center${
+                    pathname === ROUTES.NEGOCIO ? " active" : ""
+                  }`}
                   data-bs-trigger="hover"
                   data-bs-dismiss="click"
                   data-bs-placement="right"
@@ -184,19 +187,20 @@ useEffect(() => {
                   <span className="menu-title">Negocio</span>
                 </Link>
               </div>
-              
+
               <div className="menu-item py-2">
                 <Link
                   to={ROUTES.CLIENTES}
-                  className={`menu-link menu-center${pathname === ROUTES.CLIENTES ? " active" : ""
-                    }`}
+                  className={`menu-link menu-center${
+                    pathname === ROUTES.CLIENTES ? " active" : ""
+                  }`}
                   data-bs-trigger="hover"
                   data-bs-dismiss="click"
                   data-bs-placement="right"
                 >
-                    <span className="menu-icon me-0">
+                  <span className="menu-icon me-0">
                     <i className="bi bi-people fs-2" />
-                    </span>
+                  </span>
                   <span className="menu-title">Clientes</span>
                 </Link>
               </div>
@@ -204,8 +208,9 @@ useEffect(() => {
               <div className="menu-item py-2">
                 <Link
                   to={ROUTES.CUENTAS}
-                  className={`menu-link menu-center${pathname === ROUTES.CUENTAS ? " active" : ""
-                    }`}
+                  className={`menu-link menu-center${
+                    pathname === ROUTES.CUENTAS ? " active" : ""
+                  }`}
                   data-bs-trigger="hover"
                   data-bs-dismiss="click"
                   data-bs-placement="right"
@@ -220,8 +225,9 @@ useEffect(() => {
               <div className="menu-item py-2">
                 <Link
                   to={ROUTES.SERVICE_ORDER}
-                  className={`menu-link menu-center${pathname === ROUTES.SERVICE_ORDER ? " active" : ""
-                    }`}
+                  className={`menu-link menu-center${
+                    pathname === ROUTES.SERVICE_ORDER ? " active" : ""
+                  }`}
                   data-bs-trigger="hover"
                   data-bs-dismiss="click"
                   data-bs-placement="right"
@@ -236,8 +242,9 @@ useEffect(() => {
               <div className="menu-item py-2">
                 <Link
                   to={ROUTES.MONITOR}
-                  className={`menu-link menu-center${pathname === ROUTES.MONITOR ? " active" : ""
-                    }`}
+                  className={`menu-link menu-center${
+                    pathname === ROUTES.MONITOR ? " active" : ""
+                  }`}
                   data-bs-trigger="hover"
                   data-bs-dismiss="click"
                   data-bs-placement="right"
@@ -303,6 +310,8 @@ useEffect(() => {
               </a>
             </div>
 
+            <div className="separator my-2" />
+            <ThemeToggleMetronic />
             <div className="d-flex align-items-stretch justify-content-between flex-lg-grow-1">
               <div className="d-flex align-items-stretch" id="kt_header_nav" />
 

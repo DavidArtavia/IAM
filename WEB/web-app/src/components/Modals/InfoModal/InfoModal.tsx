@@ -2,6 +2,7 @@
 // InfoModal.tsx - Modal genérico para mostrar información detallada.
 // Renderiza valores según tipo: fechas, arrays, objetos y primitivos.
 // -------------------------------------------------------------------------------------------------
+
 import React from "react";
 import { ReferenciaCards } from "@/components/ReferenciasJson/ReferenciasCard";
 import { dateHelpers } from "@/utils";
@@ -12,8 +13,12 @@ interface InfoModalProps {
   data: Record<string, unknown>;
   labelMap: Record<string, string>;
   title?: string;
+  dateKeys?: string[]; // ⬅️ Lista de claves que deben ser tratadas como fecha
 }
 
+/**
+ * Intenta formatear un valor como fecha si es válido y superior a 1753.
+ */
 const tryParseDate = (val: unknown): string | null => {
   if (!val) return null;
 
@@ -23,23 +28,33 @@ const tryParseDate = (val: unknown): string | null => {
       : typeof val === "string" || typeof val === "number"
       ? new Date(val)
       : new Date(NaN);
+
   if (isNaN(asDate.getTime()) || asDate.getFullYear() < 1753) return null;
 
   return dateHelpers.formatFechaDDMMYYYY(asDate);
 };
 
+/**
+ * Renderiza un valor según su tipo (string, objeto, array, fecha, primitivo)
+ */
 const renderValue = (
   key: string,
   value: unknown,
-  labelMap: Record<string, string>
+  labelMap: Record<string, string>,
+  dateKeys?: string[]
 ): React.ReactNode => {
-  // 1) Fecha
-  const maybeDate = tryParseDate(value);
-  if (maybeDate !== null) return <span>{maybeDate}</span>;
-  if (typeof value === "string" && value.startsWith("0001-01-01")) {
-    return (
-      <span className="badge bg-warning text-dark">No se ha definido aún</span>
-    );
+  // 1) Fechas
+  if (dateKeys?.includes(key)) {
+    const maybeDate = tryParseDate(value);
+    if (maybeDate !== null) return <span>{maybeDate}</span>;
+
+    if (typeof value === "string" && value.startsWith("0001-01-01")) {
+      return (
+        <span className="badge bg-warning text-dark">
+          No se ha definido aún
+        </span>
+      );
+    }
   }
 
   // 2) Array
@@ -71,13 +86,13 @@ const renderValue = (
   if (typeof value === "object" && value !== null) {
     if ("nombre" in value) {
       const nombre = (value as any).nombre;
-      if (nombre === "Activo") {
-      return <span className="badge badge-light-success">{nombre}</span>;
-      }
-      if (nombre === "Eliminado") {
-      return <span className="badge badge-light-primary">{nombre}</span>;
-      }
-      <span className="badge badge-light-info">{nombre}</span>;
+
+      if (nombre === "Activo")
+        return <span className="badge badge-light-success">{nombre}</span>;
+      if (nombre === "Eliminado")
+        return <span className="badge badge-light-primary">{nombre}</span>;
+
+      return <span className="badge badge-light-info">{nombre}</span>;
     }
 
     return (
@@ -91,29 +106,40 @@ const renderValue = (
       </div>
     );
   }
+
+  // 4) Valores nulos o indefinidos
   if (value === undefined || value === null) {
     return <span className="badge bg-secondary">No disponible</span>;
   }
-  // 4) Primitivos
+
+  // 5) Primitivos
   return <span>{String(value)}</span>;
 };
 
+/**
+ * Componente modal reutilizable para mostrar información detallada de un objeto.
+ */
 export const InfoModal: React.FC<InfoModalProps> = ({
   show,
   onHide,
   data,
   labelMap,
   title = "Información Detallada",
+  dateKeys = [], // ⬅️ Se asegura valor por defecto
 }) => {
   if (!show) return null;
 
   return (
-    <div className="modal fade show d-block shadowBackground" onClick={onHide}>
+    <div
+      className="modal fade show d-block shadowDarkBackground"
+      onClick={onHide}
+    >
       <div
         className="modal-dialog modal-dialog-centered mw-650px"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="modal-content">
+          {/* Título */}
           <div className="modal-header">
             <h2>{title}</h2>
             <button
@@ -125,6 +151,7 @@ export const InfoModal: React.FC<InfoModalProps> = ({
             </button>
           </div>
 
+          {/* Contenido */}
           <div className="modal-body py-10 px-lg-17">
             <div className="table-responsive">
               {Object.entries(data).map(([key, val]) => (
@@ -142,7 +169,7 @@ export const InfoModal: React.FC<InfoModalProps> = ({
 
                   <div className="d-flex align-items-center">
                     <div className="ms-6">
-                      {renderValue(key, val, labelMap)}
+                      {renderValue(key, val, labelMap, dateKeys)}
                     </div>
                   </div>
                 </div>
@@ -150,6 +177,7 @@ export const InfoModal: React.FC<InfoModalProps> = ({
             </div>
           </div>
 
+          {/* Footer */}
           <div className="modal-footer flex-center">
             <button type="button" className="btn btn-light" onClick={onHide}>
               Cerrar

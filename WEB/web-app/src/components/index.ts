@@ -14,6 +14,7 @@ export * from "./ReferenciasJson/ReferenciasCard";
 export * from "./Modals/GenericFormModal/types";
 export * from "./AsyncClientSelect/AsyncClientSelect";
 export * from "./Panel/InfoPanel";
+export * from "./Toggle/ThemeToggleMetronic";
 export * from "./Panel/LoadingPanel";
 export * from "./ReferenciasJson/ReferenciasCard";
 export * from "./ReferenciasJson/ReferenciasInput";

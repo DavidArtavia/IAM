@@ -14,7 +14,7 @@ export const ConfirmModal = ({
   
   return (
     <div
-      className="modal fade show d-block shadowBackground"
+      className="modal fade show d-block shadowDarkBackground"
       onClick={() => onAction(null)} // clic afuera cierra
     >
       <div

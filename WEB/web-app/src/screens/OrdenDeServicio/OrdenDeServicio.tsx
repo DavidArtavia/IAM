@@ -469,6 +469,23 @@ export const OrdenDeServicio = () => {
     setConfirmContext(null);
   };
 
+    //este renderizador personalizado formatea los valores de las columnas
+    const customRenderers: {
+      [K in keyof DTO_OrdenServicio]?: (
+        value: unknown,
+        rowData: DTO_OrdenServicio
+      ) => string | number | React.ReactNode;
+    } = {
+      fechaOrdenServicio: (val: unknown) => {
+        if (!val) return "";
+        return new Date(String(val)).toLocaleDateString();
+      },
+      fechaEstimadaEntrega: (val: unknown) => {
+        if (!val) return "";
+        return new Date(String(val)).toLocaleDateString();
+      },
+    };
+
   // --------------------------------------------------
   // 10. RENDERIZADO
   // --------------------------------------------------
@@ -495,15 +512,12 @@ export const OrdenDeServicio = () => {
           includeReferenceColumn // Si se quiere mostrar la columna de referenciasJson
           modalInfoFields={modalFields}
           showItemsButton
+          datekeys={["fechaOrdenServicio", "fechaEstimadaEntrega", "fechaInicio", "fechaFinal", "fechaEntrega"]}
           onOpenItemsModal={(rowData) => {
             setShowItemsOrdenFormModal(true);
             setDataToItemsOrder(rowData as DTO_OrdenServicio);
           }}
-          customRenderers={{
-            fechaOrdenServicio: (v) => new Date(String(v)).toLocaleDateString(),
-            fechaEstimadaEntrega: (v) =>
-              new Date(String(v)).toLocaleDateString(),
-          }}
+          customRenderers={customRenderers}
         />
       ) : (
         <InfoPanel msj="Seleccione un negocio para ver las órdenes de servicio" />
