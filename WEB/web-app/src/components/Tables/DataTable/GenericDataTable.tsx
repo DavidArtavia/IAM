@@ -123,6 +123,56 @@ export function GenericDataTable<T>({
       });
     }
 
+    if (labelMap["avance"]) {
+      cols.push({
+        title: labelMap["avance"],
+        data: null,
+        orderable: false,
+        searchable: false,
+        defaultContent: "",
+        createdCell: (cell, _, rowData) => {
+          try {
+            const container = document.createElement("div");
+            (cell as HTMLElement).innerHTML = "";
+            cell.appendChild(container);
+            const porcentaje = rowData["avance"] ?? 0;
+            const barColor =
+              porcentaje >= 80
+                ? "bg-success"
+                : porcentaje >= 50
+                ? "bg-warning"
+                : "bg-danger";
+
+            const content = (
+              <div className="d-flex flex-column w-100 me-2">
+                <div className="d-flex flex-stack mb-2">
+                  <span className="text-muted me-2 fs-7 fw-bold">
+                    {porcentaje}%
+                  </span>
+                </div>
+                <div className="progress h-6px w-100">
+                  <div
+                    className={`progress-bar ${barColor}`}
+                    role="progressbar"
+                    style={{ width: `${porcentaje}%` }}
+                    aria-valuenow={porcentaje}
+                    aria-valuemin={0}
+                    aria-valuemax={100}
+                  ></div>
+                </div>
+              </div>
+            );
+
+            const root = ReactDOM.createRoot(container);
+            root.render(content);
+          } catch (error) {
+            console.warn("Error rendering Avance column:", error);
+            (cell as HTMLElement).innerText = "";
+          }
+        },
+      });
+    }
+
     // Optional estado column
     if (includeEstadoColumn && labelMap["estado"]) {
       cols.push({
@@ -191,8 +241,6 @@ export function GenericDataTable<T>({
 
     return cols;
   }, [
-    onEdit,
-    onDelete,
     data, // Agregar data como dependencia
   ]);
 

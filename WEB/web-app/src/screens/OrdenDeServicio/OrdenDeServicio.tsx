@@ -432,6 +432,7 @@ export const OrdenDeServicio = () => {
         />
       ),
     },
+    // Construir campos dinámicos de referencia tipo registrar
     ...buildRefFields(formData),
   ];
 
@@ -452,6 +453,7 @@ export const OrdenDeServicio = () => {
         />
       ),
     },
+    // Construir campos dinámicos de referencia tipo editar
     ...buildRefFields(editData),
   ];
   // ======== Manejo de confirmación de “Cancelar registro” o “Eliminar”  ========
