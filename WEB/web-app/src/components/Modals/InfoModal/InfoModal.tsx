@@ -130,7 +130,10 @@ export const InfoModal: React.FC<InfoModalProps> = ({
   if (!show) return null;
 
   return (
-    <div className="modal fade show d-block shadowBackground" onClick={onHide}>
+    <div
+      className="modal fade show d-block shadowDarkBackground"
+      onClick={onHide}
+    >
       <div
         className="modal-dialog modal-dialog-centered mw-650px"
         onClick={(e) => e.stopPropagation()}

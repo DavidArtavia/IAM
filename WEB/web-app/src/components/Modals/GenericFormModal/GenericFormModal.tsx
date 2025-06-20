@@ -208,7 +208,7 @@ export const GenericFormModal = <T,>({
 
   return (
     <div
-      className="modal fade show d-block shadowBackground"
+      className="modal fade show d-block shadowDarkBackground"
       onClick={onHide}
     >
       <div
