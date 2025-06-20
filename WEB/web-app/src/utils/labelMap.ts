@@ -1,6 +1,8 @@
 import { FieldConfig } from "@/components/Modals/GenericFormModal/types";
 import { DTO_Cliente, DTO_CuentasPorPagar, DTO_Negocio, DTO_OrdenServicio } from "@/models";
 
+//#region columnas de tablas
+
 //  Define configuraciones de campos de formulario (FieldConfig) para construir formularios dinámicos relacionados con estos modelos.
 // Los label maps permiten mostrar nombres amigables en la UI, y los arreglos de campos de formulario se usan para generar formularios de manera flexible.
 export const columnKeysCuentasPorPagar: (keyof DTO_CuentasPorPagar)[] = [
@@ -45,7 +47,9 @@ export const columnKeysItemsOrdenServicio: string[] = [
     "avance",
 ];
 
+//#endregion
 
+//#region modal para visualizar detalles de objetos
 
 // Define los atributos que se mostrarán en el infoModal de las filas de las tablas de los modelos.
 export const keysInfoModalOrdenDeServicio: (keyof DTO_OrdenServicio)[] = [
@@ -102,6 +106,10 @@ export const keysInfoModalItemsOrdenServicio: string[] = [
     "avance",
     "estado",
 ];
+
+//#endregion
+
+//#region tablas
 
 // Este archivo define mapas de etiquetas (label maps) para mostrar nombres legibles en los titulos del DataTable de los modelos.
 export const labelMapCuentasPorPagar: Record<string, string> = {
@@ -160,6 +168,11 @@ export const labelMapItemsOrdenServicio: Record<string, string> = {
     avance: "Avance",
     estado: "Estado",
 };
+
+//#endregion
+
+//#region campos a mostrar para el form de editar
+
 // Exportación de los campos del formulario editar para los modelos
 export const negocioFormEditFields: Array<FieldConfig<DTO_Negocio>> = columnKeysNegocio
     .filter(key => key !== "iD_Negocio" && key !== "iD_Usuario" && key !== "fechaRegistro") // Excluye campos que no se editan
@@ -234,4 +247,6 @@ export const ordenServicioFormEditFields: Array<
                 return config;
             }),
     ];
+//#endregion
+
 
