@@ -20,6 +20,18 @@ window.$ = $;
 window.jQuery = $;
 
 const rootElement = document.getElementById('root');
+// 💡 Establecer el tema sin causar recarga infinita
+const storedTheme = localStorage.getItem("theme");
+
+if (!storedTheme) {
+  // Si no hay tema guardado, setear uno por defecto (light)
+  localStorage.setItem("theme", "light");
+  document.documentElement.setAttribute("data-kt-app-theme", "light");
+} else {
+  // Si ya existe, simplemente aplicarlo (sin reload)
+  document.documentElement.setAttribute("data-kt-app-theme", storedTheme);
+}
+
 const root = createRoot(rootElement!);
 root.render(
   // <StrictMode>

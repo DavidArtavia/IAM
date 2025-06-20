@@ -5,7 +5,7 @@ import { ROUTES } from "@/constants";
 import { Link } from "react-router-dom";
 import "./LayoutMain.css";
 import { useLogout } from "@/hooks/useLogout";
-import { ConfirmModal, ThemeToggleMetronic } from "@/components";
+import { ConfirmModal } from "@/components";
 import { AuthContext } from "@/context";
 
 declare global {
@@ -311,7 +311,6 @@ useEffect(() => {
             </div>
 
             <div className="separator my-2" />
-            <ThemeToggleMetronic />
             <div className="d-flex align-items-stretch justify-content-between flex-lg-grow-1">
               <div className="d-flex align-items-stretch" id="kt_header_nav" />
 
