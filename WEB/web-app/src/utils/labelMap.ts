@@ -44,7 +44,6 @@ export const columnKeysItemsOrdenServicio: string[] = [
     "nombreItemOrdenServicio",
     "descripcion",
     "monto",
-    "avance",
 ];
 
 //#endregion
