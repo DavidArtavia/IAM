@@ -45,14 +45,20 @@ table.dataTable thead th {
   /* Reduce tamaño de fuente */
 }
 
-.shadowBackground {
+.shadowClearBackground {
   position: fixed;
-  background-color: rgba(0, 0, 0, 0.7);
-  /* Fondo semitransparente */
+  background-color: rgba(0, 0, 0, 0.3);
+  /* Más claro */
   backdrop-filter: blur(5px);
-  /* Efecto de desenfoque */
   border-radius: 10px;
-  /* Bordes redondeados */
   padding: 20px;
-  /* Espaciado interno */
+}
+
+.shadowDarkBackground {
+  position: fixed;
+  background-color: rgba(0, 0, 0, 0.5);
+  /* Más oscuro */
+  backdrop-filter: blur(5px);
+  border-radius: 10px;
+  padding: 20px;
 }
