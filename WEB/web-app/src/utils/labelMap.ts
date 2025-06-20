@@ -198,11 +198,11 @@ export const clienteFormEditFields: Array<FieldConfig<DTO_Cliente>> = columnKeys
         type: "text",
     }));
 export const ItemsOrdenServicioFormEditFields: Array<FieldConfig<any>> = columnKeysItemsOrdenServicio
-    .filter(key => key !== "iD_ItemOrdenServicio" && key !== "iD_OrdenServicio") // Excluye campos que no se editan
+    .filter(key => key !== "iD_ItemOrdenServicio" && key !== "iD_OrdenServicio" && key != "avance") // Excluye campos que no se editan
     .map(key => ({
         key,
         label: labelMapItemsOrdenServicio[key] ?? key,
-        type: key === "monto" || key === "avance" ? "number" : "text",
+        type: key === "monto" ? "number" : "text",
     }));
 
 export const ordenServicioFormEditFields: Array<

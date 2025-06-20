@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { GenericFormModal } from "../GenericFormModal/GenericFormModal";
 import { ConfirmModal } from "../LoadingModal/ConfirmModal";
 import { STATUS_TBL } from "@/constants";
+import { FieldConfig } from "../GenericFormModal/types";
 
 interface ItemsOrdenDeServicioModalProps {
   open: boolean;
@@ -162,7 +163,41 @@ export const ItemsOrdenDeServicioModal = ({
       }
   
       setIsConfirmOpen(false);
-    };
+  };
+  
+  const registerFormFields: FieldConfig<DTO_ItemOrdenServicio>[] = [
+    ...ItemsOrdenServicioFormEditFields,
+      {
+        key: "Avance",
+        label: "Avance",
+        type: "custom",
+        renderer: () => (
+          <>
+            <input
+              type="range"
+              className="form-range"
+              min="0"
+              max="100"
+              step="1"
+              id="customRange3"
+              value={formData.Avance ?? 0}
+              onChange={e => setFormData({ ...formData, Avance: Number(e.target.value) })}
+            />
+            <div>
+              <span>Valor actual: {formData.Avance ?? 0}%</span>
+            </div>
+          </>
+        ),
+
+        validate: (val) => {
+          if (!Array.isArray(val) || val.length === 0) return "";
+          for (const ref of val) {
+            if (!ref.nombre) return "Todos los campos deben estar completos.";
+          }
+          return "";
+        },
+      },
+    ];
   // Renderizadores personalizados para columnas específicas
   const customRenderers: {
     [K in keyof any]?: (
@@ -231,7 +266,7 @@ export const ItemsOrdenDeServicioModal = ({
               data={formData}
               setData={setFormData}
               onSubmit={handleSave}
-              fields={ItemsOrdenServicioFormEditFields}
+              fields={registerFormFields}
             />
 
             {/* === Modal Genérico: Confirmación === */}
