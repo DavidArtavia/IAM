@@ -17,7 +17,7 @@ GO
 ALTER PROCEDURE CORE.SP_actualizarItemOrdenDeServicio
 	@ID_ItemOrdenServicio INT,
     @NombreItemOrdenServicio VARCHAR(100),
-    @Descripcion VARCHAR(255),
+    @Descripcion VARCHAR(255) = NULL,
 	@Monto DECIMAL(16,3),
 	@Avance int,
 	@ID_Estado int
