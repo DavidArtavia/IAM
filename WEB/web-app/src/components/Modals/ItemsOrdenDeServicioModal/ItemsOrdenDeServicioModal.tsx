@@ -182,22 +182,7 @@ export const ItemsOrdenDeServicioModal = ({
       )
     );
 
-    // Limpia editData: si es null/undefined y es número, pone 0; si es string, pone ""
-    const editDataCleaned = { ...editData };
-    for (const key in editDataCleaned) {
-      if (editDataCleaned[key] === null || editDataCleaned[key] === undefined) {
-      if (typeof editData[key] === "number") {
-        editDataCleaned[key] = 0;
-      } else if (typeof editData[key] === "string") {
-        editDataCleaned[key] = "";
-      } else {
-        // Si no se sabe el tipo, por defecto ""
-        editDataCleaned[key] = "";
-      }
-      }
-    }
-
-    itemsOrdenesService.actualizarItemsOrdensDeServicio(editDataCleaned).subscribe({
+    itemsOrdenesService.actualizarItemsOrdensDeServicio(editData).subscribe({
       next: (result) => {
         notificationHelpers.successAlert(result.mensaje);
         setShowEditForm(false);
