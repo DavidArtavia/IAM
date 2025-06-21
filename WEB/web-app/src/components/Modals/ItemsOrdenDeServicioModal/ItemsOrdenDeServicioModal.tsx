@@ -8,6 +8,7 @@ import { ConfirmModal } from "../LoadingModal/ConfirmModal";
 import { STATUS_TBL } from "@/constants";
 import { FieldConfig } from "../GenericFormModal/types";
 import { LoadingPanel } from "@/components/Panel/LoadingPanel";
+import { CustomRange } from "@/components/Range/CustomRange";
 
 interface ItemsOrdenDeServicioModalProps {
   open: boolean;
@@ -27,17 +28,21 @@ export const ItemsOrdenDeServicioModal = ({
   title = "Detalle del Ítem",
   rowData,
 }: ItemsOrdenDeServicioModalProps) => {
-  const [itemsOrdenes, setItemsOrdenes] = useState<any[]>([]);
+  const [itemsOrdenes, setItemsOrdenes] = useState<DTO_ItemOrdenServicio[]>([]);
   const [loading, setLoading] = useState(false);
 
   // #region Registrar
   const [isModalFormOpen, setIsModalFormOpen] = useState(false);
-  const [formData, setFormData] = useState<any>(new DTO_ItemOrdenServicio());
+  const [formData, setFormData] = useState<DTO_ItemOrdenServicio>(
+    new DTO_ItemOrdenServicio()
+  );
   // #endregion
 
   // #region Editar
   const [showEditForm, setShowEditForm] = useState(false);
-  const [editData, setEditData] = useState<any | null>(null);
+  const [editData, setEditData] = useState<DTO_ItemOrdenServicio>(
+    new DTO_ItemOrdenServicio()
+  );
   // #endregion
 
   // #region Eliminar
@@ -56,7 +61,7 @@ export const ItemsOrdenDeServicioModal = ({
 
     setLoading(true);
     const request = {
-      ID_OrdenServicio: rowData.iD_OrdenServicio,
+      iD_OrdenServicio: rowData.iD_OrdenServicio,
     } as DTO_ItemOrdenServicio;
 
     itemsOrdenesService.obtenerItemsOrdensDeServicio(request).subscribe({
@@ -87,7 +92,7 @@ export const ItemsOrdenDeServicioModal = ({
   };
 
   const handleSave = () => {
-    formData.ID_OrdenServicio = rowData?.iD_OrdenServicio || 0;
+    formData.iD_OrdenServicio = rowData?.iD_OrdenServicio || 0;
     setItemsOrdenes((prev) =>
       prev.map((item) =>
         item.iD_ItemOrdenServicio === formData.iD_ItemOrdenServicio
@@ -140,10 +145,10 @@ export const ItemsOrdenDeServicioModal = ({
 
   const handleConfirmDelete = (action: boolean | null) => {
     if (action && itemOrderToDelete) {
-      const updated: any = {
+      const updated: DTO_ItemOrdenServicio = {
         ...itemOrderToDelete,
-        Estado: {
-          ...itemOrderToDelete.Estado!,
+        estado: {
+          ...itemOrderToDelete.estado!,
           iD_Estado: STATUS_TBL.ITEMS_ORDER_SERVICE.DELETED,
         },
       };
@@ -156,7 +161,11 @@ export const ItemsOrdenDeServicioModal = ({
       );
       itemsOrdenesService.actualizarItemsOrdensDeServicio(updated).subscribe({
         next: (result) => {
-          notificationHelpers.infoAlert(result?.mensaje);
+            notificationHelpers.infoAlert(
+              result?.tipoRespuesta
+                ? `Ítem #${updated.iD_ItemOrdenServicio} eliminado exitosamente`
+                : `${result?.mensaje || "No se pudo eliminar el ítem"}`
+            );
         },
         error: (err) => errorHelpers.serverError(err),
       });
@@ -191,31 +200,22 @@ export const ItemsOrdenDeServicioModal = ({
     });
   };
 
-  const editFormFields: FieldConfig<any>[] = [
+  const editFormFields: FieldConfig<DTO_ItemOrdenServicio>[] = [
     ...ItemsOrdenServicioFormEditFields,
     {
-      key: "Avance",
+      key: "avance",
       label: "Avance",
       type: "custom",
       renderer: () => (
         <>
-          <input
-            type="range"
-            className="form-range"
-            min="0"
-            max="100"
-            step="1"
-            id="customRange3"
-            value={editData?.avance ?? 0}
-            onChange={e => {
+          <CustomRange
+            data={[editData.avance ?? 0]}
+            onChange={(value) => {
               setEditData((prev: any) =>
-                prev ? { ...prev, avance: Number(e.target.value) } : null
+                prev ? { ...prev, avance: value } : null
               );
             }}
           />
-          <div>
-            <span>Valor actual: {editData?.avance ?? 0}%</span>
-          </div>
         </>
       ),
     },
@@ -226,24 +226,19 @@ export const ItemsOrdenDeServicioModal = ({
   const registerFormFields: FieldConfig<DTO_ItemOrdenServicio>[] = [
     ...ItemsOrdenServicioFormEditFields,
     {
-      key: "Avance",
+      key: "avance",
       label: "Avance",
       type: "custom",
       renderer: () => (
         <>
-          <input
-            type="range"
-            className="form-range"
-            min="0"
-            max="100"
-            step="1"
-            id="customRange3"
-            value={formData.Avance ?? 0}
-            onChange={e => setFormData({ ...formData, Avance: Number(e.target.value) })}
+          <CustomRange
+            data={[formData.avance ?? 0]}
+            onChange={(value) => {
+              setFormData((prev: any) =>
+                prev ? { ...prev, avance: value } : null
+              );
+            }}
           />
-          <div>
-            <span>Valor actual: {formData.Avance ?? 0}%</span>
-          </div>
         </>
       ),
     },
@@ -297,7 +292,7 @@ export const ItemsOrdenDeServicioModal = ({
             {loading ? (
               <LoadingPanel msj="Cargando Items de la órden de servicio, por favor espere..." />
             ) : (
-              <GenericDataTable<any>
+              <GenericDataTable<DTO_ItemOrdenServicio>
                 title="Ítems de la Orden de Servicio"
                 columnKeys={columnKeysItemsOrdenServicio}
                 labelMap={labelMapItemsOrdenServicio}
@@ -312,7 +307,7 @@ export const ItemsOrdenDeServicioModal = ({
             )}
 
             {/* Modal Registrar */}
-            <GenericFormModal<any>
+            <GenericFormModal<DTO_ItemOrdenServicio>
               title="Registrar Item de Orden de Servicio"
               show={isModalFormOpen}
               onHide={handleCancelAdd}
@@ -323,7 +318,7 @@ export const ItemsOrdenDeServicioModal = ({
             />
 
             {/* Modal Editar */}
-            <GenericFormModal<any>
+            <GenericFormModal<DTO_ItemOrdenServicio>
               title="Editar Orden de Servicio"
               show={showEditForm}
               onHide={() => setShowEditForm(false)}

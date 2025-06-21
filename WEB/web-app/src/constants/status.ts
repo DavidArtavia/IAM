@@ -38,8 +38,8 @@ export const STATUS_TBL = {
         COMPLETED:0,
     },
     ITEMS_ORDER_SERVICE: {
-        ACTIVE: 13,
-        DELETED: 14, // -> debe ser 12 en produccion
+        ACTIVE: 18,
+        DELETED: 19, 
         IN_PROCESS:0,
         PENDING:0,
         COMPLETED:0,

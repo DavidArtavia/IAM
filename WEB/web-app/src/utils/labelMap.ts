@@ -1,5 +1,5 @@
 import { FieldConfig } from "@/components/Modals/GenericFormModal/types";
-import { DTO_Cliente, DTO_CuentasPorPagar, DTO_Negocio, DTO_OrdenServicio } from "@/models";
+import { DTO_Cliente, DTO_CuentasPorPagar, DTO_ItemOrdenServicio, DTO_Negocio, DTO_OrdenServicio } from "@/models";
 
 //#region columnas de tablas
 
@@ -38,7 +38,7 @@ export const columnKeysCliente: (keyof DTO_Cliente)[] = [
     "correoCliente",
 ];
 
-export const columnKeysItemsOrdenServicio: string[] = [
+export const columnKeysItemsOrdenServicio: (keyof DTO_ItemOrdenServicio)[] = [
     "iD_ItemOrdenServicio",
     "iD_OrdenServicio",
     "nombreItemOrdenServicio",
@@ -96,7 +96,7 @@ export const keysInfoModalCliente: (keyof DTO_Cliente)[] = [
     "correoCliente",
     "estado",
 ];
-export const keysInfoModalItemsOrdenServicio: string[] = [
+export const keysInfoModalItemsOrdenServicio: (keyof DTO_ItemOrdenServicio)[] = [
     "iD_ItemOrdenServicio",
     "iD_OrdenServicio",
     "nombreItemOrdenServicio",
@@ -196,7 +196,7 @@ export const clienteFormEditFields: Array<FieldConfig<DTO_Cliente>> = columnKeys
         label: labelMapCliente[key] ?? key,
         type: "text",
     }));
-export const ItemsOrdenServicioFormEditFields: Array<FieldConfig<any>> = columnKeysItemsOrdenServicio
+export const ItemsOrdenServicioFormEditFields: Array<FieldConfig<DTO_ItemOrdenServicio>> = columnKeysItemsOrdenServicio
     .filter(key => key !== "iD_ItemOrdenServicio" && key !== "iD_OrdenServicio" && key != "avance") // Excluye campos que no se editan
     .map(key => ({
         key,
