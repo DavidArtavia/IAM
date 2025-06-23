@@ -62,15 +62,22 @@ export const ReferenciasJsonInput = ({
   return (
     <div className="d-flex flex-column">
       {!hideCheckbox && (
-        <label className="form-check form-check-custom form-check-solid mb-4">
-          <input
-            type="checkbox"
-            className="form-check-input"
-            checked={enabled}
-            onChange={handleToggle}
-          />
-          <span className="form-check-label">Referencias</span>
-        </label>
+        <>
+          <div className="switch-container mb-4">
+            <input
+              className="toggle-checkbox"
+              id="toggle-switch"
+              type="checkbox"
+              checked={enabled}
+              onChange={handleToggle}
+            />
+            <label className="switch " htmlFor="toggle-switch">
+              <div className="toggle">
+                <div className="led"></div>
+              </div>
+            </label>
+          </div>
+        </>
       )}
 
       {(enabled || hideCheckbox) && (
