@@ -1,8 +1,8 @@
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import * as signalR from "@microsoft/signalr";
 import sonidoMonitor from "../../assets/media/audios/Monitor.mp3";
 import { errorHelpers, notificationHelpers } from "@/utils";
-import { BusinessButtons } from "@/components";
+import { BusinessButtons, LoadingPanel } from "@/components";
 import { DTO_ItemOrdenServicio, DTO_Negocio, DTO_OrdenServicio, DTO_Respuesta } from "@/models";
 import { monitorService } from "@/services";
 
@@ -12,19 +12,23 @@ export const Monitor = () => {
   const connectionRef = useRef<signalR.HubConnection | null>(null);
   const audio = useRef(new Audio(sonidoMonitor));
   const intentoRef = useRef(false);
-  const abortedRef = useRef(false);
   const [loading, setLoading] = useState(false);
   const [ordenes, setOrdenes] = useState<DTO_OrdenServicio[]>([]);
   const [items, setItems] = useState<DTO_ItemOrdenServicio[]>([]);
-
-  let retryTimeout: number;
+  const retryTimeoutRef = useRef<number | null>(null);
+  const abortedRef = useRef(false);
 
 
   const [selectedBusiness, setSelectedBusiness] = useState<DTO_Negocio | null>(
     null
   );
 
-  const formatFechaEntrega = (fecha?: string | Date): string => {
+  useEffect(() => {
+    // Aquí puedes agregar lo que quieras hacer cada vez que 'mensajes' cambie
+    console.log("Los mensajes han cambiado:", mensajes);
+  }, [mensajes]);
+
+  const formatFechaEntrega = (fecha: Date | null): string => {
     if (!fecha) return "";
     const dateObj = typeof fecha === "string" ? new Date(fecha) : fecha;
     if (isNaN(dateObj.getTime())) return ""; // fecha inválida
@@ -60,7 +64,10 @@ export const Monitor = () => {
     const limpiarConexion = async () => {
       if (connectionRef.current) {
         connectionRef.current.off("RecibirNotificacion");
-        try { await connectionRef.current.stop(); } catch { }
+        try { await connectionRef.current.stop(); } catch {
+          console.log('Error limpiando conexión');
+
+        }
         connectionRef.current = null;
       }
     };
@@ -85,12 +92,16 @@ export const Monitor = () => {
           console.info("🆕 Token renovado desde negociación SignalR");
           return true;
         }
-      } catch { }
+      } catch {
+        console.log('error estrayendo el token retornado');
+
+      }
       return false;
     };
 
     const handleDisconnect = async (error?: Error) => {
       if (abortedRef.current) return;
+
       setEstadoConexion("Desconectado");
       notificationHelpers.errorAlert("Monitor desconectado");
 
@@ -99,14 +110,15 @@ export const Monitor = () => {
         const renovado = await extraerYRenovarToken(error.message);
         if (renovado && !abortedRef.current) {
           // Pequeño retardo antes de reconectar
-          await new Promise(r => setTimeout(r, 500));
+          await new Promise(r => setTimeout(r, 3000));
           return iniciarConexion();
         }
       }
 
       // Reintento normal
       if (!abortedRef.current) {
-        retryTimeout = window.setTimeout(iniciarConexion, 3000);
+        // Usar retryTimeoutRef.current para almacenar el ID del timeout
+        retryTimeoutRef.current = window.setTimeout(iniciarConexion, 3000);  // `setTimeout` devuelve un número en el navegador
       }
     };
 
@@ -175,18 +187,19 @@ export const Monitor = () => {
       }
     };
 
-    // Conectar al montar
-    iniciarConexion();
+  iniciarConexion();
 
-    return () => {
-      abortedRef.current = true;
-      clearTimeout(retryTimeout);
-      limpiarConexion().then(() => {
-        setEstadoConexion("Desconectado");
-        notificationHelpers.infoAlert("Monitor cerrado al salir de la vista");
-      });
-    };
-  }, []);
+  return () => {
+    abortedRef.current = true;
+    if (retryTimeoutRef.current) {
+      clearTimeout(retryTimeoutRef.current); // Limpiar usando retryTimeoutRef.current
+    }
+    limpiarConexion().then(() => {
+      setEstadoConexion("Desconectado");
+      notificationHelpers.infoAlert("Monitor cerrado al salir de la vista");
+    });
+  };
+}, []);
   //#endregion
 
   //#region cargar monitor
@@ -225,6 +238,9 @@ export const Monitor = () => {
           selectedBusiness={selectedBusiness}
           handleSelectBusiness={handleSelectBusiness}
         />
+
+        {loading && <LoadingPanel msj="Cargando, por favor espere..." />}
+
       </div>
 
       <div id="kt_content_container" className="container-xxl">
@@ -262,7 +278,7 @@ export const Monitor = () => {
                 </div>
 
 
-                {ordenes.filter(m => m.estado.iD_Estado == 6).map((m, i) => (
+                {ordenes.filter(m => m.estado.iD_Estado == 6).map((m) => (
 
 
                   <div className="card mb-6 mb-xl-9" key={m.iD_OrdenServicio}>
@@ -336,17 +352,17 @@ export const Monitor = () => {
                           .map(r => r.valor)
                           .join(', ')}
                       </div><div className="separator" style={{ marginBottom: '15px' }}></div>
-                      {items.filter(i => i.iD_OrdenServicio == m.iD_OrdenServicio).map((item, i) => (
-                        <div className="mb-2" >
+                      {items.filter(i => i.iD_OrdenServicio == m.iD_OrdenServicio).map((item) => (
+                        <div className="mb-2" key={item.iD_ItemOrdenServicio} >
                           <div className="form-check form-check-custom form-check-solid">
-                            <input className="form-check-input" type="checkbox" value="" id="flexCheckDefault" checked={item.avance == 100} />
+                            <input className="form-check-input" type="checkbox" value="" id="flexCheckDefault" defaultChecked={item.avance == 100} />
                             <label className="form-check-label" >{item.nombreItemOrdenServicio}</label>
                           </div>
                         </div>
                       ))}
 
                       <div className="d-flex flex-stack flex-wrapr"><div className="symbol-group symbol-hover" style={{ marginLeft: '0' }}>
-             
+
                         {m.estado.iD_Estado != 8 ? (
                           <div className="border border-dashed border-gray-300 rounded py-3 px-3 text-gray-600">
                             <span className="svg-icon svg-icon-3">
@@ -394,7 +410,7 @@ export const Monitor = () => {
                   <div className="h-3px w-100 bg-primary"></div>
                 </div>
 
-                {ordenes.filter(m => m.estado.iD_Estado == 7).map((m, i) => (
+                {ordenes.filter(m => m.estado.iD_Estado == 7).map((m) => (
 
                   <div className="card mb-6 mb-xl-9" key={m.iD_OrdenServicio}>
                     <div className="card-body">
@@ -468,16 +484,16 @@ export const Monitor = () => {
                         {m.referenciaJSON
                           .map(r => r.valor)
                           .join(', ')}</div><div className="separator" style={{ marginBottom: '15px' }}></div>
-                      {items.filter(i => i.iD_OrdenServicio == m.iD_OrdenServicio).map((item, i) => (
-                        <div className="mb-2" >
+                      {items.filter(i => i.iD_OrdenServicio == m.iD_OrdenServicio).map((item) => (
+                        <div className="mb-2" key={item.iD_ItemOrdenServicio} >
                           <div className="form-check form-check-custom form-check-solid">
-                            <input className="form-check-input" type="checkbox" value="" id="flexCheckDefault" checked={item.avance == 100} />
+                            <input className="form-check-input" type="checkbox" value="" id="flexCheckDefault" defaultChecked={item.avance == 100} />
                             <label className="form-check-label" >{item.nombreItemOrdenServicio}</label>
                           </div>
                         </div>
                       ))}
                       <div className="d-flex flex-stack flex-wrapr"><div className="symbol-group symbol-hover" style={{ marginLeft: '0' }}>
-             
+
                         {m.estado.iD_Estado != 8 ? (
                           <div className="border border-dashed border-gray-300 rounded py-3 px-3 text-gray-600">
                             <span className="svg-icon svg-icon-3">
@@ -643,7 +659,7 @@ export const Monitor = () => {
                   <div className="h-3px w-100 bg-success"></div>
                 </div>
 
-                {ordenes.filter(m => m.estado.iD_Estado == 9).map((m, i) => (
+                {ordenes.filter(m => m.estado.iD_Estado == 9).map((m) => (
                   <div className="card mb-6 mb-xl-9" key={m.iD_OrdenServicio}>
                     <div className="card-body">
                       <div className="d-flex flex-stack mb-3">
@@ -717,17 +733,17 @@ export const Monitor = () => {
                           .map(r => r.valor)
                           .join(', ')}</div><div className="separator" style={{ marginBottom: '15px' }}></div>
 
-                      {items.filter(i => i.iD_OrdenServicio == m.iD_OrdenServicio).map((item, i) => (
-                        <div className="mb-2" >
+                      {items.filter(i => i.iD_OrdenServicio == m.iD_OrdenServicio).map((item) => (
+                        <div className="mb-2" key={item.iD_ItemOrdenServicio} >
                           <div className="form-check form-check-custom form-check-solid">
-                            <input className="form-check-input" type="checkbox" value="" id="flexCheckDefault" checked={item.avance == 100} />
+                            <input className="form-check-input" type="checkbox" value="" id="flexCheckDefault" defaultChecked={item.avance == 100} />
                             <label className="form-check-label" >{item.nombreItemOrdenServicio}</label>
                           </div>
                         </div>
                       ))}
 
                       <div className="d-flex flex-stack flex-wrapr"><div className="symbol-group symbol-hover" style={{ marginLeft: '0' }}>
-             
+
                         {m.estado.iD_Estado != 8 ? (
                           <div className="border border-dashed border-gray-300 rounded py-3 px-3 text-gray-600">
                             <span className="svg-icon svg-icon-3">
@@ -772,7 +788,7 @@ export const Monitor = () => {
                   </div>
                   <div className="h-3px w-100 bg-info"></div>
                 </div>
-                {ordenes.filter(m => m.estado.iD_Estado == 8).map((m, i) => (
+                {ordenes.filter(m => m.estado.iD_Estado == 8).map((m) => (
                   <div className="card mb-6 mb-xl-9" key={m.iD_OrdenServicio}>
                     <div className="card-body">
                       <div className="d-flex flex-stack mb-3">
@@ -825,7 +841,7 @@ export const Monitor = () => {
                                 <div className="menu-item px-3">
                                   <div className="menu-content px-3">
                                     <label className="form-check form-switch form-check-custom form-check-solid">
-                                      <input className="form-check-input w-30px h-20px" type="checkbox" value="1" name="notifications"  />
+                                      <input className="form-check-input w-30px h-20px" type="checkbox" value="1" name="notifications" />
                                       <span className="form-check-label text-muted fs-6">Recuring</span>
                                     </label>
                                   </div>
@@ -845,17 +861,17 @@ export const Monitor = () => {
                         {m.referenciaJSON
                           .map(r => r.valor)
                           .join(', ')}</div><div className="separator" style={{ marginBottom: '15px' }}></div>
-                      {items.filter(i => i.iD_OrdenServicio == m.iD_OrdenServicio).map((item, i) => (
-                        <div className="mb-2" >
+                      {items.filter(i => i.iD_OrdenServicio == m.iD_OrdenServicio).map((item) => (
+                        <div className="mb-2" key={item.iD_ItemOrdenServicio} >
                           <div className="form-check form-check-custom form-check-solid">
-                            <input className="form-check-input" type="checkbox" value="" id="flexCheckDefault" checked={item.avance == 100} />
+                            <input className="form-check-input" type="checkbox" value="" id="flexCheckDefault" defaultChecked={item.avance == 100} />
                             <label className="form-check-label" >{item.nombreItemOrdenServicio}</label>
                           </div>
                         </div>
                       ))}
                       <div className="separator" style={{ marginBottom: '15px' }}></div><p className="text-info py-3 fw-bold fw-6">Falta el producto para el tratamiento cerámico</p>
-                                     <div className="d-flex flex-stack flex-wrapr"><div className="symbol-group symbol-hover" style={{ marginLeft: '0' }}>
-             
+                      <div className="d-flex flex-stack flex-wrapr"><div className="symbol-group symbol-hover" style={{ marginLeft: '0' }}>
+
                         {m.estado.iD_Estado != 8 ? (
                           <div className="border border-dashed border-gray-300 rounded py-3 px-3 text-gray-600">
                             <span className="svg-icon svg-icon-3">

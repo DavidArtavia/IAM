@@ -25,7 +25,7 @@ namespace DTO
             ID_OrdenServicio = 0;
             Estado = new();
             NombreItemOrdenServicio = string.Empty;
-            Descripcion = string.Empty;
+            Descripcion = null;
             Monto = 0m;  // Valor predeterminado para DECIMAL
             Avance = null;  // Nullable, lo dejamos como null
         }
