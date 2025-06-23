@@ -4,7 +4,7 @@ import sonidoMonitor from "../../assets/media/audios/Monitor.mp3";
 import { errorHelpers, notificationHelpers } from "@/utils";
 import { BusinessButtons, LoadingPanel } from "@/components";
 import { DTO_ItemOrdenServicio, DTO_Negocio, DTO_OrdenServicio, DTO_Respuesta } from "@/models";
-import { monitorService } from "@/services";
+import { monitorService, itemsOrdenesService } from "@/services";
 
 export const Monitor = () => {
   const [mensajes, setMensajes] = useState<string[]>([]);
@@ -49,6 +49,31 @@ export const Monitor = () => {
   const handleSelectBusiness = (neg: DTO_Negocio) => {
     setSelectedBusiness(neg);
   };
+
+  // Maneja el avance de un item
+  const handleCheckboxChange = (item: DTO_ItemOrdenServicio, checked: boolean) => {
+
+    if (checked) {
+      item.avance = 100;
+    } else {
+      item.avance = 0;
+    }
+      itemsOrdenesService
+      .actualizarItemsOrdensDeServicio(item)
+      .subscribe({
+        next: (res) => {
+          if(!(res as DTO_Respuesta).tipoRespuesta){
+              notificationHelpers.errorAlert((res as DTO_Respuesta).mensaje);
+          }
+          
+        },
+        error: (err) => errorHelpers.serverError(err),
+        complete: () => setLoading(false),
+      });
+
+  };
+
+
   //#region websoket
   const getToken = () => localStorage.getItem("accesToken") || "";
 
@@ -71,6 +96,9 @@ export const Monitor = () => {
         connectionRef.current = null;
       }
     };
+
+
+
 
     const construirConexion = () =>
       new signalR.HubConnectionBuilder()
@@ -187,19 +215,19 @@ export const Monitor = () => {
       }
     };
 
-  iniciarConexion();
+    iniciarConexion();
 
-  return () => {
-    abortedRef.current = true;
-    if (retryTimeoutRef.current) {
-      clearTimeout(retryTimeoutRef.current); // Limpiar usando retryTimeoutRef.current
-    }
-    limpiarConexion().then(() => {
-      setEstadoConexion("Desconectado");
-      notificationHelpers.infoAlert("Monitor cerrado al salir de la vista");
-    });
-  };
-}, []);
+    return () => {
+      abortedRef.current = true;
+      if (retryTimeoutRef.current) {
+        clearTimeout(retryTimeoutRef.current); // Limpiar usando retryTimeoutRef.current
+      }
+      limpiarConexion().then(() => {
+        setEstadoConexion("Desconectado");
+        notificationHelpers.infoAlert("Monitor cerrado al salir de la vista");
+      });
+    };
+  }, []);
   //#endregion
 
   //#region cargar monitor
@@ -355,7 +383,7 @@ export const Monitor = () => {
                       {items.filter(i => i.iD_OrdenServicio == m.iD_OrdenServicio).map((item) => (
                         <div className="mb-2" key={item.iD_ItemOrdenServicio} >
                           <div className="form-check form-check-custom form-check-solid">
-                            <input className="form-check-input" type="checkbox" value="" id="flexCheckDefault" defaultChecked={item.avance == 100} />
+                            <input className="form-check-input" type="checkbox" value="" id="flexCheckDefault" defaultChecked={item.avance == 100} onChange={(e) => handleCheckboxChange(item, e.target.checked)} />
                             <label className="form-check-label" >{item.nombreItemOrdenServicio}</label>
                           </div>
                         </div>
@@ -487,7 +515,7 @@ export const Monitor = () => {
                       {items.filter(i => i.iD_OrdenServicio == m.iD_OrdenServicio).map((item) => (
                         <div className="mb-2" key={item.iD_ItemOrdenServicio} >
                           <div className="form-check form-check-custom form-check-solid">
-                            <input className="form-check-input" type="checkbox" value="" id="flexCheckDefault" defaultChecked={item.avance == 100} />
+                            <input className="form-check-input" type="checkbox" value="" id="flexCheckDefault" defaultChecked={item.avance == 100} onChange={(e) => handleCheckboxChange(item, e.target.checked)} />
                             <label className="form-check-label" >{item.nombreItemOrdenServicio}</label>
                           </div>
                         </div>
@@ -736,7 +764,7 @@ export const Monitor = () => {
                       {items.filter(i => i.iD_OrdenServicio == m.iD_OrdenServicio).map((item) => (
                         <div className="mb-2" key={item.iD_ItemOrdenServicio} >
                           <div className="form-check form-check-custom form-check-solid">
-                            <input className="form-check-input" type="checkbox" value="" id="flexCheckDefault" defaultChecked={item.avance == 100} />
+                            <input className="form-check-input" type="checkbox" value="" id="flexCheckDefault" defaultChecked={item.avance == 100} onChange={(e) => handleCheckboxChange(item, e.target.checked)} />
                             <label className="form-check-label" >{item.nombreItemOrdenServicio}</label>
                           </div>
                         </div>
@@ -864,7 +892,7 @@ export const Monitor = () => {
                       {items.filter(i => i.iD_OrdenServicio == m.iD_OrdenServicio).map((item) => (
                         <div className="mb-2" key={item.iD_ItemOrdenServicio} >
                           <div className="form-check form-check-custom form-check-solid">
-                            <input className="form-check-input" type="checkbox" value="" id="flexCheckDefault" defaultChecked={item.avance == 100} />
+                            <input className="form-check-input" type="checkbox" value="" id="flexCheckDefault" defaultChecked={item.avance == 100} onChange={(e) => handleCheckboxChange(item, e.target.checked)} />
                             <label className="form-check-label" >{item.nombreItemOrdenServicio}</label>
                           </div>
                         </div>

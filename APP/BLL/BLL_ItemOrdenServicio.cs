@@ -10,8 +10,19 @@ namespace BLL
 {
     public class BLL_ItemOrdenServicio
     {
+        private readonly BLL_Notificador _notificador;
+
+        public BLL_ItemOrdenServicio(BLL_Notificador notificador)
+        {
+            _notificador = notificador;
+        }
+
         private DAL_ItemOrdenServicio dAL_ItemOrdenServicio = new DAL_ItemOrdenServicio();
         DTO_Respuesta respuesta = new();
+
+
+
+
         public async Task<DTO_Respuesta> guardarItemOrdenServicio(DTO_ItemOrdenServicio itemOrdenServicio)
         {
                 respuesta  = await dAL_ItemOrdenServicio.guardarItemOrdenServicio(itemOrdenServicio);
@@ -22,14 +33,17 @@ namespace BLL
                 return respuesta;
         }
 
-        public async Task<DTO_Respuesta> actualizarItemOrdenServicio(DTO_ItemOrdenServicio itemOrdenServicio)
+        public async Task<DTO_Respuesta> actualizarItemOrdenServicio(DTO_ItemOrdenServicio itemOrdenServicio, DTO_Usuario usuario)
         {
                 respuesta = await dAL_ItemOrdenServicio.actualizarItemOrdenServicio(itemOrdenServicio);
 
                 if (!respuesta.TipoRespuesta)
                     throw new Exception(respuesta.Mensaje);
 
-                return respuesta;
+
+            await _notificador.EnviarNotificacion(usuario, itemOrdenServicio);
+
+            return respuesta;
         }
 
         public async Task<DTO_Respuesta> obtenerItemOrdenServicio(DTO_ItemOrdenServicio itemOrdenServicio)

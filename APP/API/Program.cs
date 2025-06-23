@@ -74,6 +74,7 @@ builder.Services.AddSwaggerGen(options =>
 //SiganlR Notificador
 builder.Services.AddScoped<BLL_Notificador>();
 builder.Services.AddScoped<BLL_ChatIA>();
+builder.Services.AddScoped<BLL_ItemOrdenServicio>();
 
 // ✅ CORS configuration => CORS significa Cross-Origin Resource Sharing ("compartición de recursos entre orígenes cruzados").
 builder.Services.AddCors(options =>

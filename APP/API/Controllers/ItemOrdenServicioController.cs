@@ -13,13 +13,17 @@ namespace API.Controllers
     namespace API.Controllers
     {
         [Route("api/[controller]")]
-        [ApiController]
         public class ItemOrdenServicioController : ControllerBase
         {
             private UTL_ManejoError manejoError = new();
-            private BLL_ItemOrdenServicio bLL_ItemOrdenServicio = new();
+            private readonly BLL_ItemOrdenServicio _bLL_ItemOrdenServicio;
             private DTO_Respuesta respuesta = new();
             DTO_Usuario usuario = new();
+
+            public ItemOrdenServicioController(BLL_ItemOrdenServicio bLL_ItemOrdenServicio)
+            {
+                _bLL_ItemOrdenServicio = bLL_ItemOrdenServicio;
+            }
 
             // Endpoint para guardar un ítem de orden de servicio
             [Authorize(Roles = "1")]
@@ -30,7 +34,7 @@ namespace API.Controllers
             {
                 try
                 {
-                    respuesta = await bLL_ItemOrdenServicio.guardarItemOrdenServicio(itemOrdenServicio);
+                    respuesta = await _bLL_ItemOrdenServicio.guardarItemOrdenServicio(itemOrdenServicio);
                 }
                 catch (Exception ex)
                 {
@@ -49,7 +53,7 @@ namespace API.Controllers
             {
                 try
                 {
-                    respuesta = await bLL_ItemOrdenServicio.actualizarItemOrdenServicio(itemOrdenServicio);
+                    respuesta = await _bLL_ItemOrdenServicio.actualizarItemOrdenServicio(itemOrdenServicio, UTL_SesionHelper.obtenerUsuarioSesion(User.Claims));
                 }
                 catch (Exception ex)
                 {
@@ -68,7 +72,7 @@ namespace API.Controllers
             {
                 try
                 {
-                    respuesta = await bLL_ItemOrdenServicio.obtenerItemOrdenServicio(itemOrdenServicio);
+                    respuesta = await _bLL_ItemOrdenServicio.obtenerItemOrdenServicio(itemOrdenServicio);
                 }
                 catch (Exception ex)
                 {

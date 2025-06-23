@@ -34,13 +34,7 @@ namespace API.Controllers
         public DTO_Respuesta pruebaSignalR()
         {
             DTO_Respuesta respuesta = new DTO_Respuesta();
-            DTO_Usuario usuario = new DTO_Usuario();
-            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-            var userEmailClaim = User.FindFirst(ClaimTypes.Email);
-            if (userIdClaim == null) throw new UnauthorizedAccessException("User ID claim is missing.");
-            usuario.ID_Usuario = Convert.ToInt32(userIdClaim.Value);
-            if (userEmailClaim == null) throw new UnauthorizedAccessException("User Email claim is missing.");
-            usuario.CorreoUsuario = userEmailClaim.Value;
+            DTO_Usuario usuario = UTL_SesionHelper.obtenerUsuarioSesion(User.Claims);
 
             _bll_chatIA.notificar(usuario);
             return new DTO_Respuesta();
