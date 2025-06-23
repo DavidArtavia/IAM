@@ -7,7 +7,7 @@ import { DTO_ItemOrdenServicio, DTO_Negocio, DTO_OrdenServicio, DTO_Respuesta } 
 import { monitorService, itemsOrdenesService } from "@/services";
 
 export const Monitor = () => {
-  const [mensajes, setMensajes] = useState<string[]>([]);
+  const [mensajes] = useState<string[]>([]);
   const [estadoConexion, setEstadoConexion] = useState("Desconectado");
   const connectionRef = useRef<signalR.HubConnection | null>(null);
   const audio = useRef(new Audio(sonidoMonitor));
@@ -17,13 +17,24 @@ export const Monitor = () => {
   const [items, setItems] = useState<DTO_ItemOrdenServicio[]>([]);
   const retryTimeoutRef = useRef<number | null>(null);
   const abortedRef = useRef(false);
+  const isItemOrdenServicio = (obj: any): obj is DTO_ItemOrdenServicio => {
+    return obj && typeof obj === 'object' && 'iD_ItemOrdenServicio' in obj;
+  }
 
+  const isOrdenServicio = (obj: any): obj is DTO_OrdenServicio => {
+    return obj && typeof obj === 'object' && 'iD_Cliente' in obj;
+  }
 
   const [selectedBusiness, setSelectedBusiness] = useState<DTO_Negocio | null>(
     null
   );
 
   useEffect(() => {
+
+    //Esto es para saber que tipo de objeto esta devolviendo SigNalR y poder gestionar el resoltado en la tabla correctamente.
+
+
+
     // Aquí puedes agregar lo que quieras hacer cada vez que 'mensajes' cambie
     console.log("Los mensajes han cambiado:", mensajes);
   }, [mensajes]);
@@ -58,14 +69,14 @@ export const Monitor = () => {
     } else {
       item.avance = 0;
     }
-      itemsOrdenesService
+    itemsOrdenesService
       .actualizarItemsOrdensDeServicio(item)
       .subscribe({
         next: (res) => {
-          if(!(res as DTO_Respuesta).tipoRespuesta){
-              notificationHelpers.errorAlert((res as DTO_Respuesta).mensaje);
+          if (!(res as DTO_Respuesta).tipoRespuesta) {
+            notificationHelpers.errorAlert((res as DTO_Respuesta).mensaje);
           }
-          
+
         },
         error: (err) => errorHelpers.serverError(err),
         complete: () => setLoading(false),
@@ -150,10 +161,31 @@ export const Monitor = () => {
       }
     };
 
-    const handleMensaje = (msg: string) => {
+    const handleMensaje = (msg: any) => {
       if (abortedRef.current) return;
-      setMensajes(prev => [...prev, msg]);
-      notificationHelpers.infoAlert("Orden de servicio modificada");
+
+      /* --- qué recibimos --- */
+      if (isItemOrdenServicio(msg)) {
+        console.log('Es DTO_ItemOrdenServicio', msg.nombreItemOrdenServicio);
+
+        setItems(prev => {
+          const idx = prev.findIndex(i => i.iD_ItemOrdenServicio === msg.iD_ItemOrdenServicio);
+          return idx === -1
+            ? [...prev, msg]
+            : prev.map(i => (i.iD_ItemOrdenServicio === msg.iD_ItemOrdenServicio ? { ...i, ...msg } : i));
+        });
+
+        notificationHelpers.infoAlert(`Ítem actualizado: ${msg.nombreItemOrdenServicio} de la Orden # ${msg.iD_OrdenServicio}`);
+
+      } else if (isOrdenServicio(msg)) {
+        console.log('Es DTO_OrdenServicio', msg.iD_OrdenServicio);
+        notificationHelpers.infoAlert(`Orden #${msg.iD_OrdenServicio} modificada`);
+      } else {
+        console.warn('Tipo desconocido', msg);
+        notificationHelpers.infoAlert('📢 Nuevo mensaje');
+      }
+
+
       if (Notification.permission === "granted") {
         new Notification("📢 Nuevo mensaje", { body: msg, silent: true });
       }
@@ -383,7 +415,7 @@ export const Monitor = () => {
                       {items.filter(i => i.iD_OrdenServicio == m.iD_OrdenServicio).map((item) => (
                         <div className="mb-2" key={item.iD_ItemOrdenServicio} >
                           <div className="form-check form-check-custom form-check-solid">
-                            <input className="form-check-input" type="checkbox" value="" id="flexCheckDefault" defaultChecked={item.avance == 100} onChange={(e) => handleCheckboxChange(item, e.target.checked)} />
+                            <input className="form-check-input" type="checkbox" value="" id="flexCheckDefault" checked={item.avance == 100} onChange={(e) => handleCheckboxChange(item, e.target.checked)} />
                             <label className="form-check-label" >{item.nombreItemOrdenServicio}</label>
                           </div>
                         </div>
@@ -515,7 +547,7 @@ export const Monitor = () => {
                       {items.filter(i => i.iD_OrdenServicio == m.iD_OrdenServicio).map((item) => (
                         <div className="mb-2" key={item.iD_ItemOrdenServicio} >
                           <div className="form-check form-check-custom form-check-solid">
-                            <input className="form-check-input" type="checkbox" value="" id="flexCheckDefault" defaultChecked={item.avance == 100} onChange={(e) => handleCheckboxChange(item, e.target.checked)} />
+                            <input className="form-check-input" type="checkbox" value="" id="flexCheckDefault" checked={item.avance == 100} onChange={(e) => handleCheckboxChange(item, e.target.checked)} />
                             <label className="form-check-label" >{item.nombreItemOrdenServicio}</label>
                           </div>
                         </div>
@@ -764,7 +796,7 @@ export const Monitor = () => {
                       {items.filter(i => i.iD_OrdenServicio == m.iD_OrdenServicio).map((item) => (
                         <div className="mb-2" key={item.iD_ItemOrdenServicio} >
                           <div className="form-check form-check-custom form-check-solid">
-                            <input className="form-check-input" type="checkbox" value="" id="flexCheckDefault" defaultChecked={item.avance == 100} onChange={(e) => handleCheckboxChange(item, e.target.checked)} />
+                            <input className="form-check-input" type="checkbox" value="" id="flexCheckDefault" checked={item.avance == 100} onChange={(e) => handleCheckboxChange(item, e.target.checked)} />
                             <label className="form-check-label" >{item.nombreItemOrdenServicio}</label>
                           </div>
                         </div>
@@ -892,7 +924,7 @@ export const Monitor = () => {
                       {items.filter(i => i.iD_OrdenServicio == m.iD_OrdenServicio).map((item) => (
                         <div className="mb-2" key={item.iD_ItemOrdenServicio} >
                           <div className="form-check form-check-custom form-check-solid">
-                            <input className="form-check-input" type="checkbox" value="" id="flexCheckDefault" defaultChecked={item.avance == 100} onChange={(e) => handleCheckboxChange(item, e.target.checked)} />
+                            <input className="form-check-input" type="checkbox" value="" id="flexCheckDefault" checked={item.avance == 100} onChange={(e) => handleCheckboxChange(item, e.target.checked)} />
                             <label className="form-check-label" >{item.nombreItemOrdenServicio}</label>
                           </div>
                         </div>
