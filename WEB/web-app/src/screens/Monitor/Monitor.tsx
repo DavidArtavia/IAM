@@ -4,10 +4,61 @@ import sonidoMonitor from "../../assets/media/audios/Monitor.mp3";
 import { errorHelpers, notificationHelpers } from "@/utils";
 import { BusinessButtons, LoadingPanel } from "@/components";
 import { DTO_ItemOrdenServicio, DTO_Negocio, DTO_OrdenServicio, DTO_Respuesta } from "@/models";
-import { monitorService, itemsOrdenesService } from "@/services";
+import { monitorService, itemsOrdenesService, ordenesService } from "@/services";
 
+
+
+
+export const FechaEntregaBadge = ({
+  fechaEntrega,
+  fechaCreacion,
+}: {
+  fechaEntrega: Date | string | null;
+  fechaCreacion: Date | string | null | undefined;
+}) => {
+  /* ────────────────────────────
+   * Validaciones iniciales
+   * ──────────────────────────── */
+  if (!fechaEntrega || !fechaCreacion) return null;
+
+  const fEntrega =
+    typeof fechaEntrega === 'string' ? new Date(fechaEntrega) : fechaEntrega;
+  const fCreacion =
+    typeof fechaCreacion === 'string' ? new Date(fechaCreacion) : fechaCreacion;
+
+  if (isNaN(fEntrega.getTime()) || isNaN(fCreacion.getTime())) return null;
+
+  /* ────────────────────────────
+   * 1 ▸ Porcentaje de progreso
+   * ──────────────────────────── */
+  const totalMs = fEntrega.getTime() - fCreacion.getTime();
+  const transMs = Date.now() - fCreacion.getTime();
+  const pct =
+    totalMs <= 0 ? 1 : Math.min(Math.max(transMs / totalMs, 0), 1); // 0–1
+
+  /* ────────────────────────────
+   * 2 ▸ Selección de clase
+   * ──────────────────────────── */
+  let badgeClass = 'badge badge-light'; // 0–20 %
+  if (pct > 0.6) badgeClass = 'badge badge-light-danger';   // 60–100 %
+  else if (pct > 0.4) badgeClass = 'badge badge-light-warning';  // 40–60 %
+  else if (pct > 0.2) badgeClass = 'badge badge-light-success';  // 20–40 %
+
+  /* ────────────────────────────
+   * 3 ▸ Formateo de fecha
+   * ──────────────────────────── */
+  const opts: Intl.DateTimeFormatOptions = {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+  };
+  let texto = fEntrega.toLocaleDateString('es-ES', opts).replace(',', '');
+  texto = texto.charAt(0).toUpperCase() + texto.slice(1);
+
+  return <div className={badgeClass}>{texto}</div>;
+};
 export const Monitor = () => {
-  const [mensajes] = useState<string[]>([]);
+
   const [estadoConexion, setEstadoConexion] = useState("Desconectado");
   const connectionRef = useRef<signalR.HubConnection | null>(null);
   const audio = useRef(new Audio(sonidoMonitor));
@@ -29,31 +80,21 @@ export const Monitor = () => {
     null
   );
 
-  useEffect(() => {
 
-    //Esto es para saber que tipo de objeto esta devolviendo SigNalR y poder gestionar el resoltado en la tabla correctamente.
+  const cambiarEstadoOrdenServicio = (orden: DTO_OrdenServicio, estado: number) => {
+    orden.estado.iD_Estado = estado;
+
+    ordenesService.actualizarOrdensDeServicio(orden).subscribe({
+      next: (result) => {
+        notificationHelpers.infoAlert(result?.mensaje);
+      },
+      error: (err) => errorHelpers.serverError(err),
+    });
 
 
+  };
 
-    // Aquí puedes agregar lo que quieras hacer cada vez que 'mensajes' cambie
-    console.log("Los mensajes han cambiado:", mensajes);
-  }, [mensajes]);
 
-  const formatFechaEntrega = (fecha: Date | null): string => {
-    if (!fecha) return "";
-    const dateObj = typeof fecha === "string" ? new Date(fecha) : fecha;
-    if (isNaN(dateObj.getTime())) return ""; // fecha inválida
-
-    const opciones: Intl.DateTimeFormatOptions = {
-      weekday: "long",
-      day: "numeric",
-      month: "long",
-    };
-    // Obtiene algo como "jueves, 5 de junio"
-    let texto = dateObj.toLocaleDateString("es-ES", opciones);
-    texto = texto.replace(",", "");               // quita la coma
-    return texto.charAt(0).toUpperCase() + texto.slice(1);
-  }
 
 
   // Maneja la selección de un negocio
@@ -166,19 +207,57 @@ export const Monitor = () => {
 
       /* --- qué recibimos --- */
       if (isItemOrdenServicio(msg)) {
-        console.log('Es DTO_ItemOrdenServicio', msg.nombreItemOrdenServicio);
-
+        //Aquí entra si es un item de orden de servicio
         setItems(prev => {
-          const idx = prev.findIndex(i => i.iD_ItemOrdenServicio === msg.iD_ItemOrdenServicio);
+          const idx = prev.findIndex(
+            i => i.iD_ItemOrdenServicio === msg.iD_ItemOrdenServicio
+          );
+
+          /* —— 1 · Eliminar si el estado es 19 —— */
+          if (msg.estado?.iD_Estado === 19) {
+            // si no existe, devolvemos el array tal cual
+            return idx === -1 ? prev : prev.filter((_, i) => i !== idx);
+          }
+
+          /* —— 2 · Insertar o actualizar —— */
           return idx === -1
-            ? [...prev, msg]
-            : prev.map(i => (i.iD_ItemOrdenServicio === msg.iD_ItemOrdenServicio ? { ...i, ...msg } : i));
+            ? [...prev, msg]                                           // insertar
+            : prev.map(i =>                                            // actualizar
+              i.iD_ItemOrdenServicio === msg.iD_ItemOrdenServicio
+                ? { ...i, ...msg }
+                : i
+            );
         });
 
         notificationHelpers.infoAlert(`Ítem actualizado: ${msg.nombreItemOrdenServicio} de la Orden # ${msg.iD_OrdenServicio}`);
 
+        //Aquí entra si es una orden de servicio
       } else if (isOrdenServicio(msg)) {
-        console.log('Es DTO_OrdenServicio', msg.iD_OrdenServicio);
+        console.log('ORDEN MODIFICADA');
+        console.log(msg);
+
+
+        setOrdenes(prev => {
+          const idx = prev.findIndex(
+            o => o.iD_OrdenServicio === msg.iD_OrdenServicio
+          );
+
+          /* —— 1 · Eliminar si el estado es 19 —— */
+          if (msg.estado?.iD_Estado === 10) {
+            // si no existe, devuelve el array original
+            return idx === -1 ? prev : prev.filter((_, i) => i !== idx);
+          }
+
+          /* —— 2 · Insertar o actualizar —— */
+          return idx === -1
+            ? [...prev, msg]                               // insertar
+            : prev.map(o =>                                // actualizar
+              o.iD_OrdenServicio === msg.iD_OrdenServicio
+                ? { ...o, ...msg }
+                : o
+            );
+        });
+
         notificationHelpers.infoAlert(`Orden #${msg.iD_OrdenServicio} modificada`);
       } else {
         console.warn('Tipo desconocido', msg);
@@ -343,8 +422,14 @@ export const Monitor = () => {
 
                   <div className="card mb-6 mb-xl-9" key={m.iD_OrdenServicio}>
                     <div className="card-body">
-                      <div className="d-flex flex-stack mb-3">
-                        <div className="badge badge-light-warning"> {formatFechaEntrega(m.fechaEntrega)}  </div>
+                      <div className="d-flex flex-stack mb-3">Entrega:
+
+                        <FechaEntregaBadge
+                          key={m.iD_OrdenServicio}
+                          fechaEntrega={m.fechaEstimadaEntrega}
+                          fechaCreacion={m.fechaOrdenServicio}
+                        />
+
                         <div>
                           <button type="button" className="btn btn-sm btn-icon btn-color-light-dark btn-active-light-primary" data-kt-menu-trigger="click" data-kt-menu-placement="bottom-end" data-kt-menu-flip="top-end">
                             <span className="svg-icon svg-icon-2">
@@ -442,7 +527,7 @@ export const Monitor = () => {
                         )}
                       </div>
 
-                        <div className="d-flex my-1">
+                        <div className="d-flex my-1" onClick={() => cambiarEstadoOrdenServicio(m, 7)}>
 
                           <div className="border border-dashed border-gray-300 rounded py-3 px-3 text-gray-600">
                             <span className="svg-icon svg-icon-3" >
@@ -476,7 +561,11 @@ export const Monitor = () => {
                     <div className="card-body">
                       <div className="d-flex flex-stack mb-3">
 
-                        <div className="badge badge-light-danger"> {formatFechaEntrega(m.fechaEntrega)}  </div>
+                        Entrega:   <FechaEntregaBadge
+                          key={m.iD_OrdenServicio}
+                          fechaEntrega={m.fechaEstimadaEntrega}
+                          fechaCreacion={m.fechaOrdenServicio}
+                        />
                         <div>
                           <button type="button" className="btn btn-sm btn-icon btn-color-light-dark btn-active-light-primary" data-kt-menu-trigger="click" data-kt-menu-placement="bottom-end" data-kt-menu-flip="top-end">
                             <span className="svg-icon svg-icon-2">
@@ -573,7 +662,7 @@ export const Monitor = () => {
                         )}
                       </div>
 
-                        <div className="d-flex my-1">
+                        <div className="d-flex my-1" onClick={() => cambiarEstadoOrdenServicio(m, 9)} >
 
                           <div className="border border-dashed border-gray-300 rounded py-3 px-3 text-gray-600">
                             <span className="svg-icon svg-icon-3" >
@@ -724,7 +813,12 @@ export const Monitor = () => {
                     <div className="card-body">
                       <div className="d-flex flex-stack mb-3">
 
-                        <div className="badge badge-light-success"> {formatFechaEntrega(m.fechaEntrega)}  </div>
+                        Entrega:   <FechaEntregaBadge
+                          key={m.iD_OrdenServicio}
+                          fechaEntrega={m.fechaEstimadaEntrega}
+                          fechaCreacion={m.fechaOrdenServicio} />
+
+
                         <div>
                           <button type="button" className="btn btn-sm btn-icon btn-color-light-dark btn-active-light-primary" data-kt-menu-trigger="click" data-kt-menu-placement="bottom-end" data-kt-menu-flip="top-end">
                             <span className="svg-icon svg-icon-2">
@@ -853,7 +947,10 @@ export const Monitor = () => {
                     <div className="card-body">
                       <div className="d-flex flex-stack mb-3">
 
-                        <div className="badge badge-light"> {formatFechaEntrega(m.fechaEntrega)}  </div>
+                        Entrega:   <FechaEntregaBadge
+                          key={m.iD_OrdenServicio}
+                          fechaEntrega={m.fechaEstimadaEntrega}
+                          fechaCreacion={m.fechaOrdenServicio} />
                         <div>
                           <button type="button" className="btn btn-sm btn-icon btn-color-light-dark btn-active-light-primary" data-kt-menu-trigger="click" data-kt-menu-placement="bottom-end" data-kt-menu-flip="top-end">
                             <span className="svg-icon svg-icon-2">

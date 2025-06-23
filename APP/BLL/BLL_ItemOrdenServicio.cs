@@ -23,14 +23,16 @@ namespace BLL
 
 
 
-        public async Task<DTO_Respuesta> guardarItemOrdenServicio(DTO_ItemOrdenServicio itemOrdenServicio)
+        public async Task<DTO_Respuesta> guardarItemOrdenServicio(DTO_ItemOrdenServicio itemOrdenServicio, DTO_Usuario usuario)
         {
                 respuesta  = await dAL_ItemOrdenServicio.guardarItemOrdenServicio(itemOrdenServicio);
 
                 if (!respuesta.TipoRespuesta)
                     throw new Exception(respuesta.Mensaje);
 
-                return respuesta;
+            await _notificador.EnviarNotificacion(usuario, (DTO_ItemOrdenServicio) respuesta.Resultado[0]);
+
+            return respuesta;
         }
 
         public async Task<DTO_Respuesta> actualizarItemOrdenServicio(DTO_ItemOrdenServicio itemOrdenServicio, DTO_Usuario usuario)

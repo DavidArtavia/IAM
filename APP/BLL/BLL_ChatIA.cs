@@ -41,12 +41,13 @@ namespace BLL
 
         BLL_Contexto bLL_Contexto = new();
         BLL_Cliente bLL_Cliente = new();
-        BLL_OrdenServicio bLL_OrdenServicio = new();
+        BLL_OrdenServicio _bLL_OrdenServicio;
         BLL_Mensaje bLL_Mensaje = new();
 
-        public BLL_ChatIA(BLL_Notificador notificador)
+        public BLL_ChatIA(BLL_Notificador notificador, BLL_OrdenServicio bLL_OrdenServicio)
         {
             _notificador = notificador;
+            _bLL_OrdenServicio = bLL_OrdenServicio;
 
             ChatCompletionsClientOptions options = new ChatCompletionsClientOptions(ChatCompletionsClientOptions.ServiceVersion.V2024_05_01_Preview);
             options.RetryPolicy = new RetryPolicy(2);
@@ -444,7 +445,7 @@ namespace BLL
                     ordenServicio.FechaEstimadaEntrega = Convert.ToDateTime(repuestaIA.Parametros.Find(p => p.Nombre.Equals("FechaEstimadaEntrega", StringComparison.OrdinalIgnoreCase))?.Valor ?? "");
                     ordenServicio.ID_Cliente = Convert.ToInt32(repuestaIA.Parametros.Find(p => p.Nombre.Equals("ID_Cliente", StringComparison.OrdinalIgnoreCase))?.Valor ?? "0");
 
-                    mensajeParaIAM.Contenido = JsonConvert.SerializeObject(await bLL_OrdenServicio.registrarOrdenServicio(ordenServicio));
+                    mensajeParaIAM.Contenido = JsonConvert.SerializeObject(await _bLL_OrdenServicio.registrarOrdenServicio(ordenServicio));
 
                     break;                
                 
@@ -458,7 +459,7 @@ namespace BLL
                     cliente.TelefonoCliente = repuestaIA.Parametros.Find(p => p.Nombre.Equals("TelefonoCliente", StringComparison.OrdinalIgnoreCase))?.Valor ?? string.Empty;
                     cliente.CorreoCliente = repuestaIA.Parametros.Find(p => p.Nombre.Equals("CorreoCliente", StringComparison.OrdinalIgnoreCase))?.Valor ?? string.Empty;
 
-                    mensajeParaIAM.Contenido = JsonConvert.SerializeObject(await bLL_OrdenServicio.buscarOrdenServicio(ordenServicio, cliente));
+                    mensajeParaIAM.Contenido = JsonConvert.SerializeObject(await _bLL_OrdenServicio.buscarOrdenServicio(ordenServicio, cliente));
 
                     break;                
                 case "actualizarOrdenServicio":
@@ -474,7 +475,7 @@ namespace BLL
                     ordenServicio.Estado = JsonConvert.DeserializeObject<DTO_Estado>(repuestaIA.Parametros.Find(p => p.Nombre.Equals("Estado", StringComparison.OrdinalIgnoreCase))?.Valor ?? string.Empty) ?? new DTO_Estado();
                     ordenServicio.ID_Cliente = Convert.ToInt32(repuestaIA.Parametros.Find(p => p.Nombre.Equals("ID_Cliente", StringComparison.OrdinalIgnoreCase))?.Valor ?? "0");
 
-                    mensajeParaIAM.Contenido = JsonConvert.SerializeObject(await bLL_OrdenServicio.actualizarOrdenServicio(ordenServicio));
+                    mensajeParaIAM.Contenido = JsonConvert.SerializeObject(await _bLL_OrdenServicio.actualizarOrdenServicio(ordenServicio, usuario));
 
                     break;
 

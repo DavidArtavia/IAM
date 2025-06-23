@@ -34,7 +34,7 @@ namespace API.Controllers
             {
                 try
                 {
-                    respuesta = await _bLL_ItemOrdenServicio.guardarItemOrdenServicio(itemOrdenServicio);
+                    respuesta = await _bLL_ItemOrdenServicio.guardarItemOrdenServicio(itemOrdenServicio, UTL_SesionHelper.obtenerUsuarioSesion(User.Claims));
                 }
                 catch (Exception ex)
                 {
