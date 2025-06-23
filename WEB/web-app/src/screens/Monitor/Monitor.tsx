@@ -505,11 +505,12 @@ export const Monitor = () => {
                           </div>
                         </div>
                       ))}
-
+                      <div className="separator" style={{ marginBottom: '15px' }}></div>
+                      <p className="text-gray-700 py-3 fw-bold fw-6">{m.notaOrdenServicio}</p>
                       <div className="d-flex flex-stack flex-wrapr"><div className="symbol-group symbol-hover" style={{ marginLeft: '0' }}>
 
                         {m.estado.iD_Estado != 8 ? (
-                          <div className="border border-dashed border-gray-300 rounded py-3 px-3 text-gray-600">
+                          <div className="border border-dashed border-gray-300 rounded py-3 px-3 text-gray-600" onClick={() => cambiarEstadoOrdenServicio(m, 8)}>
                             <span className="svg-icon svg-icon-3">
                               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-pause-btn-fill" viewBox="0 0 16 16">
                                 <path d="M0 12V4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2m6.25-7C5.56 5 5 5.56 5 6.25v3.5a1.25 1.25 0 1 0 2.5 0v-3.5C7.5 5.56 6.94 5 6.25 5m3.5 0c-.69 0-1.25.56-1.25 1.25v3.5a1.25 1.25 0 1 0 2.5 0v-3.5C11 5.56 10.44 5 9.75 5" />
@@ -517,7 +518,7 @@ export const Monitor = () => {
                             </span>
                           </div>
                         ) : (
-                          <div className="border border-dashed border-gray-300 rounded py-3 px-3 text-gray-600" style={{ marginLeft: '5px' }}>
+                          <div className="border border-dashed border-gray-300 rounded py-3 px-3 text-gray-600" style={{ marginLeft: '5px' }} onClick={() => cambiarEstadoOrdenServicio(m, 7)}>
                             <span className="svg-icon svg-icon-3">
                               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-play-btn-fill" viewBox="0 0 16 16">
                                 <path d="M0 12V4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2m6.79-6.907A.5.5 0 0 0 6 5.5v5a.5.5 0 0 0 .79.407l3.5-2.5a.5.5 0 0 0 0-.814z" />
@@ -641,10 +642,12 @@ export const Monitor = () => {
                           </div>
                         </div>
                       ))}
+                                            <div className="separator" style={{ marginBottom: '15px' }}></div>
+                      <p className="text-gray-700 py-3 fw-bold fw-6">{m.notaOrdenServicio}</p>
                       <div className="d-flex flex-stack flex-wrapr"><div className="symbol-group symbol-hover" style={{ marginLeft: '0' }}>
 
                         {m.estado.iD_Estado != 8 ? (
-                          <div className="border border-dashed border-gray-300 rounded py-3 px-3 text-gray-600">
+                          <div className="border border-dashed border-gray-300 rounded py-3 px-3 text-gray-600" onClick={() => cambiarEstadoOrdenServicio(m, 8)}>
                             <span className="svg-icon svg-icon-3">
                               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-pause-btn-fill" viewBox="0 0 16 16">
                                 <path d="M0 12V4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2m6.25-7C5.56 5 5 5.56 5 6.25v3.5a1.25 1.25 0 1 0 2.5 0v-3.5C7.5 5.56 6.94 5 6.25 5m3.5 0c-.69 0-1.25.56-1.25 1.25v3.5a1.25 1.25 0 1 0 2.5 0v-3.5C11 5.56 10.44 5 9.75 5" />
@@ -652,7 +655,7 @@ export const Monitor = () => {
                             </span>
                           </div>
                         ) : (
-                          <div className="border border-dashed border-gray-300 rounded py-3 px-3 text-gray-600" style={{ marginLeft: '5px' }}>
+                          <div className="border border-dashed border-gray-300 rounded py-3 px-3 text-gray-600" style={{ marginLeft: '5px' }} onClick={() => cambiarEstadoOrdenServicio(m, 7)}>
                             <span className="svg-icon svg-icon-3">
                               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-play-btn-fill" viewBox="0 0 16 16">
                                 <path d="M0 12V4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2m6.79-6.907A.5.5 0 0 0 6 5.5v5a.5.5 0 0 0 .79.407l3.5-2.5a.5.5 0 0 0 0-.814z" />
@@ -895,11 +898,12 @@ export const Monitor = () => {
                           </div>
                         </div>
                       ))}
-
-                      <div className="d-flex flex-stack flex-wrapr"><div className="symbol-group symbol-hover" style={{ marginLeft: '0' }}>
+                      <div className="separator" style={{ marginBottom: '15px' }}></div>
+                      <p className="text-gray-700 py-3 fw-bold fw-6">{m.notaOrdenServicio}</p>
+                      <div className="d-flex flex-stack flex-wrapr"><div className="symbol-group symbol-hover" style={{ marginLeft: '0' }} >
 
                         {m.estado.iD_Estado != 8 ? (
-                          <div className="border border-dashed border-gray-300 rounded py-3 px-3 text-gray-600">
+                          <div className="border border-dashed border-gray-300 rounded py-3 px-3 text-gray-600" onClick={() => cambiarEstadoOrdenServicio(m, 8)}>
                             <span className="svg-icon svg-icon-3">
                               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-pause-btn-fill" viewBox="0 0 16 16">
                                 <path d="M0 12V4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2m6.25-7C5.56 5 5 5.56 5 6.25v3.5a1.25 1.25 0 1 0 2.5 0v-3.5C7.5 5.56 6.94 5 6.25 5m3.5 0c-.69 0-1.25.56-1.25 1.25v3.5a1.25 1.25 0 1 0 2.5 0v-3.5C11 5.56 10.44 5 9.75 5" />
@@ -907,7 +911,7 @@ export const Monitor = () => {
                             </span>
                           </div>
                         ) : (
-                          <div className="border border-dashed border-gray-300 rounded py-3 px-3 text-gray-600" style={{ marginLeft: '5px' }}>
+                          <div className="border border-dashed border-gray-300 rounded py-3 px-3 text-gray-600" style={{ marginLeft: '5px' }} onClick={() => cambiarEstadoOrdenServicio(m, 7)}>
                             <span className="svg-icon svg-icon-3">
                               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-play-btn-fill" viewBox="0 0 16 16">
                                 <path d="M0 12V4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2m6.79-6.907A.5.5 0 0 0 6 5.5v5a.5.5 0 0 0 .79.407l3.5-2.5a.5.5 0 0 0 0-.814z" />
@@ -1026,11 +1030,12 @@ export const Monitor = () => {
                           </div>
                         </div>
                       ))}
-                      <div className="separator" style={{ marginBottom: '15px' }}></div><p className="text-info py-3 fw-bold fw-6">Falta el producto para el tratamiento cerámico</p>
+                      <div className="separator" style={{ marginBottom: '15px' }}></div>
+                      <p className="text-gray-700 py-3 fw-bold fw-6">{m.notaOrdenServicio}</p>
                       <div className="d-flex flex-stack flex-wrapr"><div className="symbol-group symbol-hover" style={{ marginLeft: '0' }}>
 
                         {m.estado.iD_Estado != 8 ? (
-                          <div className="border border-dashed border-gray-300 rounded py-3 px-3 text-gray-600">
+                          <div className="border border-dashed border-gray-300 rounded py-3 px-3 text-gray-600" onClick={() => cambiarEstadoOrdenServicio(m, 8)}>
                             <span className="svg-icon svg-icon-3">
                               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-pause-btn-fill" viewBox="0 0 16 16">
                                 <path d="M0 12V4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2m6.25-7C5.56 5 5 5.56 5 6.25v3.5a1.25 1.25 0 1 0 2.5 0v-3.5C7.5 5.56 6.94 5 6.25 5m3.5 0c-.69 0-1.25.56-1.25 1.25v3.5a1.25 1.25 0 1 0 2.5 0v-3.5C11 5.56 10.44 5 9.75 5" />
@@ -1038,7 +1043,7 @@ export const Monitor = () => {
                             </span>
                           </div>
                         ) : (
-                          <div className="border border-dashed border-gray-300 rounded py-3 px-3 text-gray-600" style={{ marginLeft: '5px' }}>
+                          <div className="border border-dashed border-gray-300 rounded py-3 px-3 text-gray-600" style={{ marginLeft: '5px' }} onClick={() => cambiarEstadoOrdenServicio(m, 7)}>
                             <span className="svg-icon svg-icon-3">
                               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-play-btn-fill" viewBox="0 0 16 16">
                                 <path d="M0 12V4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2m6.79-6.907A.5.5 0 0 0 6 5.5v5a.5.5 0 0 0 .79.407l3.5-2.5a.5.5 0 0 0 0-.814z" />

@@ -445,7 +445,7 @@ namespace BLL
                     ordenServicio.FechaEstimadaEntrega = Convert.ToDateTime(repuestaIA.Parametros.Find(p => p.Nombre.Equals("FechaEstimadaEntrega", StringComparison.OrdinalIgnoreCase))?.Valor ?? "");
                     ordenServicio.ID_Cliente = Convert.ToInt32(repuestaIA.Parametros.Find(p => p.Nombre.Equals("ID_Cliente", StringComparison.OrdinalIgnoreCase))?.Valor ?? "0");
 
-                    mensajeParaIAM.Contenido = JsonConvert.SerializeObject(await _bLL_OrdenServicio.registrarOrdenServicio(ordenServicio));
+                    mensajeParaIAM.Contenido = JsonConvert.SerializeObject(await _bLL_OrdenServicio.registrarOrdenServicio(ordenServicio, usuario));
 
                     break;                
                 

@@ -30,7 +30,7 @@ namespace API.Controllers
         {
             try
             {
-                respuesta = await _bLL_OrdenServicio.registrarOrdenServicio(ordenServicio);
+                respuesta = await _bLL_OrdenServicio.registrarOrdenServicio(ordenServicio, UTL_SesionHelper.obtenerUsuarioSesion(User.Claims));
             }
             catch (Exception ex)
             {
