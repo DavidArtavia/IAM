@@ -83,7 +83,13 @@ export const Monitor = () => {
 
   const cambiarEstadoOrdenServicio = (orden: DTO_OrdenServicio, estado: number) => {
     orden.estado.iD_Estado = estado;
+    const rawNote = orden.notaOrdenServicio || "";
 
+    const cleanedNote = rawNote.includes("|")
+      ? rawNote.substring(rawNote.lastIndexOf("|") + 1).trim()
+      : rawNote.trim();
+
+    orden.notaOrdenServicio = cleanedNote;
     ordenesService.actualizarOrdensDeServicio(orden).subscribe({
       next: (result) => {
         notificationHelpers.infoAlert(result?.mensaje);
@@ -410,7 +416,7 @@ export const Monitor = () => {
 
                 <div className="mb-9">
                   <div className="d-flex flex-stack">
-                    <div className="fw-bolder fs-4">Ingreso<span className="fs-6 text-gray-400 ms-2">1</span></div>
+                    <div className="fw-bolder fs-4">Ingreso<span className="fs-6 text-gray-400 ms-2"> {ordenes.filter(o => o.estado.iD_Estado === 6).length}</span></div>
 
                   </div>
                   <div className="h-3px w-100 bg-warning"></div>
@@ -550,7 +556,7 @@ export const Monitor = () => {
               <div className="col-md-3 col-lg-12 col-xl-3">
                 <div className="mb-9">
                   <div className="d-flex flex-stack">
-                    <div className="fw-bolder fs-4">En proceso<span className="fs-6 text-gray-400 ms-2">2</span></div>
+                    <div className="fw-bolder fs-4">En proceso<span className="fs-6 text-gray-400 ms-2">{ordenes.filter(o => o.estado.iD_Estado === 7).length}</span></div>
 
                   </div>
                   <div className="h-3px w-100 bg-primary"></div>
@@ -642,7 +648,7 @@ export const Monitor = () => {
                           </div>
                         </div>
                       ))}
-                                            <div className="separator" style={{ marginBottom: '15px' }}></div>
+                      <div className="separator" style={{ marginBottom: '15px' }}></div>
                       <p className="text-gray-700 py-3 fw-bold fw-6">{m.notaOrdenServicio}</p>
                       <div className="d-flex flex-stack flex-wrapr"><div className="symbol-group symbol-hover" style={{ marginLeft: '0' }}>
 
@@ -805,7 +811,7 @@ export const Monitor = () => {
               <div className="col-md-3 col-lg-12 col-xl-3">
                 <div className="mb-9">
                   <div className="d-flex flex-stack">
-                    <div className="fw-bolder fs-4">Completado<span className="fs-6 text-gray-400 ms-2">1</span></div>
+                    <div className="fw-bolder fs-4">Completado<span className="fs-6 text-gray-400 ms-2">{ordenes.filter(o => o.estado.iD_Estado === 9).length}</span></div>
 
                   </div>
                   <div className="h-3px w-100 bg-success"></div>
@@ -920,18 +926,6 @@ export const Monitor = () => {
                           </div>
                         )}
                       </div>
-
-                        <div className="d-flex my-1">
-
-                          <div className="border border-dashed border-gray-300 rounded py-3 px-3 text-gray-600">
-                            <span className="svg-icon svg-icon-3" >
-                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-arrow-right-square-fill" viewBox="0 0 16 16">
-                                <path d="M0 14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H2a2 2 0 0 0-2 2zm4.5-6.5h5.793L8.146 5.354a.5.5 0 1 1 .708-.708l3 3a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708-.708L10.293 8.5H4.5a.5.5 0 0 1 0-1"></path>
-                              </svg>
-                            </span>
-
-                          </div>
-                        </div>
                       </div>
                     </div>
                   </div>
@@ -941,7 +935,7 @@ export const Monitor = () => {
               <div className="col-md-3 col-lg-12 col-xl-3">
                 <div className="mb-9">
                   <div className="d-flex flex-stack">
-                    <div className="fw-bolder fs-4">En Pausa<span className="fs-6 text-gray-400 ms-2">1</span></div>
+                    <div className="fw-bolder fs-4">En Pausa<span className="fs-6 text-gray-400 ms-2">{ordenes.filter(o => o.estado.iD_Estado === 8).length}</span></div>
 
                   </div>
                   <div className="h-3px w-100 bg-info"></div>
@@ -1053,17 +1047,6 @@ export const Monitor = () => {
                         )}
                       </div>
 
-                        <div className="d-flex my-1">
-
-                          <div className="border border-dashed border-gray-300 rounded py-3 px-3 text-gray-600">
-                            <span className="svg-icon svg-icon-3" >
-                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-arrow-right-square-fill" viewBox="0 0 16 16">
-                                <path d="M0 14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H2a2 2 0 0 0-2 2zm4.5-6.5h5.793L8.146 5.354a.5.5 0 1 1 .708-.708l3 3a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708-.708L10.293 8.5H4.5a.5.5 0 0 1 0-1"></path>
-                              </svg>
-                            </span>
-
-                          </div>
-                        </div>
                       </div>
                     </div>
                   </div>

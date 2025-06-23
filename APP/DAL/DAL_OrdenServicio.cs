@@ -51,6 +51,16 @@ namespace DAL
                             ordenServicio.Estado.ID_Estado = UTL_DBHelper.ReadNullSafeInt(reader["ID_Estado"]);
                         }
 
+
+                        if (reader.NextResult())
+                        {
+                            while (reader.Read())
+                            {
+                                ordenServicio.NotaOrdenServicio = UTL_DBHelper.ReadNullSafeString(reader["NotaOrdenConCliente"]);
+                            }
+                        }
+
+
                         if (reader.NextResult())
                         {
                             while (reader.Read())
@@ -204,9 +214,20 @@ namespace DAL
                     {
                         while (reader.Read())
                         {
-                            respuesta = manejarRespuesta(reader);
+                            ordenServicio.NotaOrdenServicio = UTL_DBHelper.ReadNullSafeString(reader["NotaOrdenConCliente"]);
+                        }
+
+
+                        if (reader.NextResult())
+                        {
+                            while (reader.Read())
+                            {
+                                respuesta = manejarRespuesta(reader);
+                            }
                         }
                     }
+
+                    
 
                     if (respuesta.TipoRespuesta)
                     {

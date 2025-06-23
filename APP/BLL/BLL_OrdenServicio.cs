@@ -36,7 +36,7 @@ namespace BLL
             if (!respuesta.TipoRespuesta)
                 throw new Exception(respuesta.Mensaje);
 
-            await _notificador.EnviarNotificacion(usuario, ordenServicio);
+            await _notificador.EnviarNotificacion(usuario, respuesta.Resultado[0]);
 
             return respuesta;
         }

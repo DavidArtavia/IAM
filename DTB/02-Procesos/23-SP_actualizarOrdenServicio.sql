@@ -23,7 +23,8 @@ END
 GO -- =============================================
     -- Definición real del SP
     -- =============================================
-     ALTER PROCEDURE [CORE].[SP_actualizarOrdenServicio] @ID_OrdenServicio INT,
+ALTER PROCEDURE [CORE].[SP_actualizarOrdenServicio] 
+	@ID_OrdenServicio INT,
     @ID_Estado INT = NULL,
 	@ID_Cliente INT = NULL,
     @FechaEstimadaEntrega DATETIME = NULL,
@@ -46,6 +47,28 @@ SET [ID_Estado] = ISNULL(@ID_Estado, [ID_Estado]),
     [ReferenciaJSON] = ISNULL(@ReferenciaJSON, [ReferenciaJSON]),
     [NotaOrdenServicio] = ISNULL(@NotaOrdenServicio, [NotaOrdenServicio])
 WHERE [ID_OrdenServicio] = @ID_OrdenServicio;
+
+ SELECT ORDEN.ID_OrdenServicio,
+        ORDEN.ID_Cliente,
+        ORDEN.ID_Negocio,
+        ORDEN.ID_Estado,
+        ORDEN.FechaOrdenServicio,
+        ORDEN.FechaEstimadaEntrega,
+        ORDEN.FechaInicio,
+        ORDEN.FechaFinal,
+        ORDEN.FechaEntrega,
+        ORDEN.ReferenciaJSON,
+        -- Concatenamos el nombre del cliente al final de la nota
+          'Cliente: ' 
+          + CLIENTE.NombreCliente 
+		  + ' | '
+		  + ORDEN.NotaOrdenServicio 
+         
+        AS NotaOrdenConCliente
+    FROM CORE.TBL_ORDENES_SERVICIO AS ORDEN
+    INNER JOIN CORE.TBL_CLIENTES        AS CLIENTE
+        ON CLIENTE.ID_Cliente = ORDEN.ID_Cliente
+	WHERE ORDEN.ID_OrdenServicio = @ID_OrdenServicio
 
 SELECT [COD_ALERTA],
     [Nombre],
