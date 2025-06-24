@@ -239,9 +239,6 @@ export const Monitor = () => {
 
         //Aquí entra si es una orden de servicio
       } else if (isOrdenServicio(msg)) {
-        console.log('ORDEN MODIFICADA');
-        console.log(msg);
-
 
         setOrdenes(prev => {
           const idx = prev.findIndex(
@@ -271,9 +268,10 @@ export const Monitor = () => {
       }
 
 
-      if (Notification.permission === "granted") {
+     /* if (Notification.permission === "granted") {
         new Notification("📢 Nuevo mensaje", { body: msg, silent: true });
       }
+        */
       audio.current.play().catch(() => { });
     };
 
