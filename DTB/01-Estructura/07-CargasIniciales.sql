@@ -140,10 +140,10 @@ INSERT INTO [UTIL].[TBL_ESTADOS] ([ID_Estado], [Nombre], [Tabla]) VALUES
 (3, 'Activo', 'TBL_CHAT_IA'),
 (4, 'Activo', 'TBL_NEGOCIOS'),
 (5, 'Activo', 'TBL_CUENTAS_POR_PAGAR'),
-(6, 'Activo', 'TBL_ORDEN_SERVICIO'),
-(7, 'En Proceso', 'TBL_ORDEN_SERVICIO'),
-(8, 'En Espera', 'TBL_ORDEN_SERVICIO'),
-(9, 'Finalizada', 'TBL_ORDEN_SERVICIO'),
+(6, 'Nuevo', 'TBL_ORDEN_SERVICIO'), --		(Gris)
+(7, 'En Proceso', 'TBL_ORDEN_SERVICIO'),--	(Azul)
+(8, 'En Espera', 'TBL_ORDEN_SERVICIO'),--	(Amarillo)
+(9, 'Completado', 'TBL_ORDEN_SERVICIO'),--	(Verde)
 (10, 'Eliminado', 'TBL_ORDEN_SERVICIO'),
 (11, 'Eliminado', 'TBL_NEGOCIOS'),
 (13, 'Eliminado', 'TBL_CHAT_IA'),
