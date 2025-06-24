@@ -192,12 +192,13 @@ export function GenericDataTable<T>({
             const nombre: string = estadoObj.nombre ?? "N/A";
             const badgeClassMap: Record<string, string> = {
               activo: "badge-light-success",
-              "en proceso": "badge-light-info",
-              "en espera": "badge-light-warning",
-              finalizada: "badge-light-primary",
-              eliminada: "badge-light-danger",
-              inactivo: "badge-light-secondary",
-              default: "badge-light-dark",
+              nuevo: "badge badge-secondary", //gris
+              "en proceso": "badge-light-primary", //azul claro
+              "en espera": "badge-light-warning", //amarillo
+              completado: "badge-light-success", //verde
+              eliminado: "badge-light-danger",
+              inactivo: "badge-light-light",
+              default: "badge badge-dark",
             };            
             const badgeClass =
               badgeClassMap[nombre.toLowerCase()] || badgeClassMap["default"];

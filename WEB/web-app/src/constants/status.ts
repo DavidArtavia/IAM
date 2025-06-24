@@ -33,7 +33,7 @@ export const STATUS_TBL = {
         PAID: 0,
     },
     ORDER_SERVICE: {
-        ACTIVE: 6,
+        NEW: 6,
         IN_PROCESS: 7,
         PENDING: 8,
         COMPLETED: 9,
@@ -59,8 +59,8 @@ export const FILTER_STATUS = {
 
 
 export const STATUS_ORDEN_SERVICIO_OPTIONS = [
-    { label: 'Activo', value: STATUS_TBL.ORDER_SERVICE.ACTIVE},
+    { label: 'Nuevo', value: STATUS_TBL.ORDER_SERVICE.NEW},
     { label: 'En Proceso', value: STATUS_TBL.ORDER_SERVICE.IN_PROCESS},
     { label: 'En Espera', value: STATUS_TBL.ORDER_SERVICE.PENDING },
-    { label: 'Finalizada', value: STATUS_TBL.ORDER_SERVICE.COMPLETED },
+    { label: 'Completado', value: STATUS_TBL.ORDER_SERVICE.COMPLETED },
 ];
