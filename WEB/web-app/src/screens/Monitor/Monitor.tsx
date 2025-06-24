@@ -426,7 +426,7 @@ export const Monitor = () => {
                 {ordenes.filter(m => m.estado.iD_Estado == 6).map((m) => (
 
 
-                  <div className="card mb-6 mb-xl-9" key={m.iD_OrdenServicio}>
+                  <div className="card mb-6 mb-xl-9 flash-blue" key={m.iD_OrdenServicio}>
                     <div className="card-body">
                       <div className="d-flex flex-stack mb-3">Entrega:
 
@@ -564,7 +564,7 @@ export const Monitor = () => {
 
                 {ordenes.filter(m => m.estado.iD_Estado == 7).map((m) => (
 
-                  <div className="card mb-6 mb-xl-9" key={m.iD_OrdenServicio}>
+                  <div className="card mb-6 mb-xl-9 flash-blue" key={m.iD_OrdenServicio}>
                     <div className="card-body">
                       <div className="d-flex flex-stack mb-3">
 
@@ -688,7 +688,8 @@ export const Monitor = () => {
                   </div>
                 ))}
 
-                {/* <div className="card mb-6 mb-xl-9">
+                {
+                /* <div className="card mb-6 mb-xl-9">
                 
                   <div className="card-body">
                     <div className="d-flex flex-stack mb-3">
@@ -818,7 +819,7 @@ export const Monitor = () => {
                 </div>
 
                 {ordenes.filter(m => m.estado.iD_Estado == 9).map((m) => (
-                  <div className="card mb-6 mb-xl-9" key={m.iD_OrdenServicio}>
+                  <div className="card mb-6 mb-xl-9 flash-blue" key={m.iD_OrdenServicio}>
                     <div className="card-body">
                       <div className="d-flex flex-stack mb-3">
 
@@ -941,7 +942,7 @@ export const Monitor = () => {
                   <div className="h-3px w-100 bg-info"></div>
                 </div>
                 {ordenes.filter(m => m.estado.iD_Estado == 8).map((m) => (
-                  <div className="card mb-6 mb-xl-9" key={m.iD_OrdenServicio}>
+                  <div className="card mb-6 mb-xl-9 flash-blue" key={m.iD_OrdenServicio}>
                     <div className="card-body">
                       <div className="d-flex flex-stack mb-3">
 
