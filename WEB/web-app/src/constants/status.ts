@@ -8,49 +8,59 @@ export const STATUS_TBL = {
         ACTIVE: 1,
         INACTIVE: 2,
     },
-    CLIENT: {
-        ACTIVE: 3, // Para clientes activos en produccion sera id = 3
+    Chat_AI: {
+        ACTIVE: 3,
         INACTIVE: 0,
-        DELETED: 4, // Para clientes eliminados en produccion sera id = 4
+        DELETED: 13,
+        ARCHIVED: 15,
+    },
+    CLIENT: {
+        ACTIVE: 16,
+        INACTIVE: 0,
+        DELETED: 17,
         PENDING: 0,
     },
-    Chat_AI: {
-        ACTIVE: 5,
-        INACTIVE: 0,
-    },
     BUSINESS: {
-        ACTIVE: 6,
-        DELETED: 7,
+        ACTIVE: 4,
+        DELETED: 11,
         INACTIVE: 0,
     },
     ACCOUNT_PAYABLE: {
-        ACTIVE: 8,
-        DELETED: 9,
+        ACTIVE: 5,
+        DELETED: 14,
         INACTIVE: 0,
         PENDING: 0,
         PAID: 0,
     },
     ORDER_SERVICE: {
-        ACTIVE: 10,
-        DELETED: 11,
-        IN_PROCESS:0,
-        PENDING:0,
-        COMPLETED:0,
+        ACTIVE: 6,
+        IN_PROCESS: 7,
+        PENDING: 8,
+        COMPLETED: 9,
+        DELETED: 10,
     },
     ITEMS_ORDER_SERVICE: {
         ACTIVE: 18,
-        DELETED: 19, 
-        IN_PROCESS:0,
-        PENDING:0,
-        COMPLETED:0,
+        DELETED: 19,
+        IN_PROCESS: 0,
+        PENDING: 0,
+        COMPLETED: 0,
     }
 }
 
 export const FILTER_STATUS = {
     ACTIVO: 'Activo',
-    INACTIVO: 'INACTIVO',
-    ELIMINADO: 'ELIMINADOS',
-    PENDIENTE: 'PENDIENTE',
-    TODOS: 'TODOS',
-    TODOS_SIN_ELIMINADOS: 'TODOS_SIN_ELIMINADOS',
+    INACTIVO: 'Inactivo',
+    ELIMINADO: 'Eliminado',
+    PENDIENTE: 'Pendiente',
+    TODOS: 'Todos',
+    TODOS_SIN_ELIMINADOS: 'Todos_sin_eliminados',
 }
+
+
+export const STATUS_ORDEN_SERVICIO_OPTIONS = [
+    { label: 'Activo', value: STATUS_TBL.ORDER_SERVICE.ACTIVE},
+    { label: 'En Proceso', value: STATUS_TBL.ORDER_SERVICE.IN_PROCESS},
+    { label: 'En Espera', value: STATUS_TBL.ORDER_SERVICE.PENDING },
+    { label: 'Finalizada', value: STATUS_TBL.ORDER_SERVICE.COMPLETED },
+];

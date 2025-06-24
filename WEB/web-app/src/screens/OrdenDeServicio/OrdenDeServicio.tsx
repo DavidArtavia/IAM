@@ -10,7 +10,11 @@ import {
   ItemsOrdenDeServicioModal,
   LoadingPanel,
 } from "@/components";
-import { RESTRICCIONES, STATUS_TBL } from "@/constants";
+import {
+  RESTRICCIONES,
+  STATUS_ORDEN_SERVICIO_OPTIONS,
+  STATUS_TBL,
+} from "@/constants";
 import { DTO_Negocio, DTO_OrdenServicio, DTO_Respuesta } from "@/models";
 import { ordenesService } from "@/services";
 import {
@@ -23,6 +27,7 @@ import {
   ordenServicioFormEditFields,
 } from "@/utils";
 import { useEffect, useMemo, useState } from "react";
+import AsyncSelect from "react-select/async";
 
 /** Genera una clave segura a partir de un nombre (para campos dinámicos) */
 const generateSafeKey = (name: string) =>
@@ -39,6 +44,8 @@ export const OrdenDeServicio = () => {
   // --------------------------------------------------
   // 1. HOOKS Y ESTADOS
   // --------------------------------------------------
+
+  // Negocio seleccionado
   const [selectedBusiness, setSelectedBusiness] = useState<DTO_Negocio | null>(
     null
   );
@@ -69,7 +76,7 @@ export const OrdenDeServicio = () => {
     dto.fechaEstimadaEntrega = null;
     return dto;
   });
-  
+
   // Modal de Ítems de Orden de Servicio
   const [showItemsOrdenFormModal, setShowItemsOrdenFormModal] = useState(false);
   const [dataToItemsOrder, setDataToItemsOrder] =
@@ -306,7 +313,8 @@ export const OrdenDeServicio = () => {
       const raw = (sanitized[key] as string | null) ?? null;
       if (raw) {
         const d = dateHelpers.parseDateInput(raw as any);
-        sanitized[key] = d && d.getFullYear() >= RESTRICCIONES.MIN_ANNO_PERMITIDO ? d : null;
+        sanitized[key] =
+          d && d.getFullYear() >= RESTRICCIONES.MIN_ANNO_PERMITIDO ? d : null;
       } else {
         sanitized[key] = null;
       }
@@ -432,6 +440,7 @@ export const OrdenDeServicio = () => {
         />
       ),
     },
+   
     // Construir campos dinámicos de referencia tipo registrar
     ...buildRefFields(formData),
   ];
@@ -453,6 +462,42 @@ export const OrdenDeServicio = () => {
         />
       ),
     },
+    {
+      key: "estado",
+      label: "Estado de la orden",
+      type: "custom",
+      required: true,
+      renderer: ({ value, onChange }) => {
+        // Detectar si viene con estado en edición (editar) o no (crear)
+        const selectedOption = value?.iD_Estado
+          ? {
+              value: value.iD_Estado,
+              label: value.nombre || "",
+            }
+          : null;
+    
+        return (
+          <AsyncSelect
+            cacheOptions
+            defaultOptions={STATUS_ORDEN_SERVICIO_OPTIONS}
+            placeholder="Seleccione un estado"
+            value={selectedOption}
+            onChange={(opt) => {
+              onChange({
+                iD_Estado: opt?.value,
+                nombre: opt?.label,
+              });
+            }}
+            loadOptions={async (inputValue) => {
+              return STATUS_ORDEN_SERVICIO_OPTIONS.filter((opt) =>
+                opt.label.toLowerCase().includes(inputValue.toLowerCase())
+              );
+            }}
+          />
+        );
+      },
+    },
+    
     // Construir campos dinámicos de referencia tipo editar
     ...buildRefFields(editData),
   ];
@@ -471,22 +516,22 @@ export const OrdenDeServicio = () => {
     setConfirmContext(null);
   };
 
-    //este renderizador personalizado formatea los valores de las columnas
-    const customRenderers: {
-      [K in keyof DTO_OrdenServicio]?: (
-        value: unknown,
-        rowData: DTO_OrdenServicio
-      ) => string | number | React.ReactNode;
-    } = {
-      fechaOrdenServicio: (val: unknown) => {
-        if (!val) return "";
-        return new Date(String(val)).toLocaleDateString();
-      },
-      fechaEstimadaEntrega: (val: unknown) => {
-        if (!val) return "";
-        return new Date(String(val)).toLocaleDateString();
-      },
-    };
+  //este renderizador personalizado formatea los valores de las columnas
+  const customRenderers: {
+    [K in keyof DTO_OrdenServicio]?: (
+      value: unknown,
+      rowData: DTO_OrdenServicio
+    ) => string | number | React.ReactNode;
+  } = {
+    fechaOrdenServicio: (val: unknown) => {
+      if (!val) return "";
+      return new Date(String(val)).toLocaleDateString();
+    },
+    fechaEstimadaEntrega: (val: unknown) => {
+      if (!val) return "";
+      return new Date(String(val)).toLocaleDateString();
+    },
+  };
 
   // --------------------------------------------------
   // 10. RENDERIZADO
@@ -514,7 +559,13 @@ export const OrdenDeServicio = () => {
           includeReferenceColumn // Si se quiere mostrar la columna de referenciasJson
           modalInfoFields={modalFields}
           showItemsButton
-          datekeys={["fechaOrdenServicio", "fechaEstimadaEntrega", "fechaInicio", "fechaFinal", "fechaEntrega"]}
+          datekeys={[
+            "fechaOrdenServicio",
+            "fechaEstimadaEntrega",
+            "fechaInicio",
+            "fechaFinal",
+            "fechaEntrega",
+          ]}
           onOpenItemsModal={(rowData) => {
             setShowItemsOrdenFormModal(true);
             setDataToItemsOrder(rowData as DTO_OrdenServicio);

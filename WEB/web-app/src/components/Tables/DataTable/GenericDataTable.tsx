@@ -192,10 +192,15 @@ export function GenericDataTable<T>({
             const nombre: string = estadoObj.nombre ?? "N/A";
             const badgeClassMap: Record<string, string> = {
               activo: "badge-light-success",
-              pendiente: "badge-light-warning",
-            };
+              "en proceso": "badge-light-info",
+              "en espera": "badge-light-warning",
+              finalizada: "badge-light-primary",
+              eliminada: "badge-light-danger",
+              inactivo: "badge-light-secondary",
+              default: "badge-light-dark",
+            };            
             const badgeClass =
-              badgeClassMap[nombre.toLowerCase()] || "badge-light-primary";
+              badgeClassMap[nombre.toLowerCase()] || badgeClassMap["default"];
             const root = ReactDOM.createRoot(container);
             root.render(
               <span className={`badge ${badgeClass}`}>{nombre}</span>
