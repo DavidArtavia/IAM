@@ -15,8 +15,12 @@ namespace API.Controllers
     {
         private DTO_Respuesta respuesta = new();
         private UTL_ManejoError manejoError = new();
-        private BLL_OrdenServicio bLL_OrdenServicio = new();
+        private BLL_OrdenServicio _bLL_OrdenServicio;
 
+        public OrdenServicioController(BLL_OrdenServicio bLL_OrdenServicio)
+        {
+            _bLL_OrdenServicio = bLL_OrdenServicio;
+        }
 
         [Authorize(Roles = "1")]
         [Produces("application/json")]
@@ -26,7 +30,7 @@ namespace API.Controllers
         {
             try
             {
-                respuesta = await bLL_OrdenServicio.registrarOrdenServicio(ordenServicio);
+                respuesta = await _bLL_OrdenServicio.registrarOrdenServicio(ordenServicio, UTL_SesionHelper.obtenerUsuarioSesion(User.Claims));
             }
             catch (Exception ex)
             {
@@ -44,7 +48,7 @@ namespace API.Controllers
         {
             try
             {
-                respuesta = await bLL_OrdenServicio.actualizarOrdenServicio(ordenServicio);
+                respuesta = await _bLL_OrdenServicio.actualizarOrdenServicio(ordenServicio, UTL_SesionHelper.obtenerUsuarioSesion(User.Claims));
             }
             catch (Exception ex)
             {
@@ -62,7 +66,7 @@ namespace API.Controllers
         {
             try
             {
-                respuesta = bLL_OrdenServicio.obtenerOrdenDeServicio(negocio);
+                respuesta = _bLL_OrdenServicio.obtenerOrdenDeServicio(negocio);
             }
             catch (Exception ex)
             {

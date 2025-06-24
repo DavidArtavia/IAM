@@ -1,50 +1,137 @@
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import * as signalR from "@microsoft/signalr";
 import sonidoMonitor from "../../assets/media/audios/Monitor.mp3";
 import { errorHelpers, notificationHelpers } from "@/utils";
-import { BusinessButtons } from "@/components";
+import { BusinessButtons, LoadingPanel } from "@/components";
 import { DTO_ItemOrdenServicio, DTO_Negocio, DTO_OrdenServicio, DTO_Respuesta } from "@/models";
-import { monitorService } from "@/services";
+import { monitorService, itemsOrdenesService, ordenesService } from "@/services";
 
+
+
+
+export const FechaEntregaBadge = ({
+  fechaEntrega,
+  fechaCreacion,
+}: {
+  fechaEntrega: Date | string | null;
+  fechaCreacion: Date | string | null | undefined;
+}) => {
+  /* ────────────────────────────
+   * Validaciones iniciales
+   * ──────────────────────────── */
+  if (!fechaEntrega || !fechaCreacion) return null;
+
+  const fEntrega =
+    typeof fechaEntrega === 'string' ? new Date(fechaEntrega) : fechaEntrega;
+  const fCreacion =
+    typeof fechaCreacion === 'string' ? new Date(fechaCreacion) : fechaCreacion;
+
+  if (isNaN(fEntrega.getTime()) || isNaN(fCreacion.getTime())) return null;
+
+  /* ────────────────────────────
+   * 1 ▸ Porcentaje de progreso
+   * ──────────────────────────── */
+  const totalMs = fEntrega.getTime() - fCreacion.getTime();
+  const transMs = Date.now() - fCreacion.getTime();
+  const pct =
+    totalMs <= 0 ? 1 : Math.min(Math.max(transMs / totalMs, 0), 1); // 0–1
+
+  /* ────────────────────────────
+   * 2 ▸ Selección de clase
+   * ──────────────────────────── */
+  let badgeClass = 'badge badge-light'; // 0–20 %
+  if (pct > 0.6) badgeClass = 'badge badge-light-danger';   // 60–100 %
+  else if (pct > 0.4) badgeClass = 'badge badge-light-warning';  // 40–60 %
+  else if (pct > 0.2) badgeClass = 'badge badge-light-success';  // 20–40 %
+
+  /* ────────────────────────────
+   * 3 ▸ Formateo de fecha
+   * ──────────────────────────── */
+  const opts: Intl.DateTimeFormatOptions = {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+  };
+  let texto = fEntrega.toLocaleDateString('es-ES', opts).replace(',', '');
+  texto = texto.charAt(0).toUpperCase() + texto.slice(1);
+
+  return <div className={badgeClass}>{texto}</div>;
+};
 export const Monitor = () => {
-  const [mensajes, setMensajes] = useState<string[]>([]);
+
   const [estadoConexion, setEstadoConexion] = useState("Desconectado");
   const connectionRef = useRef<signalR.HubConnection | null>(null);
   const audio = useRef(new Audio(sonidoMonitor));
   const intentoRef = useRef(false);
-  const abortedRef = useRef(false);
   const [loading, setLoading] = useState(false);
   const [ordenes, setOrdenes] = useState<DTO_OrdenServicio[]>([]);
   const [items, setItems] = useState<DTO_ItemOrdenServicio[]>([]);
+  const retryTimeoutRef = useRef<number | null>(null);
+  const abortedRef = useRef(false);
+  const isItemOrdenServicio = (obj: any): obj is DTO_ItemOrdenServicio => {
+    return obj && typeof obj === 'object' && 'iD_ItemOrdenServicio' in obj;
+  }
 
-  let retryTimeout: number;
-
+  const isOrdenServicio = (obj: any): obj is DTO_OrdenServicio => {
+    return obj && typeof obj === 'object' && 'iD_Cliente' in obj;
+  }
 
   const [selectedBusiness, setSelectedBusiness] = useState<DTO_Negocio | null>(
     null
   );
 
-  const formatFechaEntrega = (fecha?: string | Date): string => {
-    if (!fecha) return "";
-    const dateObj = typeof fecha === "string" ? new Date(fecha) : fecha;
-    if (isNaN(dateObj.getTime())) return ""; // fecha inválida
 
-    const opciones: Intl.DateTimeFormatOptions = {
-      weekday: "long",
-      day: "numeric",
-      month: "long",
-    };
-    // Obtiene algo como "jueves, 5 de junio"
-    let texto = dateObj.toLocaleDateString("es-ES", opciones);
-    texto = texto.replace(",", "");               // quita la coma
-    return texto.charAt(0).toUpperCase() + texto.slice(1);
-  }
+  const cambiarEstadoOrdenServicio = (orden: DTO_OrdenServicio, estado: number) => {
+    orden.estado.iD_Estado = estado;
+    const rawNote = orden.notaOrdenServicio || "";
+
+    const cleanedNote = rawNote.includes("|")
+      ? rawNote.substring(rawNote.lastIndexOf("|") + 1).trim()
+      : rawNote.trim();
+
+    orden.notaOrdenServicio = cleanedNote;
+    ordenesService.actualizarOrdensDeServicio(orden).subscribe({
+      next: (result) => {
+        notificationHelpers.infoAlert(result?.mensaje);
+      },
+      error: (err) => errorHelpers.serverError(err),
+    });
+
+
+  };
+
+
 
 
   // Maneja la selección de un negocio
   const handleSelectBusiness = (neg: DTO_Negocio) => {
     setSelectedBusiness(neg);
   };
+
+  // Maneja el avance de un item
+  const handleCheckboxChange = (item: DTO_ItemOrdenServicio, checked: boolean) => {
+
+    if (checked) {
+      item.avance = 100;
+    } else {
+      item.avance = 0;
+    }
+    itemsOrdenesService
+      .actualizarItemsOrdensDeServicio(item)
+      .subscribe({
+        next: (res) => {
+          if (!(res as DTO_Respuesta).tipoRespuesta) {
+            notificationHelpers.errorAlert((res as DTO_Respuesta).mensaje);
+          }
+
+        },
+        error: (err) => errorHelpers.serverError(err),
+        complete: () => setLoading(false),
+      });
+
+  };
+
+
   //#region websoket
   const getToken = () => localStorage.getItem("accesToken") || "";
 
@@ -60,10 +147,16 @@ export const Monitor = () => {
     const limpiarConexion = async () => {
       if (connectionRef.current) {
         connectionRef.current.off("RecibirNotificacion");
-        try { await connectionRef.current.stop(); } catch { }
+        try { await connectionRef.current.stop(); } catch {
+          console.log('Error limpiando conexión');
+
+        }
         connectionRef.current = null;
       }
     };
+
+
+
 
     const construirConexion = () =>
       new signalR.HubConnectionBuilder()
@@ -85,12 +178,16 @@ export const Monitor = () => {
           console.info("🆕 Token renovado desde negociación SignalR");
           return true;
         }
-      } catch { }
+      } catch {
+        console.log('error estrayendo el token retornado');
+
+      }
       return false;
     };
 
     const handleDisconnect = async (error?: Error) => {
       if (abortedRef.current) return;
+
       setEstadoConexion("Desconectado");
       notificationHelpers.errorAlert("Monitor desconectado");
 
@@ -99,21 +196,81 @@ export const Monitor = () => {
         const renovado = await extraerYRenovarToken(error.message);
         if (renovado && !abortedRef.current) {
           // Pequeño retardo antes de reconectar
-          await new Promise(r => setTimeout(r, 500));
+          await new Promise(r => setTimeout(r, 3000));
           return iniciarConexion();
         }
       }
 
       // Reintento normal
       if (!abortedRef.current) {
-        retryTimeout = window.setTimeout(iniciarConexion, 3000);
+        // Usar retryTimeoutRef.current para almacenar el ID del timeout
+        retryTimeoutRef.current = window.setTimeout(iniciarConexion, 3000);  // `setTimeout` devuelve un número en el navegador
       }
     };
 
-    const handleMensaje = (msg: string) => {
+    const handleMensaje = (msg: any) => {
       if (abortedRef.current) return;
-      setMensajes(prev => [...prev, msg]);
-      notificationHelpers.infoAlert("Orden de servicio modificada");
+
+      /* --- qué recibimos --- */
+      if (isItemOrdenServicio(msg)) {
+        //Aquí entra si es un item de orden de servicio
+        setItems(prev => {
+          const idx = prev.findIndex(
+            i => i.iD_ItemOrdenServicio === msg.iD_ItemOrdenServicio
+          );
+
+          /* —— 1 · Eliminar si el estado es 19 —— */
+          if (msg.estado?.iD_Estado === 19) {
+            // si no existe, devolvemos el array tal cual
+            return idx === -1 ? prev : prev.filter((_, i) => i !== idx);
+          }
+
+          /* —— 2 · Insertar o actualizar —— */
+          return idx === -1
+            ? [...prev, msg]                                           // insertar
+            : prev.map(i =>                                            // actualizar
+              i.iD_ItemOrdenServicio === msg.iD_ItemOrdenServicio
+                ? { ...i, ...msg }
+                : i
+            );
+        });
+
+        notificationHelpers.infoAlert(`Ítem actualizado: ${msg.nombreItemOrdenServicio} de la Orden # ${msg.iD_OrdenServicio}`);
+
+        //Aquí entra si es una orden de servicio
+      } else if (isOrdenServicio(msg)) {
+        console.log('ORDEN MODIFICADA');
+        console.log(msg);
+
+
+        setOrdenes(prev => {
+          const idx = prev.findIndex(
+            o => o.iD_OrdenServicio === msg.iD_OrdenServicio
+          );
+
+          /* —— 1 · Eliminar si el estado es 19 —— */
+          if (msg.estado?.iD_Estado === 10) {
+            // si no existe, devuelve el array original
+            return idx === -1 ? prev : prev.filter((_, i) => i !== idx);
+          }
+
+          /* —— 2 · Insertar o actualizar —— */
+          return idx === -1
+            ? [...prev, msg]                               // insertar
+            : prev.map(o =>                                // actualizar
+              o.iD_OrdenServicio === msg.iD_OrdenServicio
+                ? { ...o, ...msg }
+                : o
+            );
+        });
+
+        notificationHelpers.infoAlert(`Orden #${msg.iD_OrdenServicio} modificada`);
+      } else {
+        console.warn('Tipo desconocido', msg);
+        notificationHelpers.infoAlert('📢 Nuevo mensaje');
+      }
+
+
       if (Notification.permission === "granted") {
         new Notification("📢 Nuevo mensaje", { body: msg, silent: true });
       }
@@ -175,12 +332,13 @@ export const Monitor = () => {
       }
     };
 
-    // Conectar al montar
     iniciarConexion();
 
     return () => {
       abortedRef.current = true;
-      clearTimeout(retryTimeout);
+      if (retryTimeoutRef.current) {
+        clearTimeout(retryTimeoutRef.current); // Limpiar usando retryTimeoutRef.current
+      }
       limpiarConexion().then(() => {
         setEstadoConexion("Desconectado");
         notificationHelpers.infoAlert("Monitor cerrado al salir de la vista");
@@ -225,6 +383,9 @@ export const Monitor = () => {
           selectedBusiness={selectedBusiness}
           handleSelectBusiness={handleSelectBusiness}
         />
+
+        {loading && <LoadingPanel msj="Cargando, por favor espere..." />}
+
       </div>
 
       <div id="kt_content_container" className="container-xxl">
@@ -255,20 +416,26 @@ export const Monitor = () => {
 
                 <div className="mb-9">
                   <div className="d-flex flex-stack">
-                    <div className="fw-bolder fs-4">Ingreso<span className="fs-6 text-gray-400 ms-2">1</span></div>
+                    <div className="fw-bolder fs-4">Ingreso<span className="fs-6 text-gray-400 ms-2"> {ordenes.filter(o => o.estado.iD_Estado === 6).length}</span></div>
 
                   </div>
                   <div className="h-3px w-100 bg-warning"></div>
                 </div>
 
 
-                {ordenes.filter(m => m.estado.iD_Estado == 6).map((m, i) => (
+                {ordenes.filter(m => m.estado.iD_Estado == 6).map((m) => (
 
 
                   <div className="card mb-6 mb-xl-9" key={m.iD_OrdenServicio}>
                     <div className="card-body">
-                      <div className="d-flex flex-stack mb-3">
-                        <div className="badge badge-light-warning"> {formatFechaEntrega(m.fechaEntrega)}  </div>
+                      <div className="d-flex flex-stack mb-3">Entrega:
+
+                        <FechaEntregaBadge
+                          key={m.iD_OrdenServicio}
+                          fechaEntrega={m.fechaEstimadaEntrega}
+                          fechaCreacion={m.fechaOrdenServicio}
+                        />
+
                         <div>
                           <button type="button" className="btn btn-sm btn-icon btn-color-light-dark btn-active-light-primary" data-kt-menu-trigger="click" data-kt-menu-placement="bottom-end" data-kt-menu-flip="top-end">
                             <span className="svg-icon svg-icon-2">
@@ -336,19 +503,20 @@ export const Monitor = () => {
                           .map(r => r.valor)
                           .join(', ')}
                       </div><div className="separator" style={{ marginBottom: '15px' }}></div>
-                      {items.filter(i => i.iD_OrdenServicio == m.iD_OrdenServicio).map((item, i) => (
-                        <div className="mb-2" >
+                      {items.filter(i => i.iD_OrdenServicio == m.iD_OrdenServicio).map((item) => (
+                        <div className="mb-2" key={item.iD_ItemOrdenServicio} >
                           <div className="form-check form-check-custom form-check-solid">
-                            <input className="form-check-input" type="checkbox" value="" id="flexCheckDefault" checked={item.avance == 100} />
+                            <input className="form-check-input" type="checkbox" value="" id="flexCheckDefault" checked={item.avance == 100} onChange={(e) => handleCheckboxChange(item, e.target.checked)} />
                             <label className="form-check-label" >{item.nombreItemOrdenServicio}</label>
                           </div>
                         </div>
                       ))}
-
+                      <div className="separator" style={{ marginBottom: '15px' }}></div>
+                      <p className="text-gray-700 py-3 fw-bold fw-6">{m.notaOrdenServicio}</p>
                       <div className="d-flex flex-stack flex-wrapr"><div className="symbol-group symbol-hover" style={{ marginLeft: '0' }}>
-             
+
                         {m.estado.iD_Estado != 8 ? (
-                          <div className="border border-dashed border-gray-300 rounded py-3 px-3 text-gray-600">
+                          <div className="border border-dashed border-gray-300 rounded py-3 px-3 text-gray-600" onClick={() => cambiarEstadoOrdenServicio(m, 8)}>
                             <span className="svg-icon svg-icon-3">
                               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-pause-btn-fill" viewBox="0 0 16 16">
                                 <path d="M0 12V4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2m6.25-7C5.56 5 5 5.56 5 6.25v3.5a1.25 1.25 0 1 0 2.5 0v-3.5C7.5 5.56 6.94 5 6.25 5m3.5 0c-.69 0-1.25.56-1.25 1.25v3.5a1.25 1.25 0 1 0 2.5 0v-3.5C11 5.56 10.44 5 9.75 5" />
@@ -356,7 +524,7 @@ export const Monitor = () => {
                             </span>
                           </div>
                         ) : (
-                          <div className="border border-dashed border-gray-300 rounded py-3 px-3 text-gray-600" style={{ marginLeft: '5px' }}>
+                          <div className="border border-dashed border-gray-300 rounded py-3 px-3 text-gray-600" style={{ marginLeft: '5px' }} onClick={() => cambiarEstadoOrdenServicio(m, 7)}>
                             <span className="svg-icon svg-icon-3">
                               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-play-btn-fill" viewBox="0 0 16 16">
                                 <path d="M0 12V4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2m6.79-6.907A.5.5 0 0 0 6 5.5v5a.5.5 0 0 0 .79.407l3.5-2.5a.5.5 0 0 0 0-.814z" />
@@ -366,7 +534,7 @@ export const Monitor = () => {
                         )}
                       </div>
 
-                        <div className="d-flex my-1">
+                        <div className="d-flex my-1" onClick={() => cambiarEstadoOrdenServicio(m, 7)}>
 
                           <div className="border border-dashed border-gray-300 rounded py-3 px-3 text-gray-600">
                             <span className="svg-icon svg-icon-3" >
@@ -388,19 +556,23 @@ export const Monitor = () => {
               <div className="col-md-3 col-lg-12 col-xl-3">
                 <div className="mb-9">
                   <div className="d-flex flex-stack">
-                    <div className="fw-bolder fs-4">En proceso<span className="fs-6 text-gray-400 ms-2">2</span></div>
+                    <div className="fw-bolder fs-4">En proceso<span className="fs-6 text-gray-400 ms-2">{ordenes.filter(o => o.estado.iD_Estado === 7).length}</span></div>
 
                   </div>
                   <div className="h-3px w-100 bg-primary"></div>
                 </div>
 
-                {ordenes.filter(m => m.estado.iD_Estado == 7).map((m, i) => (
+                {ordenes.filter(m => m.estado.iD_Estado == 7).map((m) => (
 
                   <div className="card mb-6 mb-xl-9" key={m.iD_OrdenServicio}>
                     <div className="card-body">
                       <div className="d-flex flex-stack mb-3">
 
-                        <div className="badge badge-light-danger"> {formatFechaEntrega(m.fechaEntrega)}  </div>
+                        Entrega:   <FechaEntregaBadge
+                          key={m.iD_OrdenServicio}
+                          fechaEntrega={m.fechaEstimadaEntrega}
+                          fechaCreacion={m.fechaOrdenServicio}
+                        />
                         <div>
                           <button type="button" className="btn btn-sm btn-icon btn-color-light-dark btn-active-light-primary" data-kt-menu-trigger="click" data-kt-menu-placement="bottom-end" data-kt-menu-flip="top-end">
                             <span className="svg-icon svg-icon-2">
@@ -468,18 +640,20 @@ export const Monitor = () => {
                         {m.referenciaJSON
                           .map(r => r.valor)
                           .join(', ')}</div><div className="separator" style={{ marginBottom: '15px' }}></div>
-                      {items.filter(i => i.iD_OrdenServicio == m.iD_OrdenServicio).map((item, i) => (
-                        <div className="mb-2" >
+                      {items.filter(i => i.iD_OrdenServicio == m.iD_OrdenServicio).map((item) => (
+                        <div className="mb-2" key={item.iD_ItemOrdenServicio} >
                           <div className="form-check form-check-custom form-check-solid">
-                            <input className="form-check-input" type="checkbox" value="" id="flexCheckDefault" checked={item.avance == 100} />
+                            <input className="form-check-input" type="checkbox" value="" id="flexCheckDefault" checked={item.avance == 100} onChange={(e) => handleCheckboxChange(item, e.target.checked)} />
                             <label className="form-check-label" >{item.nombreItemOrdenServicio}</label>
                           </div>
                         </div>
                       ))}
+                      <div className="separator" style={{ marginBottom: '15px' }}></div>
+                      <p className="text-gray-700 py-3 fw-bold fw-6">{m.notaOrdenServicio}</p>
                       <div className="d-flex flex-stack flex-wrapr"><div className="symbol-group symbol-hover" style={{ marginLeft: '0' }}>
-             
+
                         {m.estado.iD_Estado != 8 ? (
-                          <div className="border border-dashed border-gray-300 rounded py-3 px-3 text-gray-600">
+                          <div className="border border-dashed border-gray-300 rounded py-3 px-3 text-gray-600" onClick={() => cambiarEstadoOrdenServicio(m, 8)}>
                             <span className="svg-icon svg-icon-3">
                               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-pause-btn-fill" viewBox="0 0 16 16">
                                 <path d="M0 12V4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2m6.25-7C5.56 5 5 5.56 5 6.25v3.5a1.25 1.25 0 1 0 2.5 0v-3.5C7.5 5.56 6.94 5 6.25 5m3.5 0c-.69 0-1.25.56-1.25 1.25v3.5a1.25 1.25 0 1 0 2.5 0v-3.5C11 5.56 10.44 5 9.75 5" />
@@ -487,7 +661,7 @@ export const Monitor = () => {
                             </span>
                           </div>
                         ) : (
-                          <div className="border border-dashed border-gray-300 rounded py-3 px-3 text-gray-600" style={{ marginLeft: '5px' }}>
+                          <div className="border border-dashed border-gray-300 rounded py-3 px-3 text-gray-600" style={{ marginLeft: '5px' }} onClick={() => cambiarEstadoOrdenServicio(m, 7)}>
                             <span className="svg-icon svg-icon-3">
                               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-play-btn-fill" viewBox="0 0 16 16">
                                 <path d="M0 12V4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2m6.79-6.907A.5.5 0 0 0 6 5.5v5a.5.5 0 0 0 .79.407l3.5-2.5a.5.5 0 0 0 0-.814z" />
@@ -497,7 +671,7 @@ export const Monitor = () => {
                         )}
                       </div>
 
-                        <div className="d-flex my-1">
+                        <div className="d-flex my-1" onClick={() => cambiarEstadoOrdenServicio(m, 9)} >
 
                           <div className="border border-dashed border-gray-300 rounded py-3 px-3 text-gray-600">
                             <span className="svg-icon svg-icon-3" >
@@ -637,18 +811,23 @@ export const Monitor = () => {
               <div className="col-md-3 col-lg-12 col-xl-3">
                 <div className="mb-9">
                   <div className="d-flex flex-stack">
-                    <div className="fw-bolder fs-4">Completado<span className="fs-6 text-gray-400 ms-2">1</span></div>
+                    <div className="fw-bolder fs-4">Completado<span className="fs-6 text-gray-400 ms-2">{ordenes.filter(o => o.estado.iD_Estado === 9).length}</span></div>
 
                   </div>
                   <div className="h-3px w-100 bg-success"></div>
                 </div>
 
-                {ordenes.filter(m => m.estado.iD_Estado == 9).map((m, i) => (
+                {ordenes.filter(m => m.estado.iD_Estado == 9).map((m) => (
                   <div className="card mb-6 mb-xl-9" key={m.iD_OrdenServicio}>
                     <div className="card-body">
                       <div className="d-flex flex-stack mb-3">
 
-                        <div className="badge badge-light-success"> {formatFechaEntrega(m.fechaEntrega)}  </div>
+                        Entrega:   <FechaEntregaBadge
+                          key={m.iD_OrdenServicio}
+                          fechaEntrega={m.fechaEstimadaEntrega}
+                          fechaCreacion={m.fechaOrdenServicio} />
+
+
                         <div>
                           <button type="button" className="btn btn-sm btn-icon btn-color-light-dark btn-active-light-primary" data-kt-menu-trigger="click" data-kt-menu-placement="bottom-end" data-kt-menu-flip="top-end">
                             <span className="svg-icon svg-icon-2">
@@ -717,19 +896,20 @@ export const Monitor = () => {
                           .map(r => r.valor)
                           .join(', ')}</div><div className="separator" style={{ marginBottom: '15px' }}></div>
 
-                      {items.filter(i => i.iD_OrdenServicio == m.iD_OrdenServicio).map((item, i) => (
-                        <div className="mb-2" >
+                      {items.filter(i => i.iD_OrdenServicio == m.iD_OrdenServicio).map((item) => (
+                        <div className="mb-2" key={item.iD_ItemOrdenServicio} >
                           <div className="form-check form-check-custom form-check-solid">
-                            <input className="form-check-input" type="checkbox" value="" id="flexCheckDefault" checked={item.avance == 100} />
+                            <input className="form-check-input" type="checkbox" value="" id="flexCheckDefault" checked={item.avance == 100} onChange={(e) => handleCheckboxChange(item, e.target.checked)} />
                             <label className="form-check-label" >{item.nombreItemOrdenServicio}</label>
                           </div>
                         </div>
                       ))}
+                      <div className="separator" style={{ marginBottom: '15px' }}></div>
+                      <p className="text-gray-700 py-3 fw-bold fw-6">{m.notaOrdenServicio}</p>
+                      <div className="d-flex flex-stack flex-wrapr"><div className="symbol-group symbol-hover" style={{ marginLeft: '0' }} >
 
-                      <div className="d-flex flex-stack flex-wrapr"><div className="symbol-group symbol-hover" style={{ marginLeft: '0' }}>
-             
                         {m.estado.iD_Estado != 8 ? (
-                          <div className="border border-dashed border-gray-300 rounded py-3 px-3 text-gray-600">
+                          <div className="border border-dashed border-gray-300 rounded py-3 px-3 text-gray-600" onClick={() => cambiarEstadoOrdenServicio(m, 8)}>
                             <span className="svg-icon svg-icon-3">
                               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-pause-btn-fill" viewBox="0 0 16 16">
                                 <path d="M0 12V4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2m6.25-7C5.56 5 5 5.56 5 6.25v3.5a1.25 1.25 0 1 0 2.5 0v-3.5C7.5 5.56 6.94 5 6.25 5m3.5 0c-.69 0-1.25.56-1.25 1.25v3.5a1.25 1.25 0 1 0 2.5 0v-3.5C11 5.56 10.44 5 9.75 5" />
@@ -737,7 +917,7 @@ export const Monitor = () => {
                             </span>
                           </div>
                         ) : (
-                          <div className="border border-dashed border-gray-300 rounded py-3 px-3 text-gray-600" style={{ marginLeft: '5px' }}>
+                          <div className="border border-dashed border-gray-300 rounded py-3 px-3 text-gray-600" style={{ marginLeft: '5px' }} onClick={() => cambiarEstadoOrdenServicio(m, 7)}>
                             <span className="svg-icon svg-icon-3">
                               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-play-btn-fill" viewBox="0 0 16 16">
                                 <path d="M0 12V4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2m6.79-6.907A.5.5 0 0 0 6 5.5v5a.5.5 0 0 0 .79.407l3.5-2.5a.5.5 0 0 0 0-.814z" />
@@ -746,18 +926,6 @@ export const Monitor = () => {
                           </div>
                         )}
                       </div>
-
-                        <div className="d-flex my-1">
-
-                          <div className="border border-dashed border-gray-300 rounded py-3 px-3 text-gray-600">
-                            <span className="svg-icon svg-icon-3" >
-                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-arrow-right-square-fill" viewBox="0 0 16 16">
-                                <path d="M0 14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H2a2 2 0 0 0-2 2zm4.5-6.5h5.793L8.146 5.354a.5.5 0 1 1 .708-.708l3 3a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708-.708L10.293 8.5H4.5a.5.5 0 0 1 0-1"></path>
-                              </svg>
-                            </span>
-
-                          </div>
-                        </div>
                       </div>
                     </div>
                   </div>
@@ -767,17 +935,20 @@ export const Monitor = () => {
               <div className="col-md-3 col-lg-12 col-xl-3">
                 <div className="mb-9">
                   <div className="d-flex flex-stack">
-                    <div className="fw-bolder fs-4">En Pausa<span className="fs-6 text-gray-400 ms-2">1</span></div>
+                    <div className="fw-bolder fs-4">En Pausa<span className="fs-6 text-gray-400 ms-2">{ordenes.filter(o => o.estado.iD_Estado === 8).length}</span></div>
 
                   </div>
                   <div className="h-3px w-100 bg-info"></div>
                 </div>
-                {ordenes.filter(m => m.estado.iD_Estado == 8).map((m, i) => (
+                {ordenes.filter(m => m.estado.iD_Estado == 8).map((m) => (
                   <div className="card mb-6 mb-xl-9" key={m.iD_OrdenServicio}>
                     <div className="card-body">
                       <div className="d-flex flex-stack mb-3">
 
-                        <div className="badge badge-light"> {formatFechaEntrega(m.fechaEntrega)}  </div>
+                        Entrega:   <FechaEntregaBadge
+                          key={m.iD_OrdenServicio}
+                          fechaEntrega={m.fechaEstimadaEntrega}
+                          fechaCreacion={m.fechaOrdenServicio} />
                         <div>
                           <button type="button" className="btn btn-sm btn-icon btn-color-light-dark btn-active-light-primary" data-kt-menu-trigger="click" data-kt-menu-placement="bottom-end" data-kt-menu-flip="top-end">
                             <span className="svg-icon svg-icon-2">
@@ -825,7 +996,7 @@ export const Monitor = () => {
                                 <div className="menu-item px-3">
                                   <div className="menu-content px-3">
                                     <label className="form-check form-switch form-check-custom form-check-solid">
-                                      <input className="form-check-input w-30px h-20px" type="checkbox" value="1" name="notifications"  />
+                                      <input className="form-check-input w-30px h-20px" type="checkbox" value="1" name="notifications" />
                                       <span className="form-check-label text-muted fs-6">Recuring</span>
                                     </label>
                                   </div>
@@ -845,19 +1016,20 @@ export const Monitor = () => {
                         {m.referenciaJSON
                           .map(r => r.valor)
                           .join(', ')}</div><div className="separator" style={{ marginBottom: '15px' }}></div>
-                      {items.filter(i => i.iD_OrdenServicio == m.iD_OrdenServicio).map((item, i) => (
-                        <div className="mb-2" >
+                      {items.filter(i => i.iD_OrdenServicio == m.iD_OrdenServicio).map((item) => (
+                        <div className="mb-2" key={item.iD_ItemOrdenServicio} >
                           <div className="form-check form-check-custom form-check-solid">
-                            <input className="form-check-input" type="checkbox" value="" id="flexCheckDefault" checked={item.avance == 100} />
+                            <input className="form-check-input" type="checkbox" value="" id="flexCheckDefault" checked={item.avance == 100} onChange={(e) => handleCheckboxChange(item, e.target.checked)} />
                             <label className="form-check-label" >{item.nombreItemOrdenServicio}</label>
                           </div>
                         </div>
                       ))}
-                      <div className="separator" style={{ marginBottom: '15px' }}></div><p className="text-info py-3 fw-bold fw-6">Falta el producto para el tratamiento cerámico</p>
-                                     <div className="d-flex flex-stack flex-wrapr"><div className="symbol-group symbol-hover" style={{ marginLeft: '0' }}>
-             
+                      <div className="separator" style={{ marginBottom: '15px' }}></div>
+                      <p className="text-gray-700 py-3 fw-bold fw-6">{m.notaOrdenServicio}</p>
+                      <div className="d-flex flex-stack flex-wrapr"><div className="symbol-group symbol-hover" style={{ marginLeft: '0' }}>
+
                         {m.estado.iD_Estado != 8 ? (
-                          <div className="border border-dashed border-gray-300 rounded py-3 px-3 text-gray-600">
+                          <div className="border border-dashed border-gray-300 rounded py-3 px-3 text-gray-600" onClick={() => cambiarEstadoOrdenServicio(m, 8)}>
                             <span className="svg-icon svg-icon-3">
                               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-pause-btn-fill" viewBox="0 0 16 16">
                                 <path d="M0 12V4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2m6.25-7C5.56 5 5 5.56 5 6.25v3.5a1.25 1.25 0 1 0 2.5 0v-3.5C7.5 5.56 6.94 5 6.25 5m3.5 0c-.69 0-1.25.56-1.25 1.25v3.5a1.25 1.25 0 1 0 2.5 0v-3.5C11 5.56 10.44 5 9.75 5" />
@@ -865,7 +1037,7 @@ export const Monitor = () => {
                             </span>
                           </div>
                         ) : (
-                          <div className="border border-dashed border-gray-300 rounded py-3 px-3 text-gray-600" style={{ marginLeft: '5px' }}>
+                          <div className="border border-dashed border-gray-300 rounded py-3 px-3 text-gray-600" style={{ marginLeft: '5px' }} onClick={() => cambiarEstadoOrdenServicio(m, 7)}>
                             <span className="svg-icon svg-icon-3">
                               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-play-btn-fill" viewBox="0 0 16 16">
                                 <path d="M0 12V4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2m6.79-6.907A.5.5 0 0 0 6 5.5v5a.5.5 0 0 0 .79.407l3.5-2.5a.5.5 0 0 0 0-.814z" />
@@ -875,17 +1047,6 @@ export const Monitor = () => {
                         )}
                       </div>
 
-                        <div className="d-flex my-1">
-
-                          <div className="border border-dashed border-gray-300 rounded py-3 px-3 text-gray-600">
-                            <span className="svg-icon svg-icon-3" >
-                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-arrow-right-square-fill" viewBox="0 0 16 16">
-                                <path d="M0 14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H2a2 2 0 0 0-2 2zm4.5-6.5h5.793L8.146 5.354a.5.5 0 1 1 .708-.708l3 3a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708-.708L10.293 8.5H4.5a.5.5 0 0 1 0-1"></path>
-                              </svg>
-                            </span>
-
-                          </div>
-                        </div>
                       </div>
                     </div>
                   </div>

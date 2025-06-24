@@ -24,7 +24,8 @@ END
 GO -- =============================================
     -- Definición real del SP
     -- =============================================
-    ALTER PROCEDURE [CORE].[SP_registrarOrdenServicio] @ID_Cliente INT,
+    ALTER PROCEDURE [CORE].[SP_registrarOrdenServicio] 
+	@ID_Cliente INT,
     @ID_Negocio INT,
     @FechaEstimadaEntrega DATETIME = NULL,
     @FechaInicio DATETIME = NULL,
@@ -71,6 +72,17 @@ VALUES (
         @ReferenciaJSON,
         @NotaOrdenServicio
     );
+
+-- Concatenamos el nombre del cliente al final de la nota
+SELECT         
+          'Cliente: ' 
+          + CLIENTE.NombreCliente 
+		  + ' | '
+		  + @NotaOrdenServicio 
+         
+        AS NotaOrdenConCliente
+FROM [CORE].[TBL_CLIENTES] CLIENTE WHERE ID_Cliente = @ID_Cliente
+
 
 
 SELECT [COD_ALERTA],

@@ -51,6 +51,16 @@ namespace DAL
                             ordenServicio.Estado.ID_Estado = UTL_DBHelper.ReadNullSafeInt(reader["ID_Estado"]);
                         }
 
+
+                        if (reader.NextResult())
+                        {
+                            while (reader.Read())
+                            {
+                                ordenServicio.NotaOrdenServicio = UTL_DBHelper.ReadNullSafeString(reader["NotaOrdenConCliente"]);
+                            }
+                        }
+
+
                         if (reader.NextResult())
                         {
                             while (reader.Read())
@@ -168,6 +178,16 @@ namespace DAL
                 string query = "CORE.SP_actualizarOrdenServicio";
                 string json = System.Text.Json.JsonSerializer.Serialize(ordenServicio.ReferenciaJSON);
 
+                if (ordenServicio.FechaInicio == DateTime.MinValue)
+                    ordenServicio.FechaInicio = null;                
+                if (ordenServicio.FechaFinal == DateTime.MinValue)
+                    ordenServicio.FechaFinal = null;
+                if (ordenServicio.FechaEntrega == DateTime.MinValue)
+                    ordenServicio.FechaEntrega = null;
+                if (ordenServicio.FechaEstimadaEntrega == DateTime.MinValue)
+                    ordenServicio.FechaEstimadaEntrega = null;
+
+
 
                 using (SqlCommand sqlcmd = new(query, this.GetObjConexion()))
                 {
@@ -177,7 +197,7 @@ namespace DAL
                     sqlcmd.Parameters.Add("@ID_Cliente", SqlDbType.Int).Value = ordenServicio.ID_Cliente;
                     sqlcmd.Parameters.Add("@ID_Estado", SqlDbType.Int).Value = ordenServicio.Estado.ID_Estado;
                     sqlcmd.Parameters.Add("@FechaEstimadaEntrega", SqlDbType.DateTime).Value = ordenServicio.FechaEstimadaEntrega;
-                    sqlcmd.Parameters.Add("@FechaInicio", SqlDbType.DateTime).Value = ordenServicio.FechaInicio;
+                    sqlcmd.Parameters.Add("@FechaInicio", SqlDbType.DateTime).Value =  ordenServicio.FechaInicio;
                     sqlcmd.Parameters.Add("@FechaFinal", SqlDbType.DateTime).Value = ordenServicio.FechaFinal;
                     sqlcmd.Parameters.Add("@FechaEntrega", SqlDbType.DateTime).Value = ordenServicio.FechaEntrega;
                     sqlcmd.Parameters.Add("@ReferenciaJSON", SqlDbType.NVarChar, -1).Value = json;
@@ -194,9 +214,20 @@ namespace DAL
                     {
                         while (reader.Read())
                         {
-                            respuesta = manejarRespuesta(reader);
+                            ordenServicio.NotaOrdenServicio = UTL_DBHelper.ReadNullSafeString(reader["NotaOrdenConCliente"]);
+                        }
+
+
+                        if (reader.NextResult())
+                        {
+                            while (reader.Read())
+                            {
+                                respuesta = manejarRespuesta(reader);
+                            }
                         }
                     }
+
+                    
 
                     if (respuesta.TipoRespuesta)
                     {

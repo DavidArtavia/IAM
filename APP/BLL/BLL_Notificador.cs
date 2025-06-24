@@ -19,7 +19,7 @@ namespace BLL
             _hubContext = hubContext;
         }
 
-        public async Task EnviarNotificacion(DTO_Usuario usuario, string mensaje)
+        public async Task EnviarNotificacion(DTO_Usuario usuario, object mensaje)
         {
             await _hubContext.Clients.User(usuario.CorreoUsuario).SendAsync("RecibirNotificacion", mensaje);
         }
