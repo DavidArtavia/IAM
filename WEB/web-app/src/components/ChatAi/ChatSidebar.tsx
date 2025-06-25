@@ -58,6 +58,7 @@ export const ChatSidebar = ({ chats, selectedChat, onSelectChat, negocio }: Prop
             <button
               type="button"
               title="Nuevo Chat"
+              disabled={negocio.iD_Negocio === 0}
               onClick={handleNewChat}
               className="btn btn-outline-primary d-flex align-items-center gap-2 shadow-sm"
             >
@@ -88,7 +89,10 @@ export const ChatSidebar = ({ chats, selectedChat, onSelectChat, negocio }: Prop
                       href="#kt_chat_messenger_footer"
                       className="fs-5 fw-bolder text-gray-900 text-hover-primary mb-2"
                     >
-                     Chat #{newChat?.findIndex(c => c.iD_ChatIA === chat.iD_ChatIA) + 1}
+                      Chat #
+                      {newChat?.findIndex(
+                        (c) => c.iD_ChatIA === chat.iD_ChatIA
+                      ) + 1}
                     </a>
                     <div className="fw-bold text-muted">
                       {dateHelpers.formatFechaDDMMYYYY(chat.fechaInicial)}
