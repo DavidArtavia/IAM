@@ -85,14 +85,22 @@ const renderValue = (
   // 3) Objeto
   if (typeof value === "object" && value !== null) {
     if ("nombre" in value) {
-      const nombre = (value as any).nombre;
+      const nombre = String((value as any).nombre).toLowerCase();
 
-      if (nombre === "Activo")
-        return <span className="badge badge-light-success">{nombre}</span>;
-      if (nombre === "Eliminado")
-        return <span className="badge badge-light-primary">{nombre}</span>;
+      const badgeMap: Record<string, string> = {
+        activo: "badge-light-success",
+        nuevo: "badge badge-secondary",
+        "en proceso": "badge-light-primary",
+        "en espera": "badge-light-warning",
+        completado: "badge-light-success",
+        eliminado: "badge-light-danger",
+        inactivo: "badge-light-light",
+        default: "badge badge-dark",
+      };
 
-      return <span className="badge badge-light-info">{nombre}</span>;
+      const badgeClass = badgeMap[nombre] ?? badgeMap.default;
+
+      return <span className={badgeClass}>{(value as any).nombre}</span>;
     }
 
     return (
