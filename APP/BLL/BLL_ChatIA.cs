@@ -180,6 +180,10 @@ namespace BLL
         {
             return dAL_chatIA.obtenerChats(negocio);
         }
+        public async Task<DTO_Respuesta> crearChat(DTO_Negocio negocio)
+        {
+            return await dAL_chatIA.crearChat(negocio);
+        }
 
         public async Task<DTO_Respuesta> cargarContexto(DTO_Usuario usuario)
         {

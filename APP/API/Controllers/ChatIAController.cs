@@ -144,6 +144,26 @@ namespace API.Controllers
 
 
             return respuesta;
+        }     
+
+        [Authorize(Roles = "1")]
+        [Produces("application/json")]
+        [Route("crearChat")]
+        [HttpPost]
+        public async Task<DTO_Respuesta> crearChat([FromBody] DTO_Negocio negocio)
+        {
+            DTO_Respuesta respuesta = new();
+
+            try
+            {
+                respuesta = await _bll_chatIA.crearChat(negocio); // Ensure the method is asynchronous and returns Task<DTO_Respuesta>
+            }
+            catch (Exception ex)
+            {
+                respuesta = manejoError.errorNoControlado(ex);
+            }
+
+            return respuesta;
         }
 
     }

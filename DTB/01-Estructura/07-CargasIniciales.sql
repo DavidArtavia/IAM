@@ -60,7 +60,8 @@ INSERT INTO [UTIL].[TBL_ALERTAS] ([COD_ALERTA], [Nombre], [Mensaje], [Tipo]) VAL
 ('A026', N'Guardar Item Orden De Servicio', N'Item de orden de servicio guardada correctamente','I'),
 ('A027', N'Actualizar Item Orden De Servicio', N'Item de orden de servicio actualizada correctamente','I'),
 ('A028', N'Obtener Item Orden De Servicio', N'Item de orden de servicio obtenidas correctamente','I'),
-('A029', N'MonitorOrdenDeServicio', N'Consulta de datos realizada correctamente', 'I');
+('A029', N'MonitorOrdenDeServicio', N'Consulta de datos realizada correctamente', 'I'),
+('B031', N'Crear Chat', N'Chat IA creado correctamente', 'I');
 
 GO
 

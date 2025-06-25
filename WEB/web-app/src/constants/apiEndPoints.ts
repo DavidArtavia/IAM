@@ -21,6 +21,7 @@ export const API_ENDPOINTS = {
         GET_CHATS:     "/ChatIA/obtenerChats",
         GET_MESSAGES: "/ChatIA/obtenerMensajes",
         SEND_MESSAGE: "/ChatIA/enviarMensaje",
+        CREATE_CHAT: "/ChatIA/crearChat",
     },
     ACCOUNTS_PAYABLE: {
         GET_ACCOUNTS: "/Cuenta/obtenerCuentas",
