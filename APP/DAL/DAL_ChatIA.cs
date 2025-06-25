@@ -10,10 +10,10 @@ using UTL;
 
 namespace DAL
 {
-    public class DAL_ChatIA: DAL_Conexion
+    public class DAL_ChatIA : DAL_Conexion
     {
-        
-            public DTO_Respuesta obtenerChats(DTO_Negocio negocio)
+
+        public DTO_Respuesta obtenerChats(DTO_Negocio negocio)
         {
             DTO_Respuesta respuesta = new DTO_Respuesta();
             List<DTO_ChatIA> listaChats = new List<DTO_ChatIA>();
@@ -23,7 +23,7 @@ namespace DAL
 
                 string query = "CORE.SP_obtenerChats";
 
-                
+
                 using (SqlCommand sqlcmd = new SqlCommand(query, this.GetObjConexion()))
                 {
                     sqlcmd.CommandType = CommandType.StoredProcedure;
@@ -80,5 +80,61 @@ namespace DAL
                 this.Close();
             }
         }
+        public async Task<DTO_Respuesta> crearChat(DTO_Negocio negocio)
+        {
+            DTO_Respuesta respuesta = new();
+            DTO_ChatIA nuevoChat = new(); // Asegúrate de tener este modelo
+
+            try
+            {
+                string query = "CORE.SP_crearChatIA";
+
+                using (SqlCommand sqlcmd = new(query, this.GetObjConexion()))
+                {
+                    sqlcmd.CommandType = CommandType.StoredProcedure;
+                    sqlcmd.Parameters.Add("@ID_Negocio", SqlDbType.Int).Value = negocio.ID_Negocio;
+
+                    foreach (SqlParameter param in sqlcmd.Parameters)
+                        param.Direction = ParameterDirection.Input;
+
+                    this.Open();
+
+                    using (SqlDataReader reader = await sqlcmd.ExecuteReaderAsync())
+                    {
+                        // Primer resultado: datos del chat insertado
+                        if (reader.Read())
+                        {
+                            nuevoChat.ID_ChatIA = UTL_DBHelper.ReadNullSafeInt(reader["ID_ChatIA"]);
+                            nuevoChat.ID_Negocio = UTL_DBHelper.ReadNullSafeInt(reader["ID_Negocio"]);
+                            nuevoChat.Estado.ID_Estado = UTL_DBHelper.ReadNullSafeInt(reader["ID_Estado"]);
+                            nuevoChat.FechaInicial = (DateTime)UTL_DBHelper.ReadNullSafeDateTime(reader["FechaInicial"]);
+                            nuevoChat.FechaFinal = UTL_DBHelper.ReadNullSafeDateTime(reader["FechaFinal"]);
+                        }
+
+                        // Siguiente resultado: alerta
+                        if (await reader.NextResultAsync() && reader.Read())
+                        {
+                            respuesta = manejarRespuesta(reader);
+                        }
+
+                        // Adjuntamos el nuevo chat a Resultado
+                        respuesta.Resultado.Add(nuevoChat);
+                    }
+
+                    return respuesta;
+                }
+            }
+            catch (Exception e)
+            {
+                this.Close();
+                throw e;
+            }
+            finally
+            {
+                this.Close();
+            }
+        }
+
+
     }
 }

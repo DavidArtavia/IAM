@@ -9,9 +9,7 @@ export const ChatAi = () => {
   const [businesses, setBusinesses] = useState<DTO_Negocio[]>([]);
   const [chats, setChats] = useState<DTO_ChatIA[]>([]);
   const [messages, setMessages] = useState<DTO_Mensaje[]>([]);
-  const [selectedBusiness, setSelectedBusiness] = useState<DTO_Negocio | null>(
-    null
-  );
+  const [selectedBusiness, setSelectedBusiness] = useState<DTO_Negocio>( new DTO_Negocio() );
   const [selectedChat, setChat] = useState<DTO_ChatIA | null>(null);
 
   const handleSelectBusiness = (negocio: DTO_Negocio) => {
@@ -96,6 +94,7 @@ export const ChatAi = () => {
             chats={chats}
             selectedChat={selectedChat}
             onSelectChat={handleSelectChat}
+            negocio={selectedBusiness}
           />
         </div>
         <div className="flex-lg-row-fluid ms-lg-7 ms-xl-10 p-2">
