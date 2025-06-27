@@ -8,7 +8,6 @@ import { monitorService, itemsOrdenesService, ordenesService } from "@/services"
 
 
 
-
 export const FechaEntregaBadge = ({
   fechaEntrega,
   fechaCreacion,
@@ -79,6 +78,26 @@ export const Monitor = () => {
   const [selectedBusiness, setSelectedBusiness] = useState<DTO_Negocio | null>(
     null
   );
+  
+
+
+  useEffect(() => {
+    if (items.length === 0) return; 
+try {
+      const popovers = Array.from(
+      document.querySelectorAll<HTMLElement>('[data-bs-toggle="popover"]')
+      //@ts-expect-error se ignora ya que actua directamente sobre los scripts del template
+    ).map(el => new bootstrap.Popover(el));
+
+    return () => popovers.forEach(p => p.dispose());
+} catch (error) {
+  console.log(error);
+  
+}
+
+  }, [items]);
+
+
 
 
   const cambiarEstadoOrdenServicio = (orden: DTO_OrdenServicio, estado: number) => {
@@ -101,11 +120,11 @@ export const Monitor = () => {
   };
 
 
-
-
   // Maneja la selección de un negocio
   const handleSelectBusiness = (neg: DTO_Negocio) => {
     setSelectedBusiness(neg);
+
+    
   };
 
   // Maneja el avance de un item
@@ -451,7 +470,9 @@ export const Monitor = () => {
                         <div className="mb-2" key={item.iD_ItemOrdenServicio} >
                           <div className="form-check form-check-custom form-check-solid">
                             <input className="form-check-input" type="checkbox" value="" id="flexCheckDefault" checked={item.avance == 100} onChange={(e) => handleCheckboxChange(item, e.target.checked)} />
-                            <label className="form-check-label" >{item.nombreItemOrdenServicio}</label>
+
+                            <label  className="form-check-label lbl" tabIndex={0} role="button" data-bs-toggle="popover" data-bs-trigger="focus" title="Descripción"  data-bs-content={item.descripcion || "Sin descripción"}  >{item.nombreItemOrdenServicio}</label>
+                            
                           </div>
                         </div>
                       ))}
@@ -533,7 +554,7 @@ export const Monitor = () => {
                         <div className="mb-2" key={item.iD_ItemOrdenServicio} >
                           <div className="form-check form-check-custom form-check-solid">
                             <input className="form-check-input" type="checkbox" value="" id="flexCheckDefault" checked={item.avance == 100} onChange={(e) => handleCheckboxChange(item, e.target.checked)} />
-                            <label className="form-check-label" >{item.nombreItemOrdenServicio}</label>
+                            <label  className="form-check-label lbl" tabIndex={0} role="button" data-bs-toggle="popover" data-bs-trigger="focus" title="Descripción"  data-bs-content={item.descripcion || "Sin descripción"}  >{item.nombreItemOrdenServicio}</label>
                           </div>
                         </div>
                       ))}
@@ -616,7 +637,7 @@ export const Monitor = () => {
                         <div className="mb-2" key={item.iD_ItemOrdenServicio} >
                           <div className="form-check form-check-custom form-check-solid">
                             <input className="form-check-input" type="checkbox" value="" id="flexCheckDefault" checked={item.avance == 100} onChange={(e) => handleCheckboxChange(item, e.target.checked)} />
-                            <label className="form-check-label" >{item.nombreItemOrdenServicio}</label>
+                            <label  className="form-check-label lbl" tabIndex={0} role="button" data-bs-toggle="popover" data-bs-trigger="focus" title="Descripción"  data-bs-content={item.descripcion || "Sin descripción"}  >{item.nombreItemOrdenServicio}</label>
                           </div>
                         </div>
                       ))}
@@ -693,7 +714,7 @@ export const Monitor = () => {
                         <div className="mb-2" key={item.iD_ItemOrdenServicio} >
                           <div className="form-check form-check-custom form-check-solid">
                             <input className="form-check-input" type="checkbox" value="" id="flexCheckDefault" checked={item.avance == 100} onChange={(e) => handleCheckboxChange(item, e.target.checked)} />
-                            <label className="form-check-label" >{item.nombreItemOrdenServicio}</label>
+                            <label  className="form-check-label lbl" tabIndex={0} role="button" data-bs-toggle="popover" data-bs-trigger="focus" title="Descripción"  data-bs-content={item.descripcion || "Sin descripción"} >{item.nombreItemOrdenServicio}</label>
                           </div>
                         </div>
                       ))}
