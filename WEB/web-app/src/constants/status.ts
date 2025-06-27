@@ -55,12 +55,15 @@ export const FILTER_STATUS = {
     PENDIENTE: 'Pendiente',
     TODOS: 'Todos',
     TODOS_SIN_ELIMINADOS: 'Todos_sin_eliminados',
+    NUEVO: 'Nuevo',
+    EN_PROCESO: 'En Proceso',
+    EN_ESPERA: 'En Espera',
+    COMPLETADO: 'Completado',
 }
 
-
 export const STATUS_ORDEN_SERVICIO_OPTIONS = [
-    { label: 'Nuevo', value: STATUS_TBL.ORDER_SERVICE.NEW},
-    { label: 'En Proceso', value: STATUS_TBL.ORDER_SERVICE.IN_PROCESS},
-    { label: 'En Espera', value: STATUS_TBL.ORDER_SERVICE.PENDING },
-    { label: 'Completado', value: STATUS_TBL.ORDER_SERVICE.COMPLETED },
+    { label: FILTER_STATUS.NUEVO, value: STATUS_TBL.ORDER_SERVICE.NEW },
+    { label: FILTER_STATUS.EN_PROCESO, value: STATUS_TBL.ORDER_SERVICE.IN_PROCESS },
+    { label: FILTER_STATUS.EN_ESPERA, value: STATUS_TBL.ORDER_SERVICE.PENDING },
+    { label: FILTER_STATUS.COMPLETADO, value: STATUS_TBL.ORDER_SERVICE.COMPLETED },
 ];
