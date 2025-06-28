@@ -2,62 +2,21 @@ import { useEffect, useRef, useState } from "react";
 import * as signalR from "@microsoft/signalr";
 import sonidoMonitor from "../../assets/media/audios/Monitor.mp3";
 import { errorHelpers, notificationHelpers } from "@/utils";
-import { BusinessButtons, LoadingPanel } from "@/components";
-import { DTO_ItemOrdenServicio, DTO_Negocio, DTO_OrdenServicio, DTO_Respuesta } from "@/models";
-import { monitorService, itemsOrdenesService, ordenesService } from "@/services";
+import { BusinessButtons, LoadingPanel, OrdenesSeccion } from "@/components";
+import {
+  DTO_ItemOrdenServicio,
+  DTO_Negocio,
+  DTO_OrdenServicio,
+  DTO_Respuesta,
+} from "@/models";
+import {
+  monitorService,
+  itemsOrdenesService,
+  ordenesService,
+} from "@/services";
+import { STATUS_TBL } from "@/constants";
 
-
-
-export const FechaEntregaBadge = ({
-  fechaEntrega,
-  fechaCreacion,
-}: {
-  fechaEntrega: Date | string | null;
-  fechaCreacion: Date | string | null | undefined;
-}) => {
-  /* ────────────────────────────
-   * Validaciones iniciales
-   * ──────────────────────────── */
-  if (!fechaEntrega || !fechaCreacion) return null;
-
-  const fEntrega =
-    typeof fechaEntrega === 'string' ? new Date(fechaEntrega) : fechaEntrega;
-  const fCreacion =
-    typeof fechaCreacion === 'string' ? new Date(fechaCreacion) : fechaCreacion;
-
-  if (isNaN(fEntrega.getTime()) || isNaN(fCreacion.getTime())) return null;
-
-  /* ────────────────────────────
-   * 1 ▸ Porcentaje de progreso
-   * ──────────────────────────── */
-  const totalMs = fEntrega.getTime() - fCreacion.getTime();
-  const transMs = Date.now() - fCreacion.getTime();
-  const pct =
-    totalMs <= 0 ? 1 : Math.min(Math.max(transMs / totalMs, 0), 1); // 0–1
-
-  /* ────────────────────────────
-   * 2 ▸ Selección de clase
-   * ──────────────────────────── */
-  let badgeClass = 'badge badge-light'; // 0–20 %
-  if (pct > 0.6) badgeClass = 'badge badge-light-danger';   // 60–100 %
-  else if (pct > 0.4) badgeClass = 'badge badge-light-warning';  // 40–60 %
-  else if (pct > 0.2) badgeClass = 'badge badge-light-success';  // 20–40 %
-
-  /* ────────────────────────────
-   * 3 ▸ Formateo de fecha
-   * ──────────────────────────── */
-  const opts: Intl.DateTimeFormatOptions = {
-    weekday: 'long',
-    day: 'numeric',
-    month: 'long',
-  };
-  let texto = fEntrega.toLocaleDateString('es-ES', opts).replace(',', '');
-  texto = texto.charAt(0).toUpperCase() + texto.slice(1);
-
-  return <div className={badgeClass}>{texto}</div>;
-};
 export const Monitor = () => {
-
   const [estadoConexion, setEstadoConexion] = useState("Desconectado");
   const connectionRef = useRef<signalR.HubConnection | null>(null);
   const audio = useRef(new Audio(sonidoMonitor));
@@ -68,39 +27,21 @@ export const Monitor = () => {
   const retryTimeoutRef = useRef<number | null>(null);
   const abortedRef = useRef(false);
   const isItemOrdenServicio = (obj: any): obj is DTO_ItemOrdenServicio => {
-    return obj && typeof obj === 'object' && 'iD_ItemOrdenServicio' in obj;
-  }
+    return obj && typeof obj === "object" && "iD_ItemOrdenServicio" in obj;
+  };
 
   const isOrdenServicio = (obj: any): obj is DTO_OrdenServicio => {
-    return obj && typeof obj === 'object' && 'iD_Cliente' in obj;
-  }
+    return obj && typeof obj === "object" && "iD_Cliente" in obj;
+  };
 
   const [selectedBusiness, setSelectedBusiness] = useState<DTO_Negocio | null>(
     null
   );
-  
 
-
-  useEffect(() => {
-    if (items.length === 0) return; 
-try {
-      const popovers = Array.from(
-      document.querySelectorAll<HTMLElement>('[data-bs-toggle="popover"]')
-      //@ts-expect-error se ignora ya que actua directamente sobre los scripts del template
-    ).map(el => new bootstrap.Popover(el));
-
-    return () => popovers.forEach(p => p.dispose());
-} catch (error) {
-  console.log(error);
-  
-}
-
-  }, [items]);
-
-
-
-
-  const cambiarEstadoOrdenServicio = (orden: DTO_OrdenServicio, estado: number) => {
+  const cambiarEstadoOrdenServicio = (
+    orden: DTO_OrdenServicio,
+    estado: number
+  ) => {
     orden.estado.iD_Estado = estado;
     const rawNote = orden.notaOrdenServicio || "";
 
@@ -115,41 +56,33 @@ try {
       },
       error: (err) => errorHelpers.serverError(err),
     });
-
-
   };
-
 
   // Maneja la selección de un negocio
   const handleSelectBusiness = (neg: DTO_Negocio) => {
     setSelectedBusiness(neg);
-
-    
   };
 
   // Maneja el avance de un item
-  const handleCheckboxChange = (item: DTO_ItemOrdenServicio, checked: boolean) => {
-
+  const handleCheckboxChange = (
+    item: DTO_ItemOrdenServicio,
+    checked: boolean
+  ) => {
     if (checked) {
       item.avance = 100;
     } else {
       item.avance = 0;
     }
-    itemsOrdenesService
-      .actualizarItemsOrdensDeServicio(item)
-      .subscribe({
-        next: (res) => {
-          if (!(res as DTO_Respuesta).tipoRespuesta) {
-            notificationHelpers.errorAlert((res as DTO_Respuesta).mensaje);
-          }
-
-        },
-        error: (err) => errorHelpers.serverError(err),
-        complete: () => setLoading(false),
-      });
-
+    itemsOrdenesService.actualizarItemsOrdensDeServicio(item).subscribe({
+      next: (res) => {
+        if (!(res as DTO_Respuesta).tipoRespuesta) {
+          notificationHelpers.errorAlert((res as DTO_Respuesta).mensaje);
+        }
+      },
+      error: (err) => errorHelpers.serverError(err),
+      complete: () => setLoading(false),
+    });
   };
-
 
   //#region websoket
   const getToken = () => localStorage.getItem("accesToken") || "";
@@ -166,16 +99,14 @@ try {
     const limpiarConexion = async () => {
       if (connectionRef.current) {
         connectionRef.current.off("RecibirNotificacion");
-        try { await connectionRef.current.stop(); } catch {
-          console.log('Error limpiando conexión');
-
+        try {
+          await connectionRef.current.stop();
+        } catch {
+          console.log("Error limpiando conexión");
         }
         connectionRef.current = null;
       }
     };
-
-
-
 
     const construirConexion = () =>
       new signalR.HubConnectionBuilder()
@@ -198,8 +129,7 @@ try {
           return true;
         }
       } catch {
-        console.log('error estrayendo el token retornado');
-
+        console.log("error estrayendo el token retornado");
       }
       return false;
     };
@@ -215,7 +145,7 @@ try {
         const renovado = await extraerYRenovarToken(error.message);
         if (renovado && !abortedRef.current) {
           // Pequeño retardo antes de reconectar
-          await new Promise(r => setTimeout(r, 3000));
+          await new Promise((r) => setTimeout(r, 3000));
           return iniciarConexion();
         }
       }
@@ -223,7 +153,7 @@ try {
       // Reintento normal
       if (!abortedRef.current) {
         // Usar retryTimeoutRef.current para almacenar el ID del timeout
-        retryTimeoutRef.current = window.setTimeout(iniciarConexion, 3000);  // `setTimeout` devuelve un número en el navegador
+        retryTimeoutRef.current = window.setTimeout(iniciarConexion, 3000); // `setTimeout` devuelve un número en el navegador
       }
     };
 
@@ -233,9 +163,9 @@ try {
       /* --- qué recibimos --- */
       if (isItemOrdenServicio(msg)) {
         //Aquí entra si es un item de orden de servicio
-        setItems(prev => {
+        setItems((prev) => {
           const idx = prev.findIndex(
-            i => i.iD_ItemOrdenServicio === msg.iD_ItemOrdenServicio
+            (i) => i.iD_ItemOrdenServicio === msg.iD_ItemOrdenServicio
           );
 
           /* —— 1 · Eliminar si el estado es 19 —— */
@@ -246,22 +176,26 @@ try {
 
           /* —— 2 · Insertar o actualizar —— */
           return idx === -1
-            ? [...prev, msg]                                           // insertar
-            : prev.map(i =>                                            // actualizar
-              i.iD_ItemOrdenServicio === msg.iD_ItemOrdenServicio
-                ? { ...i, ...msg }
-                : i
-            );
+            ? [...prev, msg] // insertar
+            : prev.map(
+                (
+                  i // actualizar
+                ) =>
+                  i.iD_ItemOrdenServicio === msg.iD_ItemOrdenServicio
+                    ? { ...i, ...msg }
+                    : i
+              );
         });
 
-        notificationHelpers.infoAlert(`Ítem actualizado: ${msg.nombreItemOrdenServicio} de la Orden # ${msg.iD_OrdenServicio}`);
+        notificationHelpers.infoAlert(
+          `Ítem actualizado: ${msg.nombreItemOrdenServicio} de la Orden # ${msg.iD_OrdenServicio}`
+        );
 
         //Aquí entra si es una orden de servicio
       } else if (isOrdenServicio(msg)) {
-
-        setOrdenes(prev => {
+        setOrdenes((prev) => {
           const idx = prev.findIndex(
-            o => o.iD_OrdenServicio === msg.iD_OrdenServicio
+            (o) => o.iD_OrdenServicio === msg.iD_OrdenServicio
           );
 
           /* —— 1 · Eliminar si el estado es 19 —— */
@@ -272,32 +206,38 @@ try {
 
           /* —— 2 · Insertar o actualizar —— */
           return idx === -1
-            ? [...prev, msg]                               // insertar
-            : prev.map(o =>                                // actualizar
-              o.iD_OrdenServicio === msg.iD_OrdenServicio
-                ? { ...o, ...msg }
-                : o
-            );
+            ? [...prev, msg] // insertar
+            : prev.map(
+                (
+                  o // actualizar
+                ) =>
+                  o.iD_OrdenServicio === msg.iD_OrdenServicio
+                    ? { ...o, ...msg }
+                    : o
+              );
         });
 
-        notificationHelpers.infoAlert(`Orden #${msg.iD_OrdenServicio} modificada`);
+        notificationHelpers.infoAlert(
+          `Orden #${msg.iD_OrdenServicio} modificada`
+        );
       } else {
-        console.warn('Tipo desconocido', msg);
-        notificationHelpers.infoAlert('📢 Nuevo mensaje');
+        console.warn("Tipo desconocido", msg);
+        notificationHelpers.infoAlert("📢 Nuevo mensaje");
       }
 
-
-     /* if (Notification.permission === "granted") {
+      /* if (Notification.permission === "granted") {
         new Notification("📢 Nuevo mensaje", { body: msg, silent: true });
       }
         */
-      audio.current.play().catch(() => { });
+      audio.current.play().catch(() => {});
     };
 
     const handleReconnecting = () => {
       if (abortedRef.current) return;
       setEstadoConexion("Reconectando...");
-      notificationHelpers.infoAlert("Conexión perdida, intentando reconectar...");
+      notificationHelpers.infoAlert(
+        "Conexión perdida, intentando reconectar..."
+      );
     };
 
     const handleReconnected = () => {
@@ -311,7 +251,10 @@ try {
       intentoRef.current = true;
 
       await limpiarConexion();
-      if (abortedRef.current) { intentoRef.current = false; return; }
+      if (abortedRef.current) {
+        intentoRef.current = false;
+        return;
+      }
 
       const token = getToken();
       if (!token) {
@@ -330,7 +273,10 @@ try {
 
       try {
         await connection.start();
-        if (abortedRef.current) { intentoRef.current = false; return; }
+        if (abortedRef.current) {
+          intentoRef.current = false;
+          return;
+        }
         setEstadoConexion("Conectado");
         notificationHelpers.successAlert("Monitor conectado");
       } catch (err: unknown) {
@@ -338,7 +284,7 @@ try {
         const texto = err instanceof Error ? err.message : String(err);
         const renovado = await extraerYRenovarToken(texto);
         if (renovado && !abortedRef.current) {
-          await new Promise(r => setTimeout(r, 500));
+          await new Promise((r) => setTimeout(r, 500));
           intentoRef.current = false;
           return iniciarConexion();
         }
@@ -371,17 +317,17 @@ try {
     if (!selectedBusiness) return;
     setLoading(true);
 
-
     const sub = monitorService
       .cargarMonitorOrdenServicio(selectedBusiness)
       .subscribe({
         next: (res) => {
           setOrdenes(
             ((res as DTO_Respuesta).resultado[0] as DTO_OrdenServicio[]) || []
-          )
+          );
           setItems(
-            ((res as DTO_Respuesta).resultado[1] as DTO_ItemOrdenServicio[]) || []
-          )
+            ((res as DTO_Respuesta).resultado[1] as DTO_ItemOrdenServicio[]) ||
+              []
+          );
         },
         error: (err) => errorHelpers.serverError(err),
         complete: () => setLoading(false),
@@ -392,6 +338,15 @@ try {
 
   //#endregion
 
+  //#region para manejo de cuentas
+
+  const handleCreateCount = (countSelected: DTO_OrdenServicio) => {
+    // Aquí se maneja la logic para el modal de crear cuenta
+    console.log("Crear cuenta para:", countSelected);
+  };
+
+  //#endregion
+  
   return (
     <div>
       <div className="row p-4 gx-0">
@@ -402,588 +357,64 @@ try {
         />
 
         {loading && <LoadingPanel msj="Cargando, por favor espere..." />}
-
       </div>
 
       <div id="kt_content_container" className="container-xxl">
-
-
-
         <div className="d-flex flex-wrap flex-stack pt-10 pb-8">
-
           <h3 className="fw-bolder my-2">
-
-            <span style={{ marginRight: '5px', marginBottom: '-5px' }} className={`badge badge-circle ${(estadoConexion === "Conectado") ? " badge-success" : " badge-danger"}`}> </span>
+            <span
+              style={{ marginRight: "5px", marginBottom: "-5px" }}
+              className={`badge badge-circle ${
+                estadoConexion === "Conectado"
+                  ? " badge-success"
+                  : " badge-danger"
+              }`}
+            ></span>
             Taller Mata
             <span className="fs-6 text-gray-400 fw-bold ms-1">
-
-              {estadoConexion}</span>
+              {estadoConexion}
+            </span>
           </h3>
-
         </div>
-
-
-        <div className="tab-content">
-
-          <div id="kt_project_targets_card_pane" className="tab-pane fade show active">
-
-            <div className="row g-9">
-
-              <div className="col-md-3 col-lg-12 col-xl-3">
-
-                <div className="mb-9">
-                  <div className="d-flex flex-stack">
-                    <div className="fw-bolder fs-4">Nuevo<span className="fs-6 text-gray-400 ms-2"> {ordenes.filter(o => o.estado.iD_Estado === 6).length}</span></div>
-
-                  </div>
-                  <div className="h-3px w-100 bg-secondary"></div>
-                </div>
-
-
-                {ordenes.filter(m => m.estado.iD_Estado == 6).map((m) => (
-
-
-                  <div className="card mb-6 mb-xl-9 flash-blue" key={m.iD_OrdenServicio}>
-                    <div className="card-body">
-                      <div className="d-flex flex-stack mb-3"><div className="text-active-inverse-white bg-active-white active">Entrega:</div>
-
-                        <FechaEntregaBadge
-                          key={m.iD_OrdenServicio}
-                          fechaEntrega={m.fechaEstimadaEntrega}
-                          fechaCreacion={m.fechaOrdenServicio}
-                        />
-
-                        <div>
-
-
-                        </div>
-                      </div>
-                      <div className="mb-2">
-                        <a href="#" className="fs-4 fw-bolder mb-1 text-gray-900 text-hover-primary">Orden #{m.iD_OrdenServicio}</a>
-                      </div>
-                      <div className="fs-6 fw-bold text-gray-600 mb-5">
-                        {m.referenciaJSON
-                          .map(r => r.valor)
-                          .join(', ')}
-                      </div><div className="separator" style={{ marginBottom: '15px' }}></div>
-                      {items.filter(i => i.iD_OrdenServicio == m.iD_OrdenServicio).map((item) => (
-                        <div className="mb-2" key={item.iD_ItemOrdenServicio} >
-                          <div className="form-check form-check-custom form-check-solid">
-                            <input className="form-check-input" type="checkbox" value="" id="flexCheckDefault" checked={item.avance == 100} onChange={(e) => handleCheckboxChange(item, e.target.checked)} />
-
-                            <label  className="form-check-label lbl" tabIndex={0} role="button" data-bs-toggle="popover" data-bs-trigger="focus" title="Descripción"  data-bs-content={item.descripcion || "Sin descripción"}  >{item.nombreItemOrdenServicio}</label>
-                            
-                          </div>
-                        </div>
-                      ))}
-                      <div className="separator" style={{ marginBottom: '15px' }}></div>
-                      <p className="text-gray-700 py-3 fw-bold fw-6">{m.notaOrdenServicio}</p>
-                      <div className="d-flex flex-stack flex-wrapr"><div className="symbol-group symbol-hover" style={{ marginLeft: '0' }}>
-
-                        {m.estado.iD_Estado != 8 ? (
-                          <div className="border border-dashed border-gray-300 rounded py-3 px-3 text-gray-600" onClick={() => cambiarEstadoOrdenServicio(m, 8)}>
-                            <span className="svg-icon svg-icon-3">
-                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-pause-btn-fill" viewBox="0 0 16 16">
-                                <path d="M0 12V4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2m6.25-7C5.56 5 5 5.56 5 6.25v3.5a1.25 1.25 0 1 0 2.5 0v-3.5C7.5 5.56 6.94 5 6.25 5m3.5 0c-.69 0-1.25.56-1.25 1.25v3.5a1.25 1.25 0 1 0 2.5 0v-3.5C11 5.56 10.44 5 9.75 5" />
-                              </svg>
-                            </span>
-                          </div>
-                        ) : (
-                          <div className="border border-dashed border-gray-300 rounded py-3 px-3 text-gray-600" style={{ marginLeft: '5px' }} onClick={() => cambiarEstadoOrdenServicio(m, 7)}>
-                            <span className="svg-icon svg-icon-3">
-                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-play-btn-fill" viewBox="0 0 16 16">
-                                <path d="M0 12V4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2m6.79-6.907A.5.5 0 0 0 6 5.5v5a.5.5 0 0 0 .79.407l3.5-2.5a.5.5 0 0 0 0-.814z" />
-                              </svg>
-                            </span>
-                          </div>
-                        )}
-                      </div>
-
-                        <div className="d-flex my-1" onClick={() => cambiarEstadoOrdenServicio(m, 7)}>
-
-                          <div className="border border-dashed border-gray-300 rounded py-3 px-3 text-gray-600">
-                            <span className="svg-icon svg-icon-3" >
-                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-arrow-right-square-fill" viewBox="0 0 16 16">
-                                <path d="M0 14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H2a2 2 0 0 0-2 2zm4.5-6.5h5.793L8.146 5.354a.5.5 0 1 1 .708-.708l3 3a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708-.708L10.293 8.5H4.5a.5.5 0 0 1 0-1"></path>
-                              </svg>
-                            </span>
-
-                          </div>
-                        </div>
-                      </div>
-
-
-                    </div>
-                  </div>
-
-                ))}
-              </div>
-              <div className="col-md-3 col-lg-12 col-xl-3">
-                <div className="mb-9">
-                  <div className="d-flex flex-stack">
-                    <div className="fw-bolder fs-4">En proceso<span className="fs-6 text-gray-400 ms-2">{ordenes.filter(o => o.estado.iD_Estado === 7).length}</span></div>
-
-                  </div>
-                  <div className="h-3px w-100 bg-primary"></div>
-                </div>
-
-                {ordenes.filter(m => m.estado.iD_Estado == 7).map((m) => (
-
-                  <div className="card mb-6 mb-xl-9 flash-blue" key={m.iD_OrdenServicio}>
-                    <div className="card-body">
-                      <div className="d-flex flex-stack mb-3">
-
-                        <div className="text-active-inverse-white bg-active-white active">Entrega:</div>   <FechaEntregaBadge
-                          key={m.iD_OrdenServicio}
-                          fechaEntrega={m.fechaEstimadaEntrega}
-                          fechaCreacion={m.fechaOrdenServicio}
-                        />
-                        <div>
-
-
-                        </div>
-                      </div>
-                      <div className="mb-2">
-                        <a href="#" className="fs-4 fw-bolder mb-1 text-gray-900 text-hover-primary">Orden #{m.iD_OrdenServicio}</a>
-                      </div>
-                      <div className="fs-6 fw-bold text-gray-600 mb-5">
-                        {m.referenciaJSON
-                          .map(r => r.valor)
-                          .join(', ')}</div><div className="separator" style={{ marginBottom: '15px' }}></div>
-                      {items.filter(i => i.iD_OrdenServicio == m.iD_OrdenServicio).map((item) => (
-                        <div className="mb-2" key={item.iD_ItemOrdenServicio} >
-                          <div className="form-check form-check-custom form-check-solid">
-                            <input className="form-check-input" type="checkbox" value="" id="flexCheckDefault" checked={item.avance == 100} onChange={(e) => handleCheckboxChange(item, e.target.checked)} />
-                            <label  className="form-check-label lbl" tabIndex={0} role="button" data-bs-toggle="popover" data-bs-trigger="focus" title="Descripción"  data-bs-content={item.descripcion || "Sin descripción"}  >{item.nombreItemOrdenServicio}</label>
-                          </div>
-                        </div>
-                      ))}
-                      <div className="separator" style={{ marginBottom: '15px' }}></div>
-                      <p className="text-gray-700 py-3 fw-bold fw-6">{m.notaOrdenServicio}</p>
-                      <div className="d-flex flex-stack flex-wrapr"><div className="symbol-group symbol-hover" style={{ marginLeft: '0' }}>
-
-                        {m.estado.iD_Estado != 8 ? (
-                          <div className="border border-dashed border-gray-300 rounded py-3 px-3 text-gray-600" onClick={() => cambiarEstadoOrdenServicio(m, 8)}>
-                            <span className="svg-icon svg-icon-3">
-                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-pause-btn-fill" viewBox="0 0 16 16">
-                                <path d="M0 12V4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2m6.25-7C5.56 5 5 5.56 5 6.25v3.5a1.25 1.25 0 1 0 2.5 0v-3.5C7.5 5.56 6.94 5 6.25 5m3.5 0c-.69 0-1.25.56-1.25 1.25v3.5a1.25 1.25 0 1 0 2.5 0v-3.5C11 5.56 10.44 5 9.75 5" />
-                              </svg>
-                            </span>
-                          </div>
-                        ) : (
-                          <div className="border border-dashed border-gray-300 rounded py-3 px-3 text-gray-600" style={{ marginLeft: '5px' }} onClick={() => cambiarEstadoOrdenServicio(m, 7)}>
-                            <span className="svg-icon svg-icon-3">
-                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-play-btn-fill" viewBox="0 0 16 16">
-                                <path d="M0 12V4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2m6.79-6.907A.5.5 0 0 0 6 5.5v5a.5.5 0 0 0 .79.407l3.5-2.5a.5.5 0 0 0 0-.814z" />
-                              </svg>
-                            </span>
-                          </div>
-                        )}
-                      </div>
-
-                        <div className="d-flex my-1" onClick={() => cambiarEstadoOrdenServicio(m, 9)} >
-
-                          <div className="border border-dashed border-gray-300 rounded py-3 px-3 text-gray-600">
-                            <span className="svg-icon svg-icon-3" >
-                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-arrow-right-square-fill" viewBox="0 0 16 16">
-                                <path d="M0 14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H2a2 2 0 0 0-2 2zm4.5-6.5h5.793L8.146 5.354a.5.5 0 1 1 .708-.708l3 3a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708-.708L10.293 8.5H4.5a.5.5 0 0 1 0-1"></path>
-                              </svg>
-                            </span>
-
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                  </div>
-                ))}
-              
-
-              </div>
-              <div className="col-md-3 col-lg-12 col-xl-3">
-                <div className="mb-9">
-                  <div className="d-flex flex-stack">
-                    <div className="fw-bolder fs-4">Completado<span className="fs-6 text-gray-400 ms-2">{ordenes.filter(o => o.estado.iD_Estado === 9).length}</span></div>
-
-                  </div>
-                  <div className="h-3px w-100 bg-success"></div>
-                </div>
-
-                {ordenes.filter(m => m.estado.iD_Estado == 9).map((m) => (
-                  <div className="card mb-6 mb-xl-9 flash-blue" key={m.iD_OrdenServicio}>
-                    <div className="card-body">
-                      <div className="d-flex flex-stack mb-3">
-
-                        <div className="text-active-inverse-white bg-active-white active">Entrega:</div>   <FechaEntregaBadge
-                          key={m.iD_OrdenServicio}
-                          fechaEntrega={m.fechaEstimadaEntrega}
-                          fechaCreacion={m.fechaOrdenServicio} />
-
-
-                        <div>
-     
-
-                        </div>
-                      </div>
-                      <div className="mb-2">
-                        <a href="#" className="fs-4 fw-bolder mb-1 text-gray-900 text-hover-primary">Orden #{m.iD_OrdenServicio}</a>
-                      </div>
-                      <div className="fs-6 fw-bold text-gray-600 mb-5">
-                        {m.referenciaJSON
-                          .map(r => r.valor)
-                          .join(', ')}</div><div className="separator" style={{ marginBottom: '15px' }}></div>
-
-                      {items.filter(i => i.iD_OrdenServicio == m.iD_OrdenServicio).map((item) => (
-                        <div className="mb-2" key={item.iD_ItemOrdenServicio} >
-                          <div className="form-check form-check-custom form-check-solid">
-                            <input className="form-check-input" type="checkbox" value="" id="flexCheckDefault" checked={item.avance == 100} onChange={(e) => handleCheckboxChange(item, e.target.checked)} />
-                            <label  className="form-check-label lbl" tabIndex={0} role="button" data-bs-toggle="popover" data-bs-trigger="focus" title="Descripción"  data-bs-content={item.descripcion || "Sin descripción"}  >{item.nombreItemOrdenServicio}</label>
-                          </div>
-                        </div>
-                      ))}
-                      <div className="separator" style={{ marginBottom: '15px' }}></div>
-                      <p className="text-gray-700 py-3 fw-bold fw-6">{m.notaOrdenServicio}</p>
-                      <div className="d-flex flex-stack flex-wrapr"><div className="symbol-group symbol-hover" style={{ marginLeft: '0' }} >
-
-                        {m.estado.iD_Estado != 8 ? (
-                          <div className="border border-dashed border-gray-300 rounded py-3 px-3 text-gray-600" onClick={() => cambiarEstadoOrdenServicio(m, 8)}>
-                            <span className="svg-icon svg-icon-3">
-                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-pause-btn-fill" viewBox="0 0 16 16">
-                                <path d="M0 12V4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2m6.25-7C5.56 5 5 5.56 5 6.25v3.5a1.25 1.25 0 1 0 2.5 0v-3.5C7.5 5.56 6.94 5 6.25 5m3.5 0c-.69 0-1.25.56-1.25 1.25v3.5a1.25 1.25 0 1 0 2.5 0v-3.5C11 5.56 10.44 5 9.75 5" />
-                              </svg>
-                            </span>
-                          </div>
-                        ) : (
-                          <div className="border border-dashed border-gray-300 rounded py-3 px-3 text-gray-600" style={{ marginLeft: '5px' }} onClick={() => cambiarEstadoOrdenServicio(m, 7)}>
-                            <span className="svg-icon svg-icon-3">
-                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-play-btn-fill" viewBox="0 0 16 16">
-                                <path d="M0 12V4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2m6.79-6.907A.5.5 0 0 0 6 5.5v5a.5.5 0 0 0 .79.407l3.5-2.5a.5.5 0 0 0 0-.814z" />
-                              </svg>
-                            </span>
-                          </div>
-                        )}
-                      </div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-
-              </div>
-              <div className="col-md-3 col-lg-12 col-xl-3">
-                <div className="mb-9">
-                  <div className="d-flex flex-stack">
-                    <div className="fw-bolder fs-4">En Espera<span className="fs-6 text-gray-400 ms-2">{ordenes.filter(o => o.estado.iD_Estado === 8).length}</span></div>
-
-                  </div>
-                  <div className="h-3px w-100 bg-warning"></div>
-                </div>
-                {ordenes.filter(m => m.estado.iD_Estado == 8).map((m) => (
-                  <div className="card mb-6 mb-xl-9 flash-blue" key={m.iD_OrdenServicio}>
-                    <div className="card-body">
-                      <div className="d-flex flex-stack mb-3">
-
-                        <div className="text-active-inverse-white bg-active-white active">Entrega:</div>   <FechaEntregaBadge
-                          key={m.iD_OrdenServicio}
-                          fechaEntrega={m.fechaEstimadaEntrega}
-                          fechaCreacion={m.fechaOrdenServicio} />
-                        <div>
-                          {/* <button type="button" className="btn btn-sm btn-icon btn-color-light-dark btn-active-light-primary" data-kt-menu-trigger="click" data-kt-menu-placement="bottom-end" data-kt-menu-flip="top-end">
-                            <span className="svg-icon svg-icon-2">
-                              <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" viewBox="0 0 24 24">
-                                <g stroke="none" strokeWidth="1" fill="none" fillRule="evenodd">
-                                  <rect x="5" y="5" width="5" height="5" rx="1" fill="#000000" />
-                                  <rect x="14" y="5" width="5" height="5" rx="1" fill="#000000" opacity="0.3" />
-                                  <rect x="5" y="14" width="5" height="5" rx="1" fill="#000000" opacity="0.3" />
-                                  <rect x="14" y="14" width="5" height="5" rx="1" fill="#000000" opacity="0.3" />
-                                </g>
-                              </svg>
-
-                            </span>
-                          </button> */}
-
-                        </div>
-                      </div>
-                      <div className="mb-2">
-                        <a href="#" className="fs-4 fw-bolder mb-1 text-gray-900 text-hover-primary">Orden #{m.iD_OrdenServicio}</a>
-                      </div>
-                      <div className="fs-6 fw-bold text-gray-600 mb-5">
-                        {m.referenciaJSON
-                          .map(r => r.valor)
-                          .join(', ')}</div><div className="separator" style={{ marginBottom: '15px' }}></div>
-                      {items.filter(i => i.iD_OrdenServicio == m.iD_OrdenServicio).map((item) => (
-                        <div className="mb-2" key={item.iD_ItemOrdenServicio} >
-                          <div className="form-check form-check-custom form-check-solid">
-                            <input className="form-check-input" type="checkbox" value="" id="flexCheckDefault" checked={item.avance == 100} onChange={(e) => handleCheckboxChange(item, e.target.checked)} />
-                            <label  className="form-check-label lbl" tabIndex={0} role="button" data-bs-toggle="popover" data-bs-trigger="focus" title="Descripción"  data-bs-content={item.descripcion || "Sin descripción"} >{item.nombreItemOrdenServicio}</label>
-                          </div>
-                        </div>
-                      ))}
-                      <div className="separator" style={{ marginBottom: '15px' }}></div>
-                      <p className="text-gray-700 py-3 fw-bold fw-6">{m.notaOrdenServicio}</p>
-                      <div className="d-flex flex-stack flex-wrapr"><div className="symbol-group symbol-hover" style={{ marginLeft: '0' }}>
-
-                        {m.estado.iD_Estado != 8 ? (
-                          <div className="border border-dashed border-gray-300 rounded py-3 px-3 text-gray-600" onClick={() => cambiarEstadoOrdenServicio(m, 8)}>
-                            <span className="svg-icon svg-icon-3">
-                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-pause-btn-fill" viewBox="0 0 16 16">
-                                <path d="M0 12V4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2m6.25-7C5.56 5 5 5.56 5 6.25v3.5a1.25 1.25 0 1 0 2.5 0v-3.5C7.5 5.56 6.94 5 6.25 5m3.5 0c-.69 0-1.25.56-1.25 1.25v3.5a1.25 1.25 0 1 0 2.5 0v-3.5C11 5.56 10.44 5 9.75 5" />
-                              </svg>
-                            </span>
-                          </div>
-                        ) : (
-                          <div className="border border-dashed border-gray-300 rounded py-3 px-3 text-gray-600" onClick={() => cambiarEstadoOrdenServicio(m, 7)}>
-                            <span className="svg-icon svg-icon-3">
-                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-play-btn-fill" viewBox="0 0 16 16">
-                                <path d="M0 12V4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2m6.79-6.907A.5.5 0 0 0 6 5.5v5a.5.5 0 0 0 .79.407l3.5-2.5a.5.5 0 0 0 0-.814z" />
-                              </svg>
-                            </span>
-                          </div>
-                        )}
-                      </div>
-
-                      </div>
-                    </div>
-                  </div>
-                ))}
-
-
-              </div>
-            </div>
-          </div>
-          <div id="kt_project_targets_table_pane" className="tab-pane fade">
-            <div className="card card-flush">
-              <div className="card-body pt-3">
-                <div id="kt_profile_overview_table_wrapper" className="dataTables_wrapper dt-bootstrap4 no-footer"><div className="table-responsive"><table id="kt_profile_overview_table" className="table table-row-bordered table-row-dashed gy-4 align-middle fw-bolder dataTable no-footer" role="grid">
-                  <thead className="fs-7 text-gray-400 text-uppercase">
-                    <tr role="row"><th className="min-w-250px sorting" aria-controls="kt_profile_overview_table" rowSpan={1} colSpan={1} aria-label="Target: activate to sort column ascending" style={{ width: "0px" }}>Target</th><th className="min-w-90px sorting" aria-controls="kt_profile_overview_table" rowSpan={1} colSpan={1} aria-label="Section: activate to sort column ascending" style={{ width: "0px" }}>Section</th><th className="min-w-150px sorting" aria-controls="kt_profile_overview_table" rowSpan={1} colSpan={1} aria-label="Due Date: activate to sort column ascending" style={{ width: "0px" }}>Due Date</th><th className="min-w-90px sorting" aria-controls="kt_profile_overview_table" rowSpan={1} colSpan={1} aria-label="Members: activate to sort column ascending" style={{ width: "0px" }}>Members</th><th className="min-w-90px sorting" aria-controls="kt_profile_overview_table" rowSpan={1} colSpan={1} aria-label="Status: activate to sort column ascending" style={{ width: "0px" }}>Status</th><th className="min-w-50px sorting" aria-controls="kt_profile_overview_table" rowSpan={1} colSpan={1} aria-label=": activate to sort column ascending" style={{ width: "0px" }}></th></tr>
-                  </thead>
-                  <tbody className="fs-6">
-
-
-
-
-
-
-
-
-
-                    <tr className="odd">
-                      <td className="fw-bolder">
-                        <a href="#" className="text-gray-900 text-hover-primary">Meeting with customer</a>
-                      </td>
-                      <td data-order="Invalid date">
-                        <span className="badge badge-light fw-bold me-auto">UI Design</span>
-                      </td>
-                      <td>Aug 14, 2020</td>
-                      <td>
-                        <div className="symbol-group symbol-hover fs-8">
-                          <div className="symbol symbol-25px symbol-circle" data-bs-toggle="tooltip" title="" data-bs-original-title="Melody Macy">
-                            <img alt="Pic" src="assets/media/avatars/150-3.jpg" />
-                          </div>
-                          <div className="symbol symbol-25px symbol-circle" data-bs-toggle="tooltip" title="" data-bs-original-title="John Mixin">
-                            <img alt="Pic" src="assets/media/avatars/150-11.jpg" />
-                          </div>
-                          <div className="symbol symbol-25px symbol-circle" data-bs-toggle="tooltip" title="" data-bs-original-title="Susan Redwood">
-                            <span className="symbol-label bg-primary text-inverse-primary fw-bolder">S</span>
-                          </div>
-                        </div>
-                      </td>
-                      <td>
-                        <span className="badge badge-light-primary fw-bolder me-auto">In Progress</span>
-                      </td>
-                      <td className="text-end">
-                        <a href="#" className="btn btn-bg-light btn-active-color-primary btn-sm">View</a>
-                      </td>
-                    </tr><tr className="even">
-                      <td className="fw-bolder">
-                        <a href="#" className="text-gray-900 text-hover-primary">User Module Testing</a>
-                      </td>
-                      <td data-order="Invalid date">
-                        <span className="badge badge-light fw-bold me-auto">Phase 2.6 QA</span>
-                      </td>
-                      <td>Mar 24, 2020</td>
-                      <td>
-                        <div className="symbol-group symbol-hover fs-8">
-                          <div className="symbol symbol-25px symbol-circle" data-bs-toggle="tooltip" title="" data-bs-original-title="Alan Warden">
-                            <span className="symbol-label bg-warning text-inverse-warning fw-bolder">A</span>
-                          </div>
-                          <div className="symbol symbol-25px symbol-circle" data-bs-toggle="tooltip" title="" data-bs-original-title="Robin Watterman">
-                            <span className="symbol-label bg-success text-inverse-success fw-bolder">R</span>
-                          </div>
-                        </div>
-                      </td>
-                      <td>
-                        <span className="badge badge-light-success fw-bolder me-auto">Completed</span>
-                      </td>
-                      <td className="text-end">
-                        <a href="#" className="btn btn-bg-light btn-active-color-primary btn-sm">View</a>
-                      </td>
-                    </tr><tr className="odd">
-                      <td className="fw-bolder">
-                        <a href="#" className="text-gray-900 text-hover-primary">Sales report page</a>
-                      </td>
-                      <td data-order="Invalid date">
-                        <span className="badge badge-light fw-bold me-auto">QA</span>
-                      </td>
-                      <td>Feb 20, 2020</td>
-                      <td>
-                        <div className="symbol-group symbol-hover fs-8">
-                          <div className="symbol symbol-25px symbol-circle" data-bs-toggle="tooltip" title="" data-bs-original-title="Melody Macy">
-                            <img alt="Pic" src="assets/media/avatars/150-3.jpg" />
-                          </div>
-                          <div className="symbol symbol-25px symbol-circle" data-bs-toggle="tooltip" title="" data-bs-original-title="Kristen Goodwin">
-                            <img alt="Pic" src="assets/media/avatars/150-8.jpg" />
-                          </div>
-                          <div className="symbol symbol-25px symbol-circle" data-bs-toggle="tooltip" title="" data-bs-original-title="Mikaela Collins">
-                            <span className="symbol-label bg-info text-inverse-info fw-bolder">M</span>
-                          </div>
-                        </div>
-                      </td>
-                      <td>
-                        <span className="badge badge-light fw-bolder me-auto">Yet to start</span>
-                      </td>
-                      <td className="text-end">
-                        <a href="#" className="btn btn-bg-light btn-active-color-primary btn-sm">View</a>
-                      </td>
-                    </tr><tr className="even">
-                      <td className="fw-bolder">
-                        <a href="#" className="text-gray-900 text-hover-primary">Meeting with customer</a>
-                      </td>
-                      <td data-order="Invalid date">
-                        <span className="badge badge-light fw-bold me-auto">Prototype</span>
-                      </td>
-                      <td>Nov 15, 2020</td>
-                      <td>
-                        <div className="symbol-group symbol-hover fs-8">
-                          <div className="symbol symbol-25px symbol-circle" data-bs-toggle="tooltip" title="" data-bs-original-title="Robin Watterman">
-                            <span className="symbol-label bg-success text-inverse-success fw-bolder">R</span>
-                          </div>
-                          <div className="symbol symbol-25px symbol-circle" data-bs-toggle="tooltip" title="" data-bs-original-title="Brian Cox">
-                            <img alt="Pic" src="assets/media/avatars/150-4.jpg" />
-                          </div>
-                        </div>
-                      </td>
-                      <td>
-                        <span className="badge badge-light-success fw-bolder me-auto">Completed</span>
-                      </td>
-                      <td className="text-end">
-                        <a href="#" className="btn btn-bg-light btn-active-color-primary btn-sm">View</a>
-                      </td>
-                    </tr><tr className="odd">
-                      <td className="fw-bolder">
-                        <a href="#" className="text-gray-900 text-hover-primary">Design main Dashboard</a>
-                      </td>
-                      <td data-order="Invalid date">
-                        <span className="badge badge-light fw-bold me-auto">UI Design</span>
-                      </td>
-                      <td>Dec 2, 2020</td>
-                      <td>
-                        <div className="symbol-group symbol-hover fs-8">
-                          <div className="symbol symbol-25px symbol-circle" data-bs-toggle="tooltip" title="" data-bs-original-title="Melody Macy">
-                            <img alt="Pic" src="assets/media/avatars/150-3.jpg" />
-                          </div>
-                          <div className="symbol symbol-25px symbol-circle" data-bs-toggle="tooltip" title="" data-bs-original-title="Emma Smith">
-                            <img alt="Pic" src="assets/media/avatars/150-1.jpg" />
-                          </div>
-                          <div className="symbol symbol-25px symbol-circle" data-bs-toggle="tooltip" title="" data-bs-original-title="Lucy Matthews">
-                            <img alt="Pic" src="assets/media/avatars/150-10.jpg" />
-                          </div>
-                        </div>
-                      </td>
-                      <td>
-                        <span className="badge badge-light-success fw-bolder me-auto">Completed</span>
-                      </td>
-                      <td className="text-end">
-                        <a href="#" className="btn btn-bg-light btn-active-color-primary btn-sm">View</a>
-                      </td>
-                    </tr><tr className="even">
-                      <td className="fw-bolder">
-                        <a href="#" className="text-gray-900 text-hover-primary">User Module Testing</a>
-                      </td>
-                      <td data-order="Invalid date">
-                        <span className="badge badge-light fw-bold me-auto">Development</span>
-                      </td>
-                      <td>Oct 18, 2020</td>
-                      <td>
-                        <div className="symbol-group symbol-hover fs-8">
-                          <div className="symbol symbol-25px symbol-circle" data-bs-toggle="tooltip" title="" data-bs-original-title="Francis Mitcham">
-                            <img alt="Pic" src="assets/media/avatars/150-5.jpg" />
-                          </div>
-                          <div className="symbol symbol-25px symbol-circle" data-bs-toggle="tooltip" title="" data-bs-original-title="Deanna Taylor">
-                            <img alt="Pic" src="assets/media/avatars/150-6.jpg" />
-                          </div>
-                          <div className="symbol symbol-25px symbol-circle" data-bs-toggle="tooltip" title="" data-bs-original-title="Mikaela Collins">
-                            <span className="symbol-label bg-info text-inverse-info fw-bolder">M</span>
-                          </div>
-                        </div>
-                      </td>
-                      <td>
-                        <span className="badge badge-light-primary fw-bolder me-auto">In Progress</span>
-                      </td>
-                      <td className="text-end">
-                        <a href="#" className="btn btn-bg-light btn-active-color-primary btn-sm">View</a>
-                      </td>
-                    </tr><tr className="odd">
-                      <td className="fw-bolder">
-                        <a href="#" className="text-gray-900 text-hover-primary">To check User Management</a>
-                      </td>
-                      <td data-order="Invalid date">
-                        <span className="badge badge-light fw-bold me-auto">Pahse 3.2</span>
-                      </td>
-                      <td>Oct 17, 2020</td>
-                      <td>
-                        <div className="symbol-group symbol-hover fs-8">
-                          <div className="symbol symbol-25px symbol-circle" data-bs-toggle="tooltip" title="" data-bs-original-title="Lucy Matthews">
-                            <img alt="Pic" src="assets/media/avatars/150-10.jpg" />
-                          </div>
-                          <div className="symbol symbol-25px symbol-circle" data-bs-toggle="tooltip" title="" data-bs-original-title="Kristen Goodwin">
-                            <img alt="Pic" src="assets/media/avatars/150-8.jpg" />
-                          </div>
-                          <div className="symbol symbol-25px symbol-circle" data-bs-toggle="tooltip" title="" data-bs-original-title="Michelle Swanston">
-                            <img alt="Pic" src="assets/media/avatars/150-13.jpg" />
-                          </div>
-                        </div>
-                      </td>
-                      <td>
-                        <span className="badge badge-light fw-bolder me-auto">Yet to start</span>
-                      </td>
-                      <td className="text-end">
-                        <a href="#" className="btn btn-bg-light btn-active-color-primary btn-sm">View</a>
-                      </td>
-                    </tr><tr className="even">
-                      <td className="fw-bolder">
-                        <a href="#" className="text-gray-900 text-hover-primary">Create Roles Module</a>
-                      </td>
-                      <td data-order="Invalid date">
-                        <span className="badge badge-light fw-bold me-auto">Branding</span>
-                      </td>
-                      <td>Jun 16, 2020</td>
-                      <td>
-                        <div className="symbol-group symbol-hover fs-8">
-                          <div className="symbol symbol-25px symbol-circle" data-bs-toggle="tooltip" title="" data-bs-original-title="Michelle Swanston">
-                            <img alt="Pic" src="assets/media/avatars/150-13.jpg" />
-                          </div>
-                          <div className="symbol symbol-25px symbol-circle" data-bs-toggle="tooltip" title="" data-bs-original-title="Robin Watterman">
-                            <span className="symbol-label bg-success text-inverse-success fw-bolder">R</span>
-                          </div>
-                          <div className="symbol symbol-25px symbol-circle" data-bs-toggle="tooltip" title="" data-bs-original-title="Alan Warden">
-                            <span className="symbol-label bg-warning text-inverse-warning fw-bolder">A</span>
-                          </div>
-                        </div>
-                      </td>
-                      <td>
-                        <span className="badge badge-light fw-bolder me-auto">Yet to start</span>
-                      </td>
-                      <td className="text-end">
-                        <a href="#" className="btn btn-bg-light btn-active-color-primary btn-sm">View</a>
-                      </td>
-                    </tr></tbody>
-                </table></div><div className="row"><div className="col-sm-12 col-md-5 d-flex align-items-center justify-content-center justify-content-md-start"></div><div className="col-sm-12 col-md-7 d-flex align-items-center justify-content-center justify-content-md-end"></div></div></div>
-              </div>
-            </div>
-          </div>
+        <div className="row g-9">
+          <OrdenesSeccion
+            titulo="Nuevo"
+            colorBarra="bg-secondary"
+            estado={STATUS_TBL.ORDER_SERVICE.NEW}
+            ordenes={ordenes}
+            items={items}
+            onAvanceChange={handleCheckboxChange}
+            onEstadoChange={cambiarEstadoOrdenServicio}
+          />
+          <OrdenesSeccion
+            titulo="En proceso"
+            colorBarra="bg-primary"
+            estado={STATUS_TBL.ORDER_SERVICE.IN_PROCESS}
+            ordenes={ordenes}
+            items={items}
+            onAvanceChange={handleCheckboxChange}
+            onEstadoChange={cambiarEstadoOrdenServicio}
+          />
+          <OrdenesSeccion
+            titulo="Completado"
+            colorBarra="bg-success"
+            estado={STATUS_TBL.ORDER_SERVICE.COMPLETED}
+            ordenes={ordenes}
+            items={items}
+            onAvanceChange={handleCheckboxChange}
+            onEstadoChange={cambiarEstadoOrdenServicio}
+            onClickCreateCount={handleCreateCount}
+          />
+          <OrdenesSeccion
+            titulo="En espera"
+            colorBarra="bg-warning"
+            estado={STATUS_TBL.ORDER_SERVICE.PENDING}
+            ordenes={ordenes}
+            items={items}
+            onAvanceChange={handleCheckboxChange}
+            onEstadoChange={cambiarEstadoOrdenServicio}
+          />
         </div>
-
       </div>
     </div>
   );

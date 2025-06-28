@@ -1,5 +1,5 @@
 import { FieldConfig } from "@/components/Modals/GenericFormModal/types";
-import { DTO_Cliente, DTO_CuentasPorPagar, DTO_ItemOrdenServicio, DTO_Negocio, DTO_OrdenServicio } from "@/models";
+import { DTO_Cliente, DTO_CuentasPorPagar, DTO_ItemOrdenServicio, DTO_Negocio, DTO_OrdenServicio, DTO_Transacciones } from "@/models";
 
 //#region columnas de tablas
 
@@ -46,6 +46,18 @@ export const columnKeysItemsOrdenServicio: (keyof DTO_ItemOrdenServicio)[] = [
     "monto",
 ];
 
+export const columnKeysTransacciones: (keyof DTO_Transacciones)[] = [
+    "iD_Transaccion",
+    "iD_Negocio",
+    "fechaTransaccion",
+    "concepto",
+    "monto",
+    "tipo",
+    "tipoNumReferencia",
+    "numReferencia",
+    
+];
+  
 //#endregion
 
 //#region modal para visualizar detalles de objetos
@@ -106,6 +118,18 @@ export const keysInfoModalItemsOrdenServicio: (keyof DTO_ItemOrdenServicio)[] = 
     "estado",
 ];
 
+export const keysInfoModalTransacciones: (keyof DTO_Transacciones)[] = [
+    "iD_Transaccion",
+    "iD_Negocio",
+    "fechaTransaccion",
+    "concepto",
+    "monto",
+    "tipo",
+    "tipoNumReferencia",
+    "numReferencia",
+    "estado"
+];
+  
 //#endregion
 
 //#region tablas
@@ -168,6 +192,18 @@ export const labelMapItemsOrdenServicio: Record<string, string> = {
     estado: "Estado",
 };
 
+export const labelMapTransacciones: Record<string, string> = {
+    iD_Transaccion: "Transacción #",
+    iD_Negocio: "Negocio #",
+    fechaTransaccion: "Fecha",
+    concepto: "Concepto",
+    monto: "Monto",
+    tipo: "Tipo",
+    tipoNumReferencia: "Tipo Referencia",
+    numReferencia: "N° Referencia",
+    estado: "Estado",
+};
+  
 //#endregion
 
 //#region campos a mostrar para el form de editar
@@ -246,6 +282,20 @@ export const ordenServicioFormEditFields: Array<
                 return config;
             }),
     ];
+export const transaccionesFormFields: FieldConfig<DTO_Transacciones>[] = [
+    { key: "concepto", label: "Concepto", type: "text", required: true },
+    { key: "monto", label: "Monto", type: "number", required: true },
+    {
+        key: "tipo", label: "Tipo", type: "select", required: true, options: [
+            { label: "Ingreso", value: "Ingreso" },
+            { label: "Gasto", value: "Gasto" },
+        ]
+    },
+    { key: "tipoNumReferencia", label: "Tipo Referencia", type: "text", required: false },
+    { key: "numReferencia", label: "N° Referencia", type: "text", required: false },
+    { key: "fechaTransaccion", label: "Fecha", type: "date", required: true },
+];
+
 //#endregion
 
 

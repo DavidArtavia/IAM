@@ -61,7 +61,10 @@ INSERT INTO [UTIL].[TBL_ALERTAS] ([COD_ALERTA], [Nombre], [Mensaje], [Tipo]) VAL
 ('A027', N'Actualizar Item Orden De Servicio', N'Item de orden de servicio actualizada correctamente','I'),
 ('A028', N'Obtener Item Orden De Servicio', N'Item de orden de servicio obtenidas correctamente','I'),
 ('A029', N'MonitorOrdenDeServicio', N'Consulta de datos realizada correctamente', 'I'),
-('B031', N'Crear Chat', N'Chat IA creado correctamente', 'I');
+('B031', N'Crear Chat', N'Chat IA creado correctamente', 'I'),
+('B032', N'Registrar Transacción', N'La transacción fue registrada correctamente.', 'I'),
+('B033', N'Obtener Transacciones', N'Transacciones cargadas correctamente.', 'I'),
+('B034', N'Actualizar Transacción', N'Transacción actualizada correctamente.', 'I');
 
 GO
 
@@ -153,11 +156,9 @@ INSERT INTO [UTIL].[TBL_ESTADOS] ([ID_Estado], [Nombre], [Tabla]) VALUES
 (16, 'Activo', 'TBL_CLIENTES'),
 (17, 'Eliminado', 'TBL_CLIENTES'),
 (18, 'Activo', 'TBL_ITEMS_ORDEN_SERVICIO'),
-(19, 'Eliminado', 'TBL_ITEMS_ORDEN_SERVICIO');
-
-
-
-
+(19, 'Eliminado', 'TBL_ITEMS_ORDEN_SERVICIO'),
+(20, 'Activo', 'TBL_TRANSACCIONES'),
+(21, 'Eliminado', 'TBL_TRANSACCIONES');
 
 -- USE [IAMDB] <- no es funcinal xq cambio la tabla 
 -- GO

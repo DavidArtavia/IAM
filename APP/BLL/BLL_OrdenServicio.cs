@@ -47,7 +47,7 @@ namespace BLL
             if (!respuesta.TipoRespuesta)
                 throw new Exception(respuesta.Mensaje);
             return respuesta;
-        } 
+        }
         public DTO_Respuesta obtenerOrdenDeServicio(DTO_Negocio negocio)
         {
             respuesta = dal_OrdenServicio.obtenerOrdenDeServicio(negocio);

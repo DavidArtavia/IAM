@@ -6,3 +6,4 @@ export * from "./Cuentas/Cuentas";
 export * from "./Monitor/Monitor";
 export * from "./Clientes/Clientes";
 export * from "./OrdenDeServicio/OrdenDeServicio";
+export * from "./Transacciones/Transacciones";
