@@ -341,10 +341,12 @@ export const Monitor = () => {
   //#region para manejo de cuentas
 
   const handleCreateCount = (countSelected: DTO_OrdenServicio) => {
-    // Aquí puedes manejar la lógica para crear una cuenta
+    // Aquí se maneja la logic para el modal de crear cuenta
     console.log("Crear cuenta para:", countSelected);
   };
+
   //#endregion
+  
   return (
     <div>
       <div className="row p-4 gx-0">

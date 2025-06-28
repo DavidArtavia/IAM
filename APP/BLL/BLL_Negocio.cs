@@ -19,7 +19,7 @@ namespace BLL
         public Task<DTO_Respuesta> registrarNegocio(DTO_Negocio negocio)
         {
             return dal_negocio.registrarNegocio(negocio);
-        } 
+        }
         public Task<DTO_Respuesta> actualizarNegocio(DTO_Negocio negocio)
         {
             return dal_negocio.actualizarNegocio(negocio);

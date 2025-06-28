@@ -45,7 +45,14 @@ export const STATUS_TBL = {
         IN_PROCESS: 0,
         PENDING: 0,
         COMPLETED: 0,
-    }
+    },
+    TRANSACTION: {
+        ACTIVE: 20,
+        INACTIVE: 0,
+        DELETED: 21,
+        PENDING: 0,
+        COMPLETED: 0,
+    },
 }
 
 export const FILTER_STATUS = {

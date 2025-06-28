@@ -88,22 +88,22 @@ export const OrdenServicioCard = ({
           <div className="mb-2" key={item.iD_ItemOrdenServicio}>
             <div className="form-check form-check-custom form-check-solid">
               <input
-              className="form-check-input"
-              type="checkbox"
-              checked={item.avance === 100}
-              onChange={(e) => onAvanceChange(item, e.target.checked)}
-              id={`flexCheckDefault-${item.iD_ItemOrdenServicio}`}
+                className="form-check-input"
+                type="checkbox"
+                checked={item.avance === 100}
+                onChange={(e) => onAvanceChange(item, e.target.checked)}
+                id={`flexCheckDefault-${item.iD_ItemOrdenServicio}`}
               />
               <span
-              className="form-check-label lbl"
-              tabIndex={0}
-              role="button"
-              data-bs-toggle="popover"
-              data-bs-trigger="focus"
-              title="Descripción"
-              data-bs-content={item.descripcion || "Sin descripción"}           
+                className="form-check-label lbl"
+                tabIndex={0}
+                role="button"
+                data-bs-toggle="popover"
+                data-bs-trigger="focus"
+                title="Descripción"
+                data-bs-content={item.descripcion || "Sin descripción"}
               >
-              {item.nombreItemOrdenServicio}
+                {item.nombreItemOrdenServicio}
               </span>
             </div>
           </div>
@@ -119,8 +119,14 @@ export const OrdenServicioCard = ({
               estadoActual === STATUS_TBL.ORDER_SERVICE.IN_PROCESS ||
               estadoActual === STATUS_TBL.ORDER_SERVICE.COMPLETED) && (
               <div
+                style={{ cursor: "pointer" }}
                 className="border border-dashed border-gray-300 rounded py-3 px-3 text-gray-600"
                 onClick={handleToggle}
+                title={
+                  getToggleIcon() === "bi-pause-btn-fill"
+                    ? "Colocar En espera"
+                    : "Colocar En proceso"
+                }
               >
                 <i className={`bi ${getToggleIcon()}`} />
               </div>
@@ -129,8 +135,12 @@ export const OrdenServicioCard = ({
             {/* Botón que aparece solo cuando el estado es COMPLETED */}
             {estadoActual === STATUS_TBL.ORDER_SERVICE.COMPLETED && (
               <button
-                className="border border-dashed border-gray-300 rounded py-2 px-3 text-gray-600 hover:bg-gray-200"
-                onClick={() => { if (onClickCreateCount) { onClickCreateCount(orden); } }}
+                className="btn btn-sm btn-light border border-dashed border-gray-300 px-2 py-2 bg-transparent"
+                onClick={() => {
+                  if (onClickCreateCount) {
+                    onClickCreateCount(orden);
+                  }
+                }}
               >
                 Crear cuenta
               </button>
@@ -138,7 +148,16 @@ export const OrdenServicioCard = ({
           </div>
 
           {showAvanzar && (
-            <div className="d-flex my-1" onClick={handleAvanzar}>
+            <div
+              style={{ cursor: "pointer" }}
+              title={
+                estadoActual === STATUS_TBL.ORDER_SERVICE.NEW
+                  ? "Avanzar a En Proceso"
+                  : "Avanzar a Completado"
+              }
+              className="d-flex my-1"
+              onClick={handleAvanzar}
+            >
               <div className="border border-dashed border-gray-300 rounded py-3 px-3 text-gray-600">
                 <i className="bi bi-arrow-right-square-fill" />
               </div>

@@ -47,4 +47,9 @@ export const API_ENDPOINTS = {
         MONITOR: {
         GET_MONITOR_OS: "Monitor/cargarMonitorOrdenServicio"
     },
+        TRANSACTIONS: {
+            ADD_TRANSACTION: "/Transacciones/registrarTransaccion",
+            GET_TRANSACTION: "/Transacciones/obtenerTransaccion",
+            UPDATE_TRANSACTION: "/Transacciones/actualizarTransaccion",
+        },
 } as const;

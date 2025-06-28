@@ -87,7 +87,7 @@ namespace DAL
         public DTO_Respuesta obtenerOrdenDeServicio(DTO_Negocio negocio)
         {
             var listaOrdenes = new List<DTO_OrdenServicio>();
-            var respuesta = new DTO_Respuesta();       
+            var respuesta = new DTO_Respuesta();
 
             try
             {
@@ -179,7 +179,7 @@ namespace DAL
                 string json = System.Text.Json.JsonSerializer.Serialize(ordenServicio.ReferenciaJSON);
 
                 if (ordenServicio.FechaInicio == DateTime.MinValue)
-                    ordenServicio.FechaInicio = null;                
+                    ordenServicio.FechaInicio = null;
                 if (ordenServicio.FechaFinal == DateTime.MinValue)
                     ordenServicio.FechaFinal = null;
                 if (ordenServicio.FechaEntrega == DateTime.MinValue)
@@ -197,7 +197,7 @@ namespace DAL
                     sqlcmd.Parameters.Add("@ID_Cliente", SqlDbType.Int).Value = ordenServicio.ID_Cliente;
                     sqlcmd.Parameters.Add("@ID_Estado", SqlDbType.Int).Value = ordenServicio.Estado.ID_Estado;
                     sqlcmd.Parameters.Add("@FechaEstimadaEntrega", SqlDbType.DateTime).Value = ordenServicio.FechaEstimadaEntrega;
-                    sqlcmd.Parameters.Add("@FechaInicio", SqlDbType.DateTime).Value =  ordenServicio.FechaInicio;
+                    sqlcmd.Parameters.Add("@FechaInicio", SqlDbType.DateTime).Value = ordenServicio.FechaInicio;
                     sqlcmd.Parameters.Add("@FechaFinal", SqlDbType.DateTime).Value = ordenServicio.FechaFinal;
                     sqlcmd.Parameters.Add("@FechaEntrega", SqlDbType.DateTime).Value = ordenServicio.FechaEntrega;
                     sqlcmd.Parameters.Add("@ReferenciaJSON", SqlDbType.NVarChar, -1).Value = json;
@@ -227,7 +227,7 @@ namespace DAL
                         }
                     }
 
-                    
+
 
                     if (respuesta.TipoRespuesta)
                     {
@@ -257,7 +257,7 @@ namespace DAL
                 using (SqlCommand sqlcmd = new(query, this.GetObjConexion()))
                 {
                     sqlcmd.CommandType = CommandType.StoredProcedure;
-                        
+
                     sqlcmd.Parameters.Add("@ID_OrdenServicio", SqlDbType.Int).Value = (ordenServicio.ID_OrdenServicio == 0) ? (object)DBNull.Value : ordenServicio.ID_OrdenServicio;
                     sqlcmd.Parameters.Add("@ID_Negocio", SqlDbType.Int).Value = ordenServicio.ID_Negocio;
                     sqlcmd.Parameters.Add("@ApellidoCliente", SqlDbType.VarChar).Value = (cliente.ApellidoCliente == string.Empty) ? (object)DBNull.Value : cliente.ApellidoCliente;
@@ -290,15 +290,15 @@ namespace DAL
                             ordenServicio.FechaFinal = UTL_DBHelper.ReadNullSafeDateTime(reader["FechaFinal"], null);
                             ordenServicio.FechaEntrega = UTL_DBHelper.ReadNullSafeDateTime(reader["FechaEntrega"], null);
                             ordenServicio.NotaOrdenServicio = UTL_DBHelper.ReadNullSafeString(reader["NotaOrdenServicio"]);
-                            
-                           /* cliente = new DTO_Cliente();
-                            cliente.ID_Cliente = UTL_DBHelper.ReadNullSafeInt(reader["ID_Cliente"]);
-                            cliente.ID_Usuario = UTL_DBHelper.ReadNullSafeInt(reader["ID_Usuario"]);
-                            cliente.NombreCliente = UTL_DBHelper.ReadNullSafeString(reader["NombreCliente"]);
-                            cliente.ApellidoCliente = UTL_DBHelper.ReadNullSafeString(reader["ApellidoCliente"]);
-                            cliente.TelefonoCliente = UTL_DBHelper.ReadNullSafeString(reader["TelefonoCliente"]);
-                            cliente.CorreoCliente = UTL_DBHelper.ReadNullSafeString(reader["CorreoCliente"]);
-                           */
+
+                            /* cliente = new DTO_Cliente();
+                             cliente.ID_Cliente = UTL_DBHelper.ReadNullSafeInt(reader["ID_Cliente"]);
+                             cliente.ID_Usuario = UTL_DBHelper.ReadNullSafeInt(reader["ID_Usuario"]);
+                             cliente.NombreCliente = UTL_DBHelper.ReadNullSafeString(reader["NombreCliente"]);
+                             cliente.ApellidoCliente = UTL_DBHelper.ReadNullSafeString(reader["ApellidoCliente"]);
+                             cliente.TelefonoCliente = UTL_DBHelper.ReadNullSafeString(reader["TelefonoCliente"]);
+                             cliente.CorreoCliente = UTL_DBHelper.ReadNullSafeString(reader["CorreoCliente"]);
+                            */
 
                             listaOrdenServicio.Add(ordenServicio);
                         }

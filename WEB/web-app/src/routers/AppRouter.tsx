@@ -8,6 +8,7 @@ import {
   Monitor,
   Negocio,
   OrdenDeServicio,
+  Transacciones,
 } from "@/screens";
 import { Login, SignUp } from "@/auth";
 import { ChatAi} from "@/components";
@@ -42,6 +43,7 @@ const { pathname } = useLocation(); //ruta actual
           <Route path={ROUTES.MONITOR} element={<Monitor />} />
           <Route path={ROUTES.CUENTAS} element={<Cuentas />} />
           <Route path={ROUTES.CLIENTES} element={<Clientes/>} />
+          <Route path={ROUTES.TRANSACTIONS} element={<Transacciones/>} />
           <Route path={ROUTES.SERVICE_ORDER} element={<OrdenDeServicio />} />
         </Route>
       </Route>
