@@ -113,18 +113,51 @@ CREATE TABLE CORE.TBL_ITEMS_ORDEN_SERVICIO
 )
 GO
 
-CREATE TABLE CORE.TBL_CUENTAS_POR_PAGAR
+CREATE TABLE CORE.TBL_CUENTAS
 (
-	ID_CuentasPorPagar INT IDENTITY(1,1) NOT NULL, --PK
+	ID_Cuenta INT IDENTITY(1,1) NOT NULL, --PK
 	ID_Negocio INT NOT NULL, --FK
 	ID_Estado INT NOT NULL, --FK
 	Concepto VARCHAR(50) NOT NULL,
-	Descripcion VARCHAR(255) NOT NULL,
-	Saldo DECIMAL(16,3) NOT NULL,
+	Descripcion VARCHAR(255) NULL,
+	Monto DECIMAL(16,3) NOT NULL,
 	FechaInicial DATETIME DEFAULT GETDATE() NOT NULL,
-	FechaModificacion DATETIME NOT NULL
+	FechaModificacion DATETIME NOT NULL,
+	FechaLimite DATETIME NOT NULL, --Puede ser un recordatoro para pagar o una fecha límite de cobro o de abono (Puede ser modificable porque la fecha límite puede ser para un abono)
+	TipoCuenta VARCHAR(50) NOT NULL, --Por Cobrar / Por Pagar
+	ID_OrdenServicio INT NULL, --Foránea de la tabla orden de servicio (cuando es null no aplica la relación)
+	DetalleJSON NVARCHAR(MAX) --Un JSON que contiene la siguiente estructura
+
 	
-	
+/* #Ejemplo de Estructura
+
+	{ 
+		"Filas": 
+				[
+					{ "Nombre": "", "Valor": ""}
+				],
+		"Descuento": 
+				{ "Nombre": "", "Valor": ""},
+		"Impuesto": 
+				{ "Nombre": "", "Valor": ""}
+	  }
+*/
+
+/* #Ejemplo de Datos con la estructura
+
+	{ 
+		"Filas": 
+				[
+					{ "Nombre": "Cambio de aseite", "Valor": "30000"},
+					{ "Nombre": "Reemplazo de filtro", "Valor": "10000"}
+				],
+		"Descuento": 
+				{ "Nombre": "Monto", "Valor": "10000"},
+		"Impuesto": 
+				{ "Nombre": "", "Valor": ""}
+	  }
+*/
+
 )
 GO
 
