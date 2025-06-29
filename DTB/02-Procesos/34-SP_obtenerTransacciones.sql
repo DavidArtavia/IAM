@@ -8,6 +8,16 @@ GO -- =============================================
     -- Creación: 25/06/2025
     -- Descripción: Obtener transacciones de un negocio por su ID
     -- =============================================
+	GO -- Stub: Crear procedimiento si no existe
+    IF NOT EXISTS (
+        SELECT 1
+        FROM sys.procedures
+        WHERE name = 'SP_obtenerTransacciones'
+    ) BEGIN EXEC(
+        'CREATE PROCEDURE [CORE].[SP_obtenerTransacciones] AS BEGIN SET NOCOUNT ON; END'
+    )
+END
+GO
     ALTER PROCEDURE [CORE].[SP_obtenerTransacciones] @ID_Negocio INT AS BEGIN
 SET NOCOUNT ON;
 SELECT TRANS.ID_Transaccion,
