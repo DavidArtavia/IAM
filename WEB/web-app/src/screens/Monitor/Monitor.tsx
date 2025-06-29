@@ -370,7 +370,7 @@ export const Monitor = () => {
                   : " badge-danger"
               }`}
             ></span>
-            Taller Mata
+            {selectedBusiness?.nombreNegocio}
             <span className="fs-6 text-gray-400 fw-bold ms-1">
               {estadoConexion}
             </span>
