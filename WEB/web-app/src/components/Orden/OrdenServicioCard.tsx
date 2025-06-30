@@ -10,6 +10,29 @@ interface Props {
   onAvanceChange: (item: DTO_ItemOrdenServicio, checked: boolean) => void;
   onEstadoChange: (orden: DTO_OrdenServicio, nuevoEstado: number) => void;
 }
+/* 
+───────────────────────────────────────────────
+🧭 Comportamiento de botones por estado actual
+───────────────────────────────────────────────
+Estado         ID    ⏸ / ▶ (handleToggle)           ➡ (handleAvanzar)
+───────────── ────  ─────────────────────────────  ─────────────────────
+NUEVO          6    ⏸ → 8 (EN ESPERA)               ➡ → 7 (EN PROCESO)
+                     ▶ desde 8 → 7
+
+EN PROCESO     7    ⏸ → 8 (EN ESPERA)               ➡ → 9 (COMPLETADO)
+                     ▶ desde 8 → 7
+
+EN ESPERA      8    ▶ → 7 (EN PROCESO)              🚫 sin botón ➡
+
+COMPLETADO     9    ⏸ → 8 (EN ESPERA)               🚫 sin botón ➡
+                     ▶ desde 8 → 7
+
+Notas:
+- `handleToggle` controla el cambio entre EN PROCESO y EN ESPERA.
+- `handleAvanzar` avanza solo si está en NUEVO (a 7) o EN PROCESO (a 9).
+- El botón ⏸/▶ solo aparece si el estado no es NUEVO o es uno de los controlables.
+
+*/
 
 export const OrdenServicioCard = ({
   orden,

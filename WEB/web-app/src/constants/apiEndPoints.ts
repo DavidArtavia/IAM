@@ -1,7 +1,6 @@
 export const API_ENDPOINTS = {
     BASE_URL: "https://localhost:44330/api",
     USERS: {
-        
         CREATE:    "/Usuario/registrarUsuario",
         UPDATE:    "",
         GET_BY_ID: "/Usuario/obtenerUsuarioPorId",
@@ -34,22 +33,22 @@ export const API_ENDPOINTS = {
         UPDATE_ORDER: "/OrdenServicio/actualizarOrdenServicio",
     },
     ITEMS_ORDERS: {
-        GET_ORDERS: "ItemOrdenServicio/obtenerItemOrdenServicio",
-        ADD_ORDER: "ItemOrdenServicio/guardarItemOrdenServicio",
-        UPDATE_ORDER: "ItemOrdenServicio/actualizarItemOrdenServicio",
+        GET_ORDERS: "/ItemOrdenServicio/obtenerItemOrdenServicio",
+        ADD_ORDER: "/ItemOrdenServicio/guardarItemOrdenServicio",
+        UPDATE_ORDER: "/ItemOrdenServicio/actualizarItemOrdenServicio",
     },
     CLIENTS: {
-        GET_CLIENTS: "Cliente/obtenerClientes",
-        SEARCH_CLIENTS: "Cliente/buscarClientes",
-        ADD_CLIENT: "Cliente/guardarCliente",
-        UPDATE_CLIENT: "Cliente/actualizarCliente",
+        GET_CLIENTS: "/Cliente/obtenerClientes",
+        SEARCH_CLIENTS: "/Cliente/buscarClientes",
+        ADD_CLIENT: "/Cliente/guardarCliente",
+        UPDATE_CLIENT: "/Cliente/actualizarCliente",
     },
-        MONITOR: {
-        GET_MONITOR_OS: "Monitor/cargarMonitorOrdenServicio"
+    MONITOR: {
+        GET_MONITOR_OS: "/Monitor/cargarMonitorOrdenServicio"
     },
-        TRANSACTIONS: {
-            ADD_TRANSACTION: "/Transacciones/registrarTransaccion",
-            GET_TRANSACTION: "/Transacciones/obtenerTransaccion",
-            UPDATE_TRANSACTION: "/Transacciones/actualizarTransaccion",
-        },
+    TRANSACTIONS: {
+        ADD_TRANSACTION: "/Transacciones/registrarTransaccion",
+        GET_TRANSACTION: "/Transacciones/obtenerTransaccion",
+        UPDATE_TRANSACTION: "/Transacciones/actualizarTransaccion",
+    },
 } as const;
