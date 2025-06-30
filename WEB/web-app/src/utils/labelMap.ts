@@ -55,9 +55,9 @@ export const columnKeysTransacciones: (keyof DTO_Transacciones)[] = [
     "tipo",
     "tipoNumReferencia",
     "numReferencia",
-    
+
 ];
-  
+
 //#endregion
 
 //#region modal para visualizar detalles de objetos
@@ -129,7 +129,7 @@ export const keysInfoModalTransacciones: (keyof DTO_Transacciones)[] = [
     "numReferencia",
     "estado"
 ];
-  
+
 //#endregion
 
 //#region tablas
@@ -203,7 +203,7 @@ export const labelMapTransacciones: Record<string, string> = {
     numReferencia: "N° Referencia",
     estado: "Estado",
 };
-  
+
 //#endregion
 
 //#region campos a mostrar para el form de editar
@@ -282,7 +282,7 @@ export const ordenServicioFormEditFields: Array<
                 return config;
             }),
     ];
-export const transaccionesFormFields: FieldConfig<DTO_Transacciones>[] = [
+export const transaccionesFormEditFields: FieldConfig<DTO_Transacciones>[] = [
     { key: "concepto", label: "Concepto", type: "text", required: true },
     { key: "monto", label: "Monto", type: "number", required: true },
     {
@@ -291,7 +291,14 @@ export const transaccionesFormFields: FieldConfig<DTO_Transacciones>[] = [
             { label: "Gasto", value: "Gasto" },
         ]
     },
-    { key: "tipoNumReferencia", label: "Tipo Referencia", type: "text", required: false },
+    {
+        key: "tipoNumReferencia", label: "Tipo Referencia", type: "select", required: true, options: [
+            { label: "Luz", value: "Luz" },
+            { label: "Internet", value: "Internet" },
+            { label: "Planilla", value: "Planilla" },
+            { label: "Otro", value: "Otro" },
+        ]
+    },
     { key: "numReferencia", label: "N° Referencia", type: "text", required: false },
     { key: "fechaTransaccion", label: "Fecha", type: "date", required: true },
 ];

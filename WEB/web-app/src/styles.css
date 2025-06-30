@@ -146,35 +146,77 @@ table.dataTable thead th {
 }
 
 /* Caja base */
-.flash-blue{
-  position:relative;
-  border-radius:8px;
-  overflow:hidden;          /* oculta la capa extra */
+.flash-blue {
+  position: relative;
+  border-radius: 8px;
+  overflow: hidden;
+  /* oculta la capa extra */
 }
 
 /* Borde azul temporal */
-.flash-blue::before{
-  content:'';
-  position:absolute;
-  inset:0;                  /* cubre todo el contenedor */
-  padding:2px;              /* grosor del borde         */
-  border-radius:inherit;
-  background:#009EF7;       /* azul brillante           */
+.flash-blue::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  /* cubre todo el contenedor */
+  padding: 2px;
+  /* grosor del borde         */
+  border-radius: inherit;
+  background: #009EF7;
+  /* azul brillante           */
 
   /* solo la franja del borde */
-  mask:linear-gradient(#000 0 0) content-box,
-       linear-gradient(#000 0 0);
-  mask-composite:exclude;        /* Firefox */
-  -webkit-mask-composite:xor;    /* Chrome / Safari */
+  mask: linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  /* Firefox */
+  -webkit-mask-composite: xor;
+  /* Chrome / Safari */
 
-  animation:flashBorder 3s ease-out forwards; /* dura 3 s, luego desaparece */
-  pointer-events:none;
+  animation: flashBorder 3s ease-out forwards;
+  /* dura 3 s, luego desaparece */
+  pointer-events: none;
 }
 
 /* Animación: aparece, mantiene, se desvanece */
-@keyframes flashBorder{
-  0%   { opacity:0; }
-  15%  { opacity:1; }   /* se enciende rápido          */
-  80%  { opacity:1; }   /* se mantiene unos segundos   */
-  100% { opacity:0; }   /* se apaga y queda normal     */
+@keyframes flashBorder {
+  0% {
+    opacity: 0;
+  }
+
+  15% {
+    opacity: 1;
+  }
+
+  /* se enciende rápido          */
+  80% {
+    opacity: 1;
+  }
+
+  /* se mantiene unos segundos   */
+  100% {
+    opacity: 0;
+  }
+
+  /* se apaga y queda normal     */
+}
+
+/*  Define una animación que mueve el elemento horizontalmente (de lado a lado) para simular un "temblor" o "sacudida". */
+
+@keyframes shake-horizontal {
+  0%, 100% {
+    transform: translateX(0);
+  }
+
+  10%, 30%, 50%, 70%, 90% {
+    transform: translateX(-10px);
+  }
+
+  20%, 40%, 60%, 80% {
+    transform: translateX(10px);
+  }
+}
+
+.shake-horizontal {
+  animation: shake-horizontal 0.5s;
 }
