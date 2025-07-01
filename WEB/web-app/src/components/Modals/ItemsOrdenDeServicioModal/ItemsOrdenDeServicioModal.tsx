@@ -1,14 +1,22 @@
-import { GenericDataTable } from "@/components/Tables/DataTable/GenericDataTable";
-import { DTO_ItemOrdenServicio, DTO_Respuesta } from "@/models";
-import { itemsOrdenesService } from "@/services";
-import { columnKeysItemsOrdenServicio, errorHelpers, ItemsOrdenServicioFormEditFields, keysInfoModalItemsOrdenServicio, labelMapItemsOrdenServicio, notificationHelpers } from "@/utils";
+// ✅ RP-06: ItemsOrdenDeServicioModal adaptado con manejo local sin refetch y estructura organizada
+
 import { useEffect, useState } from "react";
-import { GenericFormModal } from "../GenericFormModal/GenericFormModal";
-import { ConfirmModal } from "../LoadingModal/ConfirmModal";
-import { STATUS_TBL } from "@/constants";
-import { FieldConfig } from "../GenericFormModal/types";
+import { GenericDataTable } from "@/components/Tables/DataTable/GenericDataTable";
 import { LoadingPanel } from "@/components/Panel/LoadingPanel";
 import { CustomRange } from "@/components/Range/CustomRange";
+import {
+  columnKeysItemsOrdenServicio,
+  labelMapItemsOrdenServicio,
+  keysInfoModalItemsOrdenServicio,
+  ItemsOrdenServicioFormEditFields,
+  notificationHelpers,
+  errorHelpers,
+  updateItemById,
+} from "@/utils";
+import { itemsOrdenesService } from "@/services";
+import { STATUS_TBL } from "@/constants";
+import { DTO_ItemOrdenServicio, DTO_Respuesta } from "@/models";
+import { ConfirmModal, FieldConfig, GenericFormModal } from "@/components";
 
 interface ItemsOrdenDeServicioModalProps {
   open: boolean;
@@ -17,63 +25,60 @@ interface ItemsOrdenDeServicioModalProps {
   rowData: Record<string, any>;
 }
 
-/**
- * Modal que despliega los ítems de una orden de servicio específica.
- * - Consulta los ítems al abrirse (`open=true`)
- * - Usa la tabla genérica con columnas definidas
- */
 export const ItemsOrdenDeServicioModal = ({
   open,
   onHide,
   title = "Detalle del Ítem",
   rowData,
 }: ItemsOrdenDeServicioModalProps) => {
+  //#region 🔄 Estados generales
   const [itemsOrdenes, setItemsOrdenes] = useState<DTO_ItemOrdenServicio[]>([]);
   const [loading, setLoading] = useState(false);
+  //#endregion
 
-  // #region Registrar
+  //#region ➕ Registro
   const [isModalFormOpen, setIsModalFormOpen] = useState(false);
   const [formData, setFormData] = useState<DTO_ItemOrdenServicio>(
     new DTO_ItemOrdenServicio()
   );
-  // #endregion
+  //#endregion
 
-  // #region Editar
+  //#region ✏️ Edición
   const [showEditForm, setShowEditForm] = useState(false);
   const [editData, setEditData] = useState<DTO_ItemOrdenServicio>(
     new DTO_ItemOrdenServicio()
   );
-  // #endregion
+  //#endregion
 
-  // #region Eliminar
-  const [itemOrderToDelete, setItemOrderToDelete] = useState<DTO_ItemOrdenServicio | null>(null);
-  // #endregion
+  //#region 🗑 Eliminación
+  const [itemOrderToDelete, setItemOrderToDelete] =
+    useState<DTO_ItemOrdenServicio | null>(null);
+  //#endregion
 
-  // #region Confirmación
+  //#region ✅ Confirmación
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [confirmModalMessage, setConfirmModalMessage] = useState("");
-  const [confirmContext, setConfirmContext] = useState<"cancelAdd" | "delete" | null>(null);
-  // #endregion
+  const [confirmContext, setConfirmContext] = useState<
+    "cancelAdd" | "delete" | null
+  >(null);
+  //#endregion
 
-  // #region Carga inicial de ítems
+  //#region 🚀 Cargar ítems al abrir
   useEffect(() => {
     if (!open || !rowData?.iD_OrdenServicio) return;
-
     setLoading(true);
     const request = {
       iD_OrdenServicio: rowData.iD_OrdenServicio,
     } as DTO_ItemOrdenServicio;
-
     itemsOrdenesService.obtenerItemsOrdensDeServicio(request).subscribe({
-      next: (result) => {
-        const respuesta = result as DTO_Respuesta;
-        if (!respuesta.tipoRespuesta) {
+      next: (result: DTO_Respuesta) => {
+        if (!result.tipoRespuesta) {
           notificationHelpers.errorAlert(
-            respuesta.mensaje || "Error al cargar ítems"
+            result.mensaje || "Error al cargar ítems"
           );
           return;
         }
-        const raw = respuesta.resultado?.[0];
+        const raw = result.resultado?.[0];
         const items = Array.isArray(raw)
           ? (raw as DTO_ItemOrdenServicio[])
           : [];
@@ -83,9 +88,9 @@ export const ItemsOrdenDeServicioModal = ({
       error: errorHelpers.serverError,
     });
   }, [open, rowData]);
-  // #endregion
+  //#endregion
 
-  // #region Registrar
+  //#region 🧩 Agregar nuevo
   const handleAddNew = () => {
     setFormData(new DTO_ItemOrdenServicio());
     setIsModalFormOpen(true);
@@ -93,89 +98,19 @@ export const ItemsOrdenDeServicioModal = ({
 
   const handleSave = () => {
     formData.iD_OrdenServicio = rowData?.iD_OrdenServicio || 0;
-    setItemsOrdenes((prev) =>
-      prev.map((item) =>
-        item.iD_ItemOrdenServicio === formData.iD_ItemOrdenServicio
-          ? formData
-          : item
-      )
-    );
     itemsOrdenesService.registrarItemsOrdensDeServicio(formData).subscribe({
-      next: (result: unknown) => {
-        const mensaje =
-          (result as DTO_Respuesta)?.mensaje || "Item registrado correctamente";
-        notificationHelpers.successAlert(mensaje);
+      next: (result: DTO_Respuesta) => {
+        const nuevo = (result.resultado as DTO_ItemOrdenServicio[])[0];
+        if (nuevo) setItemsOrdenes((prev) => [...prev, nuevo]); // Agregar el nuevo ítem
+        notificationHelpers.successAlert(result.mensaje);
         setIsModalFormOpen(false);
       },
-      error: (err) => errorHelpers.serverError(err),
+      error: errorHelpers.serverError,
     });
   };
+  //#endregion
 
-  const handleCancelAdd = () => {
-    setConfirmModalMessage("¿Estás seguro de que deseas cancelar el registro?");
-    setConfirmContext("cancelAdd");
-    setIsConfirmOpen(true);
-  };
-  // #endregion
-
-  // #region Confirmación
-  const confirmModalAcion = (action: boolean | null) => {
-    if (action) {
-      if (confirmContext === "cancelAdd") {
-        setIsModalFormOpen(false);
-        notificationHelpers.infoAlert("Nueva item descartado correctamente");
-      } else if (confirmContext === "delete") {
-        handleConfirmDelete(true);
-      }
-    }
-    setIsConfirmOpen(false);
-    setConfirmContext(null);
-  };
-  // #endregion
-
-  // #region Eliminar
-  const handleDelete = (Data: any) => {
-    setConfirmModalMessage(
-      `¿Estás seguro de que deseas eliminar el item ${Data.nombreItemOrdenServicio} ?`
-    );
-    setItemOrderToDelete(Data);
-    setConfirmContext("delete");
-    setIsConfirmOpen(true);
-  };
-
-  const handleConfirmDelete = (action: boolean | null) => {
-    if (action && itemOrderToDelete) {
-      const updated: DTO_ItemOrdenServicio = {
-        ...itemOrderToDelete,
-        estado: {
-          ...itemOrderToDelete.estado!,
-          iD_Estado: STATUS_TBL.ITEMS_ORDER_SERVICE.DELETED,
-        },
-      };
-      setItemsOrdenes((prev) =>
-        prev.map((item) =>
-          item.iD_ItemOrdenServicio === updated.iD_ItemOrdenServicio
-            ? updated
-            : item
-        )
-      );
-      itemsOrdenesService.actualizarItemsOrdensDeServicio(updated).subscribe({
-        next: (result) => {
-            notificationHelpers.infoAlert(
-              result?.tipoRespuesta
-                ? `Ítem #${updated.iD_ItemOrdenServicio} eliminado exitosamente`
-                : `${result?.mensaje || "No se pudo eliminar el ítem"}`
-            );
-        },
-        error: (err) => errorHelpers.serverError(err),
-      });
-      setItemOrderToDelete(null);
-    }
-    setIsConfirmOpen(false);
-  };
-  // #endregion
-
-  // #region Editar
+  //#region ✏️ Guardar edición
   const handleEdit = (row: DTO_ItemOrdenServicio) => {
     setEditData(row);
     setShowEditForm(true);
@@ -183,22 +118,101 @@ export const ItemsOrdenDeServicioModal = ({
 
   const handleSaveEdit = () => {
     if (!editData) return;
-    setItemsOrdenes((prev) =>
-      prev.map((item) =>
-        item.iD_ItemOrdenServicio === editData.iD_ItemOrdenServicio
-          ? editData
-          : item
-      )
-    );
-
     itemsOrdenesService.actualizarItemsOrdensDeServicio(editData).subscribe({
-      next: (result) => {
+      next: (result: DTO_Respuesta) => {
+        setItemsOrdenes((prev) =>
+          updateItemById(prev, editData, "iD_ItemOrdenServicio")
+        );
         notificationHelpers.successAlert(result.mensaje);
         setShowEditForm(false);
       },
-      error: (err) => errorHelpers.serverError(err),
+      error: errorHelpers.serverError,
     });
   };
+  //#endregion
+
+  //#region 🗑 Eliminar
+  const handleDelete = (item: DTO_ItemOrdenServicio) => {
+    setConfirmModalMessage(
+      `¿Estás seguro de eliminar el ítem ${item.nombreItemOrdenServicio}?`
+    );
+    setItemOrderToDelete(item);
+    setConfirmContext("delete");
+    setIsConfirmOpen(true);
+  };
+
+  const handleConfirmDelete = (action: boolean | null) => {
+    if (action && itemOrderToDelete) {
+      const updated = {
+        ...itemOrderToDelete,
+        estado: {
+          ...itemOrderToDelete.estado!,
+          iD_Estado: STATUS_TBL.ITEMS_ORDER_SERVICE.DELETED,
+        },
+      };
+      setItemsOrdenes((prev) =>
+        updateItemById(prev, updated, "iD_ItemOrdenServicio")
+      );
+      itemsOrdenesService.actualizarItemsOrdensDeServicio(updated).subscribe({
+        next: (result) => {
+          notificationHelpers.infoAlert(
+            result?.tipoRespuesta
+              ? `Ítem #${updated.iD_ItemOrdenServicio} eliminado exitosamente`
+              : result?.mensaje || "No se pudo eliminar el ítem"
+          );
+        },
+        error: errorHelpers.serverError,
+      });
+      setItemOrderToDelete(null);
+    }
+    setIsConfirmOpen(false);
+    setConfirmContext(null);
+  };
+
+  const getActiveItemsOrdenes = () =>
+    itemsOrdenes.filter(
+      (item) => item.estado?.iD_Estado !== STATUS_TBL.ITEMS_ORDER_SERVICE.DELETED
+    );
+  //#endregion
+
+  //#region ✅ Confirmar cancelación
+  const handleCancelAdd = () => {
+    setConfirmModalMessage("¿Estás seguro de cancelar el registro?");
+    setConfirmContext("cancelAdd");
+    setIsConfirmOpen(true);
+  };
+
+  const confirmModalAcion = (action: boolean | null) => {
+    if (action) {
+      if (confirmContext === "cancelAdd") {
+        setIsModalFormOpen(false);
+        notificationHelpers.infoAlert("Nuevo ítem descartado correctamente");
+      } else if (confirmContext === "delete") {
+        handleConfirmDelete(true);
+      }
+    }
+    setIsConfirmOpen(false);
+    setConfirmContext(null);
+  };
+  //#endregion
+
+  //#region 🧾 Formularios y renderizadores
+  const registerFormFields: FieldConfig<DTO_ItemOrdenServicio>[] = [
+    ...ItemsOrdenServicioFormEditFields,
+    {
+      key: "avance",
+      label: "Avance",
+      type: "custom",
+      renderer: () => (
+        <CustomRange
+          data={[formData.avance ?? 0]}
+          onChange={(value) =>
+            setFormData((prev) => ({ ...prev, avance: value }))
+          }
+        />
+      ),
+    },
+  ];
 
   const editFormFields: FieldConfig<DTO_ItemOrdenServicio>[] = [
     ...ItemsOrdenServicioFormEditFields,
@@ -207,63 +221,28 @@ export const ItemsOrdenDeServicioModal = ({
       label: "Avance",
       type: "custom",
       renderer: () => (
-        <>
-          <CustomRange
-            data={[editData.avance ?? 0]}
-            onChange={(value) => {
-              setEditData((prev: any) =>
-                prev ? { ...prev, avance: value } : null
-              );
-            }}
-          />
-        </>
+        <CustomRange
+          data={[editData.avance ?? 0]}
+          onChange={(value) =>
+            setEditData((prev) => ({ ...prev, avance: value }))
+          }
+        />
       ),
     },
   ];
-  // #endregion
 
-  // #region Registrar (campos)
-  const registerFormFields: FieldConfig<DTO_ItemOrdenServicio>[] = [
-    ...ItemsOrdenServicioFormEditFields,
-    {
-      key: "avance",
-      label: "Avance",
-      type: "custom",
-      renderer: () => (
-        <>
-          <CustomRange
-            data={[formData.avance ?? 0]}
-            onChange={(value) => {
-              setFormData((prev: any) =>
-                prev ? { ...prev, avance: value } : null
-              );
-            }}
-          />
-        </>
-      ),
-    },
-  ];
-  // #endregion
-
-  // #region Renderizadores personalizados
-  const customRenderers: {
-    [K in keyof any]?: (
-      value: unknown,
-      rowData: DTO_ItemOrdenServicio
-    ) => string | number | React.ReactNode;
-  } = {
-    monto: (val: unknown) => {
-      return new Intl.NumberFormat("es-CR", {
+  const customRenderers = {
+    monto: (val: unknown) =>
+      new Intl.NumberFormat("es-CR", {
         style: "currency",
         currency: "CRC",
-        minimumFractionDigits: 2,
-      }).format(Number(val) || 0);
-    },
+      }).format(Number(val) || 0),
   };
-  // #endregion
+  //#endregion
 
   if (!open) return null;
 
+  //#region 🎨 Render
   return (
     <div
       className="modal fade show d-block shadowClearBackground"
@@ -271,11 +250,10 @@ export const ItemsOrdenDeServicioModal = ({
     >
       <div
         className="modal-dialog modal-dialog-centered"
-        style={{ maxWidth: "95vw", width: "1200px", height: "auto" }}
+        style={{ maxWidth: "95vw", width: "1200px" }}
         onClick={(e) => e.stopPropagation()}
       >
         <div className="modal-content resizable-metronic-modal">
-          {/* Encabezado */}
           <div className="modal-header cursor-move">
             <h2 className="fw-bold">{title}</h2>
             <button
@@ -286,17 +264,16 @@ export const ItemsOrdenDeServicioModal = ({
               ✕
             </button>
           </div>
-
-          {/* Contenido */}
           <div className="modal-body py-10 px-lg-17">
             {loading ? (
               <LoadingPanel msj="Cargando Items de la órden de servicio, por favor espere..." />
             ) : (
-              <GenericDataTable<DTO_ItemOrdenServicio>
+              <GenericDataTable
                 title="Ítems de la Orden de Servicio"
                 columnKeys={columnKeysItemsOrdenServicio}
                 labelMap={labelMapItemsOrdenServicio}
-                data={itemsOrdenes}
+                // data={itemsOrdenes}
+                data={getActiveItemsOrdenes()}
                 onAdd={handleAddNew}
                 onEdit={handleEdit}
                 onDelete={handleDelete}
@@ -306,8 +283,7 @@ export const ItemsOrdenDeServicioModal = ({
               />
             )}
 
-            {/* Modal Registrar */}
-            <GenericFormModal<DTO_ItemOrdenServicio>
+            <GenericFormModal
               title="Registrar Item de Orden de Servicio"
               show={isModalFormOpen}
               onHide={handleCancelAdd}
@@ -317,8 +293,7 @@ export const ItemsOrdenDeServicioModal = ({
               fields={registerFormFields}
             />
 
-            {/* Modal Editar */}
-            <GenericFormModal<DTO_ItemOrdenServicio>
+            <GenericFormModal
               title="Editar Orden de Servicio"
               show={showEditForm}
               onHide={() => setShowEditForm(false)}
@@ -328,14 +303,12 @@ export const ItemsOrdenDeServicioModal = ({
               fields={editFormFields}
             />
 
-            {/* Modal Confirmación */}
             <ConfirmModal
               show={isConfirmOpen}
               confirmMessage={confirmModalMessage}
-              onAction={(action) => confirmModalAcion(action)}
+              onAction={confirmModalAcion}
             />
           </div>
-          {/* Footer */}
           <div className="modal-footer flex-center">
             <button type="button" className="btn btn-primary" onClick={onHide}>
               Cerrar
@@ -345,4 +318,5 @@ export const ItemsOrdenDeServicioModal = ({
       </div>
     </div>
   );
+  //#endregion
 };

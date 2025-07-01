@@ -4,9 +4,6 @@ import "datatables.net-bs5";
 import ReactDOM from "react-dom/client";
 import { InfoModal, ActionButtons, ReferenciaCards } from "@/components";
 
-// Import RefItem type from ReferenciasJson
-import type { RefItem } from "@/components/ReferenciasJson/ReferenciasCard";
-
 type ColumnSettings = DataTables.ColumnSettings;
 
 export interface GenericDataTableProps<T> {
@@ -25,8 +22,8 @@ export interface GenericDataTableProps<T> {
   includeEstadoColumn?: boolean;
   includeReferenceColumn?: boolean;
   modalInfoFields?: (keyof T)[];
-  showItemsButton?: boolean; // Si se debe mostrar el botón de items
-  datekeys?: string[]; // Claves que deben ser tratadas como fechas  
+  showItemsButton?: boolean;
+  datekeys?: string[];
 }
 
 export function GenericDataTable<T>({
@@ -50,41 +47,31 @@ export function GenericDataTable<T>({
   const [showInfo, setShowInfo] = useState(false);
   const [detailData, setDetailData] = useState<Record<string, unknown>>({});
 
-  // Generate DataTables columns - FILTRAR SOLO COLUMNAS QUE EXISTEN EN LOS DATOS
+  //#region 🔧 Columnas dinámicas DataTable
   const dtColumns = useMemo<ColumnSettings[]>(() => {
     const cols: ColumnSettings[] = [];
-
-    // Verificar qué columnas realmente existen en los datos
-    // const availableKeys =
-    //   data.length > 0
-    //     ? Object.keys(data[0] as Record<string, unknown>)
-    //     : columnKeys.map(String);
 
     const availableKeys = data.reduce<Set<string>>((set, row) => {
       Object.keys(row as Record<string, unknown>).forEach((k) => set.add(k));
       return set;
     }, new Set<string>());
 
-    // Base columns - solo incluir las que existen en los datos
     columnKeys.forEach((key) => {
       const keyStr = String(key);
-
-      // Solo agregar la columna si existe en los datos o si no hay datos aún
       if (data.length === 0 || availableKeys.has(keyStr)) {
         const col: ColumnSettings = {
           title: labelMap[keyStr] || keyStr,
           data: keyStr,
-          // Agregar manejo de errores para columnas que no existen
           defaultContent: "",
         };
 
         if (customRenderers[key]) {
-          col.render = (dataValue, _, rowData) => {
+          col.render = (val, _, row) => {
             try {
-              return customRenderers[key]!(dataValue, rowData as T);
+              return customRenderers[key]!(val, row as T);
             } catch (error) {
-              console.warn(`Error rendering column ${keyStr}:`, error);
-              return dataValue || "";
+              console.warn(`Render error (${keyStr})`, error);
+              return val || "";
             }
           };
         }
@@ -93,7 +80,7 @@ export function GenericDataTable<T>({
       }
     });
 
-    // Optional reference column
+    //#region 🧷 Columna Referencias JSON
     if (includeReferenceColumn && labelMap["referenciaJSON"]) {
       cols.push({
         title: labelMap["referenciaJSON"],
@@ -101,28 +88,23 @@ export function GenericDataTable<T>({
         orderable: false,
         searchable: false,
         defaultContent: "",
-        createdCell: (cell, _, rowData) => {
+        createdCell: (cell, _, row) => {
           try {
             const container = document.createElement("div");
             (cell as HTMLElement).innerHTML = "";
             cell.appendChild(container);
-            const root = ReactDOM.createRoot(container);
-            root.render(
-              <ReferenciaCards
-                items={
-                  (rowData as T & { referenciaJSON?: RefItem[] })
-                    .referenciaJSON || []
-                }
-              />
+            ReactDOM.createRoot(container).render(
+              <ReferenciaCards items={(row as any).referenciaJSON || []} />
             );
-          } catch (error) {
-            console.warn("Error rendering reference column:", error);
-            (cell as HTMLElement).innerHTML = "";
+          } catch (err) {
+            console.warn("Error ref JSON", err);
           }
         },
       });
     }
+    //#endregion
 
+    //#region 📊 Columna Avance (barra de progreso)
     if (labelMap["avance"]) {
       cols.push({
         title: labelMap["avance"],
@@ -130,12 +112,12 @@ export function GenericDataTable<T>({
         orderable: false,
         searchable: false,
         defaultContent: "",
-        createdCell: (cell, _, rowData) => {
+        createdCell: (cell, _, row) => {
           try {
             const container = document.createElement("div");
             (cell as HTMLElement).innerHTML = "";
             cell.appendChild(container);
-            const porcentaje = rowData["avance"] ?? 0;
+            const porcentaje = row["avance"] ?? 0;
             const barColor =
               porcentaje >= 80
                 ? "bg-success"
@@ -163,133 +145,115 @@ export function GenericDataTable<T>({
               </div>
             );
 
-            const root = ReactDOM.createRoot(container);
-            root.render(content);
+            ReactDOM.createRoot(container).render(content);
           } catch (error) {
-            console.warn("Error rendering Avance column:", error);
-            (cell as HTMLElement).innerText = "";
+            console.warn("Error render Avance", error);
           }
         },
       });
     }
+    //#endregion
 
-    // Optional estado column
+    //#region 🟢 Columna Estado
     if (includeEstadoColumn && labelMap["estado"]) {
       cols.push({
-        title: labelMap["estado"] || "Estado",
+        title: labelMap["estado"],
         data: null,
         orderable: false,
         searchable: false,
         defaultContent: "",
-        createdCell: (cell, _, rowData) => {
+        createdCell: (cell, _, row) => {
           try {
-            const container = document.createElement("span");
-            (cell as HTMLElement).innerHTML = "";
-            cell.appendChild(container);
-            type Estado = { nombre?: string };
-            const estadoObj: Estado =
-              (rowData as { estado?: Estado }).estado || {};
-            const nombre: string = estadoObj.nombre ?? "N/A";
+            const estado: string =
+              (row as any)?.estado?.nombre?.toLowerCase() ?? "N/A";
+
             const badgeClassMap: Record<string, string> = {
               activo: "badge-light-success",
-              nuevo: "badge badge-secondary", //gris
-              "en proceso": "badge-light-primary", //azul claro
-              "en espera": "badge-light-warning", //amarillo
-              completado: "badge-light-success", //verde
+              nuevo: "badge badge-secondary",
+              "en proceso": "badge-light-primary",
+              "en espera": "badge-light-warning",
+              completado: "badge-light-success",
               eliminado: "badge-light-danger",
               inactivo: "badge-light-light",
               default: "badge badge-dark",
-            };            
+            };
+
             const badgeClass =
-              badgeClassMap[nombre.toLowerCase()] || badgeClassMap["default"];
-            const root = ReactDOM.createRoot(container);
-            root.render(
-              <span className={`badge ${badgeClass}`}>{nombre}</span>
+              badgeClassMap[estado] || badgeClassMap["default"];
+
+            const container = document.createElement("span");
+            (cell as HTMLElement).innerHTML = "";
+            cell.appendChild(container);
+            ReactDOM.createRoot(container).render(
+              <span className={`badge ${badgeClass}`}>
+                {estado.charAt(0).toUpperCase() + estado.slice(1)}
+              </span>
             );
-          } catch (error) {
-            console.warn("Error rendering estado column:", error);
-            (cell as HTMLElement).innerHTML = "N/A";
+          } catch (err) {
+            console.warn("Estado error:", err);
           }
         },
       });
     }
+    //#endregion
 
-    // Actions column
+    //#region 🛠️ Columna Acciones
     cols.push({
       title: "Acciones",
       data: null,
       orderable: false,
       searchable: false,
       defaultContent: "",
-      createdCell: (cell, _, rowData) => {
+      createdCell: (cell, _, row) => {
         try {
           const container = document.createElement("div");
           (cell as HTMLElement).innerHTML = "";
           cell.appendChild(container);
-          const root = ReactDOM.createRoot(container);
-          root.render(
+          ReactDOM.createRoot(container).render(
             <ActionButtons
-              rowData={rowData as T}
-              onEdit={() => onEdit(rowData as T)}
-              onDelete={() => onDelete(rowData as T)}
+              rowData={row as T}
+              onEdit={() => onEdit(row as T)}
+              onDelete={() => onDelete(row as T)}
               showItemsButton={showItemsButton}
-              onOpenModal={() =>
-                onOpenItemsModal && onOpenItemsModal(rowData as T)
-              }
+              onOpenModal={() => onOpenItemsModal?.(row as T)}
             />
           );
-        } catch (error) {
-          console.warn("Error rendering action buttons:", error);
-          (cell as HTMLElement).innerHTML = "";
+        } catch (err) {
+          console.warn("Error render actions", err);
         }
       },
     });
+    //#endregion
 
     return cols;
-  }, [
-    data, // Agregar data como dependencia
-  ]);
+  }, [data]);
+  //#endregion
 
-  // Initialize DataTable once
+  //#region 🧠 Inicialización tabla con jQuery DataTable
   useEffect(() => {
-    const tableEl = tableRef.current;
-    if (!tableEl) return;
+    const table = tableRef.current;
+    if (!table || dtColumns.length === 0) return;
 
-    // Destroy old instance if
-    if ($.fn.dataTable.isDataTable(tableEl)) {
-      $(tableEl).DataTable().destroy();
-      $(tableEl).empty();
+    if ($.fn.dataTable.isDataTable(table)) {
+      $(table).DataTable().destroy();
+      $(table).empty();
     }
 
-    // Solo inicializar si tenemos columnas válidas
-    if (dtColumns.length === 0) return;
-
     try {
-      $(tableEl).DataTable({
+      $(table).DataTable({
         data,
         columns: dtColumns,
         columnDefs: [
-          {
-            targets: "_all",
-            className: "text-center",
-            // Manejar datos faltantes globalmente
-            defaultContent: "",
-          },
+          { targets: "_all", className: "text-center", defaultContent: "" },
         ],
         order: [[0, "desc"]],
         language: {
           search: "Buscar:",
-          infoPostFix: "",
-          emptyTable: "No hay datos disponibles en la tabla",
-          decimal: ",",
-          thousands: ".",
-          loadingRecords: "Cargando...",
-          processing: "Procesando...",
-          infoFiltered: "(filtrado de _MAX_ registros totales)",
-          lengthMenu: "Mostrar _MENU_ registros por página",
+          emptyTable: "No hay datos disponibles",
+          lengthMenu: "Mostrar _MENU_ registros",
           zeroRecords: "No se encontraron resultados",
           info: "Mostrando página _PAGE_ de _PAGES_",
-          infoEmpty: "No hay registros disponibles",
+          infoEmpty: "Sin registros",
           paginate: {
             first: "Primero",
             last: "Último",
@@ -297,56 +261,49 @@ export function GenericDataTable<T>({
             next: "Siguiente",
           },
         },
-        destroy: true,
-        // Configuraciones adicionales para manejar errores
         deferRender: true,
-        processing: false,
-        serverSide: false,
+        destroy: true,
       });
 
-      // Row click handler
-      const table = $(tableEl).DataTable();
-      $(tableEl)
+      const dtInstance = $(table).DataTable();
+      $(table)
         .off("click", "tbody tr")
         .on("click", "tbody tr", function () {
-          const row = table.row(this);
+          const row = dtInstance.row(this);
           if (!row.any()) return;
 
-          try {
-            const rawData = row.data() as T;
-            // Si nos pasaron modalFields, construimos un objeto sólo con esas claves;
-            // si no, usamos todo el rawData.
-            const detail = modalInfoFields
-              ? modalInfoFields.reduce<Record<string, unknown>>((acc, key) => {
-                  acc[String(key)] = rawData[key];
-                  return acc;
-                }, {})
-              : (rawData as Record<string, unknown>);
+          const rawData = row.data() as T;
+          const detail = modalInfoFields
+            ? modalInfoFields.reduce((acc, key) => {
+                acc[String(key)] = rawData[key];
+                return acc;
+              }, {} as Record<string, unknown>)
+            : (rawData as Record<string, unknown>);
 
-            setDetailData(detail);
-            setShowInfo(true);
-          } catch (error) {
-            console.warn("Error handling row click:", error);
-          }
+          setDetailData(detail);
+          setShowInfo(true);
         });
-    } catch (error) {
-      console.error("Error initializing DataTable:", error);
+    } catch (err) {
+      console.error("DataTable error", err);
     }
   }, [dtColumns, modalInfoFields]);
+  //#endregion
 
-  // Update rows when data changes
+  //#region 🔁 Actualización de datos al cambiar props
   useEffect(() => {
-    const tableEl = tableRef.current;
-    if (!tableEl || !$.fn.dataTable.isDataTable(tableEl)) return;
+    const table = tableRef.current;
+    if (!table || !$.fn.dataTable.isDataTable(table)) return;
 
     try {
-      const table = $(tableEl).DataTable();
-      table.clear().rows.add(data).draw();
-    } catch (error) {
-      console.warn("Error updating table data:", error);
+      const dtInstance = $(table).DataTable();
+      dtInstance.clear().rows.add(data).draw();
+    } catch (err) {
+      console.warn("Data update error", err);
     }
   }, [data]);
+  //#endregion
 
+  //#region 🎨 Render
   return (
     <>
       <InfoModal
@@ -354,15 +311,16 @@ export function GenericDataTable<T>({
         onHide={() => setShowInfo(false)}
         data={detailData}
         labelMap={labelMap}
-        dateKeys={datekeys && datekeys}
+        dateKeys={datekeys}
       />
-      <div className="card shadow-sm mt-5 ">
+
+      <div className="card shadow-sm mt-5">
         <div className="card-header d-flex justify-content-between align-items-center py-10 px-lg-17">
           <h3 className="card-title text-gray-600">{title}</h3>
           <button
-            disabled={disableButtonAdd}
             onClick={onAdd}
             className="btn btn-primary"
+            disabled={disableButtonAdd}
           >
             Agregar
           </button>
@@ -376,4 +334,5 @@ export function GenericDataTable<T>({
       </div>
     </>
   );
+  //#endregion
 }

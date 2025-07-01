@@ -267,7 +267,7 @@ namespace DAL
                     sqlcmd.CommandType = CommandType.StoredProcedure;
 
                     sqlcmd.Parameters.Add("@ID_Cliente", SqlDbType.Int).Value = cliente.ID_Cliente;
-                    sqlcmd.Parameters.Add("@ID_Usuario", SqlDbType.Int).Value = cliente.ID_Usuario;
+                    //sqlcmd.Parameters.Add("@ID_Usuario", SqlDbType.Int).Value = cliente.ID_Usuario;
                     sqlcmd.Parameters.Add("@ID_Estado", SqlDbType.Int).Value = cliente.Estado.ID_Estado;
                     sqlcmd.Parameters.Add("@NombreCliente", SqlDbType.VarChar).Value = cliente.NombreCliente;
                     sqlcmd.Parameters.Add("@ApellidoCliente", SqlDbType.VarChar).Value = cliente.ApellidoCliente;

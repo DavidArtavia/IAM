@@ -1,10 +1,10 @@
+import { useEffect, useState } from "react";
 import {
   ConfirmModal,
   GenericDataTable,
   GenericFormModal,
   LoadingPanel,
 } from "@/components";
-import { useEffect, useState } from "react";
 import { DTO_Cliente, DTO_Respuesta } from "@/models";
 import { clientesService } from "@/services";
 import {
@@ -15,90 +15,95 @@ import {
   labelMapCliente,
   notificationHelpers,
   procesarRespuesta,
+  updateItemById,
 } from "@/utils";
 import { STATUS_TBL } from "@/constants";
 
 export const Clientes = () => {
-  // --------------------------------------------------
-  // 1. HOOKS Y ESTADOS
-  // --------------------------------------------------
-
+  //#region 🔄 Estado general
   const [clientes, setClientes] = useState<DTO_Cliente[]>([]);
   const [loading, setLoading] = useState(false);
+  //#endregion
 
+  //#region ➕ Registrar
   const [isFormOpen, setIsFormOpen] = useState(false);
-  const [showEditForm, setShowEditForm] = useState(false);
   const [formData, setFormData] = useState<DTO_Cliente>(new DTO_Cliente());
-  const [editData, setEditData] = useState<DTO_Cliente>(new DTO_Cliente());
+  //#endregion
 
+  //#region ✏️ Editar
+  const [showEditForm, setShowEditForm] = useState(false);
+  const [editData, setEditData] = useState<DTO_Cliente>(new DTO_Cliente());
+  //#endregion
+
+  //#region 🗑 Eliminar
   const [clienteToDelete, setClienteToDelete] = useState<DTO_Cliente | null>(
     null
   );
+  //#endregion
+
+  //#region ✅ Confirmación
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [confirmModalMessage, setConfirmModalMessage] = useState("");
-
   const [confirmContext, setConfirmContext] = useState<
     "cancelAdd" | "delete" | null
   >(null);
-  // --------------------------------------------------
-  // 2. EFECTO: CARGAR CLIENTES AL CAMBIAR NEGOCIO
-  // --------------------------------------------------
+  //#endregion
+
+  //#region 🚀 Carga inicial
   useEffect(() => {
     setLoading(true);
     clientesService.obtenerClientes().subscribe({
       next: (result) => {
-        setClientes(
-          (procesarRespuesta(
-            result as unknown as DTO_Respuesta
-          ) as DTO_Cliente[]) || []
-        );
+        const data = procesarRespuesta(
+          result as DTO_Respuesta
+        ) as DTO_Cliente[];
+        setClientes(data || []);
         handleNotification(result, "info");
       },
-      error: (err) => errorHelpers.serverError(err),
-      complete: () => {
-        setLoading(false);
-      },
+      error: errorHelpers.serverError,
+      complete: () => setLoading(false),
     });
   }, []);
+  //#endregion
 
-  const handleNotification = (result: any, typeNotification: string) => {
+  //#region 🔔 Notificación
+  const handleNotification = (
+    result: any,
+    type: "succes" | "info" | "warning"
+  ) => {
     if (result.resultado) {
-      switch (typeNotification) {
-        case "succes":
-          notificationHelpers.successAlert(result.mensaje);
-          break;
-        case "info":
-          notificationHelpers.infoAlert(result.mensaje);
-          break;
-        default:
-          notificationHelpers.warningAlert(result.mensaje);
-          break;
-      }
+      const msg = result.mensaje || "Operación realizada correctamente";
+      if (type === "succes") notificationHelpers.successAlert(msg);
+      else if (type === "info") notificationHelpers.infoAlert(msg);
+      else notificationHelpers.warningAlert(msg);
     } else {
       notificationHelpers.errorAlert(
         result.mensaje || "Error al procesar la solicitud"
       );
     }
   };
-  // --------------------------------------------------
-  // 4. AGREGAR NUEVO CLIENTE
-  // --------------------------------------------------
+  //#endregion
+
+  //#region 🧩 Registrar
   const handleAddNew = () => {
     setFormData(new DTO_Cliente());
     setIsFormOpen(true);
   };
 
   const handleSave = () => {
-    formData.estado.iD_Estado = STATUS_TBL.CLIENT.ACTIVE;
+    formData.estado = {
+      iD_Estado: STATUS_TBL.CLIENT.ACTIVE,
+      nombre: "activo",
+      tabla: "",
+    };
     clientesService.registrarClientes(formData).subscribe({
       next: (res) => {
-        const nuevoCliente = (
+        const nuevo = (
           Array.isArray(res.resultado) ? res.resultado[0] : res.resultado
         ) as DTO_Cliente;
+        setClientes((prev) => [...prev, nuevo]);
         handleNotification(res, "succes");
         setIsFormOpen(false);
-        // ✅ Refrescar tabla local
-        setClientes((prev) => [nuevoCliente, ...prev]);
       },
       error: errorHelpers.serverError,
     });
@@ -109,10 +114,10 @@ export const Clientes = () => {
     setConfirmContext("cancelAdd");
     setIsConfirmOpen(true);
   };
+  
+  //#endregion
 
-  // --------------------------------------------------
-  // 5. EDITAR CLIENTE
-  // --------------------------------------------------
+  //#region ✏️ Guardar Edición
   const handleEdit = (cliente: DTO_Cliente) => {
     setEditData({ ...cliente });
     setShowEditForm(true);
@@ -120,23 +125,18 @@ export const Clientes = () => {
 
   const handleSaveEdit = () => {
     const updated = { ...editData };
-
     clientesService.actualizarClientes(updated).subscribe({
       next: (res) => {
+        setClientes((prev) => updateItemById(prev, updated, "iD_Cliente"));
         handleNotification(res, "succes");
         setShowEditForm(false);
       },
       error: errorHelpers.serverError,
     });
-    // ✅ Refrescar tabla local
-    setClientes((prev) =>
-      prev.map((c) => (c.iD_Cliente === updated.iD_Cliente ? updated : c))
-    );
   };
+  //#endregion
 
-  // --------------------------------------------------
-  // 6. ELIMINAR (DESACTIVAR) CLIENTE
-  // --------------------------------------------------
+  //#region 🗑 Confirmar Eliminación
   const handleDelete = (cliente: DTO_Cliente) => {
     setConfirmModalMessage(
       `¿Estás seguro de que deseas eliminar al cliente ${cliente.nombreCliente}?`
@@ -155,22 +155,19 @@ export const Clientes = () => {
           iD_Estado: STATUS_TBL.CLIENT.DELETED,
         },
       };
-      // ✅ Refrescar tabla local
-      setClientes((prev) =>
-        prev.map((c) => (c.iD_Cliente === updated.iD_Cliente ? updated : c))
-      );
-
+      setClientes((prev) => updateItemById(prev, updated, "iD_Cliente"));
       clientesService.actualizarClientes(updated).subscribe({
         next: (res) => handleNotification(res, "info"),
         error: errorHelpers.serverError,
       });
-
-      setClienteToDelete(null);
     }
+    setClienteToDelete(null);
     setIsConfirmOpen(false);
+    setConfirmContext(null);
   };
+  //#endregion
 
-  // ======== Manejo de confirmación de “Cancelar registro” o “Eliminar”  ========
+  //#region 🎛️ Cancelar confirmaciones
   const confirmModalAction = (action: boolean | null) => {
     if (action) {
       if (confirmContext === "cancelAdd") {
@@ -183,32 +180,34 @@ export const Clientes = () => {
     setIsConfirmOpen(false);
     setConfirmContext(null);
   };
+  //#endregion
 
-  // --------------------------------------------------
-  // 9. RENDER
-  // --------------------------------------------------
+  //#region 🔍 Filtro para mostrar solo clientes activos
+  const clientesActivos = clientes.filter(
+    (c) => c.estado?.iD_Estado !== STATUS_TBL.CLIENT.DELETED
+  );
+  //#endregion
+
+  //#region 🎨 Render
   return (
     <div className="row p-4 gx-0">
       {loading ? (
         <LoadingPanel msj="Cargando clientes, por favor espere..." />
       ) : (
-        clientes && (
-          <GenericDataTable<DTO_Cliente>
-            title="Clientes"
-            columnKeys={columnKeysCliente}
-            labelMap={labelMapCliente}
-            data={clientes}
-            onAdd={handleAddNew}
-            onEdit={handleEdit}
-            onDelete={handleDelete}
-            includeEstadoColumn
-            modalInfoFields={keysInfoModalCliente}
-          />
-        )
+        <GenericDataTable<DTO_Cliente>
+          title="Clientes"
+          columnKeys={columnKeysCliente}
+          labelMap={labelMapCliente}
+          data={clientesActivos}
+          onAdd={handleAddNew}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+          includeEstadoColumn
+          modalInfoFields={keysInfoModalCliente}
+        />
       )}
 
-      {/* Modal: Registrar Cliente */}
-      <GenericFormModal<DTO_Cliente>
+      <GenericFormModal
         title="Registrar Cliente"
         show={isFormOpen}
         onHide={handleCancelAdd}
@@ -218,8 +217,7 @@ export const Clientes = () => {
         fields={clienteFormEditFields}
       />
 
-      {/* Modal: Editar Cliente */}
-      <GenericFormModal<DTO_Cliente>
+      <GenericFormModal
         title="Editar Cliente"
         show={showEditForm}
         onHide={() => setShowEditForm(false)}
@@ -229,7 +227,6 @@ export const Clientes = () => {
         fields={clienteFormEditFields}
       />
 
-      {/* Modal: Confirmar Eliminación */}
       <ConfirmModal
         show={isConfirmOpen}
         confirmMessage={confirmModalMessage}
@@ -237,4 +234,5 @@ export const Clientes = () => {
       />
     </div>
   );
+  //#endregion
 };

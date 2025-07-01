@@ -26,41 +26,51 @@ namespace DAL
 
                 using (SqlCommand sqlcmd = new(query, this.GetObjConexion()))
                 {
-                    sqlcmd.CommandType = System.Data.CommandType.StoredProcedure;
+                    sqlcmd.CommandType = CommandType.StoredProcedure;
+
                     sqlcmd.Parameters.AddWithValue("@ID_Cliente", ordenServicio.ID_Cliente);
                     sqlcmd.Parameters.AddWithValue("@ID_Negocio", ordenServicio.ID_Negocio);
-                    sqlcmd.Parameters.AddWithValue("@FechaEstimadaEntrega", ordenServicio.FechaEstimadaEntrega);
-                    sqlcmd.Parameters.AddWithValue("@FechaInicio", ordenServicio.FechaInicio);
-                    sqlcmd.Parameters.AddWithValue("@FechaFinal", ordenServicio.FechaFinal);
-                    sqlcmd.Parameters.AddWithValue("@FechaEntrega", ordenServicio.FechaEntrega);
-                    sqlcmd.Parameters.AddWithValue("@NotaOrdenServicio", ordenServicio.NotaOrdenServicio);
-                    sqlcmd.Parameters.Add("@ReferenciaJSON", SqlDbType.NVarChar, -1).Value = json;
+                    sqlcmd.Parameters.AddWithValue("@FechaEstimadaEntrega", (object?)ordenServicio.FechaEstimadaEntrega ?? DBNull.Value);
+                    sqlcmd.Parameters.AddWithValue("@FechaInicio", (object?)ordenServicio.FechaInicio ?? DBNull.Value);
+                    sqlcmd.Parameters.AddWithValue("@FechaFinal", (object?)ordenServicio.FechaFinal ?? DBNull.Value);
+                    sqlcmd.Parameters.AddWithValue("@FechaEntrega", (object?)ordenServicio.FechaEntrega ?? DBNull.Value);
+                    sqlcmd.Parameters.AddWithValue("@NotaOrdenServicio", (object?)ordenServicio.NotaOrdenServicio ?? DBNull.Value);
+                    sqlcmd.Parameters.Add("@ReferenciaJSON", SqlDbType.NVarChar, -1).Value = json ?? "";
 
                     foreach (SqlParameter param in sqlcmd.Parameters)
-                    {
                         param.Direction = ParameterDirection.Input;
-                    }
 
                     this.Open();
 
                     using (SqlDataReader reader = await sqlcmd.ExecuteReaderAsync())
                     {
-                        while (reader.Read())
-                        {
-                            ordenServicio.ID_OrdenServicio = UTL_DBHelper.ReadNullSafeInt(reader["ID_OrdenServicio"]);
-                            ordenServicio.Estado.ID_Estado = UTL_DBHelper.ReadNullSafeInt(reader["ID_Estado"]);
-                        }
+                        DTO_OrdenServicio orden = new DTO_OrdenServicio();
 
-
-                        if (reader.NextResult())
+                        // Primer result set: orden insertada con estado
+                        if (reader.Read())
                         {
-                            while (reader.Read())
+                            orden.ID_OrdenServicio = UTL_DBHelper.ReadNullSafeInt(reader["ID_OrdenServicio"]);
+                            orden.ID_Cliente = UTL_DBHelper.ReadNullSafeInt(reader["ID_Cliente"]);
+                            orden.ID_Negocio = UTL_DBHelper.ReadNullSafeInt(reader["ID_Negocio"]);
+                            orden.FechaOrdenServicio = UTL_DBHelper.ReadNullSafeDateTime(reader["FechaOrdenServicio"]);
+                            orden.FechaEstimadaEntrega = UTL_DBHelper.ReadNullSafeDateTime(reader["FechaEstimadaEntrega"]);
+                            orden.FechaInicio = UTL_DBHelper.ReadNullSafeDateTime(reader["FechaInicio"]);
+                            orden.FechaFinal = UTL_DBHelper.ReadNullSafeDateTime(reader["FechaFinal"]);
+                            orden.FechaEntrega = UTL_DBHelper.ReadNullSafeDateTime(reader["FechaEntrega"]);
+                            orden.NotaOrdenServicio = UTL_DBHelper.ReadNullSafeString(reader["NotaOrdenServicio"]);
+                            orden.Estado = new DTO_Estado
                             {
-                                ordenServicio.NotaOrdenServicio = UTL_DBHelper.ReadNullSafeString(reader["NotaOrdenConCliente"]);
-                            }
+                                ID_Estado = UTL_DBHelper.ReadNullSafeInt(reader["ID_Estado"]),
+                                Nombre = UTL_DBHelper.ReadNullSafeString(reader["EstadoNombre"]),
+                                Tabla = UTL_DBHelper.ReadNullSafeString(reader["EstadoTabla"])
+                            };
+                            string refJson = UTL_DBHelper.ReadNullSafeString(reader["ReferenciaJSON"]);
+                            orden.ReferenciaJSON = !string.IsNullOrEmpty(refJson)
+                                ? Newtonsoft.Json.JsonConvert.DeserializeObject<List<DTO_Param>>(refJson)
+                                : new List<DTO_Param>();
                         }
 
-
+                        // Segundo result set: Alerta
                         if (reader.NextResult())
                         {
                             while (reader.Read())
@@ -68,9 +78,11 @@ namespace DAL
                                 respuesta = manejarRespuesta(reader);
                             }
                         }
+
+                        // Agregar al resultado
+                        respuesta.Resultado.Add(orden);
                     }
 
-                    respuesta.Resultado.Add(ordenServicio);
                     return respuesta;
                 }
             }
@@ -84,6 +96,7 @@ namespace DAL
                 this.Close();
             }
         }
+
         public DTO_Respuesta obtenerOrdenDeServicio(DTO_Negocio negocio)
         {
             var listaOrdenes = new List<DTO_OrdenServicio>();

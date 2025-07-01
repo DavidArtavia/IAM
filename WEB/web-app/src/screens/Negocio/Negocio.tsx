@@ -1,3 +1,5 @@
+// ✅ RP-14: Pantalla Negocio adaptada a estructura definitiva (estado local, sin refetch, confirmación, referencias y filtros)
+
 import {
   ConfirmModal,
   FieldConfig,
@@ -17,33 +19,33 @@ import {
   negocioFormEditFields,
   notificationHelpers,
   procesarRespuesta,
+  updateItemById,
 } from "@/utils";
 import { useContext, useEffect, useState } from "react";
 
 export const Negocio = () => {
-  // === Contexto pa aobtenr datos de usuario ===
+  //#region 🔄 Estado y contexto
   const { user } = useContext(AuthContext);
-  // === Estados principales ===
-  const [business, setBusiness] = useState<Array<DTO_Negocio>>([]);
-  const [disableButtonAdd /* setDisableButtonAdd */] = useState<boolean>(false);
-
-  // Estado para el filtro de estado, inicia en "ACTIVO"
-  const [filtroEstado /*setFiltroEstado*/] = useState<DTO_FiltroEstado>({
+  const [business, setBusiness] = useState<DTO_Negocio[]>([]);
+  const [disableButtonAdd] = useState<boolean>(false);
+  const [filtroEstado] = useState<DTO_FiltroEstado>({
     filtroEstado: FILTER_STATUS.ACTIVO,
   });
+  //#endregion
 
-  // === Modal “Registrar” (Genérico) ===
+  //#region ➕ Registro
   const [isModalFormOpen, setIsModalFormOpen] = useState(false);
   const [formData, setFormData] = useState<DTO_Negocio>(new DTO_Negocio());
+  //#endregion
 
-  // === Modal “Editar” (Genérico) ===
+  //#region ✏️ Edición
   const [showModalUpdateBusiness, setShowModalUpdateBusiness] = useState(false);
   const [editData, setEditData] = useState<DTO_Negocio | null>(null);
   const [rowBusinessSelected, setRowBusinessSelected] =
     useState<DTO_Negocio | null>(null);
+  //#endregion
 
-  // --------- Modal de Confirmación de Borrar / Cancelar -----------
-
+  //#region 🗑 Eliminación lógica
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [confirmModalMessage, setConfirmModalMessage] = useState("");
   const [confirmContext, setConfirmContext] = useState<
@@ -52,30 +54,23 @@ export const Negocio = () => {
   const [businessToDelete, setBusinessToDelete] = useState<DTO_Negocio | null>(
     null
   );
+  //#endregion
 
-  // === Efecto para cargar los negocios al iniciar ===
+  //#region 🚀 Obtener negocios al iniciar
   useEffect(() => {
-    refetchAccounts();
-  }, [filtroEstado]);
-
-  // === Refetch O obtener Negocios ===
-  const refetchAccounts = () => {
     negocioService.obtenerNegocios(filtroEstado).subscribe({
       next: (result) => {
-        setBusiness(
-          procesarRespuesta(result as DTO_Respuesta) as Array<DTO_Negocio>
-        );
+        const negocios = procesarRespuesta(
+          result as DTO_Respuesta
+        ) as DTO_Negocio[];
+        setBusiness(negocios);
       },
-      error: (err) => errorHelpers.serverError(err),
-      complete: () => {
-        // if (business.length <= 3) {
-        //   setDisableButtonAdd(true);
-        // }
-      },
+      error: errorHelpers.serverError,
     });
-  };
-  // ========== “Registrar” ==========
+  }, [filtroEstado]);
+  //#endregion
 
+  //#region ✅ Registrar negocio
   const handleAddNewBusiness = () => {
     setFormData(new DTO_Negocio());
     setIsModalFormOpen(true);
@@ -83,27 +78,25 @@ export const Negocio = () => {
 
   const handleSave = () => {
     formData.iD_Usuario = user?.iD_Usuario || 0;
+    formData.estado = {
+      iD_Estado: STATUS_TBL.BUSINESS.ACTIVE,
+      nombre: "activo",
+      tabla: "",
+    };
+
     negocioService.registrarNegocio(formData).subscribe({
-      next: (result: unknown) => {
-        const mensaje =
-          (result as DTO_Respuesta)?.mensaje ??
-          "Negocio registrado correctamente";
-        notificationHelpers.successAlert(mensaje);
-        refetchAccounts();
+      next: (result: DTO_Respuesta) => {
+        const nuevo = (result.resultado as DTO_Negocio[])[0];
+        if (nuevo) setBusiness((prev) => [...prev, nuevo]);
+        notificationHelpers.successAlert(result.mensaje);
         setIsModalFormOpen(false);
       },
-      error: (err) => errorHelpers.serverError(err),
+      error: errorHelpers.serverError,
     });
   };
+  //#endregion
 
-  //
-  const handleCancel = () => {
-    setConfirmModalMessage("¿Estás seguro de que deseas cancelar?");
-    setConfirmContext("cancelAdd");
-    setIsConfirmOpen(true);
-  };
-
-  // ========== “Editar” ==========
+  //#region ✏️ Guardar edición
   const handleEdit = (rowData: DTO_Negocio) => {
     setRowBusinessSelected(rowData);
     setEditData({ ...rowData });
@@ -115,58 +108,75 @@ export const Negocio = () => {
     updatedData.iD_Negocio = rowBusinessSelected.iD_Negocio;
     updatedData.iD_Usuario = user?.iD_Usuario || 0;
 
-    // Si no cambiaron el estado, lo dejamos como estaba
     if (!updatedData.estado && rowBusinessSelected.estado) {
       updatedData.estado = { ...rowBusinessSelected.estado };
     }
 
     negocioService.actualizarNegocio(updatedData).subscribe({
-      next: (result: unknown) => {
-        const mensaje =
-          (result as DTO_Respuesta)?.mensaje ??
-          "Negocio actualizado correctamente";
-        notificationHelpers.successAlert(mensaje);
-        refetchAccounts();
+      next: (result: DTO_Respuesta) => {
+        setBusiness((prev) => updateItemById(prev, updatedData, "iD_Negocio"));
+        notificationHelpers.successAlert(result.mensaje);
         setShowModalUpdateBusiness(false);
       },
-      error: (err) => errorHelpers.serverError(err),
+      error: errorHelpers.serverError,
     });
   };
+  //#endregion
 
-  // ======== “Eliminar” ========
+  //#region 🗑 Confirmar eliminación
   const handleDelete = (rowData: DTO_Negocio) => {
     setConfirmModalMessage(
-      `¿Estás seguro de que deseas eliminar el negocio ${rowData.nombreNegocio} ?`
+      `¿Estás seguro de que deseas eliminar el negocio ${rowData.nombreNegocio}?`
     );
     setBusinessToDelete(rowData);
     setConfirmContext("delete");
     setIsConfirmOpen(true);
   };
+
   const handleConfirmDelete = (action: boolean | null) => {
     if (action && businessToDelete) {
       const updatedData: DTO_Negocio = {
         ...businessToDelete,
         estado: {
           ...businessToDelete.estado!,
-          iD_Estado: STATUS_TBL.BUSINESS.DELETED, // Marcamos como eliminado
+          iD_Estado: STATUS_TBL.BUSINESS.DELETED,
+          nombre: "eliminado",
         },
       };
+      setBusiness((prev) => updateItemById(prev, updatedData, "iD_Negocio"));
       negocioService.actualizarNegocio(updatedData).subscribe({
-        next: (result) => {
-          notificationHelpers.infoAlert(result?.mensaje);
-          refetchAccounts();
-        },
-        error: (err) => errorHelpers.serverError(err),
+        next: (result) => notificationHelpers.infoAlert(result?.mensaje),
+        error: errorHelpers.serverError,
       });
-      setBusinessToDelete(null);
     }
+    setBusinessToDelete(null);
     setIsConfirmOpen(false);
+    setConfirmContext(null);
+  };
+  //#endregion
+
+  //#region ❌ Cancelar
+  const handleCancel = () => {
+    setConfirmModalMessage("¿Estás seguro de que deseas cancelar?");
+    setConfirmContext("cancelAdd");
+    setIsConfirmOpen(true);
   };
 
-  // --------------------------------------------------
-  // 9. CAMPOS PARA LOS FORMULARIOS (Registrar y Editar)
-  // --------------------------------------------------
+  const confirmModalAcion = (action: boolean | null) => {
+    if (action) {
+      if (confirmContext === "cancelAdd") {
+        setIsModalFormOpen(false);
+        notificationHelpers.infoAlert("Cambios descartados correctamente");
+      } else if (confirmContext === "delete") {
+        handleConfirmDelete(true);
+      }
+    }
+    setIsConfirmOpen(false);
+    setConfirmContext(null);
+  };
+  //#endregion
 
+  //#region 🧾 Campos formularios
   const newFormFields: FieldConfig<DTO_Negocio>[] = [
     ...negocioFormEditFields,
     {
@@ -190,6 +200,7 @@ export const Negocio = () => {
       },
     },
   ];
+
   const editFormFields: FieldConfig<DTO_Negocio>[] = [
     ...negocioFormEditFields,
     {
@@ -198,8 +209,8 @@ export const Negocio = () => {
       type: "custom",
       renderer: () => (
         <ReferenciasJsonInput
-          hideCheckbox={true} // Ocultamos el checkbox para edición
-          editable={false} // No Permitimos edición de inputs
+          hideCheckbox={true}
+          editable={false}
           value={editData?.referenciaJSON || []}
           onChange={(val) =>
             setEditData((prev) =>
@@ -217,89 +228,58 @@ export const Negocio = () => {
       },
     },
   ];
+  //#endregion
 
-  // ======== Manejo de confirmación de “Cancelar registro” o “Eliminar”  ========
-
-  const confirmModalAcion = (action: boolean | null) => {
-    if (action) {
-      if (confirmContext === "cancelAdd") {
-        setIsModalFormOpen(false);
-        notificationHelpers.infoAlert("Cambios descartados correctamente");
-      } else if (confirmContext === "delete") {
-        handleConfirmDelete(true);
-      }
-    }
-    setIsConfirmOpen(false);
-    setConfirmContext(null);
-  };
-
-  // ========== Renderizado de columnas personalizadas ==========
-  const customRenderers: {
-    [K in keyof DTO_Negocio]?: (
-      value: unknown,
-      rowData: DTO_Negocio
-    ) => string | number | React.ReactNode;
-  } = {
-    fechaRegistro: (val: unknown) => {
-      if (!val) return "";
-      return new Date(String(val)).toLocaleDateString();
-    },
-  };
-
+  //#region 🎨 Render
   return (
-    <>
-      <div className="row p-4 col-12 gx-0">
-        {/* Tabla GENÉRICA */}
-        <GenericDataTable<DTO_Negocio>
-          title="Negocios"
-          columnKeys={columnKeysNegocio}
-          labelMap={labelMapNegocio}
-          data={business}
-          onAdd={handleAddNewBusiness}
-          onEdit={handleEdit}
-          onDelete={handleDelete}
-          disableButtonAdd={disableButtonAdd}
-          includeEstadoColumn={true} // añade automáticamente la columna “Estado”
-          includeReferenceColumn={true} // añade automáticamente la columna “Referencias”
-          customRenderers={customRenderers}
-          modalInfoFields={keysInfoModalNegocio}
-          datekeys={["fechaRegistro"]}
-        />
+    <div className="row p-4 col-12 gx-0">
+      <GenericDataTable<DTO_Negocio>
+        title="Negocios"
+        columnKeys={columnKeysNegocio}
+        labelMap={labelMapNegocio}
+        data={business.filter(
+          (b) => b.estado?.iD_Estado !== STATUS_TBL.BUSINESS.DELETED
+        )}
+        onAdd={handleAddNewBusiness}
+        onEdit={handleEdit}
+        onDelete={handleDelete}
+        disableButtonAdd={disableButtonAdd}
+        includeEstadoColumn
+        includeReferenceColumn
+        customRenderers={{
+          fechaRegistro: (val: unknown) =>
+            val ? new Date(String(val)).toLocaleDateString() : "",
+        }}
+        modalInfoFields={keysInfoModalNegocio}
+        datekeys={["fechaRegistro"]}
+      />
 
-        {/* === Modal Genérico: Registrar Negocios === */}
-        <GenericFormModal<DTO_Negocio>
-          title="Registrar Negocio"
-          show={isModalFormOpen}
-          onHide={handleCancel}
-          data={formData}
-          setData={setFormData}
-          onSubmit={handleSave}
-          fields={newFormFields}
-        />
+      <GenericFormModal
+        title="Registrar Negocio"
+        show={isModalFormOpen}
+        onHide={handleCancel}
+        data={formData}
+        setData={setFormData}
+        onSubmit={handleSave}
+        fields={newFormFields}
+      />
 
-        {/* ====== Modal Genérico: Editar Cuenta por Pagar ====== */}
-        <GenericFormModal<DTO_Negocio>
-          title="Editar datos del Negocio"
-          show={showModalUpdateBusiness}
-          onHide={() => setShowModalUpdateBusiness(false)}
-          data={editData!}
-          setData={(x) => setEditData(x as DTO_Negocio)}
-          onSubmit={() => {
-            // Llamamos a handleSaveEdit con el objeto editData
-            if (editData) {
-              handleSaveBusiness(editData);
-            }
-          }}
-          fields={editFormFields}
-        />
+      <GenericFormModal
+        title="Editar datos del Negocio"
+        show={showModalUpdateBusiness}
+        onHide={() => setShowModalUpdateBusiness(false)}
+        data={editData!}
+        setData={(x) => setEditData(x as DTO_Negocio)}
+        onSubmit={() => editData && handleSaveBusiness(editData)}
+        fields={editFormFields}
+      />
 
-        {/* === Modal Genérico: Confirmación === */}
-        <ConfirmModal
-          show={isConfirmOpen}
-          confirmMessage={confirmModalMessage}
-          onAction={(action) => confirmModalAcion(action)}
-        />
-      </div>
-    </>
+      <ConfirmModal
+        show={isConfirmOpen}
+        confirmMessage={confirmModalMessage}
+        onAction={confirmModalAcion}
+      />
+    </div>
   );
+  //#endregion
 };

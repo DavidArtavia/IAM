@@ -42,12 +42,17 @@ namespace DAL
                     {
                         DTO_Transacciones transaccionRegistrada = new();
 
-                        // Primer result set: OUTPUT del INSERT
+                        // 🔹 Primer result set: datos de transacción
                         if (reader.Read())
                         {
                             transaccionRegistrada.ID_Transaccion = UTL_DBHelper.ReadNullSafeInt(reader["ID_Transaccion"]);
                             transaccionRegistrada.ID_Negocio = UTL_DBHelper.ReadNullSafeInt(reader["ID_Negocio"]);
-                            transaccionRegistrada.Estado.ID_Estado = UTL_DBHelper.ReadNullSafeInt(reader["ID_Estado"]);
+                            transaccionRegistrada.Estado = new DTO_Estado
+                            {
+                                ID_Estado = UTL_DBHelper.ReadNullSafeInt(reader["ID_Estado"]),
+                                Nombre = UTL_DBHelper.ReadNullSafeString(reader["EstadoNombre"]),
+                                Tabla = UTL_DBHelper.ReadNullSafeString(reader["EstadoTabla"])
+                            };
                             transaccionRegistrada.Concepto = UTL_DBHelper.ReadNullSafeString(reader["Concepto"]);
                             transaccionRegistrada.Monto = UTL_DBHelper.ReadNullSafeDecimal(reader["Monto"]);
                             transaccionRegistrada.Tipo = UTL_DBHelper.ReadNullSafeString(reader["Tipo"]);
@@ -56,7 +61,7 @@ namespace DAL
                             transaccionRegistrada.FechaTransaccion = (DateTime)UTL_DBHelper.ReadNullSafeDateTime(reader["FechaTransaccion"]);
                         }
 
-                        // Segundo result set: COD_ALERTA
+                        // 🔹 Segundo result set: alerta
                         if (reader.NextResult())
                         {
                             while (reader.Read())
@@ -65,7 +70,6 @@ namespace DAL
                             }
                         }
 
-                        // Agregamos la transacción como resultado
                         respuesta.Resultado.Add(transaccionRegistrada);
                     }
 

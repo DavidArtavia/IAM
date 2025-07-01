@@ -56,8 +56,8 @@ namespace DAL
             }
         }
 
-        protected DTO_Respuesta manejarRespuesta(SqlDataReader reader) 
-        {   
+        protected DTO_Respuesta manejarRespuesta(SqlDataReader reader)
+        {
             DTO_Respuesta respuesta = new DTO_Respuesta();
             //Validar si hay error controlado
             if (UTL.UTL_DBHelper.ReadNullSafeString(reader["Tipo"]) == "E")

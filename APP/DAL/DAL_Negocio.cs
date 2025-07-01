@@ -44,11 +44,62 @@ namespace DAL
 
                     using (SqlDataReader reader = await sqlcmd.ExecuteReaderAsync())
                     {
-                        while (reader.Read())
+                        DTO_Negocio negocioRegistrado = new();
+
+                        // Primer result set: OUTPUT del INSERT
+                        if (reader.Read())
                         {
-                            respuesta = manejarRespuesta(reader);
+                            negocioRegistrado.ID_Negocio = UTL_DBHelper.ReadNullSafeInt(reader["ID_Negocio"]);
+                            negocioRegistrado.ID_Usuario = UTL_DBHelper.ReadNullSafeInt(reader["ID_Usuario"]);
+                            negocioRegistrado.Estado = new DTO_Estado
+                            {
+                                ID_Estado = UTL_DBHelper.ReadNullSafeInt(reader["ID_Estado"]),
+                                Nombre = UTL_DBHelper.ReadNullSafeString(reader["EstadoNombre"]),
+                                Tabla = UTL_DBHelper.ReadNullSafeString(reader["EstadoTabla"])
+                            };
+                            negocioRegistrado.NombreNegocio = UTL_DBHelper.ReadNullSafeString(reader["NombreNegocio"]);
+                            negocioRegistrado.Descripcion = UTL_DBHelper.ReadNullSafeString(reader["Descripcion"]);
+                            negocioRegistrado.Direccion = UTL_DBHelper.ReadNullSafeString(reader["Direccion"]);
+                            negocioRegistrado.TelefonoNegocio = UTL_DBHelper.ReadNullSafeString(reader["TelefonoNegocio"]);
+                            negocioRegistrado.CorreoNegocio = UTL_DBHelper.ReadNullSafeString(reader["CorreoNegocio"]);
+                            negocioRegistrado.FechaRegistro = (DateTime)UTL_DBHelper.ReadNullSafeDateTime(reader["FechaRegistro"]);
+                            string jsonReferencia = UTL_DBHelper.ReadNullSafeString(reader["ReferenciaJSON"]);
+
+                            if (!string.IsNullOrWhiteSpace(jsonReferencia))
+                            {
+                                try
+                                {
+                                    // Deserializamos a List<DTO_Param>:
+                                    negocioRegistrado.ReferenciaJSON =
+                                        Newtonsoft.Json.JsonConvert
+                                            .DeserializeObject<List<DTO_Param>>(jsonReferencia)
+                                        ?? new List<DTO_Param>();
+                                }
+                                catch (Exception jsonEx)
+                                {
+                                    negocioRegistrado.ReferenciaJSON = new List<DTO_Param>();
+                                }
+                            }
+                            else
+                            {
+                                // Si el campo estuvo vacío o nulo:
+                                negocioRegistrado.ReferenciaJSON = new List<DTO_Param>();
+                            }
                         }
+
+                        // Segundo result set: COD_ALERTA
+                        if (reader.NextResult())
+                        {
+                            while (reader.Read())
+                            {
+                                respuesta = manejarRespuesta(reader);
+                            }
+                        }
+
+                        // Agregamos la transacción como resultado
+                        respuesta.Resultado.Add(negocioRegistrado);
                     }
+
                     return respuesta;
                 }
             }
