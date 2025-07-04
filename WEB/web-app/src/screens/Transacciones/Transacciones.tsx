@@ -3,7 +3,6 @@
 import { useEffect, useState, useRef } from "react";
 import { DTO_Negocio, DTO_Transacciones, DTO_Respuesta } from "@/models";
 import {
-  BusinessButtons,
   ConfirmModal,
   FieldConfig,
   GenericDataTable,
@@ -21,8 +20,21 @@ import {
 import { errorHelpers, notificationHelpers, procesarRespuesta } from "@/utils";
 import { STATUS_TBL } from "@/constants";
 import { transaccionesService } from "@/services/transacciones.service";
+import { useApp } from "@/hooks/useApp";
 
 export const Transacciones = () => {
+    //🔄 Estado general
+    const { state } = useApp();
+  
+    useEffect(() => {
+      if (state.negocio) {
+        setSelectedBusiness(state.negocio)
+        handleSelectBusiness(state.negocio);
+      }
+    }, [state]);
+  
+    //#endregion
+
   //#region 🔄 Estado y carga
   const [selectedBusiness, setSelectedBusiness] = useState<DTO_Negocio | null>(
     null
@@ -259,11 +271,7 @@ export const Transacciones = () => {
   //#region 🎨 Render
   return (
     <div className="row p-4 col-12 gx-0">
-      <BusinessButtons
-        handleSelectBusiness={handleSelectBusiness}
-        title="Negocios"
-        selectedBusiness={selectedBusiness}
-      />
+ {state.negocio == null}
       {loading ? (
         <LoadingPanel msj="Cargando transacciones..." />
       ) : selectedBusiness ? (

@@ -5,7 +5,7 @@ import { ROUTES } from "@/constants";
 import { Link } from "react-router-dom";
 import "./LayoutMain.css";
 import { useLogout } from "@/hooks/useLogout";
-import { ConfirmModal } from "@/components";
+import { BusinessButtons, ConfirmModal } from "@/components";
 import { AuthContext } from "@/context";
 
 declare global {
@@ -267,7 +267,7 @@ export const LayoutMain = () => {
               <div className="menu-item py-2">
                 <Link
                   to={ROUTES.METRICAS}
-                  className={`menu-link menu-center${pathname === ROUTES.TRANSACTIONS ? " active" : ""}`}
+                  className={`menu-link menu-center${pathname === ROUTES.METRICAS ? " active" : ""}`}
                   data-bs-trigger="hover"
                   data-bs-dismiss="click"
                   data-bs-placement="right"
@@ -334,25 +334,9 @@ export const LayoutMain = () => {
             </div>
 
             <div className="separator my-2" />
-<div className="container py-3" style={{paddingLeft: 0}}>
-  {/* gx-0 → gutter horizontal 0 */}
-  <div className="row gx-0">
-    {/* 100 % en móvil, 25 % a partir de lg */}
-    <div className="col-12 col-lg-3">
-      <select
-        className="form-select"
-        data-control="select2"
-        data-placeholder="Select an option"
-      >
-        <option value=""></option>
-        <option value="1">Option 1</option>
-        <option value="2" style={{ color: '#343a40' }}>
-          Option 2
-        </option>
-      </select>
-    </div>
-  </div>
-</div>
+
+
+                  <BusinessButtons></BusinessButtons>
 
             <div className="d-flex align-items-stretch justify-content-between flex-lg-grow-1">
               <div className="d-flex align-items-stretch" id="kt_header_nav" />

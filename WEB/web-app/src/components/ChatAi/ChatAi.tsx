@@ -1,15 +1,30 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ChatSidebar, ChatMessages, ChatInputBar } from "@/components";
 import { chatService } from "@/services";
 import { DTO_Negocio, DTO_ChatIA, DTO_Mensaje, DTO_Respuesta } from "@/models";
 import { errorHelpers, procesarRespuesta, processResponse } from "@/utils";
 import { BusinessButtons } from "../Buttons/BusinessButtons";
+import { useApp } from "@/hooks/useApp";
 
 export const ChatAi = () => {
+
+  //🔄 Estado general
+  const { state } = useApp();
+
+  useEffect(() => {
+    if (state.negocio) {
+      setSelectedBusiness(state.negocio)
+      handleSelectBusiness(state.negocio);
+      setBusinesses(state.listaNegocios)
+    }
+  }, [state]);
+
+  //#endregion
+
   const [businesses, setBusinesses] = useState<DTO_Negocio[]>([]);
   const [chats, setChats] = useState<DTO_ChatIA[]>([]);
   const [messages, setMessages] = useState<DTO_Mensaje[]>([]);
-  const [selectedBusiness, setSelectedBusiness] = useState<DTO_Negocio>( new DTO_Negocio() );
+  const [selectedBusiness, setSelectedBusiness] = useState<DTO_Negocio>(new DTO_Negocio());
   const [selectedChat, setChat] = useState<DTO_ChatIA | null>(null);
 
   const handleSelectBusiness = (negocio: DTO_Negocio) => {
@@ -78,16 +93,10 @@ export const ChatAi = () => {
 
   return (
     <div className="row p-4 col-12 gx-0">
-      <BusinessButtons
-        title="Seleccione un negocio para conversar con el asistente inteligente:"
-        onLoadBusinesses={setBusinesses}
-        handleSelectBusiness={handleSelectBusiness}
-        selectedBusiness={selectedBusiness}
-      />
+      {state.negocio == null}
       <div
-        className={`d-flex flex-column flex-lg-row mt-10${
-          businesses.length ? "" : " d-none"
-        }`}
+        className={`d-flex flex-column flex-lg-row mt-10${businesses.length ? "" : " d-none"
+          }`}
       >
         <div className="flex-column flex-lg-row-auto w-100 w-lg-300px w-xl-400px mb-10 mb-lg-0 p-2">
           <ChatSidebar
