@@ -42,7 +42,8 @@ export const BusinessButtons = () => {
       <div className="row gx-0">
         <div className="col-12 col-lg-3">
           <select
-            className="form-select"
+            data-control="select2"
+            className="form-control form-control-solid"
             disabled={listaNegocios.length === 0}
             value={negocio?.iD_Negocio ?? ''}
             onChange={(e) => {

@@ -8,9 +8,14 @@ export const Metricas = () => {
                 <div className="card card-xl-stretch mb-xl-8">
 
                     <div className="card-header border-0 fs-1">
-                        <h1 className="card-title fw-bolder text-dark"><span className="badge badge-light fs-3">Métrica 1</span></h1>
+                        <h1 className="card-title fw-bolder text-dark"><span className="badge badge-light fs-3"></span></h1>
                         <div className="card-toolbar">
-
+                            <a href="#" className="btn btn-light-primary me-2 mb-2">Hoy</a>
+                            <a href="#" className="btn btn-dark me-2 mb-2">Semana</a>
+                            <a href="#" className="btn btn-dark me-2 mb-2">Mes</a>
+                            <a href="#" className="btn btn-dark me-2 mb-2">Trimestre</a>
+                            <a href="#" className="btn btn-dark me-2 mb-2">Semestre</a>
+                            <a href="#" className="btn btn-dark me-2 mb-2">Año</a>
                         </div>
                     </div>
 

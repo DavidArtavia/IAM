@@ -3,7 +3,6 @@ import { ChatSidebar, ChatMessages, ChatInputBar } from "@/components";
 import { chatService } from "@/services";
 import { DTO_Negocio, DTO_ChatIA, DTO_Mensaje, DTO_Respuesta } from "@/models";
 import { errorHelpers, procesarRespuesta, processResponse } from "@/utils";
-import { BusinessButtons } from "../Buttons/BusinessButtons";
 import { useApp } from "@/hooks/useApp";
 
 export const ChatAi = () => {
