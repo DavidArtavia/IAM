@@ -1,6 +1,5 @@
 import {
   AsyncClientSelect,
-  BusinessButtons,
   ClientOption,
   ConfirmModal,
   FieldConfig,
@@ -26,8 +25,12 @@ import {
   notificationHelpers,
   ordenServicioFormEditFields,
 } from "@/utils";
+import { useApp } from '@/hooks/useApp';
+
 import { useEffect, useMemo, useState } from "react";
 import AsyncSelect from "react-select/async";
+
+
 
 const generateSafeKey = (name: string) =>
   name
@@ -37,7 +40,18 @@ const generateSafeKey = (name: string) =>
     .replace(/[^\w_]/g, "");
 
 export const OrdenDeServicio = () => {
-  //#region 🔄 Estado general
+     //🔄 Estado general
+    const { state } = useApp();
+  
+    useEffect(() => {
+      if (state.negocio) {
+        setSelectedBusiness(state.negocio)
+        handleSelectBusiness(state.negocio);
+      }
+    }, [state]);
+  
+    //#endregion
+    
   const [selectedBusiness, setSelectedBusiness] = useState<DTO_Negocio | null>(
     null
   );
@@ -47,6 +61,8 @@ export const OrdenDeServicio = () => {
   const [selectedClientOption, setSelectedClientOption] =
     useState<ClientOption | null>(null);
   //#endregion
+
+
 
   //#region ➕ Registro
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -388,7 +404,7 @@ export const OrdenDeServicio = () => {
     ...buildRefFields(editData),
   ];
   //#endregion
-  
+
   //#region ⚡ Confirm Modal y Custom Renderers
   const confirmModalAcion = (action: boolean | null) => {
     if (action) {
@@ -453,11 +469,7 @@ export const OrdenDeServicio = () => {
   // #region 🧩 Render
   return (
     <div className="row p-4 gx-0">
-      <BusinessButtons
-        title="Seleccione un negocio"
-        selectedBusiness={selectedBusiness}
-        handleSelectBusiness={handleSelectBusiness}
-      />
+    {state.negocio == null}
       {loading ? (
         <LoadingPanel msj="Cargando órdenes de servicio, por favor espere..." />
       ) : selectedBusiness ? (

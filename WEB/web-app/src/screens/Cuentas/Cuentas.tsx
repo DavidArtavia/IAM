@@ -12,7 +12,6 @@ import {
   keysInfoModalCuentasPorPagar,
 } from "@/utils";
 import {
-  BusinessButtons,
   ConfirmModal,
   GenericDataTable,
   GenericFormModal,
@@ -20,8 +19,21 @@ import {
   LoadingPanel,
 } from "@/components";
 import { STATUS_TBL } from "@/constants";
+import { useApp } from "@/hooks/useApp";
 
 export const Cuentas = () => {
+  //🔄 Estado general
+  const { state } = useApp();
+
+  useEffect(() => {
+    if (state.negocio) {
+      setSelectedBusiness(state.negocio)
+      handleSelectBusiness(state.negocio);
+    }
+  }, [state]);
+
+  //#endregion
+
   // Estado de negocio seleccionado
   const [selectedBusiness, setSelectedBusiness] = useState<DTO_Negocio | null>(
     null
@@ -204,14 +216,7 @@ export const Cuentas = () => {
   return (
     <>
       <div className="row p-4 col-12 gx-0">
-        {/* Selección de negocio */}
-        <BusinessButtons
-          handleSelectBusiness={handleSelectBusiness}
-          title="Negocios"
-          selectedBusiness={selectedBusiness}
-        />
-
-        {/* Tabla GENÉRICA */}
+        {state.negocio == null}
         {loading ? (
           <LoadingPanel msj="Cargando cuentas por pagar..." />
         ) : selectedBusiness ? (

@@ -7,3 +7,4 @@ export * from "./Monitor/Monitor";
 export * from "./Clientes/Clientes";
 export * from "./OrdenDeServicio/OrdenDeServicio";
 export * from "./Transacciones/Transacciones";
+export * from "./Metricas/Metricas";
