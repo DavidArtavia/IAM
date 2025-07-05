@@ -122,8 +122,8 @@ export function GenericDataTable<T>({
               porcentaje >= 80
                 ? "bg-success"
                 : porcentaje >= 50
-                ? "bg-warning"
-                : "bg-danger";
+                  ? "bg-warning"
+                  : "bg-danger";
 
             const content = (
               <div className="d-flex flex-column w-100 me-2">
@@ -261,6 +261,11 @@ export function GenericDataTable<T>({
             next: "Siguiente",
           },
         },
+        layout: {
+          topStart: {
+            buttons: ['copy', 'csv', 'excel', 'pdf', 'print']
+          }
+        },
         deferRender: true,
         destroy: true,
       });
@@ -275,9 +280,9 @@ export function GenericDataTable<T>({
           const rawData = row.data() as T;
           const detail = modalInfoFields
             ? modalInfoFields.reduce((acc, key) => {
-                acc[String(key)] = rawData[key];
-                return acc;
-              }, {} as Record<string, unknown>)
+              acc[String(key)] = rawData[key];
+              return acc;
+            }, {} as Record<string, unknown>)
             : (rawData as Record<string, unknown>);
 
           setDetailData(detail);

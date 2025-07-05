@@ -105,7 +105,7 @@ export const Metricas = () => {
                                     </a>
                                     <div className="fw-bolder fs-1 text-gray-800">₡15,300</div>
                                 </div>
-                                                                <div className="col bg-secondary px-6 py-8 rounded-2 me-7 mb-7">
+                                <div className="col bg-secondary px-6 py-8 rounded-2 me-7 mb-7">
 
 
                                     <span className="svg-icon svg-icon-3x svg-icon-gray-800 d-block my-2">
@@ -150,8 +150,10 @@ export const Metricas = () => {
                             </div>
 
                         </div>
-                    </div>
 
+                        <div className="separator border-5 my-10"></div>
+                    </div>
+                    
                 </div>
 
             </div>
