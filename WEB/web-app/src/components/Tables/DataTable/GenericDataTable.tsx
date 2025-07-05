@@ -1,10 +1,30 @@
 import React, { useEffect, useRef, useMemo, useState } from "react";
 import $ from "jquery";
 import "datatables.net-bs5";
+//import 'datatables.net-buttons/js/buttons.html5.js';
+//import 'datatables.net-dt/css/jquery.dataTables.css';
+
+// Buttons (núcleo + adaptación jQuery + CSS del mismo tema)
+import DataTable from 'datatables.net-dt';
+//import 'datatables.net-dt/css/jquery.dataTables.css';
+
+import JsZip from 'jszip';
+
+import Buttons from 'datatables.net-buttons';
+
+
+//import 'datatables.net-buttons-dt/css/buttons.dataTables.css';
+import 'datatables.net-buttons/js/buttons.html5.js';
+
 import ReactDOM from "react-dom/client";
 import { InfoModal, ActionButtons, ReferenciaCards } from "@/components";
 
+
 type ColumnSettings = DataTables.ColumnSettings;
+
+//@ts-expect-error -Error ignorado
+window.JSZip = JsZip;
+
 
 export interface GenericDataTableProps<T> {
   title: string;
@@ -43,6 +63,9 @@ export function GenericDataTable<T>({
   showItemsButton = false,
   datekeys,
 }: GenericDataTableProps<T>) {
+
+  DataTable.use(Buttons);
+
   const tableRef = useRef<HTMLTableElement>(null);
   const [showInfo, setShowInfo] = useState(false);
   const [detailData, setDetailData] = useState<Record<string, unknown>>({});
@@ -261,13 +284,21 @@ export function GenericDataTable<T>({
             next: "Siguiente",
           },
         },
-        layout: {
-          topStart: {
-            buttons: ['copy', 'csv', 'excel', 'pdf', 'print']
-          }
-        },
         deferRender: true,
         destroy: true,
+        dom: 'Bfrtip',
+        //@ts-expect-error -Error ignorado      
+        buttons: [
+          {
+            extend: 'excelHtml5',
+            text: '<i class="bi bi-file-earmark-excel-fill me-1"></i> Exportar a Excel',
+            filename: 'reporte',
+            titleAttr: 'Descargar como Excel',
+            exportOptions: { columns: ':visible' },
+            className: 'btn btn-success'
+          
+          },
+        ],
       });
 
       const dtInstance = $(table).DataTable();
