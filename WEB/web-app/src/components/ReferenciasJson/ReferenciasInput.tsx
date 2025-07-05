@@ -63,18 +63,16 @@ export const ReferenciasJsonInput = ({
     <div className="d-flex flex-column">
       {!hideCheckbox && (
         <>
-          <div className="switch-container mb-4">
+          <div className="form-check form-switch form-check-custom form-check-solid">
             <input
-              className="toggle-checkbox"
+              className="form-check-input"
               id="toggle-switch"
               type="checkbox"
               checked={enabled}
               onChange={handleToggle}
             />
-            <label className="switch " htmlFor="toggle-switch">
-              <div className="toggle">
-                <div className="led"></div>
-              </div>
+            <label className="form-check-label" htmlFor="toggle-switch">
+            
             </label>
           </div>
         </>
@@ -82,7 +80,7 @@ export const ReferenciasJsonInput = ({
 
       {(enabled || hideCheckbox) && (
         <>
-          <div className="row g-4 mb-4">
+          <div className="row g-4 mb-4 mt-1">
             {referencias.map((ref, idx) => {
               const isEditable = editable || ref._nuevo;
               return (
