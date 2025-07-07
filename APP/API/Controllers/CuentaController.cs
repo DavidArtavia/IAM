@@ -21,11 +21,11 @@ namespace API.Controllers
         [Produces("application/json")]
         [Route("registrarCuenta")]
         [HttpPost]
-        public DTO_Respuesta registrarCuenta([FromBody] DTO_CuentaPorPagar cuentaPorPagar)
+        public DTO_Respuesta registrarCuenta([FromBody] DTO_Cuenta cuenta)
         {
             try
             {
-                respuesta = bLL_Cuenta.registrarCuentaPorPagar(cuentaPorPagar);
+                respuesta = bLL_Cuenta.registrarCuenta(cuenta);
             }
             catch (Exception ex)
             {
@@ -39,12 +39,12 @@ namespace API.Controllers
         [Produces("application/json")]
         [Route("obtenerCuentas")]
         [HttpPost]
-        public DTO_Respuesta obtenerCuentaPorPagar([FromBody] DTO_Negocio negocio)
+        public DTO_Respuesta obtenerCuenta([FromBody] DTO_Negocio negocio)
         {
 
             try
             {
-                respuesta = bLL_Cuenta.obtenerCuentaPorPagar(negocio);
+                respuesta = bLL_Cuenta.obtenerCuenta(negocio);
             }
             catch (Exception ex)
             {
@@ -58,11 +58,11 @@ namespace API.Controllers
         [Produces("application/json")]
         [Route("actualizarCuentas")]
         [HttpPost]
-        public DTO_Respuesta actualizarCuentaPorPagar([FromBody] DTO_CuentaPorPagar cuentaPorPagar)
+        public DTO_Respuesta actualizarCuenta([FromBody] DTO_Cuenta cuenta)
         {
             try
             {
-                respuesta = bLL_Cuenta.actualizarCuentaPorPagar(cuentaPorPagar);
+                respuesta = bLL_Cuenta.actualizarCuenta(cuenta);
             }
             catch (Exception ex)
             {
