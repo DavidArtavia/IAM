@@ -1,12 +1,23 @@
 import React, { useEffect, useRef, useMemo, useState } from "react";
 import $ from "jquery";
 import "datatables.net-bs5";
+import DataTable from 'datatables.net-dt';
+import JsZip from 'jszip';
+import Buttons from 'datatables.net-buttons';
+import 'datatables.net-buttons/js/buttons.html5.js';
+
 import ReactDOM from "react-dom/client";
 import { InfoModal, ActionButtons, ReferenciaCards } from "@/components";
+import { useApp } from "@/hooks/useApp";
 
 type ColumnSettings = DataTables.ColumnSettings;
 
+//@ts-expect-error -Error ignorado
+window.JSZip = JsZip;
+
+
 export interface GenericDataTableProps<T> {
+
   title: string;
   columnKeys: (keyof T)[];
   labelMap: Record<string, string>;
@@ -27,6 +38,7 @@ export interface GenericDataTableProps<T> {
 }
 
 export function GenericDataTable<T>({
+
   title,
   columnKeys,
   labelMap,
@@ -43,6 +55,11 @@ export function GenericDataTable<T>({
   showItemsButton = false,
   datekeys,
 }: GenericDataTableProps<T>) {
+  //🔄 Estado general
+  const { state } = useApp();
+
+  //#endregion
+  DataTable.use(Buttons);
   const tableRef = useRef<HTMLTableElement>(null);
   const [showInfo, setShowInfo] = useState(false);
   const [detailData, setDetailData] = useState<Record<string, unknown>>({});
@@ -80,14 +97,50 @@ export function GenericDataTable<T>({
       }
     });
 
+function parametrosAString(
+  lista?: { nombre: string; valor: string }[] | null
+): string {
+  if (!Array.isArray(lista) || lista.length === 0) return '';
+
+  return lista
+    .map(({ nombre = '', valor = '' }) => {
+      // 1️⃣ trim → fuera espacios a los dos lados
+      const nom = nombre.trim();
+      const val = valor.trim();
+
+      // 2️⃣ capitaliza: 1ª letra mayúscula + resto minúsculas
+      const nomCap = nom
+        ? nom[0].toUpperCase() + nom.slice(1).toLowerCase()
+        : '';
+
+      return `${nomCap}: ${val}`;
+    })
+    .join(', ');
+}
+
     //#region 🧷 Columna Referencias JSON
     if (includeReferenceColumn && labelMap["referenciaJSON"]) {
       cols.push({
         title: labelMap["referenciaJSON"],
         data: null,
-        orderable: false,
-        searchable: false,
+        orderable: true,
+        searchable: true,
         defaultContent: "",
+        render: function (_data, type, row) {
+          // ——— Para la exportación (Excel, CSV, Copiar, PDF) ———
+          if (type === "export") {
+            const nombre = parametrosAString((row as any).referenciaJSON) ?? "";
+            // Capitaliza igual que en la badge
+            return nombre??  "";
+          }
+
+          // ——— Para los demás usos (“display”, “filter”, “sort”) ———
+          if (type === "filter" || type === "sort") {
+            return parametrosAString((row as any).referenciaJSON) ?? "";
+          }
+          // Dejamos vacío porque la celda la pintará `createdCell`
+          return "";
+        },
         createdCell: (cell, _, row) => {
           try {
             const container = document.createElement("div");
@@ -112,6 +165,21 @@ export function GenericDataTable<T>({
         orderable: false,
         searchable: false,
         defaultContent: "",
+                render: function (_data, type, row) {
+          // ——— Para la exportación (Excel, CSV, Copiar, PDF) ———
+          if (type === "export") {
+            const nombre = row["avance"] ?? 0;
+            // Capitaliza igual que en la badge
+            return nombre??  "";
+          }
+
+          // ——— Para los demás usos (“display”, “filter”, “sort”) ———
+          if (type === "filter" || type === "sort") {
+            return row["avance"] ?? 0;
+          }
+          // Dejamos vacío porque la celda la pintará `createdCell`
+          return "";
+        },
         createdCell: (cell, _, row) => {
           try {
             const container = document.createElement("div");
@@ -122,8 +190,8 @@ export function GenericDataTable<T>({
               porcentaje >= 80
                 ? "bg-success"
                 : porcentaje >= 50
-                ? "bg-warning"
-                : "bg-danger";
+                  ? "bg-warning"
+                  : "bg-danger";
 
             const content = (
               <div className="d-flex flex-column w-100 me-2">
@@ -158,14 +226,36 @@ export function GenericDataTable<T>({
     if (includeEstadoColumn && labelMap["estado"]) {
       cols.push({
         title: labelMap["estado"],
+
+        /* 1️⃣  Sigue usando null: DataTables enviará la fila completa al render */
         data: null,
-        orderable: false,
-        searchable: false,
+        orderable: true,
+        searchable: true,
         defaultContent: "",
-        createdCell: (cell, _, row) => {
+
+        /* 2️⃣  NUEVO: render ortogonal */
+        render: function (_data, type, row) {
+          // ——— Para la exportación (Excel, CSV, Copiar, PDF) ———
+          if (type === "export") {
+            const nombre = row?.estado?.nombre ?? "";
+            // Capitaliza igual que en la badge
+            return nombre
+              ? nombre.charAt(0).toUpperCase() + nombre.slice(1).toLowerCase()
+              : "";
+          }
+
+          // ——— Para los demás usos (“display”, “filter”, “sort”) ———
+          if (type === "filter" || type === "sort") {
+            return row?.estado?.nombre ?? "";
+          }
+          // Dejamos vacío porque la celda la pintará `createdCell`
+          return "";
+        },
+
+        /* 3️⃣  SIGUE tu lógica de React en `createdCell` */
+        createdCell: (cell, _data, row) => {
           try {
-            const estado: string =
-              (row as any)?.estado?.nombre?.toLowerCase() ?? "N/A";
+            const estado = (row as any)?.estado?.nombre?.toLowerCase() ?? "N/A";
 
             const badgeClassMap: Record<string, string> = {
               activo: "badge-light-success",
@@ -178,8 +268,7 @@ export function GenericDataTable<T>({
               default: "badge badge-dark",
             };
 
-            const badgeClass =
-              badgeClassMap[estado] || badgeClassMap["default"];
+            const badgeClass = badgeClassMap[estado] || badgeClassMap["default"];
 
             const container = document.createElement("span");
             (cell as HTMLElement).innerHTML = "";
@@ -204,6 +293,7 @@ export function GenericDataTable<T>({
       orderable: false,
       searchable: false,
       defaultContent: "",
+      className: 'noExport text-center',
       createdCell: (cell, _, row) => {
         try {
           const container = document.createElement("div");
@@ -222,6 +312,7 @@ export function GenericDataTable<T>({
           console.warn("Error render actions", err);
         }
       },
+
     });
     //#endregion
 
@@ -245,6 +336,7 @@ export function GenericDataTable<T>({
         columns: dtColumns,
         columnDefs: [
           { targets: "_all", className: "text-center", defaultContent: "" },
+
         ],
         order: [[0, "desc"]],
         language: {
@@ -263,6 +355,18 @@ export function GenericDataTable<T>({
         },
         deferRender: true,
         destroy: true,
+        dom: 'Bfrtip',
+        // @ts-expect-error  — «title» aún no está en las typings
+        buttons: [{
+          extend: 'excelHtml5',
+          text: '<i class="bi bi-file-earmark-excel-fill me-1 fs-1"></i> Exportar a Excel',
+          className: 'btn btn-success',
+          filename: 'Reporte ' + title + ' ' + new Date().toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' }).split('/').join('-'),
+          titleAttr: 'Descargar como Excel',
+          exportOptions: { columns: ':visible:not(.noExport)', orthogonal: 'export' },   // nada más
+          title: 'Negocio: ' + state.negocio?.nombreNegocio + ', Reporte: ' + title + ' ' + new Date().toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' }).split('/').join('-'),
+          sheetName: 'Datos',  
+        }]
       });
 
       const dtInstance = $(table).DataTable();
@@ -275,9 +379,9 @@ export function GenericDataTable<T>({
           const rawData = row.data() as T;
           const detail = modalInfoFields
             ? modalInfoFields.reduce((acc, key) => {
-                acc[String(key)] = rawData[key];
-                return acc;
-              }, {} as Record<string, unknown>)
+              acc[String(key)] = rawData[key];
+              return acc;
+            }, {} as Record<string, unknown>)
             : (rawData as Record<string, unknown>);
 
           setDetailData(detail);
@@ -286,6 +390,7 @@ export function GenericDataTable<T>({
     } catch (err) {
       console.error("DataTable error", err);
     }
+    //David, este parámetro dtColumns es el que hace brincar la tabla
   }, [dtColumns, modalInfoFields]);
   //#endregion
 

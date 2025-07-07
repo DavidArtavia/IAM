@@ -5,7 +5,7 @@ import { ROUTES } from "@/constants";
 import { Link } from "react-router-dom";
 import "./LayoutMain.css";
 import { useLogout } from "@/hooks/useLogout";
-import { ConfirmModal } from "@/components";
+import { BusinessButtons, ConfirmModal } from "@/components";
 import { AuthContext } from "@/context";
 
 declare global {
@@ -19,27 +19,27 @@ declare global {
 export const LayoutMain = () => {
 
 
-useEffect(() => {
-  // Este useEffect habilita el sonido de la notificación previamente
-  const habilitarSonido = () => {
-    try {
-      const audioTemp = new Audio("../../assets/media/audios/Monitor.mp3");
-      audioTemp.play().then(() => {
-        audioTemp.pause();
-        audioTemp.currentTime = 0;
-      }).catch(() => {});
-    } catch (err) {
-      // Captura errores inesperados en caso de fallo de Audio
-      console.warn("⚠️ Error al intentar habilitar el sonido:", err);
-    }
+  useEffect(() => {
+    // Este useEffect habilita el sonido de la notificación previamente
+    const habilitarSonido = () => {
+      try {
+        const audioTemp = new Audio("../../assets/media/audios/Monitor.mp3");
+        audioTemp.play().then(() => {
+          audioTemp.pause();
+          audioTemp.currentTime = 0;
+        }).catch(() => { });
+      } catch (err) {
+        // Captura errores inesperados en caso de fallo de Audio
+        console.warn("⚠️ Error al intentar habilitar el sonido:", err);
+      }
 
-    // Quitamos el listener
-    window.removeEventListener("click", habilitarSonido);
-  };
+      // Quitamos el listener
+      window.removeEventListener("click", habilitarSonido);
+    };
 
-  window.addEventListener("click", habilitarSonido);
-  return () => window.removeEventListener("click", habilitarSonido);
-}, []);
+    window.addEventListener("click", habilitarSonido);
+    return () => window.removeEventListener("click", habilitarSonido);
+  }, []);
 
 
 
@@ -140,9 +140,8 @@ useEffect(() => {
               <div className="menu-item py-2">
                 <Link
                   to={ROUTES.HOME}
-                  className={`menu-link menu-center${
-                    pathname === ROUTES.HOME ? " active" : ""
-                  }`}
+                  className={`menu-link menu-center${pathname === ROUTES.HOME ? " active" : ""
+                    }`}
                   data-bs-trigger="hover"
                   data-bs-dismiss="click"
                   data-bs-placement="right"
@@ -157,9 +156,8 @@ useEffect(() => {
               <div className="menu-item py-2">
                 <Link
                   to={ROUTES.CHAT_AI}
-                  className={`menu-link menu-center${
-                    pathname === ROUTES.CHAT_AI ? " active" : ""
-                  }`}
+                  className={`menu-link menu-center${pathname === ROUTES.CHAT_AI ? " active" : ""
+                    }`}
                   data-bs-trigger="hover"
                   data-bs-dismiss="click"
                   data-bs-placement="right"
@@ -174,9 +172,8 @@ useEffect(() => {
               <div className="menu-item py-2">
                 <Link
                   to={ROUTES.NEGOCIO}
-                  className={`menu-link menu-center${
-                    pathname === ROUTES.NEGOCIO ? " active" : ""
-                  }`}
+                  className={`menu-link menu-center${pathname === ROUTES.NEGOCIO ? " active" : ""
+                    }`}
                   data-bs-trigger="hover"
                   data-bs-dismiss="click"
                   data-bs-placement="right"
@@ -191,9 +188,8 @@ useEffect(() => {
               <div className="menu-item py-2">
                 <Link
                   to={ROUTES.CLIENTES}
-                  className={`menu-link menu-center${
-                    pathname === ROUTES.CLIENTES ? " active" : ""
-                  }`}
+                  className={`menu-link menu-center${pathname === ROUTES.CLIENTES ? " active" : ""
+                    }`}
                   data-bs-trigger="hover"
                   data-bs-dismiss="click"
                   data-bs-placement="right"
@@ -208,9 +204,8 @@ useEffect(() => {
               <div className="menu-item py-2">
                 <Link
                   to={ROUTES.CUENTAS}
-                  className={`menu-link menu-center${
-                    pathname === ROUTES.CUENTAS ? " active" : ""
-                  }`}
+                  className={`menu-link menu-center${pathname === ROUTES.CUENTAS ? " active" : ""
+                    }`}
                   data-bs-trigger="hover"
                   data-bs-dismiss="click"
                   data-bs-placement="right"
@@ -225,9 +220,8 @@ useEffect(() => {
               <div className="menu-item py-2">
                 <Link
                   to={ROUTES.SERVICE_ORDER}
-                  className={`menu-link menu-center${
-                    pathname === ROUTES.SERVICE_ORDER ? " active" : ""
-                  }`}
+                  className={`menu-link menu-center${pathname === ROUTES.SERVICE_ORDER ? " active" : ""
+                    }`}
                   data-bs-trigger="hover"
                   data-bs-dismiss="click"
                   data-bs-placement="right"
@@ -242,9 +236,8 @@ useEffect(() => {
               <div className="menu-item py-2">
                 <Link
                   to={ROUTES.MONITOR}
-                  className={`menu-link menu-center${
-                    pathname === ROUTES.MONITOR ? " active" : ""
-                  }`}
+                  className={`menu-link menu-center${pathname === ROUTES.MONITOR ? " active" : ""
+                    }`}
                   data-bs-trigger="hover"
                   data-bs-dismiss="click"
                   data-bs-placement="right"
@@ -268,6 +261,21 @@ useEffect(() => {
                     <i className="bi bi-arrow-left-right fs-2" />
                   </span>
                   <span className="menu-title">Transacciones</span>
+                </Link>
+              </div>
+
+              <div className="menu-item py-2">
+                <Link
+                  to={ROUTES.METRICAS}
+                  className={`menu-link menu-center${pathname === ROUTES.METRICAS ? " active" : ""}`}
+                  data-bs-trigger="hover"
+                  data-bs-dismiss="click"
+                  data-bs-placement="right"
+                >
+                  <span className="menu-icon me-0">
+                    <i className="bi bi-bar-chart-line-fill" />
+                  </span>
+                  <span className="menu-title">Métricas</span>
                 </Link>
               </div>
             </div>
@@ -326,6 +334,10 @@ useEffect(() => {
             </div>
 
             <div className="separator my-2" />
+
+
+                  <BusinessButtons></BusinessButtons>
+
             <div className="d-flex align-items-stretch justify-content-between flex-lg-grow-1">
               <div className="d-flex align-items-stretch" id="kt_header_nav" />
 

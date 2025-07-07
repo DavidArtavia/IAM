@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import * as signalR from "@microsoft/signalr";
 import sonidoMonitor from "../../assets/media/audios/Monitor.mp3";
 import { errorHelpers, notificationHelpers } from "@/utils";
-import { BusinessButtons, LoadingPanel, OrdenesSeccion } from "@/components";
+import { LoadingPanel, OrdenesSeccion } from "@/components";
 import {
   DTO_ItemOrdenServicio,
   DTO_Negocio,
@@ -15,8 +15,21 @@ import {
   ordenesService,
 } from "@/services";
 import { STATUS_TBL } from "@/constants";
+import { useApp } from "@/hooks/useApp";
 
 export const Monitor = () => {
+  //🔄 Estado general
+  const { state } = useApp();
+
+  useEffect(() => {
+    if (state.negocio) {
+      setSelectedBusiness(state.negocio)
+      handleSelectBusiness(state.negocio);
+    }
+  }, [state]);
+
+  //#endregion
+  
   const [estadoConexion, setEstadoConexion] = useState("Desconectado");
   const connectionRef = useRef<signalR.HubConnection | null>(null);
   const audio = useRef(new Audio(sonidoMonitor));
@@ -178,13 +191,13 @@ export const Monitor = () => {
           return idx === -1
             ? [...prev, msg] // insertar
             : prev.map(
-                (
-                  i // actualizar
-                ) =>
-                  i.iD_ItemOrdenServicio === msg.iD_ItemOrdenServicio
-                    ? { ...i, ...msg }
-                    : i
-              );
+              (
+                i // actualizar
+              ) =>
+                i.iD_ItemOrdenServicio === msg.iD_ItemOrdenServicio
+                  ? { ...i, ...msg }
+                  : i
+            );
         });
 
         notificationHelpers.infoAlert(
@@ -208,13 +221,13 @@ export const Monitor = () => {
           return idx === -1
             ? [...prev, msg] // insertar
             : prev.map(
-                (
-                  o // actualizar
-                ) =>
-                  o.iD_OrdenServicio === msg.iD_OrdenServicio
-                    ? { ...o, ...msg }
-                    : o
-              );
+              (
+                o // actualizar
+              ) =>
+                o.iD_OrdenServicio === msg.iD_OrdenServicio
+                  ? { ...o, ...msg }
+                  : o
+            );
         });
 
         notificationHelpers.infoAlert(
@@ -229,7 +242,7 @@ export const Monitor = () => {
         new Notification("📢 Nuevo mensaje", { body: msg, silent: true });
       }
         */
-      audio.current.play().catch(() => {});
+      audio.current.play().catch(() => { });
     };
 
     const handleReconnecting = () => {
@@ -326,7 +339,7 @@ export const Monitor = () => {
           );
           setItems(
             ((res as DTO_Respuesta).resultado[1] as DTO_ItemOrdenServicio[]) ||
-              []
+            []
           );
         },
         error: (err) => errorHelpers.serverError(err),
@@ -346,16 +359,10 @@ export const Monitor = () => {
   };
 
   //#endregion
-  
+
   return (
     <div>
       <div className="row p-4 gx-0">
-        <BusinessButtons
-          title="Seleccione un negocio"
-          selectedBusiness={selectedBusiness}
-          handleSelectBusiness={handleSelectBusiness}
-        />
-
         {loading && <LoadingPanel msj="Cargando, por favor espere..." />}
       </div>
 
@@ -364,11 +371,10 @@ export const Monitor = () => {
           <h3 className="fw-bolder my-2">
             <span
               style={{ marginRight: "5px", marginBottom: "-5px" }}
-              className={`badge badge-circle ${
-                estadoConexion === "Conectado"
+              className={`badge badge-circle ${estadoConexion === "Conectado"
                   ? " badge-success"
                   : " badge-danger"
-              }`}
+                }`}
             ></span>
             {selectedBusiness?.nombreNegocio}
             <span className="fs-6 text-gray-400 fw-bold ms-1">

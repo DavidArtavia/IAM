@@ -9,6 +9,7 @@ import {
 } from "@/components";
 import { FILTER_STATUS, STATUS_TBL } from "@/constants";
 import { AuthContext } from "@/context";
+import { useApp } from "@/hooks/useApp";
 import { DTO_Negocio, DTO_Respuesta, DTO_FiltroEstado } from "@/models";
 import { negocioService } from "@/services";
 import {
@@ -25,6 +26,7 @@ import { useContext, useEffect, useState } from "react";
 
 export const Negocio = () => {
   //#region 🔄 Estado y contexto
+  const { state, setListaNegocios, setNegocio } = useApp();
   const { user } = useContext(AuthContext);
   const [business, setBusiness] = useState<DTO_Negocio[]>([]);
   const [disableButtonAdd] = useState<boolean>(false);
@@ -87,9 +89,15 @@ export const Negocio = () => {
     negocioService.registrarNegocio(formData).subscribe({
       next: (result: DTO_Respuesta) => {
         const nuevo = (result.resultado as DTO_Negocio[])[0];
-        if (nuevo) setBusiness((prev) => [...prev, nuevo]);
-        notificationHelpers.successAlert(result.mensaje);
+        if (nuevo) setBusiness((prev) => [...prev, nuevo]); {
+          notificationHelpers.successAlert(result.mensaje);
+          setListaNegocios([...state.listaNegocios, nuevo]);
+          //Seleccionarlo por defecto globalmente
+        }
+        setNegocio(nuevo);
+
         setIsModalFormOpen(false);
+
       },
       error: errorHelpers.serverError,
     });
@@ -144,8 +152,29 @@ export const Negocio = () => {
         },
       };
       setBusiness((prev) => updateItemById(prev, updatedData, "iD_Negocio"));
+
+
+
       negocioService.actualizarNegocio(updatedData).subscribe({
-        next: (result) => notificationHelpers.infoAlert(result?.mensaje),
+        next: (result) => {
+          notificationHelpers.infoAlert(result?.mensaje)
+
+          if (result.tipoRespuesta && businessToDelete) {
+            const nuevaLista = state.listaNegocios.filter(
+              n => n.iD_Negocio !== businessToDelete.iD_Negocio
+            );
+            setListaNegocios(nuevaLista);              
+
+            if (state.negocio?.iD_Negocio === businessToDelete.iD_Negocio) {
+              setNegocio(
+                state.listaNegocios.length > 1
+                  ? state.listaNegocios.find(n => n.iD_Negocio !== businessToDelete.iD_Negocio) ?? null
+                  : null
+              );
+            }
+          }
+
+        },
         error: errorHelpers.serverError,
       });
     }
