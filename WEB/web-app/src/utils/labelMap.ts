@@ -1,18 +1,19 @@
 import { FieldConfig } from "@/components/Modals/GenericFormModal/types";
-import { DTO_Cliente, DTO_CuentasPorPagar, DTO_ItemOrdenServicio, DTO_Negocio, DTO_OrdenServicio, DTO_Transacciones } from "@/models";
+import { DTO_Cliente, DTO_Cuenta, DTO_ItemOrdenServicio, DTO_Negocio, DTO_OrdenServicio, DTO_Transacciones } from "@/models";
 
 //#region columnas de tablas
 
 //  Define configuraciones de campos de formulario (FieldConfig) para construir formularios dinámicos relacionados con estos modelos.
 // Los label maps permiten mostrar nombres amigables en la UI, y los arreglos de campos de formulario se usan para generar formularios de manera flexible.
-export const columnKeysCuentasPorPagar: (keyof DTO_CuentasPorPagar)[] = [
-    // "iD_CuentasPorPagar",
-    "iD_Negocio",
+export const columnKeysCuenta: (keyof DTO_Cuenta)[] = [
+    "iD_Cuenta",
     "concepto",
-    "descripcion",
-    "saldo",
+    "monto",
     "fechaInicial",
-    "fechaModificacion",
+    "fechaLimite",
+    "tipoCuenta",
+    "iD_OrdenServicio",
+
 ];
 export const columnKeysNegocio: (keyof DTO_Negocio)[] = [
     "iD_Negocio",
@@ -89,14 +90,16 @@ export const keysInfoModalNegocio: (keyof DTO_Negocio)[] = [
     "referenciaJSON"
 ];
 
-export const keysInfoModalCuentasPorPagar: (keyof DTO_CuentasPorPagar)[] = [
-    // "iD_CuentasPorPagar",
-    "iD_Negocio",
+export const keysInfoModalCuenta: (keyof DTO_Cuenta)[] = [
+    "iD_Cuenta",
     "concepto",
     "descripcion",
-    "saldo",
     "fechaInicial",
-    "fechaModificacion",
+    "fechaLimite",
+    "tipoCuenta",
+    "iD_OrdenServicio",
+    "detalleJSON",
+    "monto",
     "estado",
 ];
 
@@ -135,18 +138,15 @@ export const keysInfoModalTransacciones: (keyof DTO_Transacciones)[] = [
 //#region tablas
 
 // Este archivo define mapas de etiquetas (label maps) para mostrar nombres legibles en los titulos del DataTable de los modelos.
-export const labelMapCuentasPorPagar: Record<string, string> = {
-    iD_CuentasPorPagar: "Cuenta por Pagar #",
-    iD_Negocio: "Negocio #",
-    concepto: "Concepto",
-    descripcion: "Descripción",
-    saldo: "Saldo",
-    fechaInicial: "Fecha Inicial",
-    fechaModificacion: "Fecha Modificación",
+export const labelMapCuenta: Record<string, string> = {
+    iD_Cuenta: "Cuenta #",
     estado: "Estado",
-    iD_Estado: "ID Estado",
-    nombre: "Nombre",
-    tabla: "Tabla",
+    concepto: "Concepto",
+    monto: "Monto",
+    fechaInicial: "Fecha Inicial",
+    fechaLimite: "Fecha Límite",
+    tipoCuenta: "Tipo De Cuenta",
+    iD_OrdenServicio: "Orden De Servicio #"
 };
 
 export const labelMapNegocio: Record<string, string> = {
@@ -216,14 +216,42 @@ export const negocioFormEditFields: Array<FieldConfig<DTO_Negocio>> = columnKeys
         label: labelMapNegocio[key] ?? key,
         type: "text",
     }));
-
-export const cuentasFormEditFields: Array<FieldConfig<DTO_CuentasPorPagar>> = columnKeysCuentasPorPagar
-    .filter(key => key !== "iD_CuentasPorPagar" && key !== "iD_Negocio" && key !== "fechaInicial" && key !== "fechaModificacion") // Excluye campos que no se editan
-    .map(key => ({
-        key,
-        label: labelMapCuentasPorPagar[key] ?? key,
-        type: key === "saldo" ? "number" : "text",
-    }));
+    export const cuentasFormEditFields: FieldConfig<DTO_Cuenta>[] = [
+        {
+            key: "fechaInicial",
+            label: labelMapCuenta["fechaInicial"] ?? "Fecha Inicial",
+            type: "date",
+            required: true,
+        },
+        {
+            key: "concepto",
+            label: labelMapCuenta["concepto"] ?? "Concepto",
+            type: "text",
+            required: true,
+        },
+        {
+            key: "descripcion",
+            label: labelMapCuenta["descripcion"] ?? "Descripción",
+            type: "textarea",
+            required: false,
+        },
+        {
+            key: "fechaLimite",
+            label: labelMapCuenta["fechaLimite"] ?? "Fecha Límite",
+            type: "date",
+            required: true,
+        },
+        {
+            key: "tipoCuenta",
+            label: labelMapCuenta["tipoCuenta"] ?? "Tipo de Cuenta",
+            type: "select",
+            required: true,
+            options: [
+                { label: "Cuenta Por Cobrar", value: "Cuentas Por Cobrar" },
+                { label: "Cuenta Por Pagar", value: "Cuenta Por Pagar" },
+            ],
+        },
+    ];
 
 export const clienteFormEditFields: Array<FieldConfig<DTO_Cliente>> = columnKeysCliente
     .filter(key => key !== "iD_Cliente" && key !== "iD_Usuario") // Excluye campos que no se editan

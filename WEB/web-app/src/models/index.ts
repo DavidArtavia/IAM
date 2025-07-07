@@ -5,7 +5,7 @@ export * from "./DTO_Negocio";
 export * from "./DTO_Respuesta";
 export * from "./DTO_Rol";
 export * from "./DTO_Usuario";
-export * from "./DTO_CuentasPorPagar";
+export * from "./DTO_Cuenta";
 export * from "./DTO_FiltroEstado";
 export * from "./DTO_Param";
 export * from "./DTO_OrdenesDeServicio";
