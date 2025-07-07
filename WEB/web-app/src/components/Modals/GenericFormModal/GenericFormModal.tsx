@@ -243,14 +243,14 @@ export const GenericFormModal = <T,>({
                 className="btn btn-light me-3"
                 onClick={onHide}
               >
-                Descartar
+                Cancelar
               </button>
               <button
                 type="submit"
                 className="btn btn-primary"
                 disabled={Object.values(errors).some((e) => !!e)}
               >
-                Enviar
+                Guardar
               </button>
             </div>
           </form>

@@ -3,21 +3,21 @@ import { map } from 'rxjs';
 import { api } from '@/api';
 import { API_ENDPOINTS } from '@/constants';
 import { AxiosResponse } from 'axios';
-import { DTO_CuentasPorPagar } from '@/models/DTO_CuentasPorPagar';
+import { DTO_Cuenta } from '@/models/DTO_Cuenta';
 import { DTO_Negocio, DTO_Respuesta } from '@/models';
 
 export class cuentasService {
 
-    static obtenerCuentasPorPagar(negocio: DTO_Negocio | null): Observable<DTO_Respuesta> {
+    static obtenerCuentas(negocio: DTO_Negocio | null): Observable<DTO_Respuesta> {
         return defer(() => api.post<DTO_Respuesta>(API_ENDPOINTS.ACCOUNTS_PAYABLE.GET_ACCOUNTS, negocio as DTO_Negocio)).pipe(map((r: AxiosResponse<DTO_Respuesta>) => r.data));
     }
-    static registrarCuentasPorPagar(cuentasPorPagar: DTO_CuentasPorPagar | null): Observable<DTO_Respuesta> {
-        return defer(() => api.post<DTO_Respuesta>(API_ENDPOINTS.ACCOUNTS_PAYABLE.ADD_ACCOUNT, cuentasPorPagar as DTO_CuentasPorPagar)).pipe(map((r: AxiosResponse<DTO_Respuesta>) => r.data));
+    static registrarCuenta(cuenta: DTO_Cuenta | null): Observable<DTO_Respuesta> {
+        return defer(() => api.post<DTO_Respuesta>(API_ENDPOINTS.ACCOUNTS_PAYABLE.ADD_ACCOUNT, cuenta as DTO_Cuenta)).pipe(map((r: AxiosResponse<DTO_Respuesta>) => r.data));
     }
 
-    static actualizarCuentasPorPagar(cuentasPorPagar: DTO_CuentasPorPagar | null): Observable<DTO_Respuesta> {
+    static actualizarCuenta(cuenta: DTO_Cuenta | null): Observable<DTO_Respuesta> {
         return defer(() =>
-            api.post<DTO_Respuesta>(API_ENDPOINTS.ACCOUNTS_PAYABLE.UPDATE_ACCOUNT, cuentasPorPagar as DTO_CuentasPorPagar)
+            api.post<DTO_Respuesta>(API_ENDPOINTS.ACCOUNTS_PAYABLE.UPDATE_ACCOUNT, cuenta as DTO_Cuenta)
         ).pipe(map((r: AxiosResponse<DTO_Respuesta>) => r.data));
     }
 }

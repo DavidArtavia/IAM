@@ -1,18 +1,19 @@
 // src/pages/Monitor.tsx
 import React, { useEffect, useState } from "react";
-import { DTO_Negocio, DTO_CuentasPorPagar, DTO_Respuesta } from "@/models";
+import { DTO_Negocio, DTO_Respuesta, DTO_Cuenta } from "@/models";
 import { cuentasService } from "@/services";
 import {
   errorHelpers,
   notificationHelpers,
   procesarRespuesta,
-  labelMapCuentasPorPagar,
+  labelMapCuenta,
   cuentasFormEditFields,
-  columnKeysCuentasPorPagar,
-  keysInfoModalCuentasPorPagar,
+  columnKeysCuenta,
+  keysInfoModalCuenta,
 } from "@/utils";
 import {
   ConfirmModal,
+  FieldConfig,
   GenericDataTable,
   GenericFormModal,
   InfoPanel,
@@ -39,21 +40,18 @@ export const Cuentas = () => {
     null
   );
   // Arreglo con DTO_CuentasPorPagar
-  const [accountsPayable, setAccountsPayable] = useState<DTO_CuentasPorPagar[]>(
-    []
-  );
+  const [accountsPayable, setAccountsPayable] = useState<DTO_Cuenta[]>([]);
   const [disableButtonAdd, setDisableButtonAdd] = useState<boolean>(true);
 
   // --------- Modales “Registrar” y “Editar” -----------
   const [isModalFormOpen, setIsModalFormOpen] = useState(false);
-  const [formData, setFormData] = useState<DTO_CuentasPorPagar>(
-    new DTO_CuentasPorPagar()
-  );
+  const [formData, setFormData] = useState<DTO_Cuenta>(new DTO_Cuenta());
   const [loading, setLoading] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
-  const [editData, setEditData] = useState<DTO_CuentasPorPagar | null>(null);
-  const [rowEditSelected, setRowEditSelected] =
-    useState<DTO_CuentasPorPagar | null>(null);
+  const [editData, setEditData] = useState<DTO_Cuenta | null>(null);
+  const [rowEditSelected, setRowEditSelected] = useState<DTO_Cuenta | null>(
+    null
+  );
 
   // --------- Modal de Confirmación de Borrar / Cancelar -----------
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
@@ -61,8 +59,9 @@ export const Cuentas = () => {
   const [confirmContext, setConfirmContext] = useState<
     "cancelAdd" | "delete" | null
   >(null);
-  const [accountToDelete, setAccountToDelete] =
-    useState<DTO_CuentasPorPagar | null>(null);
+  const [accountToDelete, setAccountToDelete] = useState<DTO_Cuenta | null>(
+    null
+  );
 
   // Cuando cambia el negocio, recargamos cuentas
   useEffect(() => {
@@ -80,12 +79,12 @@ export const Cuentas = () => {
   const refetchAccounts = () => {
     if (!selectedBusiness) return;
     setLoading(true);
-    cuentasService.obtenerCuentasPorPagar(selectedBusiness).subscribe({
+    cuentasService.obtenerCuentas(selectedBusiness).subscribe({
       next: (result) =>
         setAccountsPayable(
           (procesarRespuesta(
             result as unknown as DTO_Respuesta
-          ) as DTO_CuentasPorPagar[]) || []
+          ) as DTO_Cuenta[]) || []
         ),
       error: (err) => errorHelpers.serverError(err),
       complete: () => setLoading(false),
@@ -94,12 +93,12 @@ export const Cuentas = () => {
 
   // ======== “Registrar” ========
   const handleAddNew = () => {
-    setFormData(new DTO_CuentasPorPagar());
+    setFormData(new DTO_Cuenta());
     setIsModalFormOpen(true);
   };
   const handleSave = () => {
     formData.iD_Negocio = selectedBusiness?.iD_Negocio || 0;
-    cuentasService.registrarCuentasPorPagar(formData).subscribe({
+    cuentasService.registrarCuenta(formData).subscribe({
       next: (result: unknown) => {
         const mensaje =
           (result as DTO_Respuesta)?.mensaje ||
@@ -118,21 +117,21 @@ export const Cuentas = () => {
   };
 
   // ======== “Editar” ========
-  const handleEdit = (rowData: DTO_CuentasPorPagar) => {
+  const handleEdit = (rowData: DTO_Cuenta) => {
     setRowEditSelected(rowData);
     setEditData({ ...rowData }); // Hacemos copia para evitar mutar el original
     setShowEditModal(true);
   };
-  const handleSaveEdit = (updatedData: DTO_CuentasPorPagar) => {
+  const handleSaveEdit = (updatedData: DTO_Cuenta) => {
     if (!rowEditSelected) return;
-    updatedData.iD_CuentasPorPagar = rowEditSelected.iD_CuentasPorPagar;
+    updatedData.iD_Cuenta = rowEditSelected.iD_Cuenta;
     updatedData.iD_Negocio = selectedBusiness?.iD_Negocio || 0;
     // Si no cambió “estado”, lo conservamos
     if (!updatedData.estado && rowEditSelected.estado) {
       updatedData.estado = { ...rowEditSelected.estado };
     }
 
-    cuentasService.actualizarCuentasPorPagar(updatedData).subscribe({
+    cuentasService.actualizarCuenta(updatedData).subscribe({
       next: (result: unknown) => {
         const mensaje =
           (result as DTO_Respuesta)?.mensaje ||
@@ -146,7 +145,7 @@ export const Cuentas = () => {
   };
 
   // ======== “Eliminar” ========
-  const handleDelete = (rowData: DTO_CuentasPorPagar) => {
+  const handleDelete = (rowData: DTO_Cuenta) => {
     setConfirmModalMessage("¿Estás seguro de que deseas eliminar esta cuenta?");
     setAccountToDelete(rowData);
     setConfirmContext("delete");
@@ -154,7 +153,7 @@ export const Cuentas = () => {
   };
   const handleConfirmDelete = (action: boolean | null) => {
     if (action && accountToDelete) {
-      const updatedData: DTO_CuentasPorPagar = {
+      const updatedData: DTO_Cuenta = {
         ...accountToDelete,
         estado: {
           ...accountToDelete.estado!,
@@ -162,9 +161,9 @@ export const Cuentas = () => {
         },
         iD_Negocio: selectedBusiness?.iD_Negocio || 0,
       };
-      cuentasService.actualizarCuentasPorPagar(updatedData).subscribe({
+      cuentasService.actualizarCuenta(updatedData).subscribe({
         next: () => {
-          notificationHelpers.infoAlert("Cuenta eliminada correctamente" );
+          notificationHelpers.infoAlert("Cuenta eliminada correctamente");
           refetchAccounts();
         },
         error: (err) => errorHelpers.serverError(err),
@@ -190,12 +189,12 @@ export const Cuentas = () => {
 
   //este renderizador personalizado formatea los valores de las columnas
   const customRenderers: {
-    [K in keyof DTO_CuentasPorPagar]?: (
+    [K in keyof DTO_Cuenta]?: (
       value: unknown,
-      rowData: DTO_CuentasPorPagar
+      rowData: DTO_Cuenta
     ) => string | number | React.ReactNode;
   } = {
-    saldo: (val: unknown) => {
+    monto: (val: unknown) => {
       // formateo de números en colones
       return new Intl.NumberFormat("es-CR", {
         style: "currency",
@@ -207,23 +206,105 @@ export const Cuentas = () => {
       if (!val) return "";
       return new Date(String(val)).toLocaleDateString();
     },
-    fechaModificacion: (val: unknown) => {
+    fechaLimite: (val: unknown) => {
       if (!val) return "";
       return new Date(String(val)).toLocaleDateString();
     },
   };
+
+  //#region 🧱 Campos personalizados y referencias dinámicas
+  // const buildRefFields = (item: DTO_OrdenServicio) =>
+  //   item.referenciaJSON?.map((r, idx) => ({
+  //     key: generateSafeKey(r.nombre) as keyof DTO_OrdenServicio,
+  //     label: r.nombre,
+  //     type: "custom" as const,
+  //     renderer: () => (
+  //       <input
+  //         className="form-control"
+  //         value={item.referenciaJSON?.[idx].valor || ""}
+  //         onChange={(e) => {
+  //           const arr = [...(item.referenciaJSON || [])];
+  //           arr[idx] = { nombre: r.nombre, valor: e.target.value };
+  //           if (item === formData) {
+  //             setFormData({ ...item, referenciaJSON: arr });
+  //           } else {
+  //             setEditData({ ...item, referenciaJSON: arr });
+  //           }
+  //         }}
+  //       />
+  //     ),
+  //   })) || [];
+
+  const newFormFields: FieldConfig<DTO_Cuenta>[] = [
+    ...cuentasFormEditFields,
+    {
+      key: "monto",
+      label: "Monto",
+      type: "number",
+      required: true,
+    },
+  ];
+
+  // const editFormFields: FieldConfig<DTO_OrdenServicio>[] = [
+  //   ...ordenServicioFormEditFields,
+  //   {
+  //     key: "iD_Cliente",
+  //     label: "Cliente",
+  //     type: "custom",
+  //     required: true,
+  //     renderer: ({ onChange }) => (
+  //       <AsyncClientSelect
+  //         value={selectedClientOption}
+  //         onChange={(opt) => {
+  //           setSelectedClientOption(opt);
+  //           onChange(opt?.value || 0);
+  //         }}
+  //       />
+  //     ),
+  //   },
+  //   {
+  //     key: "estado",
+  //     label: "Estado de la orden",
+  //     type: "custom",
+  //     required: true,
+  //     renderer: ({ value, onChange }) => {
+  //       const selectedOption = value?.iD_Estado
+  //         ? { value: value.iD_Estado, label: value.nombre || "" }
+  //         : null;
+  //       return (
+  //         <AsyncSelect
+  //           cacheOptions
+  //           defaultOptions={STATUS_ORDEN_SERVICIO_OPTIONS}
+  //           placeholder="Seleccione un estado"
+  //           value={selectedOption}
+  //           onChange={(opt) =>
+  //             onChange({ iD_Estado: opt?.value, nombre: opt?.label })
+  //           }
+  //           loadOptions={async (inputValue) =>
+  //             STATUS_ORDEN_SERVICIO_OPTIONS.filter((opt) =>
+  //               opt.label.toLowerCase().includes(inputValue.toLowerCase())
+  //             )
+  //           }
+  //         />
+  //       );
+  //     },
+  //   },
+  //   ...buildRefFields(editData),
+  // ];
+ 
+  //#endregion
 
   return (
     <>
       <div className="row p-4 col-12 gx-0">
         {state.negocio == null}
         {loading ? (
-          <LoadingPanel msj="Cargando cuentas por pagar..." />
+          <LoadingPanel msj="Cargando cuentas..." />
         ) : selectedBusiness ? (
-          <GenericDataTable<DTO_CuentasPorPagar>
-            title="Cuentas por Pagar"
-            columnKeys={columnKeysCuentasPorPagar}
-            labelMap={labelMapCuentasPorPagar}
+          <GenericDataTable<DTO_Cuenta>
+            title="Cuentas"
+            columnKeys={columnKeysCuenta}
+            labelMap={labelMapCuenta}
             data={accountsPayable}
             onAdd={handleAddNew}
             onEdit={handleEdit}
@@ -231,7 +312,7 @@ export const Cuentas = () => {
             disableButtonAdd={disableButtonAdd}
             includeEstadoColumn // añade automáticamente la columna “Estado”
             customRenderers={customRenderers}
-            modalInfoFields={keysInfoModalCuentasPorPagar}
+            modalInfoFields={keysInfoModalCuenta}
             datekeys={["fechaInicial", "fechaModificacion"]}
           />
         ) : (
@@ -239,14 +320,14 @@ export const Cuentas = () => {
         )}
 
         {/* Modal “Registrar” */}
-        <GenericFormModal<DTO_CuentasPorPagar>
-          title="Registrar Cuenta por Pagar"
+        <GenericFormModal<DTO_Cuenta>
+          title="Crear una Cuenta"
           show={isModalFormOpen}
           onHide={handleCancelAdd}
           data={formData}
           setData={setFormData}
           onSubmit={handleSave}
-          fields={cuentasFormEditFields}
+          fields={newFormFields}
         />
 
         {/* Modal “Confirmación” */}
@@ -257,12 +338,12 @@ export const Cuentas = () => {
         />
 
         {/* Modal “Editar” */}
-        <GenericFormModal<DTO_CuentasPorPagar>
-          title="Editar Cuenta por Pagar"
+        <GenericFormModal<DTO_Cuenta>
+          title="Editar Cuenta"
           show={showEditModal}
           onHide={() => setShowEditModal(false)}
           data={editData!}
-          setData={(x) => setEditData(x as DTO_CuentasPorPagar)}
+          setData={(x) => setEditData(x as DTO_Cuenta)}
           onSubmit={() => {
             if (editData) {
               handleSaveEdit(editData);

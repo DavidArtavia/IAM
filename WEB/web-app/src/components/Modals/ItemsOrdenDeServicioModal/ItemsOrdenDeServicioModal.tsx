@@ -98,6 +98,11 @@ export const ItemsOrdenDeServicioModal = ({
 
   const handleSave = () => {
     formData.iD_OrdenServicio = rowData?.iD_OrdenServicio || 0;
+    formData.estado = {
+      iD_Estado: STATUS_TBL.ITEMS_ORDER_SERVICE.ACTIVE,
+      nombre: "activo",
+      tabla: "",
+    };
     itemsOrdenesService.registrarItemsOrdensDeServicio(formData).subscribe({
       next: (result: DTO_Respuesta) => {
         const nuevo = (result.resultado as DTO_ItemOrdenServicio[])[0];

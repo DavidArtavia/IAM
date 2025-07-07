@@ -64,10 +64,18 @@ namespace DAL
                                 Nombre = UTL_DBHelper.ReadNullSafeString(reader["EstadoNombre"]),
                                 Tabla = UTL_DBHelper.ReadNullSafeString(reader["EstadoTabla"])
                             };
+
                             string refJson = UTL_DBHelper.ReadNullSafeString(reader["ReferenciaJSON"]);
-                            orden.ReferenciaJSON = !string.IsNullOrEmpty(refJson)
-                                ? Newtonsoft.Json.JsonConvert.DeserializeObject<List<DTO_Param>>(refJson)
-                                : new List<DTO_Param>();
+                            if (!string.IsNullOrEmpty(refJson))
+                            {
+                                var deserializado = Newtonsoft.Json.JsonConvert.DeserializeObject<List<DTO_Param>>(refJson);
+                                orden.ReferenciaJSON = deserializado ?? new List<DTO_Param>();
+                            }
+                            else
+                            {
+                                orden.ReferenciaJSON = new List<DTO_Param>();
+                            }
+
                         }
 
                         // Segundo result set: Alerta
