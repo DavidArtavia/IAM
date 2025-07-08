@@ -81,7 +81,7 @@ builder.Services.AddScoped<BLL_OrdenServicio>();
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontendDev", policy =>
-       policy.WithOrigins("http://localhost:5173")
+       policy.WithOrigins(System.Configuration.ConfigurationManager.AppSettings["ClientURL"])
              .AllowAnyHeader()
              .AllowAnyMethod()
              .AllowCredentials()
@@ -144,7 +144,7 @@ app.Use(async (context, next) =>
 
             context.Response.StatusCode = 403;
             context.Response.ContentType = "application/json";
-            context.Response.Headers["Access-Control-Allow-Origin"] = "http://localhost:5173";
+            context.Response.Headers["Access-Control-Allow-Origin"] = System.Configuration.ConfigurationManager.AppSettings["ClientURL"];
             context.Response.Headers["Access-Control-Allow-Credentials"] = "true";
             context.Response.Headers["Access-Control-Expose-Headers"] = "Content-Type, Authorization, accesToken";
 
