@@ -1,6 +1,5 @@
 --Se coloca N para que se interprete como NVARCHAR segun la configuracion de la base de datos
 INSERT INTO [UTIL].[TBL_ALERTAS] ([COD_ALERTA], [Nombre], [Mensaje], [Tipo]) VALUES
--- Bloque anterior
 ('A001', N'Registro de usuario', N'Usuario registrado correctamente', 'I'),
 ('A002', N'Registro de usuario', N'Ya existe un usuario con ese correo', 'E'),
 ('A003', N'Obtener usuario', N'Correo no encontrado', 'E'),
@@ -26,8 +25,7 @@ INSERT INTO [UTIL].[TBL_ALERTAS] ([COD_ALERTA], [Nombre], [Mensaje], [Tipo]) VAL
 ('A0023', N'Contexto', N'Contexto consultado correctamente', 'I'),
 ('A0024', N'Cliente', N'Cliente guardado correctamente', 'I'),
 ('A0025', N'OrdenServicio', N'Busqueda de orden de servicio realizada correctamente', 'I'),
-('A0026', N'Eliminar Cuenta', N'Cuenta por pagar eliminada correctamente', 'I'),
--- Bloque nuevo
+('A0026', N'Eliminar Cuenta', N'Cuenta eliminada correctamente', 'I'),
 ('B001', N'Negocio', N'El negocio se registró exitosamente.', 'I'),
 ('B002', N'Negocio', N'No puede registrar más de 3 negocios.', 'E'),
 ('B003', N'Negocio', N'El negocio se actualizó exitosamente.', 'I'),
@@ -46,10 +44,6 @@ INSERT INTO [UTIL].[TBL_ALERTAS] ([COD_ALERTA], [Nombre], [Mensaje], [Tipo]) VAL
 ('B016', N'Actualizar CuentasPorPagar', N'La cuenta por pagar especificada no existe.', 'E'),
 ('B017', N'Actualizar CuentasPorPagar', N'No se realizó ninguna modificación en la cuenta por pagar.', 'I'),
 ('B018', N'Registrar OrdenServicio', N'La orden de servicio se registró correctamente.', 'I'),
---('B019', N'Registrar OrdenServicio', N'El cliente especificado no existe.', 'E'),
---('B020', N'Registrar OrdenServicio', N'El negocio especificado no existe.', 'E'),
---('B021', N'Registrar OrdenServicio', N'El estado especificado no existe.', 'E'),
---('B022', N'Registrar OrdenServicio', N'No se pudo registrar la orden de servicio.', 'E'),
 ('B023', N'Actualizar OrdenServicio', N'La orden de servicio se actualizó correctamente.', 'I'),
 ('B024', N'Actualizar OrdenServicio', N'La orden de servicio especificada no existe.', 'E'),
 ('B025', N'Actualizar OrdenServicio', N'No se realizaron cambios en la orden de servicio.', 'I'),
@@ -71,73 +65,15 @@ GO
 
 INSERT INTO [SECU].[TBL_ROLES]
            ([NombreRol]
+           ,[ID_Rol]
            ,[DescripcionRol])
      VALUES
-           ('Owner'
-           ,'Rol Temporal Mientras se completa las funciones por rol dentro de un negocio, de primera instancia se le asignara directamente al usuario')
+           (
+            'Owner',
+            1
+           ,'Dueño de Negocio')
 
-USE [IAMDB]
 GO
-
-INSERT INTO [CORE].[TBL_NEGOCIOS]
-           ([ID_Usuario]
-           ,[ID_Estado]
-           ,[NombreNegocio]
-           ,[Descripcion]
-           ,[Direccion]
-           ,[TelefonoNegocio]
-           ,[CorreoNegocio]
-           ,[FechaRegistro]
-           ,[ReferenciaJSON])
-     VALUES
-           (1,4,'Taller Mata','Taller automotris','Sarch�','12345678','123@gmail.com',GETDATE(),'{"PARAMS": ["placa", "marca", "modelo"]}'),
-		   (1,4,'Taller Mata 2','Taller automotris','Naranjo','12345678','123@gmail.com',GETDATE(),'{"PARAMS": ["placa", "marca", "modelo"]}')
-GO
-
-
-
-
-INSERT INTO [CORE].[TBL_CHAT_IA]
-           ([ID_Negocio]
-           ,[ID_Estado]
-           ,[FechaInicial]
-           ,[FechaFinal])
-     VALUES
-           (1,1,GETDATE(),NULL),
-		   (1,1,GETDATE(),NULL),
-		   (2,1,GETDATE(),NULL)
-GO
-
-INSERT INTO [SECU].[TBL_USUARIOS] (
-            ID_Estado,
-            ID_Rol,
-            NombreUsuario,
-            Apellido,
-            TelefonoUsuario,
-            CorreoUsuario,
-            Pass
-      )
-VALUES -- Usuario admin
-      (
-            1,
-            1,
-            'Admin',
-            'Principal',
-            '88888888',
-            'admin@gmail.com',
-            '123'
-      ),
-      -- Usuario inventado
-      (
-            1,
-            1,
-            'Admin2',
-            'Principal2',
-            '87123456',
-            'admin2@gmail.com',
-            '123'
-      );
-
 
 INSERT INTO [UTIL].[TBL_ESTADOS] ([ID_Estado], [Nombre], [Tabla]) VALUES
 (1, 'Activo', 'TBL_USUARIOS'),
@@ -161,27 +97,4 @@ INSERT INTO [UTIL].[TBL_ESTADOS] ([ID_Estado], [Nombre], [Tabla]) VALUES
 (20, 'Activo', 'TBL_TRANSACCIONES'),
 (21, 'Eliminado', 'TBL_TRANSACCIONES');
 
--- USE [IAMDB] <- no es funcinal xq cambio la tabla 
--- GO
 
--- INSERT INTO [CORE].[TBL_MENSAJES_CHAT]
---            ([ID_ChatIA]
---            ,[Tipo]
---            ,[TextoMensaje]
---            ,[TranscripcionAudio]
---            ,[RutaAudio]
---            ,[FechaMensaje])
---      VALUES
---            (1,'Usuario','Mensaje 1 de prueba','','',GETDATE()),
--- 		   (1,'IA','Mensaje 2 de prueba','','',GETDATE()),
--- 		   (1,'Usuario','Mensaje 3 de prueba','','',GETDATE()),
--- 		   (1,'IA','Mensaje 4 de prueba','','',GETDATE()),
--- 		   (1,'Usuario','','Una trancripci�n X','https://iamhub7185441083.blob.core.windows.net/audios/11052025215100505.WAV',GETDATE()),
--- 		   (1,'IA','Mensaje 5 de prueba','','',GETDATE()),
--- 		   (2,'Usuario','Mensaje 1 de prueba','','',GETDATE()),
--- 		   (2,'IA','Mensaje 2 de prueba','','',GETDATE())
--- GO
-
-
-
---delete from [UTIL].[TBL_ALERTAS]

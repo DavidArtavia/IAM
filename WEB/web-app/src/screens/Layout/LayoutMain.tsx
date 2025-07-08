@@ -439,7 +439,7 @@ export const LayoutMain = () => {
                 rel="noreferrer"
                 className="text-gray-800 text-hover-primary"
               >
-                Desarrollado por DAV
+                V1.0.0
               </a>
             </div>
           </div>

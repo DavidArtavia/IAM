@@ -175,13 +175,13 @@ namespace DAL
         {
             try
             {
-                string query = "CORE.SP_actualizarCuentasPorPagar";
+                string query = "CORE.SP_actualizarCuentas";
 
                 using (SqlCommand sqlcmd = new(query, this.GetObjConexion()))
                 {
                     sqlcmd.CommandType = CommandType.StoredProcedure;
 
-                    sqlcmd.Parameters.Add("@ID_CuentasPorPagar", SqlDbType.Int).Value = cuenta.ID_Cuenta;
+                    sqlcmd.Parameters.Add("@ID_Cuenta", SqlDbType.Int).Value = cuenta.ID_Cuenta;
                     sqlcmd.Parameters.Add("@Concepto", SqlDbType.VarChar).Value = cuenta.Concepto;
                     sqlcmd.Parameters.Add("@Descripcion", SqlDbType.VarChar).Value = cuenta.Descripcion;
                     sqlcmd.Parameters.Add("@Monto", SqlDbType.Decimal).Value = cuenta.Monto;
