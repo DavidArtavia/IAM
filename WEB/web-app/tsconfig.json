@@ -3,17 +3,5 @@
   "references": [
     { "path": "./tsconfig.app.json" },
     { "path": "./tsconfig.node.json" }
-  ],
-  "compilerOptions": {
-    "baseUrl": "src",
-    "noImplicitAny": true,// Disallow implicit 'any' types
-    "paths": {
-      "@/*": ["*"]
-    }
-  }, 
-    "include": [
-    "src/**/*.ts",  
-    "src/@types/**/*.d.ts",  
-    "declarations.d.ts" 
   ]
 }

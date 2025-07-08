@@ -3,32 +3,23 @@
     "composite": true,
     "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
     "target": "ES2020",
-    "useDefineForClassFields": true,
     "lib": ["ES2020", "DOM", "DOM.Iterable"],
-    "module": "ESNext",
-    "skipLibCheck": true,
 
-    /* Bundler mode */
+    /* runtime */
+    "module": "ESNext",
     "moduleResolution": "bundler",
-    "allowImportingTsExtensions": false,
-    "isolatedModules": true,
-    "moduleDetection": "force",
-    "noEmit": false,
     "jsx": "react-jsx",
 
-    /* Linting */
+    /* paths que realmente usa la app */
+    "baseUrl": "./src",
+    "paths": { "@/*": ["*"] },
+
+    /* strictness */
     "strict": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
-    "noUncheckedSideEffectImports": true,
-
-    /* Experimental */
-    "baseUrl": "./src",
-    "paths": {
-      "@/*": ["*"]
-    }
+    "noUncheckedSideEffectImports": true
   },
-  "include": ["src", "src/hooks"],
-  "exclude": ["node_modules"]
+  "include": ["src", "src/@types", "declarations.d.ts"]
 }
