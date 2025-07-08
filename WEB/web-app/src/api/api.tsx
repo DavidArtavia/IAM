@@ -1,10 +1,9 @@
 import axios, { AxiosResponse } from "axios";
-import { API_ENDPOINTS } from "@/constants/apiEndPoints";
 import { STATUS } from "@/constants/status";
 import { logoutUser } from "@/utils/authHelpers";
 
 export const api = axios.create({
-  baseURL: API_ENDPOINTS.BASE_URL,
+  baseURL: window.__APP_CONFIG__!.BASE_URL,
   withCredentials: true,
   timeout: 1500000,
   headers: {

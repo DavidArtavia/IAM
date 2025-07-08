@@ -4,10 +4,11 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "tsc -b && vite build",
-    "lint": "eslint .",
-    "preview": "vite preview"
+    "dev":        "vite",
+    "build":      "vite build",
+    "preview":    "vite preview",
+    "typecheck":  "tsc --noEmit", 
+    "typewatch":  "tsc --noEmit --watch"
   },
   "dependencies": {
     "@ant-design/icons": "^6.0.0",
