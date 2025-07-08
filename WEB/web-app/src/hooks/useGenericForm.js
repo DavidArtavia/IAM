@@ -1,0 +1,110 @@
+import { useState, useEffect, useMemo, useCallback } from "react";
+export function useGenericForm(data, setData, fields, show, onSubmit) {
+    const [errors, setErrors] = useState({});
+    const [touched, setTouched] = useState({});
+    const [localDisplay, setLocalDisplay] = useState({});
+    const [wasSubmitted, setWasSubmitted] = useState(false);
+    const emojiRegex = useMemo(() => /[\p{Extended_Pictographic}]/u, []);
+    // Inicialización
+    useEffect(() => {
+        if (!show)
+            return;
+        const initErr = {};
+        const initTouch = {};
+        const initDisp = {};
+        fields.forEach(({ key, type }) => {
+            initErr[key] = "";
+            initTouch[key] = false;
+            const raw = data[key];
+            if (type === "number")
+                initDisp[key] = raw != null ? String(raw) : "";
+            else if (type === "date")
+                initDisp[key] = typeof raw === "string" ? raw.slice(0, 10) : "";
+        });
+        setErrors(initErr);
+        setTouched(initTouch);
+        setLocalDisplay(initDisp);
+        setWasSubmitted(false);
+    }, [show, fields, data]);
+    const validate = useCallback((key, value) => {
+        const conf = fields.find(f => f.key === key);
+        if (!conf)
+            return "";
+        let msg = "";
+        // Si el campo tiene validación personalizada
+        if (conf.validate) {
+            msg = conf.validate(value);
+        }
+        else if (conf.required) {
+            const strVal = String(value ?? "").trim();
+            const type = conf.type ?? "text";
+            switch (type) {
+                case "text":
+                case "textarea":
+                    if (!strVal)
+                        msg = "Este campo es obligatorio";
+                    else if (emojiRegex.test(strVal))
+                        msg = "No se permiten emoticones";
+                    break;
+                case "number": {
+                    const num = parseFloat(strVal);
+                    if (isNaN(num))
+                        msg = "Ingrese un número válido";
+                    else if (num <= 0)
+                        msg = "El valor debe ser mayor que cero";
+                    break;
+                }
+                case "select":
+                case "custom":
+                    if (!value || value === "0")
+                        msg = "Debe seleccionar una opción válida";
+                    break;
+                // "date" no requiere validación según lógica previa
+            }
+        }
+        setErrors(prev => ({ ...prev, [key]: msg }));
+        return msg;
+    }, [fields, emojiRegex]);
+    const handleChange = useCallback((key, raw, type) => {
+        let newVal = raw;
+        if (type === "number")
+            newVal = parseFloat(raw.replace(/,/g, "")) || 0;
+        else if (type === "date")
+            newVal = raw;
+        setData(prev => ({ ...prev, [key]: newVal }));
+        if (type === "number" || type === "date") {
+            setLocalDisplay(prev => ({ ...prev, [key]: raw }));
+        }
+    }, [setData]);
+    const handleBlur = useCallback((key) => {
+        setTouched(prev => ({ ...prev, [key]: true }));
+        validate(key, data[key]);
+    }, [validate, data]);
+    const handleSubmitForm = useCallback(() => {
+        let hasError = false;
+        const newErr = {};
+        const newTouch = {};
+        fields.forEach(f => {
+            newTouch[f.key] = true;
+            const msg = validate(f.key, data[f.key]);
+            newErr[f.key] = msg;
+            if (msg)
+                hasError = true;
+        });
+        setErrors(newErr);
+        setTouched(newTouch);
+        if (!hasError)
+            onSubmit();
+    }, [fields, validate, data, onSubmit]);
+    const hasErrors = Object.values(errors).some(e => !!e);
+    return {
+        errors,
+        touched,
+        wasSubmitted,
+        localDisplay,
+        handleChange,
+        handleBlur,
+        handleSubmit: handleSubmitForm,
+        hasErrors,
+    };
+}

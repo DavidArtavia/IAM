@@ -4,11 +4,12 @@ GO -- Stub: Crear procedimiento si no existe
         SELECT 1
         FROM sys.procedures
         WHERE name = 'SP_registrarOrdenServicio'
-            AND schema_id = SCHEMA_ID('CORE')
-    ) BEGIN EXEC(
-        'CREATE PROCEDURE CORE.SP_registrarOrdenServicio AS BEGIN SET NOCOUNT ON; END'
-    )
+    ) 
+BEGIN 
+    EXEC('CREATE PROCEDURE CORE.SP_registrarOrdenServicio AS BEGIN SET NOCOUNT ON; END')
 END
+GO
+
 GO -- =============================================
     -- Autor: David Artavia Arias
     -- Fecha: 30/06/2025
