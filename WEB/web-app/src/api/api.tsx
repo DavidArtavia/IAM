@@ -3,7 +3,7 @@ import { STATUS } from "@/constants/status";
 import { logoutUser } from "@/utils/authHelpers";
 
 export const api = axios.create({
-  baseURL: window.__APP_CONFIG__!.BASE_URL,
+  baseURL: window.__APP_CONFIG__!.BASE_URL + "/api",
   withCredentials: true,
   timeout: 1500000,
   headers: {

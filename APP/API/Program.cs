@@ -144,7 +144,7 @@ app.Use(async (context, next) =>
 
             context.Response.StatusCode = 403;
             context.Response.ContentType = "application/json";
-            context.Response.Headers["Access-Control-Allow-Origin"] = System.Configuration.ConfigurationManager.AppSettings["ClientURL"];
+            //context.Response.Headers["Access-Control-Allow-Origin"] = System.Configuration.ConfigurationManager.AppSettings["ClientURL"];
             context.Response.Headers["Access-Control-Allow-Credentials"] = "true";
             context.Response.Headers["Access-Control-Expose-Headers"] = "Content-Type, Authorization, accesToken";
 
