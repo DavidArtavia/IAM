@@ -5,21 +5,18 @@
     "target": "ES2022",
     "lib": ["ES2023"],
     "module": "ESNext",
-    "skipLibCheck": true,
-
-    /* Bundler mode */
     "moduleResolution": "bundler",
-    "allowImportingTsExtensions": true,
-    "isolatedModules": true,
-    "moduleDetection": "force",
-    "noEmit": false,
+    "jsx": "react-jsx",
 
-    /* Linting */
+    /* para poder escribir import "./foo.ts" */
+    "allowImportingTsExtensions": true,
+
+    /* ⇒ cumple TS5096 y TS6310                       */
+    "declaration": true,            // genera tipos
+    "emitDeclarationOnly": true,    // solo .d.ts, nada de JS
+
     "strict": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "noFallthroughCasesInSwitch": true,
-    "noUncheckedSideEffectImports": true
+    "skipLibCheck": true
   },
-  "include": ["vite.config.ts"]
+  "include": ["vite.config.ts"]     // evita recorrer src/**
 }

@@ -6,12 +6,18 @@ import "@/assets/plugins/global/plugins.bundle.css";
 import "@/assets/css/style.bundle.css";
 import $ from 'jquery';
 //import { StrictMode } from 'react';
-
+interface AppRuntimeConfig {
+  BASE_URL: string;
+  // Agrega aquí más campos si los usas
+  // ASSET_CDN: string;
+  // AUTH_DOMAIN: string;
+}
 // Extiende el objeto Window
 declare global {
     interface Window {
         $: JQueryStatic;
         jQuery: JQueryStatic;
+        __APP_CONFIG__?: AppRuntimeConfig;
     }
 }
 
