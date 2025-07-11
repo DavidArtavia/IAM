@@ -123,7 +123,7 @@ export const Monitor = () => {
 
     const construirConexion = () =>
       new signalR.HubConnectionBuilder()
-        .withUrl("https://localhost:44330/hub/monitorOSHub", {
+        .withUrl(window.__APP_CONFIG__!.BASE_URL + "/hub/monitorOSHub", {
           accessTokenFactory: () => getToken(),
           withCredentials: true,
         })
