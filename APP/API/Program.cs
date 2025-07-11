@@ -4,7 +4,6 @@ using BLL.Hubs;
 using DTO;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.SignalR;
-using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -77,11 +76,22 @@ builder.Services.AddScoped<BLL_ChatIA>();
 builder.Services.AddScoped<BLL_ItemOrdenServicio>();
 builder.Services.AddScoped<BLL_OrdenServicio>();
 
+// 1) Leer la cadena del web.config
+var raw = System.Configuration.ConfigurationManager.AppSettings["ClientURLs"];
+
+
+// 3) Separar, limpiar y normalizar
+var clientUrls = raw
+    .Split(new[] { ';', ',' }, StringSplitOptions.RemoveEmptyEntries) // admite ; o ,
+    .Select(u => u.Trim())            // quita espacios
+    .Select(u => u.TrimEnd('/'))      // quita / final si existe
+    .ToArray();
+
 // ✅ CORS configuration => CORS significa Cross-Origin Resource Sharing ("compartición de recursos entre orígenes cruzados").
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontendDev", policy =>
-       policy.WithOrigins(System.Configuration.ConfigurationManager.AppSettings["ClientURL"])
+       policy.WithOrigins(clientUrls)
              .AllowAnyHeader()
              .AllowAnyMethod()
              .AllowCredentials()
@@ -92,13 +102,9 @@ builder.Services.AddSignalR();
 
 var app = builder.Build();
 
-// Middleware orden correcto
+app.UseSwagger();
+app.UseSwaggerUI();
 
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
 
 app.UseHttpsRedirection();
 
@@ -142,9 +148,10 @@ app.Use(async (context, next) =>
 
             var nuevoToken = cipher.generarAccessToken(usuario);
 
+
             context.Response.StatusCode = 403;
             context.Response.ContentType = "application/json";
-            //context.Response.Headers["Access-Control-Allow-Origin"] = System.Configuration.ConfigurationManager.AppSettings["ClientURL"];
+            //context.Response.Headers["Access-Control-Allow-Origin"] = origin;
             context.Response.Headers["Access-Control-Allow-Credentials"] = "true";
             context.Response.Headers["Access-Control-Expose-Headers"] = "Content-Type, Authorization, accesToken";
 
