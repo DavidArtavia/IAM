@@ -7,7 +7,7 @@ import Buttons from 'datatables.net-buttons';
 import 'datatables.net-buttons/js/buttons.html5.js';
 
 import ReactDOM from "react-dom/client";
-import { InfoModal, ActionButtons, ReferenciaCards } from "@/components";
+import { InfoModal, ActionButtons } from "@/components";
 import { useApp } from "@/hooks/useApp";
 
 type ColumnSettings = DataTables.ColumnSettings;
@@ -31,10 +31,10 @@ export interface GenericDataTableProps<T> {
     [K in keyof T]: (value: unknown, rowData: T) => React.ReactNode;
   }>;
   includeEstadoColumn?: boolean;
-  includeReferenceColumn?: boolean;
   modalInfoFields?: (keyof T)[];
   showItemsButton?: boolean;
   datekeys?: string[];
+  customColumns?: ColumnSettings[];
 }
 
 export function GenericDataTable<T>({
@@ -50,9 +50,9 @@ export function GenericDataTable<T>({
   disableButtonAdd = false,
   customRenderers = {},
   includeEstadoColumn = false,
-  includeReferenceColumn = false,
   modalInfoFields,
   showItemsButton = false,
+  customColumns = [],
   datekeys,
 }: GenericDataTableProps<T>) {
   //🔄 Estado general
@@ -97,63 +97,17 @@ export function GenericDataTable<T>({
       }
     });
 
-function parametrosAString(
-  lista?: { nombre: string; valor: string }[] | null
-): string {
-  if (!Array.isArray(lista) || lista.length === 0) return '';
-
-  return lista
-    .map(({ nombre = '', valor = '' }) => {
-      // 1️⃣ trim → fuera espacios a los dos lados
-      const nom = nombre.trim();
-      const val = valor.trim();
-
-      // 2️⃣ capitaliza: 1ª letra mayúscula + resto minúsculas
-      const nomCap = nom
-        ? nom[0].toUpperCase() + nom.slice(1).toLowerCase()
-        : '';
-
-      return `${nomCap}: ${val}`;
-    })
-    .join(', ');
-}
-
-    //#region 🧷 Columna Referencias JSON
-    if (includeReferenceColumn && labelMap["referenciaJSON"]) {
-      cols.push({
-        title: labelMap["referenciaJSON"],
-        data: null,
-        orderable: true,
-        searchable: true,
-        defaultContent: "",
-        render: function (_data, type, row) {
-          // ——— Para la exportación (Excel, CSV, Copiar, PDF) ———
-          if (type === "export") {
-            const nombre = parametrosAString((row as any).referenciaJSON) ?? "";
-            // Capitaliza igual que en la badge
-            return nombre??  "";
-          }
-
-          // ——— Para los demás usos (“display”, “filter”, “sort”) ———
-          if (type === "filter" || type === "sort") {
-            return parametrosAString((row as any).referenciaJSON) ?? "";
-          }
-          // Dejamos vacío porque la celda la pintará `createdCell`
-          return "";
-        },
-        createdCell: (cell, _, row) => {
-          try {
-            const container = document.createElement("div");
-            (cell as HTMLElement).innerHTML = "";
-            cell.appendChild(container);
-            ReactDOM.createRoot(container).render(
-              <ReferenciaCards items={(row as any).referenciaJSON || []} />
-            );
-          } catch (err) {
-            console.warn("Error ref JSON", err);
-          }
-        },
-      });
+    //#region 🧩 Custom columns (user-defined)
+    // Puedes agregar aquí columnas personalizadas adicionales si lo deseas.
+    // Ejemplo:
+    // cols.push({
+    //   title: "Custom",
+    //   data: "customField",
+    //   render: (data) => <span>{data}</span>,
+    // });
+    //#endregion
+    if (customColumns) {
+      cols.push(...customColumns);
     }
     //#endregion
 
@@ -336,7 +290,6 @@ function parametrosAString(
         columns: dtColumns,
         columnDefs: [
           { targets: "_all", className: "text-center", defaultContent: "" },
-
         ],
         order: [[0, "desc"]],
         language: {
@@ -347,26 +300,60 @@ function parametrosAString(
           info: "Mostrando página _PAGE_ de _PAGES_",
           infoEmpty: "Sin registros",
           paginate: {
-            first: "Primero",
-            last: "Último",
-            previous: "Anterior",
-            next: "Siguiente",
+        first: "Primero",
+        last: "Último",
+        previous: "Anterior",
+        next: "Siguiente",
           },
         },
         deferRender: true,
         destroy: true,
         dom: 'Bfrtip',
         // @ts-expect-error  — «title» aún no está en las typings
-        buttons: [{
-          extend: 'excelHtml5',
-          text: '<i class="bi bi-file-earmark-excel-fill me-1 fs-1"></i> Exportar a Excel',
-          className: 'btn btn-success',
-          filename: 'Reporte ' + title + ' ' + new Date().toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' }).split('/').join('-'),
-          titleAttr: 'Descargar como Excel',
-          exportOptions: { columns: ':visible:not(.noExport)', orthogonal: 'export' },   // nada más
-          title: 'Negocio: ' + state.negocio?.nombreNegocio + ', Reporte: ' + title + ' ' + new Date().toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' }).split('/').join('-'),
-          sheetName: 'Datos',  
-        }]
+        buttons: [
+          {
+        extend: 'excelHtml5',
+        text: `
+          <i class="bi bi-file-earmark-excel-fill fs-4 me-1"></i>
+          <span class="d-none d-sm-inline">Exportar Excel</span>
+          <i class="bi bi-download fs-5 ms-1"></i>
+        `,
+        className:
+          'btn btn-success btn-sm mb-3 d-flex align-items-center justify-content-center gap-2',
+        filename:
+          'Reporte ' +
+          title +
+          ' ' +
+          new Date()
+            .toLocaleDateString('es-ES', {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric',
+            })
+            .split('/')
+            .join('-'),
+        titleAttr: 'Descargar como Excel',
+        exportOptions: {
+          columns: ':visible:not(.noExport)',
+          orthogonal: 'export',
+        },
+        title:
+          'Negocio: ' +
+          state.negocio?.nombreNegocio +
+          ', Reporte: ' +
+          title +
+          ' ' +
+          new Date()
+            .toLocaleDateString('es-ES', {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric',
+            })
+            .split('/')
+            .join('-'),
+        sheetName: 'Datos',
+          },
+        ],
       });
 
       const dtInstance = $(table).DataTable();

@@ -19,3 +19,29 @@ export function updateItemById<T>(list: T[], updatedItem: T, idKey: keyof T): T[
     return [...list, updatedItem];
 }
 //#endregion
+
+//#region parametrosAString: Convierte una lista de parámetros a string legible
+/**
+ * Convierte una lista de objetos { nombre, valor } en un string legible.
+ * Cada parámetro se capitaliza y se separa por coma.
+ * 
+ * @param lista - Lista de parámetros a convertir.
+ * @returns String con los parámetros formateados.
+ */
+export function parametrosAString(
+    lista?: { nombre: string; valor: string }[] | null
+): string {
+    if (!Array.isArray(lista) || lista.length === 0) return "";
+
+    return lista
+        .map(({ nombre = "", valor = "" }) => {
+            const nom = nombre.trim();
+            const val = valor.trim();
+            const nomCap = nom
+                ? nom[0].toUpperCase() + nom.slice(1).toLowerCase()
+                : "";
+            return `${nomCap}: ${val}`;
+        })
+        .join(", ");
+}
+//#endregion

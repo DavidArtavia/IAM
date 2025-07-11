@@ -10,6 +10,7 @@ import {
   cuentasFormEditFields,
   columnKeysCuenta,
   keysInfoModalCuenta,
+  parametrosAString,
 } from "@/utils";
 import {
   ConfirmModal,
@@ -18,9 +19,12 @@ import {
   GenericFormModal,
   InfoPanel,
   LoadingPanel,
+  ReferenciaCards,
 } from "@/components";
 import { STATUS_TBL } from "@/constants";
 import { useApp } from "@/hooks/useApp";
+import ReactDOM from "react-dom/client";
+import { labelMapCuenta as labelMap } from "@/utils";
 
 export const Cuentas = () => {
   //🔄 Estado general
@@ -87,7 +91,10 @@ export const Cuentas = () => {
           ) as DTO_Cuenta[]) || []
         ),
       error: (err) => errorHelpers.serverError(err),
-      complete: () => setLoading(false),
+      complete: () => {
+        setLoading(false);
+      
+      },
     });
   };
 
@@ -292,6 +299,40 @@ export const Cuentas = () => {
   //   ...buildRefFields(editData),
   // ];
  
+  //#endregion 
+
+  //#region 🧱 Columna personalizada para detalleJSON
+  const detalleJSONColumn = {
+    title: labelMap["detalleJSON"],
+    data: null,
+    orderable: true,
+    searchable: true,
+    defaultContent: "",
+    render: function (_data: unknown, type: string, row: DTO_Cuenta) {
+      const esExport =
+        type === "export" || type === "filter" || type === "sort";
+
+      if (esExport && Array.isArray(row.detalleJSON)) {
+        return parametrosAString(row.detalleJSON);
+      }
+
+      return "";
+    },
+    createdCell: (cell: Node, _data: unknown, row: DTO_Cuenta) => {
+      try {
+        const container = document.createElement("div");
+        const htmlCell = cell as HTMLElement;
+        htmlCell.innerHTML = "";
+        container.classList.add("w-100");
+        ReactDOM.createRoot(container).render(
+          <ReferenciaCards items={row.detalleJSON || []} />
+        );
+        htmlCell.appendChild(container);
+      } catch (err) {
+        console.warn("Error details JSON", err);
+      }
+    },
+  };
   //#endregion
 
   return (
@@ -313,7 +354,8 @@ export const Cuentas = () => {
             includeEstadoColumn // añade automáticamente la columna “Estado”
             customRenderers={customRenderers}
             modalInfoFields={keysInfoModalCuenta}
-            datekeys={["fechaInicial", "fechaModificacion"]}
+            customColumns={[detalleJSONColumn]} // Añadimos la columna personalizada
+            datekeys={["fechaInicial", "fechaModificacion", "fechaLimite"]} // claves de fecha para formatear en modal de información
           />
         ) : (
           <InfoPanel msj="Por favor, selecciona un negocio para ver sus cuentas por pagar." />

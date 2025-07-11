@@ -91,7 +91,9 @@ var clientUrls = raw
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontendDev", policy =>
+
        policy.WithOrigins(clientUrls)
+
              .AllowAnyHeader()
              .AllowAnyMethod()
              .AllowCredentials()
