@@ -8,7 +8,9 @@ import {
   InfoPanel,
   ItemsOrdenDeServicioModal,
   LoadingPanel,
+  ReferenciaCards,
 } from "@/components";
+import ReactDOM from "react-dom/client";
 import {
   RESTRICCIONES,
   STATUS_ORDEN_SERVICIO_OPTIONS,
@@ -24,13 +26,12 @@ import {
   labelMapOrdenDeServicio,
   notificationHelpers,
   ordenServicioFormEditFields,
+  parametrosAString,
 } from "@/utils";
-import { useApp } from '@/hooks/useApp';
+import { useApp } from "@/hooks/useApp";
 
 import { useEffect, useMemo, useState } from "react";
 import AsyncSelect from "react-select/async";
-
-
 
 const generateSafeKey = (name: string) =>
   name
@@ -40,18 +41,18 @@ const generateSafeKey = (name: string) =>
     .replace(/[^\w_]/g, "");
 
 export const OrdenDeServicio = () => {
-     //🔄 Estado general
-    const { state } = useApp();
-  
-    useEffect(() => {
-      if (state.negocio) {
-        setSelectedBusiness(state.negocio)
-        handleSelectBusiness(state.negocio);
-      }
-    }, [state]);
-  
-    //#endregion
-    
+  //🔄 Estado general
+  const { state } = useApp();
+
+  useEffect(() => {
+    if (state.negocio) {
+      setSelectedBusiness(state.negocio);
+      handleSelectBusiness(state.negocio);
+    }
+  }, [state]);
+
+  //#endregion
+
   const [selectedBusiness, setSelectedBusiness] = useState<DTO_Negocio | null>(
     null
   );
@@ -61,8 +62,6 @@ export const OrdenDeServicio = () => {
   const [selectedClientOption, setSelectedClientOption] =
     useState<ClientOption | null>(null);
   //#endregion
-
-
 
   //#region ➕ Registro
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -466,10 +465,45 @@ export const OrdenDeServicio = () => {
   }, [ordenes]);
   //#endregion
 
+  //#region 🏷️ Columna Referencias para DataTable
+  const referenciaJSONColumn = {
+    title: labelMapOrdenDeServicio["referenciaJSON"],
+    data: null,
+    orderable: true,
+    searchable: true,
+    defaultContent: "",
+    render: function (_data: unknown, type: string, row: DTO_Negocio) {
+      const esExport =
+        type === "export" || type === "filter" || type === "sort";
+
+      if (esExport && Array.isArray(row.referenciaJSON)) {
+        return parametrosAString(row.referenciaJSON);
+      }
+
+      return "";
+    },
+    createdCell: (cell: Node, _data: unknown, row: DTO_Negocio) => {
+      try {
+        const container = document.createElement("div");
+        // Type assertion to HTMLElement for DOM manipulation
+        const htmlCell = cell as HTMLElement;
+        htmlCell.innerHTML = "";
+        container.classList.add("w-100");
+        ReactDOM.createRoot(container).render(
+          <ReferenciaCards items={row.referenciaJSON || []} />
+        );
+        htmlCell.appendChild(container);
+      } catch (err) {
+        console.warn("Error ref JSON", err);
+      }
+    },
+  };
+  //#endregion
+
   // #region 🧩 Render
   return (
     <div className="row p-4 gx-0">
-    {state.negocio == null}
+      {state.negocio == null}
       {loading ? (
         <LoadingPanel msj="Cargando órdenes de servicio, por favor espere..." />
       ) : selectedBusiness ? (
@@ -483,7 +517,6 @@ export const OrdenDeServicio = () => {
           onDelete={handleDelete}
           disableButtonAdd={disableButtonAdd}
           includeEstadoColumn
-          includeReferenceColumn // Si se quiere mostrar la columna de referenciasJson
           modalInfoFields={modalFields}
           showItemsButton
           datekeys={[
@@ -499,6 +532,7 @@ export const OrdenDeServicio = () => {
             setShowItemsOrdenFormModal(true);
             setDataToItemsOrder(rowData as DTO_OrdenServicio);
           }}
+          customColumns={[referenciaJSONColumn]} // Añadimos la columna personalizada
           customRenderers={customRenderers}
         />
       ) : (

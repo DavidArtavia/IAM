@@ -5,8 +5,10 @@ import {
   FieldConfig,
   GenericDataTable,
   GenericFormModal,
+  ReferenciaCards,
   ReferenciasJsonInput,
 } from "@/components";
+import ReactDOM from "react-dom/client";
 import { FILTER_STATUS, STATUS_TBL } from "@/constants";
 import { AuthContext } from "@/context";
 import { useApp } from "@/hooks/useApp";
@@ -21,6 +23,7 @@ import {
   notificationHelpers,
   procesarRespuesta,
   updateItemById,
+  parametrosAString,
 } from "@/utils";
 import { useContext, useEffect, useState } from "react";
 
@@ -89,7 +92,8 @@ export const Negocio = () => {
     negocioService.registrarNegocio(formData).subscribe({
       next: (result: DTO_Respuesta) => {
         const nuevo = (result.resultado as DTO_Negocio[])[0];
-        if (nuevo) setBusiness((prev) => [...prev, nuevo]); {
+        if (nuevo) setBusiness((prev) => [...prev, nuevo]);
+        {
           notificationHelpers.successAlert(result.mensaje);
           setListaNegocios([...state.listaNegocios, nuevo]);
           //Seleccionarlo por defecto globalmente
@@ -97,7 +101,6 @@ export const Negocio = () => {
         setNegocio(nuevo);
 
         setIsModalFormOpen(false);
-
       },
       error: errorHelpers.serverError,
     });
@@ -153,27 +156,26 @@ export const Negocio = () => {
       };
       setBusiness((prev) => updateItemById(prev, updatedData, "iD_Negocio"));
 
-
-
       negocioService.actualizarNegocio(updatedData).subscribe({
         next: (result) => {
-          notificationHelpers.infoAlert(result?.mensaje)
+          notificationHelpers.infoAlert(result?.mensaje);
 
           if (result.tipoRespuesta && businessToDelete) {
             const nuevaLista = state.listaNegocios.filter(
-              n => n.iD_Negocio !== businessToDelete.iD_Negocio
+              (n) => n.iD_Negocio !== businessToDelete.iD_Negocio
             );
-            setListaNegocios(nuevaLista);              
+            setListaNegocios(nuevaLista);
 
             if (state.negocio?.iD_Negocio === businessToDelete.iD_Negocio) {
               setNegocio(
                 state.listaNegocios.length > 1
-                  ? state.listaNegocios.find(n => n.iD_Negocio !== businessToDelete.iD_Negocio) ?? null
+                  ? state.listaNegocios.find(
+                      (n) => n.iD_Negocio !== businessToDelete.iD_Negocio
+                    ) ?? null
                   : null
               );
             }
           }
-
         },
         error: errorHelpers.serverError,
       });
@@ -259,6 +261,45 @@ export const Negocio = () => {
   ];
   //#endregion
 
+  //#region 🏷️ Columna Referencias para DataTable
+  const referenciaJSONColumn = {
+    title: labelMapNegocio["referenciaJSON"],
+    data: null,
+    orderable: true,
+    searchable: true,
+    defaultContent: "",
+    render: function (_data: unknown, type: string, row: DTO_Negocio) {
+      const esExport =
+        type === "export" || type === "filter" || type === "sort";
+
+      if (esExport && Array.isArray(row.referenciaJSON)) {
+        return parametrosAString(row.referenciaJSON);
+      }
+
+      return "";
+    },
+    createdCell: (
+      cell: Node,
+      _data: unknown,
+      row: DTO_Negocio
+    ) => {
+      try {
+        const container = document.createElement("div");
+        const htmlCell = cell as HTMLElement;
+        htmlCell.innerHTML = "";
+        container.classList.add("w-100");
+        ReactDOM.createRoot(container).render(
+          <ReferenciaCards items={row.referenciaJSON || []} />
+        );
+        htmlCell.appendChild(container);
+      } catch (err) {
+        console.warn("Error ref JSON", err);
+      }
+    },
+  };
+  
+  //#endregion
+
   //#region 🎨 Render
   return (
     <div className="row p-4 col-12 gx-0">
@@ -274,12 +315,12 @@ export const Negocio = () => {
         onDelete={handleDelete}
         disableButtonAdd={disableButtonAdd}
         includeEstadoColumn
-        includeReferenceColumn
         customRenderers={{
           fechaRegistro: (val: unknown) =>
             val ? new Date(String(val)).toLocaleDateString() : "",
         }}
         modalInfoFields={keysInfoModalNegocio}
+        customColumns={[referenciaJSONColumn]}
         datekeys={["fechaRegistro"]}
       />
 

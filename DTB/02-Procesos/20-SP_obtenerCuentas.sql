@@ -25,21 +25,6 @@ GO -- =============================================
     -- =============================================
     ALTER PROCEDURE [CORE].[SP_obtenerCuentas] @ID_Negocio INT AS BEGIN
 SET NOCOUNT ON;
--- 1) Validar existencia de Negocio
-IF NOT EXISTS (
-    SELECT 1
-    FROM [CORE].[TBL_NEGOCIOS]
-    WHERE [ID_Negocio] = @ID_Negocio
-) BEGIN
-SELECT [COD_ALERTA],
-    [Nombre],
-    [Mensaje],
-    [Tipo]
-FROM [UTIL].[TBL_ALERTAS]
-WHERE [COD_ALERTA] = 'B014';
--- Negocio no existe
-RETURN;
-END -- 2) Obtener cuentas por pagar con su estado
 SELECT CP.[ID_Cuenta],
     CP.[ID_Negocio],
     CP.[ID_Estado],
@@ -48,7 +33,11 @@ SELECT CP.[ID_Cuenta],
     CP.[Descripcion],
     CP.[Monto],
     CP.[FechaInicial],
-    CP.[FechaModificacion]
+    CP.[FechaModificacion],
+    CP.[FechaLimite],
+    CP.[TipoCuenta],
+	CP.[ID_OrdenServicio],
+	CP.[DetalleJSON]
 FROM [CORE].[TBL_CUENTAS] AS CP
     INNER JOIN [UTIL].[TBL_ESTADOS] AS E ON CP.[ID_Estado] = E.[ID_Estado]
 WHERE CP.[ID_Negocio] = @ID_Negocio;

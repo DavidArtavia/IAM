@@ -81,7 +81,7 @@ builder.Services.AddScoped<BLL_OrdenServicio>();
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontendDev", policy =>
-       policy.WithOrigins(System.Configuration.ConfigurationManager.AppSettings["ClientURL"])
+       policy.WithOrigins(System.Configuration.ConfigurationManager.AppSettings["ClientURL"], "http://localhost:5173") // 5173 to dev
              .AllowAnyHeader()
              .AllowAnyMethod()
              .AllowCredentials()

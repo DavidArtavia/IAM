@@ -31,10 +31,10 @@ export interface GenericDataTableProps<T> {
     [K in keyof T]: (value: unknown, rowData: T) => React.ReactNode;
   }>;
   includeEstadoColumn?: boolean;
-  includeReferenceColumn?: boolean;
   modalInfoFields?: (keyof T)[];
   showItemsButton?: boolean;
   datekeys?: string[];
+  customColumns?: ColumnSettings[];
 }
 
 export function GenericDataTable<T>({
@@ -50,9 +50,9 @@ export function GenericDataTable<T>({
   disableButtonAdd = false,
   customRenderers = {},
   includeEstadoColumn = false,
-  includeReferenceColumn = false,
   modalInfoFields,
   showItemsButton = false,
+  customColumns = [],
   datekeys,
 }: GenericDataTableProps<T>) {
   //🔄 Estado general
@@ -97,63 +97,17 @@ export function GenericDataTable<T>({
       }
     });
 
-function parametrosAString(
-  lista?: { nombre: string; valor: string }[] | null
-): string {
-  if (!Array.isArray(lista) || lista.length === 0) return '';
-
-  return lista
-    .map(({ nombre = '', valor = '' }) => {
-      // 1️⃣ trim → fuera espacios a los dos lados
-      const nom = nombre.trim();
-      const val = valor.trim();
-
-      // 2️⃣ capitaliza: 1ª letra mayúscula + resto minúsculas
-      const nomCap = nom
-        ? nom[0].toUpperCase() + nom.slice(1).toLowerCase()
-        : '';
-
-      return `${nomCap}: ${val}`;
-    })
-    .join(', ');
-}
-
-    //#region 🧷 Columna Referencias JSON
-    if (includeReferenceColumn && labelMap["referenciaJSON"]) {
-      cols.push({
-        title: labelMap["referenciaJSON"],
-        data: null,
-        orderable: true,
-        searchable: true,
-        defaultContent: "",
-        render: function (_data, type, row) {
-          // ——— Para la exportación (Excel, CSV, Copiar, PDF) ———
-          if (type === "export") {
-            const nombre = parametrosAString((row as any).referenciaJSON) ?? "";
-            // Capitaliza igual que en la badge
-            return nombre??  "";
-          }
-
-          // ——— Para los demás usos (“display”, “filter”, “sort”) ———
-          if (type === "filter" || type === "sort") {
-            return parametrosAString((row as any).referenciaJSON) ?? "";
-          }
-          // Dejamos vacío porque la celda la pintará `createdCell`
-          return "";
-        },
-        createdCell: (cell, _, row) => {
-          try {
-            const container = document.createElement("div");
-            (cell as HTMLElement).innerHTML = "";
-            cell.appendChild(container);
-            ReactDOM.createRoot(container).render(
-              <ReferenciaCards items={(row as any).referenciaJSON || []} />
-            );
-          } catch (err) {
-            console.warn("Error ref JSON", err);
-          }
-        },
-      });
+    //#region 🧩 Custom columns (user-defined)
+    // Puedes agregar aquí columnas personalizadas adicionales si lo deseas.
+    // Ejemplo:
+    // cols.push({
+    //   title: "Custom",
+    //   data: "customField",
+    //   render: (data) => <span>{data}</span>,
+    // });
+    //#endregion
+    if (customColumns) {
+      cols.push(...customColumns);
     }
     //#endregion
 
