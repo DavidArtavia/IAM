@@ -7,7 +7,7 @@ import Buttons from 'datatables.net-buttons';
 import 'datatables.net-buttons/js/buttons.html5.js';
 
 import ReactDOM from "react-dom/client";
-import { InfoModal, ActionButtons, ReferenciaCards } from "@/components";
+import { InfoModal, ActionButtons } from "@/components";
 import { useApp } from "@/hooks/useApp";
 
 type ColumnSettings = DataTables.ColumnSettings;
@@ -290,7 +290,6 @@ export function GenericDataTable<T>({
         columns: dtColumns,
         columnDefs: [
           { targets: "_all", className: "text-center", defaultContent: "" },
-
         ],
         order: [[0, "desc"]],
         language: {
@@ -301,26 +300,60 @@ export function GenericDataTable<T>({
           info: "Mostrando página _PAGE_ de _PAGES_",
           infoEmpty: "Sin registros",
           paginate: {
-            first: "Primero",
-            last: "Último",
-            previous: "Anterior",
-            next: "Siguiente",
+        first: "Primero",
+        last: "Último",
+        previous: "Anterior",
+        next: "Siguiente",
           },
         },
         deferRender: true,
         destroy: true,
         dom: 'Bfrtip',
         // @ts-expect-error  — «title» aún no está en las typings
-        buttons: [{
-          extend: 'excelHtml5',
-          text: '<i class="bi bi-file-earmark-excel-fill me-1 fs-1"></i> Exportar a Excel',
-          className: 'btn btn-success',
-          filename: 'Reporte ' + title + ' ' + new Date().toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' }).split('/').join('-'),
-          titleAttr: 'Descargar como Excel',
-          exportOptions: { columns: ':visible:not(.noExport)', orthogonal: 'export' },   // nada más
-          title: 'Negocio: ' + state.negocio?.nombreNegocio + ', Reporte: ' + title + ' ' + new Date().toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' }).split('/').join('-'),
-          sheetName: 'Datos',  
-        }]
+        buttons: [
+          {
+        extend: 'excelHtml5',
+        text: `
+          <i class="bi bi-file-earmark-excel-fill fs-4 me-1"></i>
+          <span class="d-none d-sm-inline">Exportar Excel</span>
+          <i class="bi bi-download fs-5 ms-1"></i>
+        `,
+        className:
+          'btn btn-success btn-sm mb-3 d-flex align-items-center justify-content-center gap-2',
+        filename:
+          'Reporte ' +
+          title +
+          ' ' +
+          new Date()
+            .toLocaleDateString('es-ES', {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric',
+            })
+            .split('/')
+            .join('-'),
+        titleAttr: 'Descargar como Excel',
+        exportOptions: {
+          columns: ':visible:not(.noExport)',
+          orthogonal: 'export',
+        },
+        title:
+          'Negocio: ' +
+          state.negocio?.nombreNegocio +
+          ', Reporte: ' +
+          title +
+          ' ' +
+          new Date()
+            .toLocaleDateString('es-ES', {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric',
+            })
+            .split('/')
+            .join('-'),
+        sheetName: 'Datos',
+          },
+        ],
       });
 
       const dtInstance = $(table).DataTable();
