@@ -134,13 +134,40 @@ namespace DAL
                             cuenta = new();
                             cuenta.ID_Cuenta = UTL_DBHelper.ReadNullSafeInt(reader["ID_Cuenta"]);
                             cuenta.ID_Negocio = UTL_DBHelper.ReadNullSafeInt(reader["ID_Negocio"]);
+                            cuenta.Estado.ID_Estado = UTL_DBHelper.ReadNullSafeInt(reader["ID_Estado"]);
                             cuenta.Estado.Nombre = UTL_DBHelper.ReadNullSafeString(reader["NombreEstado"]);
                             cuenta.Concepto = UTL_DBHelper.ReadNullSafeString(reader["Concepto"]);
                             cuenta.Descripcion = UTL_DBHelper.ReadNullSafeString(reader["Descripcion"]);
                             cuenta.Monto = UTL_DBHelper.ReadNullSafeDecimal(reader["Monto"]);
                             cuenta.FechaInicial = (DateTime)UTL_DBHelper.ReadNullSafeDateTime(reader["FechaInicial"]);
                             cuenta.FechaModificacion = (DateTime)UTL_DBHelper.ReadNullSafeDateTime(reader["FechaModificacion"]);
-                            cuenta.Estado.ID_Estado = UTL_DBHelper.ReadNullSafeInt(reader["ID_Estado"]);
+                            cuenta.FechaLimite = (DateTime)UTL_DBHelper.ReadNullSafeDateTime(reader["FechaLimite"]);
+                            cuenta.TipoCuenta = UTL_DBHelper.ReadNullSafeString(reader["TipoCuenta"]);
+                            cuenta.ID_OrdenServicio = UTL_DBHelper.ReadNullSafeInt(reader["ID_OrdenServicio"]);
+
+                            string json = UTL_DBHelper.ReadNullSafeString(reader["DetalleJSON"]);
+                            if (!string.IsNullOrWhiteSpace(json))
+                            {
+                                try
+                                {
+                                    // Deserializamos a List<DTO_Param>:
+                                    cuenta.DetalleJSON =
+                                        Newtonsoft.Json.JsonConvert
+                                            .DeserializeObject<List<DTO_Param>>(json)
+                                        ?? new List<DTO_Param>();
+                                }
+                                catch (Exception jsonEx)
+                                {
+                                    // lista vacía e ignorar el error
+                                    negocio.ReferenciaJSON = new List<DTO_Param>();
+                                }
+                            }
+                            else
+                            {
+                                // Si el campo estuvo vacío o nulo:
+                                negocio.ReferenciaJSON = new List<DTO_Param>();
+                            }
+
 
                             listaCuentas.Add(cuenta);
 

@@ -92,15 +92,16 @@ export const keysInfoModalNegocio: (keyof DTO_Negocio)[] = [
 
 export const keysInfoModalCuenta: (keyof DTO_Cuenta)[] = [
     "iD_Cuenta",
+    "estado",
     "concepto",
+    "monto",
     "descripcion",
     "fechaInicial",
     "fechaLimite",
+    "fechaModificacion",
     "tipoCuenta",
     "iD_OrdenServicio",
     "detalleJSON",
-    "monto",
-    "estado",
 ];
 
 export const keysInfoModalCliente: (keyof DTO_Cliente)[] = [
@@ -146,7 +147,10 @@ export const labelMapCuenta: Record<string, string> = {
     fechaInicial: "Fecha Inicial",
     fechaLimite: "Fecha Límite",
     tipoCuenta: "Tipo De Cuenta",
-    iD_OrdenServicio: "Orden De Servicio #"
+    iD_OrdenServicio: "Orden De Servicio #",
+    fechaModificacion: "Fecha de Modificación",
+    detalleJSON: "Detalles",
+
 };
 
 export const labelMapNegocio: Record<string, string> = {
@@ -180,6 +184,7 @@ export const labelMapCliente: Record<string, string> = {
     telefonoCliente: "Teléfono",
     correoCliente: "Correo",
     estado: "Estado",
+    
 };
 
 export const labelMapItemsOrdenServicio: Record<string, string> = {
