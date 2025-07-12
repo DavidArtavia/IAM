@@ -15,7 +15,10 @@ export interface FieldConfig<T> {
   renderer?: (args: {
     value: any;
     onChange: (val: any) => void;
+    readOnly?: boolean; // Permite desactivar edición
   }) => React.ReactElement;
   required?: boolean;
   validate?: (value: unknown) => string; // función personalizada
+  readOnly?: boolean; // Permite mostrar el campo solo para ver, no editar
+  order?: number; // Permite definir el orden de los campos
 }

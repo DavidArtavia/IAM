@@ -15,7 +15,7 @@
         private DateTime fechaLimite;
         private string tipoCuenta;
         private int? iD_OrdenServicio;
-        private List<DTO_Param> detalleJSON;
+        public DTO_DetalleCuentaJSON detalleJSON;
 
         #endregion
 
@@ -34,7 +34,7 @@
             FechaLimite = DateTime.Now;
             TipoCuenta = string.Empty;
             ID_OrdenServicio = null;
-            DetalleJSON = new List<DTO_Param>();
+            DetalleJSON = new();
         }
 
         #endregion
@@ -112,7 +112,7 @@
             set => iD_OrdenServicio = value;
         }
 
-        public List<DTO_Param> DetalleJSON
+        public DTO_DetalleCuentaJSON DetalleJSON
         {
             get => detalleJSON;
             set => detalleJSON = value ?? throw new ArgumentNullException(nameof(DetalleJSON));

@@ -221,42 +221,70 @@ export const negocioFormEditFields: Array<FieldConfig<DTO_Negocio>> = columnKeys
         label: labelMapNegocio[key] ?? key,
         type: "text",
     }));
-    export const cuentasFormEditFields: FieldConfig<DTO_Cuenta>[] = [
-        {
-            key: "fechaInicial",
-            label: labelMapCuenta["fechaInicial"] ?? "Fecha Inicial",
-            type: "date",
-            required: true,
-        },
-        {
-            key: "concepto",
-            label: labelMapCuenta["concepto"] ?? "Concepto",
-            type: "text",
-            required: true,
-        },
-        {
-            key: "descripcion",
-            label: labelMapCuenta["descripcion"] ?? "Descripción",
-            type: "textarea",
-            required: false,
-        },
-        {
-            key: "fechaLimite",
-            label: labelMapCuenta["fechaLimite"] ?? "Fecha Límite",
-            type: "date",
-            required: true,
-        },
-        {
-            key: "tipoCuenta",
-            label: labelMapCuenta["tipoCuenta"] ?? "Tipo de Cuenta",
-            type: "select",
-            required: true,
-            options: [
-                { label: "Cuenta Por Cobrar", value: "Cuentas Por Cobrar" },
-                { label: "Cuenta Por Pagar", value: "Cuenta Por Pagar" },
-            ],
-        },
-    ];
+export const cuentasFormEditFields: FieldConfig<DTO_Cuenta>[] = [
+    {
+        key: "iD_Cuenta",
+        label: labelMapCuenta["iD_Cuenta"] ?? "Cuenta #",
+        type: "text",
+        required: true,
+        readOnly: true, // Solo visualizable, no editable
+        order: 1,
+    },
+    {
+        key: "estado",
+        label: labelMapCuenta["estado"] ?? "Estado",
+        type: "text",
+        required: true,
+        readOnly: true,
+        order: 2,
+    },
+    {
+        key: "concepto",
+        label: labelMapCuenta["concepto"] ?? "Concepto",
+        type: "text",
+        required: true,
+        order: 3,
+    },
+    {
+        key: "descripcion",
+        label: labelMapCuenta["descripcion"] ?? "Descripción",
+        type: "textarea",
+        required: false,
+        order: 4,
+    },
+    {
+        key: "fechaInicial",
+        label: labelMapCuenta["fechaInicial"] ?? "Fecha Inicial",
+        type: "date",
+        required: true,
+        order: 5,
+    },
+    {
+        key: "fechaLimite",
+        label: labelMapCuenta["fechaLimite"] ?? "Fecha Límite",
+        type: "date",
+        required: true,
+        order: 6,
+    },
+    {
+        key: "tipoCuenta",
+        label: labelMapCuenta["tipoCuenta"] ?? "Tipo de Cuenta",
+        type: "select",
+        required: true,
+        options: [
+            { label: "Cuenta Por Cobrar", value: "Cuentas Por Cobrar" },
+            { label: "Cuenta Por Pagar", value: "Cuenta Por Pagar" },
+        ],
+        order: 7,
+    },
+    {
+        key: "monto",
+        label: labelMapCuenta["monto"] ?? "Monto",
+        type: "number",
+        required: true,
+        order: 8,
+    },
+];
 
 export const clienteFormEditFields: Array<FieldConfig<DTO_Cliente>> = columnKeysCliente
     .filter(key => key !== "iD_Cliente" && key !== "iD_Usuario") // Excluye campos que no se editan
@@ -338,4 +366,46 @@ export const transaccionesFormEditFields: FieldConfig<DTO_Transacciones>[] = [
 
 //#endregion
 
-
+//#region campos a mostrar para el form de agregar
+export const cuentasFormAddFields: FieldConfig<DTO_Cuenta>[] = [
+    {
+        key: "concepto",
+        label: labelMapCuenta["concepto"] ?? "Concepto",
+        type: "text",
+        required: true,
+        order: 1,
+    },
+    {
+        key: "descripcion",
+        label: labelMapCuenta["descripcion"] ?? "Descripción",
+        type: "textarea",
+        required: false,
+        order: 2,
+    },
+    {
+        key: "fechaInicial",
+        label: labelMapCuenta["fechaInicial"] ?? "Fecha Inicial",
+        type: "date",
+        required: true,
+        order: 3,
+    },
+    {
+        key: "fechaLimite",
+        label: labelMapCuenta["fechaLimite"] ?? "Fecha Límite",
+        type: "date",
+        required: true,
+        order: 4,
+    },
+    {
+        key: "tipoCuenta",
+        label: labelMapCuenta["tipoCuenta"] ?? "Tipo de Cuenta",
+        type: "select",
+        required: true,
+        options: [
+            { label: "Cuenta Por Cobrar", value: "Cuentas Por Cobrar" },
+            { label: "Cuenta Por Pagar", value: "Cuenta Por Pagar" },
+        ],
+        order: 5,
+    },
+];
+// endregion

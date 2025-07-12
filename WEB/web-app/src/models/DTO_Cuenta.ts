@@ -1,5 +1,10 @@
 import { DTO_Estado } from './DTO_Estado';
-import { DTO_Param } from './DTO_Param';
+
+export interface DetalleCuentaJSON {
+    Filas: { Nombre: string; Valor: string }[];
+    Descuento: { Tipo: "Monto" | "Porcentaje"; Valor: string };
+    Impuesto: number;
+}
 
 export class DTO_Cuenta {
     iD_Cuenta: number = 0;
@@ -10,7 +15,7 @@ export class DTO_Cuenta {
     descripcion?: string;
     monto: number = 0;
     tipoCuenta: string = "";
-    detalleJSON?: Array<DTO_Param> = [];
+    detalleJSON?: DetalleCuentaJSON;
     fechaInicial: Date = new Date();
     fechaModificacion: Date = new Date();
     fechaLimite: Date = new Date();

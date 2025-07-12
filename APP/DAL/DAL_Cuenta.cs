@@ -43,7 +43,6 @@ namespace DAL
                     {
                         DTO_Cuenta cuentaRegistrada = new();
 
-                        // 1er result set: cuenta registrada
                         if (reader.Read())
                         {
                             cuentaRegistrada.ID_Cuenta = UTL_DBHelper.ReadNullSafeInt(reader["ID_Cuenta"]);
@@ -66,12 +65,12 @@ namespace DAL
                             string json = UTL_DBHelper.ReadNullSafeString(reader["DetalleJSON"]);
                             if (!string.IsNullOrEmpty(json))
                             {
-                                var deserializado = Newtonsoft.Json.JsonConvert.DeserializeObject<List<DTO_Param>>(json);
-                                cuentaRegistrada.DetalleJSON = deserializado ?? new List<DTO_Param>();
+                                cuentaRegistrada.DetalleJSON = Newtonsoft.Json.JsonConvert.DeserializeObject<DTO_DetalleCuentaJSON>(json)
+                                                                ?? new DTO_DetalleCuentaJSON();
                             }
                             else
                             {
-                                cuentaRegistrada.DetalleJSON = new List<DTO_Param>();
+                                cuentaRegistrada.DetalleJSON = null;
                             }
 
                             // 2do result set: alerta
@@ -93,13 +92,14 @@ namespace DAL
             catch (Exception ex)
             {
                 this.Close();
-                throw ex;
+                throw;
             }
             finally
             {
                 this.Close();
             }
         }
+
 
 
         public DTO_Respuesta obtenerCuenta(DTO_Negocio negocio)
@@ -151,21 +151,19 @@ namespace DAL
                                 try
                                 {
                                     // Deserializamos a List<DTO_Param>:
-                                    cuenta.DetalleJSON =
-                                        Newtonsoft.Json.JsonConvert
-                                            .DeserializeObject<List<DTO_Param>>(json)
-                                        ?? new List<DTO_Param>();
+                                    cuenta.DetalleJSON = Newtonsoft.Json.JsonConvert.DeserializeObject<DTO_DetalleCuentaJSON>(json)
+                                                                ?? new DTO_DetalleCuentaJSON();
                                 }
                                 catch (Exception jsonEx)
                                 {
                                     // lista vacía e ignorar el error
-                                    negocio.ReferenciaJSON = new List<DTO_Param>();
+                                    cuenta.detalleJSON = new DTO_DetalleCuentaJSON();
                                 }
                             }
                             else
                             {
                                 // Si el campo estuvo vacío o nulo:
-                                negocio.ReferenciaJSON = new List<DTO_Param>();
+                                cuenta.detalleJSON = new DTO_DetalleCuentaJSON();
                             }
 
 

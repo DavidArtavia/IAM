@@ -11,9 +11,11 @@ import {
   columnKeysCuenta,
   keysInfoModalCuenta,
   parametrosAString,
+  cuentasFormAddFields,
 } from "@/utils";
 import {
   ConfirmModal,
+  DetalleCuentaInput,
   FieldConfig,
   GenericDataTable,
   GenericFormModal,
@@ -39,6 +41,7 @@ export const Cuentas = () => {
 
   //#endregion
 
+  
   // Estado de negocio seleccionado
   const [selectedBusiness, setSelectedBusiness] = useState<DTO_Negocio | null>(
     null
@@ -46,7 +49,7 @@ export const Cuentas = () => {
   // Arreglo con DTO_CuentasPorPagar
   const [accountsPayable, setAccountsPayable] = useState<DTO_Cuenta[]>([]);
   const [disableButtonAdd, setDisableButtonAdd] = useState<boolean>(true);
-
+  
   // --------- Modales “Registrar” y “Editar” -----------
   const [isModalFormOpen, setIsModalFormOpen] = useState(false);
   const [formData, setFormData] = useState<DTO_Cuenta>(new DTO_Cuenta());
@@ -56,7 +59,10 @@ export const Cuentas = () => {
   const [rowEditSelected, setRowEditSelected] = useState<DTO_Cuenta | null>(
     null
   );
-
+  
+  const [detalleHabilitado, setDetalleHabilitado] = useState<boolean>(
+    !!formData.detalleJSON
+  );
   // --------- Modal de Confirmación de Borrar / Cancelar -----------
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [confirmModalMessage, setConfirmModalMessage] = useState("");
@@ -66,6 +72,15 @@ export const Cuentas = () => {
   const [accountToDelete, setAccountToDelete] = useState<DTO_Cuenta | null>(
     null
   );
+  const [montoInput, setMontoInput] = useState<string>(
+    formData.monto && formData.monto !== 0 ? String(formData.monto) : ""
+  );
+
+  useEffect(() => {
+    setMontoInput(
+      formData.monto && formData.monto !== 0 ? String(formData.monto) : ""
+    );
+  }, [formData.monto]);
 
   // Cuando cambia el negocio, recargamos cuentas
   useEffect(() => {
@@ -103,7 +118,7 @@ export const Cuentas = () => {
     setFormData(new DTO_Cuenta());
     setIsModalFormOpen(true);
   };
-  const handleSave = () => {
+  const handleSave = () => {    
     formData.iD_Negocio = selectedBusiness?.iD_Negocio || 0;
     cuentasService.registrarCuenta(formData).subscribe({
       next: (result: unknown) => {
@@ -115,6 +130,10 @@ export const Cuentas = () => {
         setIsModalFormOpen(false);
       },
       error: (err) => errorHelpers.serverError(err),
+      complete: () => {
+        setDetalleHabilitado(false);
+        setMontoInput("");
+      }
     });
   };
   const handleCancelAdd = () => {
@@ -242,15 +261,7 @@ export const Cuentas = () => {
   //     ),
   //   })) || [];
 
-  const newFormFields: FieldConfig<DTO_Cuenta>[] = [
-    ...cuentasFormEditFields,
-    {
-      key: "monto",
-      label: "Monto",
-      type: "number",
-      required: true,
-    },
-  ];
+
 
   // const editFormFields: FieldConfig<DTO_OrdenServicio>[] = [
   //   ...ordenServicioFormEditFields,
@@ -301,6 +312,76 @@ export const Cuentas = () => {
  
   //#endregion 
 
+  
+  const formAddFields: FieldConfig<DTO_Cuenta>[] = [
+    ...cuentasFormAddFields,
+    {
+      key: "detalleJSON",
+      label: "Detalle",
+      type: "custom",
+      required: detalleHabilitado, // requerido solo si el switch está activado
+      order: 6,
+      renderer: ({ value, onChange }) => (
+        <DetalleCuentaInput
+          value={value}
+          onChange={onChange}
+          monto={formData.monto}
+          setMonto={(val) => {
+            setFormData({ ...formData, monto: val });
+            setMontoInput(val !== 0 ? String(val) : "");
+          }}
+          onEnabledChange={(enabled) => setDetalleHabilitado(enabled)}
+        />
+      ),
+    },
+    {
+      key: "monto",
+      label: "Monto",
+      type: "custom",
+      required: !detalleHabilitado, // requerido solo si el switch está desactivado
+      order: 7,
+      renderer: () => {
+        return (
+          <div className="input-group">
+            <span className="input-group-text">₡</span>
+            <input
+              type="text"
+              className="form-control fw-bold fs-5 text-start"
+              readOnly={detalleHabilitado}
+              value={montoInput}
+              onFocus={() => {
+                if (formData.monto === 0) {
+                  setMontoInput("");
+                }
+              }}
+              onChange={(e) => {
+                const val = e.target.value.replace(/[^0-9.]/g, "");
+                setMontoInput(val);
+                if (val === "") {
+                  setFormData({ ...formData, monto: 0 });
+                } else {
+                  const num = parseFloat(val);
+                  setFormData({ ...formData, monto: isNaN(num) ? 0 : num });
+                }
+              }}
+              onBlur={(e) => {
+                if (e.target.value === "" || isNaN(Number(e.target.value))) {
+                  setMontoInput("");
+                  setFormData({ ...formData, monto: 0 });
+                }
+              }}
+              placeholder="₡0.00"
+              min={0}
+              step={0.01}
+            />
+          </div>
+        );
+      },
+    },
+  ];
+
+   
+
   //#region 🧱 Columna personalizada para detalleJSON
   const detalleJSONColumn = {
     title: labelMap["detalleJSON"],
@@ -325,7 +406,7 @@ export const Cuentas = () => {
         htmlCell.innerHTML = "";
         container.classList.add("w-100");
         ReactDOM.createRoot(container).render(
-          <ReferenciaCards items={row.detalleJSON || []} />
+          <ReferenciaCards items={Array.isArray(row.detalleJSON) ? row.detalleJSON : []} />
         );
         htmlCell.appendChild(container);
       } catch (err) {
@@ -369,7 +450,7 @@ export const Cuentas = () => {
           data={formData}
           setData={setFormData}
           onSubmit={handleSave}
-          fields={newFormFields}
+          fields={formAddFields}
         />
 
         {/* Modal “Confirmación” */}
