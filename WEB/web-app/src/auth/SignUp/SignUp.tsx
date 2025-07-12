@@ -57,7 +57,7 @@ const [usuario, setUsuario] =  useState<DTO_Usuario | null>(new DTO_Usuario());;
         className="d-flex flex-column flex-column-fluid bgi-position-y-bottom position-x-center bgi-no-repeat bgi-size-contain bgi-attachment-fixed"
         style={{
           backgroundImage:
-            'url("src/assets/media/illustrations/sketchy-1/14.png")',
+            'url("src/assets/media/illustrations/unitedpalms-1/14-1.png")',
         }}
       >
         <div className="d-flex flex-center flex-column flex-column-fluid p-10 pb-lg-20">
