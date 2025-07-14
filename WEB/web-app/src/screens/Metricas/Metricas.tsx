@@ -1,5 +1,9 @@
 import { useState, useEffect } from 'react';
-
+import { useApp } from "@/hooks/useApp";
+import { DTO_MetricaKPI, DTO_Negocio, DTO_Respuesta } from '@/models';
+import { metricaService } from "@/services";
+import { errorHelpers, notificationHelpers } from '@/utils';
+import { KPI, LoadingPanel } from '@/components';
 const OPCIONES = [
     { texto: 'Hoy' },
     { texto: 'Semana' },
@@ -11,13 +15,61 @@ const OPCIONES = [
 
 
 export const Metricas = () => {
+    const kpi: DTO_MetricaKPI = new DTO_MetricaKPI;
+    const [loading, setLoading] = useState(false);
+    const [kpis, setKpis] = useState<DTO_MetricaKPI[]>([]);
+    const [selectedBusiness, setSelectedBusiness] = useState<DTO_Negocio | null>(
+        null
+    );
+    const { state } = useApp();
+
+    useEffect(() => {
+        if (state.negocio) {
+            setSelectedBusiness(state.negocio)
+            handleSelectBusiness(state.negocio);
+        }
+    }, [state]);
+
+    const handleSelectBusiness = (neg: DTO_Negocio) => {
+        setSelectedBusiness(neg);
+
+    };
+
+    useEffect(() => {
+        if (selectedBusiness?.iD_Negocio != undefined && selectedBusiness?.iD_Negocio > 0)
+            obtenerMetrica();
+
+    }, [selectedBusiness]);
+
+
 
     const [filtro, setFiltro] = useState(OPCIONES[0].texto); // “Hoy” por defecto
 
 
+    const obtenerMetrica = () => {
+
+        kpi.iD_Negocio = selectedBusiness?.iD_Negocio;
+        kpi.filtro = filtro;
+
+        metricaService.obtenerMetrica(kpi).subscribe({
+            next: (res) => {
+                if (!(res as DTO_Respuesta).tipoRespuesta) {
+                    notificationHelpers.errorAlert((res as DTO_Respuesta).mensaje);
+                } else {
+                    setKpis((res as DTO_Respuesta).resultado[0] as DTO_MetricaKPI[])
+
+
+                }
+            },
+            error: (err) => errorHelpers.serverError(err),
+            complete: () => setLoading(false),
+        });
+    }
+
 
     useEffect(() => {
-        //aqui mandamos a llamar el servicio
+        if (selectedBusiness?.iD_Negocio != undefined && selectedBusiness?.iD_Negocio > 0)
+            obtenerMetrica();
 
     }, [filtro]);
 
@@ -25,6 +77,7 @@ export const Metricas = () => {
 
     return (
         <div>
+
 
             <div className="toolbar pb-2 pt-2" id="kt_toolbar">
                 {/* Botones: visibles desde sm ≥ 576 px */}
@@ -55,224 +108,27 @@ export const Metricas = () => {
                         ))}
                     </select>
 
-
-
-
                 </div>
+            </div>
+
+            <div className="row p-4 gx-0">
+                {loading && <LoadingPanel msj="Cargando, por favor espere..." />}
             </div>
 
 
 
-            <div className="col-xl-12" style={{ marginTop: '55px' }}>
+            <div className="col-xl-12" style={{ marginTop: '30px' }}>
                 <div className="card card-xl-stretch mb-xl-8">
                     <div className="card-body p-4">
                         <div className="card position-relative">
-                            <div className="row">
+                            <div className='row'>
+                                {kpis.map((kpi, i) => (
+                                    <KPI metrica={kpi} key={i} />
+                                ))}
 
-                                <div className='col-xl-3 p-2'>
-                                    <div className="bg-light-info py-8 rounded-2 p-5">
-
-
-                                        <span className="svg-icon svg-icon-3x svg-icon-warning d-block my-2">
-                                            <i className="bi bi-file-earmark-plus text-info" style={{ fontSize: 'xx-large' }}></i>
-                                        </span>
-
-                                        <a href="#" className="text-info text-nowrap">
-                                            <span className="fw-bold fs-6">Cuentas Por </span>
-                                            <span className="fw-bolder fs-2">Cobrar</span>
-                                        </a>
-                                        <div className="fw-bolder fs-1 text-info">₡15,300</div>
-                                    </div>
-                                </div>
-                                <div className='col-xl-3 p-2'>
-                                    <div className="bg-light-warning py-8 rounded-2 p-5">
-
-
-                                        <span className="svg-icon svg-icon-3x svg-icon-warning d-block my-2">
-                                            <i className="bi bi-file-earmark-minus text-warning" style={{ fontSize: 'xx-large' }}></i>
-                                        </span>
-
-                                        <a href="#" className="text-warning text-nowrap">
-                                            <span className="fw-bold fs-6">Cuentas Por </span>
-                                            <span className="fw-bolder fs-2">Pagar</span>
-                                        </a><div className="fw-bolder fs-1 text-warning">₡1,300</div>
-                                    </div>
-                                </div>
-                                <div className='col-xl-3 p-2'>
-                                    <div className="bg-light-primary py-8 rounded-2 p-5">
-
-                                        <span className="svg-icon svg-icon-3x svg-icon-warning d-block my-2">
-                                            <i className="bi bi-calculator text-primary" style={{ fontSize: 'xx-large' }}></i>
-                                        </span>
-
-
-                                        <a href="#" className="text-primary text-nowrap">
-                                            <span className="fw-bolder fs-2">Balance </span>
-
-                                            <span className="fw-bold fs-6">de Cuentas (CxC-CxP)</span>
-
-                                        </a>
-                                        <div className="fw-bolder fs-1 text-primary">₡14,000</div>
-                                    </div>
-                                </div>
-                                <div className='col-xl-3 p-2'>
-                                    <div className="bg-light-success py-8 rounded-2 p-5">
-
-                                        <span className="svg-icon svg-icon-3x svg-icon-warning d-block my-2">
-                                            <i className="bi bi-clipboard-data text-success" style={{ fontSize: 'xx-large' }}></i>
-                                        </span>
-
-
-                                        <a href="#" className="text-success text-nowrap">
-                                            <span className="fw-bolder fs-2">Crecimiento </span>
-
-                                            <span className="fw-bold fs-6">de Cuentas (CxC vs CxP)</span>
-
-                                        </a>
-                                        <div className="fw-bolder fs-1 text-success">2.5% <span className="fw-bold fs-6">Objetivo: 4%</span></div>
-                                    </div>
-                                </div>
-
-                            </div>
-
-
-                            <div className="row">
-
-                                <div className='col-xl-3 p-2'>
-                                    <div className="bg-secondary py-8 rounded-2 p-5">
-
-
-                                        <span className="svg-icon svg-icon-3x svg-icon-gray-800 d-block my-2">
-                                            <i className="bi bi-clipboard-check text-gray-800" style={{ fontSize: 'xx-large' }}></i>
-                                        </span>
-
-                                        <a href="#" className="text-gray-800 text-nowrap">
-
-                                            <span className="fw-bolder fs-2">Ordenes de Servicio</span>
-                                        </a>
-                                        <div className="fw-bolder fs-1 text-gray-800">5 <span className="fw-bold fs-6">(5 Finalizadas)</span></div>
-                                    </div>
-                                </div>
-                                <div className='col-xl-3 p-2'>
-                                    <div className="bg-secondary py-8 rounded-2 p-5">
-
-
-                                        <span className="svg-icon svg-icon-3x svg-icon-gray-800 d-block my-2">
-                                            <i className="bi bi-people text-gray-800" style={{ fontSize: 'xx-large' }}></i>
-                                        </span>
-
-                                        <a href="#" className="text-gray-800 text-nowrap">
-
-                                            <span className="fw-bolder fs-2">Clientes </span>
-                                            <span className="fw-bold fs-6">Nuevos</span>
-                                        </a>
-                                        <div className="fw-bolder fs-1 text-gray-800">3</div>
-                                    </div> </div>
-                                <div className='col-xl-3 p-2'>
-                                    <div className="bg-secondary py-8 rounded-2 p-5">
-
-
-                                        <span className="svg-icon svg-icon-3x svg-icon-gray-800 d-block my-2">
-                                            <i className="bi bi-arrow-left-right text-gray-800" style={{ fontSize: 'xx-large' }}></i>
-                                        </span>
-
-                                        <a href="#" className="text-gray-800 text-nowrap">
-                                            <span className="fw-bolder fs-2">Transacciones</span>
-                                            <span className="fw-bold fs-6"></span>
-                                        </a>
-                                        <div className="fw-bolder fs-1 text-gray-800">15 <span className="fw-bold fs-6">(5 Gasto) (10 Ingreso)</span></div>
-
-                                    </div> </div>
-                                <div className='col-xl-3 p-2'>
-                                    <div className="bg-secondary py-8 rounded-2 p-5">
-
-
-                                        <span className="svg-icon svg-icon-3x svg-icon-gray-800 d-block my-2">
-                                            <i className="bi bi-cash-stack text-gray-800" style={{ fontSize: 'xx-large' }}></i>
-                                        </span>
-
-                                        <a href="#" className="text-gray-800 text-nowrap">
-
-                                            <span className="fw-bolder fs-2">Cuentas</span>
-                                        </a>
-                                        <div className="fw-bolder fs-1 text-gray-800">10 <span className="fw-bold fs-6">(6 CxC) (4 CxP)</span></div>
-                                    </div></div>
-
-                            </div>
-                        </div>
-
-
-
-
-                        <div className="row">
-
-                            <div className='col-xl-3 p-2'>
-                                <div className="bg-info py-8 rounded-2 p-5">
-
-
-                                    <span className="svg-icon svg-icon-3x svg-icon-warning d-block my-2">
-                                        <i className="bi bi-graph-up text-light-info" style={{ fontSize: 'xx-large' }}></i>
-                                    </span>
-
-                                    <a href="#" className="text-light-info text-nowrap">
-                                        <span className="fw-bold fs-6">Transacciones de </span>
-                                        <span className="fw-bolder fs-2">Ingreso</span>
-                                    </a>
-                                    <div className="fw-bolder fs-1 text-light-info">₡5,300</div>
-                                </div>
-                            </div>
-                            <div className='col-xl-3 p-2'>
-                                <div className="bg-warning py-8 rounded-2 p-5">
-
-
-                                    <span className="svg-icon svg-icon-3x svg-icon-warning d-block my-2">
-                                        <i className="bi bi-graph-down text-light-warning" style={{ fontSize: 'xx-large' }}></i>
-                                    </span>
-
-                                    <a href="#" className="text-light-warning text-nowrap">
-                                        <span className="fw-bold fs-6">Transacciones de </span>
-                                        <span className="fw-bolder fs-2">Gasto</span>
-                                    </a><div className="fw-bolder fs-1 text-light-warning">₡1,300</div>
-                                </div>
-                            </div>
-                            <div className='col-xl-3 p-2'>
-                                <div className="bg-primary py-8 rounded-2 p-5">
-
-                                    <span className="svg-icon svg-icon-3x svg-icon-primary d-block my-2">
-                                        <i className="bi bi-calculator text-light-primary" style={{ fontSize: 'xx-large' }}></i>
-                                    </span>
-
-
-                                    <a href="#" className="text-light-primary text-nowrap">
-                                        <span className="fw-bolder fs-2">Balance </span>
-
-                                        <span className="fw-bold fs-6">de Transacciones (Ingresos - Gastos)</span>
-
-                                    </a>
-                                    <div className="fw-bolder fs-1 text-light-primary">₡14,000</div>
-                                </div>
-                            </div>
-                            <div className='col-xl-3 p-2'>
-                                <div className="bg-success py-8 rounded-2 p-5">
-
-                                    <span className="svg-icon svg-icon-3x svg-icon-warning d-block my-2">
-                                        <i className="bi bi-clipboard-data text-light-success" style={{ fontSize: 'xx-large' }}></i>
-                                    </span>
-
-
-                                    <a href="#" className="text-light-success text-nowrap">
-                                        <span className="fw-bolder fs-2">Crecimiento </span>
-
-                                        <span className="fw-bold fs-6">de Transacciones (Ingresos vs Gastos)</span>
-
-                                    </a>
-                                    <div className="fw-bolder fs-1 text-light-success">2.5% <span className="fw-bold fs-6">Objetivo: 4%</span></div>
-                                </div>
                             </div>
 
                         </div>
-
-
 
                     </div>
 

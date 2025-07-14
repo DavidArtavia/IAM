@@ -18,7 +18,8 @@ ALTER PROCEDURE CORE.SP_obtenerMetricas
 AS
 BEGIN
 
-DECLARE @Hoy DATE = CAST(DATEADD(DAY, -1, GETDATE()) AS DATE);  
+-- DECLARE @Hoy DATE = CAST(DATEADD(DAY, -1, GETDATE()) AS DATE);  --Para pruebas
+DECLARE @Hoy DATE = GETDATE()  
 
 DECLARE @FechaInicio      DATE;			-- inicio período actual
 DECLARE @FechaFin         DATE = @Hoy;  -- fin período actual
@@ -166,11 +167,11 @@ SELECT 'de Cuentas (CxC-CxP)' AS TituloRegular, 'Balance' AS TituloNegrita, 'NR'
 
 --#START KPI Crecimiento de Cuentas (CxC vs CxP)
 INSERT INTO #KPIs (TituloRegular, TituloNegrita, OrdenTitulos, TXTColor, BGColor, ValorRegular, ValorNegrita, OrdenValores, Icono, Info)
-SELECT 'de Cuentas (CxC vs CxP)' AS TituloRegular, 'Crecimiento' AS TituloNegrita, 'NR' AS OrdenTitulos, 'text-success' AS TXTColor, 'bg-light-success' AS BGColor, '' AS ValorRegular,
+SELECT 'de Cuentas (CxC vs CxP)' AS TituloRegular, 'Crecimiento' AS TituloNegrita, 'NR' AS OrdenTitulos, 'text-success' AS TXTColor, 'bg-light-success' AS BGColor, 'Objetivo: 2% Mensual' AS ValorRegular,
   ValorNegrita = CASE WHEN (@KPI_Sum_CXC_Prev - @KPI_Sum_CXP_Prev) = 0 THEN '---'
   ELSE CAST(FORMAT(((@KPI_Sum_CXC - @KPI_Sum_CXP) - (@KPI_Sum_CXC_Prev - @KPI_Sum_CXP_Prev)) * 100 / (@KPI_Sum_CXC_Prev - @KPI_Sum_CXP_Prev), 'N2') AS VARCHAR) + '%'
   END, 
-  'NR' AS OrdenValores, 'bi-calculator' AS Icono, 'Este es el porsentaje de crecimiento entre el balance de cuentas del período actual el balance de cuentas de un período igual previo' AS Info
+  'NR' AS OrdenValores, 'bi-clipboard-data' AS Icono, 'Este es el porsentaje de crecimiento entre el balance de cuentas del período actual el balance de cuentas de un período igual previo' AS Info
 --#END KPI Balance de Cuentas (CxC-CxP)
 
 --#START KPI Ordenes de Servicio
@@ -221,11 +222,11 @@ SELECT
     'NR'                  AS OrdenTitulos,
     'text-gray-800'       AS TXTColor,
     'bg-secondary'        AS BGColor,
-    '(' + CAST(@KPI_Cont_CXP AS varchar(20)) + ' CxP y '
+    '(' + CAST(@KPI_Cont_CXP AS varchar(20)) + ' CxP) ('
         + CAST(@KPI_Cont_CXC   AS varchar(20)) + ' CxC)'        AS ValorRegular,
     CAST(@KPI_Cont_CXP + @KPI_Cont_CXC AS varchar(20))                     AS ValorNegrita,
     'NR'                  AS OrdenValores,
-    'bi-cash-stackt' AS Icono,
+    'bi-cash-stack' AS Icono,
     'Cantidad de cuentas dentro del período (se especifica cuáles son CxC y cuáles son CxP)'
                          AS Info;
 
@@ -258,9 +259,11 @@ SELECT ' de Transacciones (Ingresos vs Gastos)' AS TituloRegular, 'Crecimiento '
 
 --Select final, que parida
 
-SELECT TituloNegrita, TituloRegular, OrdenTitulos, TXTColor, BGColor, ValorRegular,  ISNULL(ValorNegrita, '---') AS ValorNegrita, OrdenValores, Icono, Info
+SELECT TituloNegrita, TituloRegular, OrdenTitulos, TXTColor, BGColor, ValorRegular, ISNULL(NULLIF(ValorNegrita, '0'), '---') AS ValorNegrita, OrdenValores, Icono, Info
 FROM  #KPIs
 ORDER BY KPIOrder; 
+
+SELECT * FROM [UTIL].[TBL_ALERTAS] WHERE COD_ALERTA = 'A030'
 END
 
 GO
