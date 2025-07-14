@@ -12,6 +12,7 @@ interface AppRuntimeConfig {
   // ASSET_CDN: string;
   // AUTH_DOMAIN: string;
 }
+
 // Extiende el objeto Window
 declare global {
     interface Window {
