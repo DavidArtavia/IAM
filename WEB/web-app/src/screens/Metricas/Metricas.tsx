@@ -74,11 +74,11 @@ export const Metricas = () => {
 
 
                                         <span className="svg-icon svg-icon-3x svg-icon-warning d-block my-2">
-                                            <i className="bi bi-arrow-down text-info" style={{ fontSize: 'xx-large' }}></i>
+                                            <i className="bi bi-file-earmark-plus text-info" style={{ fontSize: 'xx-large' }}></i>
                                         </span>
 
                                         <a href="#" className="text-info text-nowrap">
-                                            <span className="fw-bold fs-6">Cuentas&nbsp;Por&nbsp;</span>
+                                            <span className="fw-bold fs-6">Cuentas Por </span>
                                             <span className="fw-bolder fs-2">Cobrar</span>
                                         </a>
                                         <div className="fw-bolder fs-1 text-info">₡15,300</div>
@@ -89,11 +89,11 @@ export const Metricas = () => {
 
 
                                         <span className="svg-icon svg-icon-3x svg-icon-warning d-block my-2">
-                                            <i className="bi bi-arrow-up text-warning" style={{ fontSize: 'xx-large' }}></i>
+                                            <i className="bi bi-file-earmark-minus text-warning" style={{ fontSize: 'xx-large' }}></i>
                                         </span>
 
                                         <a href="#" className="text-warning text-nowrap">
-                                            <span className="fw-bold fs-6">Cuentas&nbsp;Por&nbsp;</span>
+                                            <span className="fw-bold fs-6">Cuentas Por </span>
                                             <span className="fw-bolder fs-2">Pagar</span>
                                         </a><div className="fw-bolder fs-1 text-warning">₡1,300</div>
                                     </div>
@@ -204,11 +204,76 @@ export const Metricas = () => {
 
 
 
+                        <div className="row">
+
+                            <div className='col-xl-3 p-2'>
+                                <div className="bg-info py-8 rounded-2 p-5">
+
+
+                                    <span className="svg-icon svg-icon-3x svg-icon-warning d-block my-2">
+                                        <i className="bi bi-graph-up text-light-info" style={{ fontSize: 'xx-large' }}></i>
+                                    </span>
+
+                                    <a href="#" className="text-light-info text-nowrap">
+                                        <span className="fw-bold fs-6">Transacciones de </span>
+                                        <span className="fw-bolder fs-2">Ingreso</span>
+                                    </a>
+                                    <div className="fw-bolder fs-1 text-light-info">₡5,300</div>
+                                </div>
+                            </div>
+                            <div className='col-xl-3 p-2'>
+                                <div className="bg-warning py-8 rounded-2 p-5">
+
+
+                                    <span className="svg-icon svg-icon-3x svg-icon-warning d-block my-2">
+                                        <i className="bi bi-graph-down text-light-warning" style={{ fontSize: 'xx-large' }}></i>
+                                    </span>
+
+                                    <a href="#" className="text-light-warning text-nowrap">
+                                        <span className="fw-bold fs-6">Transacciones de </span>
+                                        <span className="fw-bolder fs-2">Gasto</span>
+                                    </a><div className="fw-bolder fs-1 text-light-warning">₡1,300</div>
+                                </div>
+                            </div>
+                            <div className='col-xl-3 p-2'>
+                                <div className="bg-primary py-8 rounded-2 p-5">
+
+                                    <span className="svg-icon svg-icon-3x svg-icon-primary d-block my-2">
+                                        <i className="bi bi-calculator text-light-primary" style={{ fontSize: 'xx-large' }}></i>
+                                    </span>
+
+
+                                    <a href="#" className="text-light-primary text-nowrap">
+                                        <span className="fw-bolder fs-2">Balance </span>
+
+                                        <span className="fw-bold fs-6">de Transacciones (Ingresos - Gastos)</span>
+
+                                    </a>
+                                    <div className="fw-bolder fs-1 text-light-primary">₡14,000</div>
+                                </div>
+                            </div>
+                            <div className='col-xl-3 p-2'>
+                                <div className="bg-success py-8 rounded-2 p-5">
+
+                                    <span className="svg-icon svg-icon-3x svg-icon-warning d-block my-2">
+                                        <i className="bi bi-clipboard-data text-light-success" style={{ fontSize: 'xx-large' }}></i>
+                                    </span>
+
+
+                                    <a href="#" className="text-light-success text-nowrap">
+                                        <span className="fw-bolder fs-2">Crecimiento </span>
+
+                                        <span className="fw-bold fs-6">de Transacciones (Ingresos vs Gastos)</span>
+
+                                    </a>
+                                    <div className="fw-bolder fs-1 text-light-success">2.5% <span className="fw-bold fs-6">Objetivo: 4%</span></div>
+                                </div>
+                            </div>
+
+                        </div>
 
 
 
-
-                        <div className="separator border-5 my-10"></div>
                     </div>
 
                 </div>
