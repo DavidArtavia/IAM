@@ -1,10 +1,10 @@
 import React, { useEffect, useRef, useMemo, useState } from "react";
 import $ from "jquery";
 import "datatables.net-bs5";
-import DataTable from 'datatables.net-dt';
-import JsZip from 'jszip';
-import Buttons from 'datatables.net-buttons';
-import 'datatables.net-buttons/js/buttons.html5.js';
+import DataTable from "datatables.net-dt";
+import JsZip from "jszip";
+import Buttons from "datatables.net-buttons";
+import "datatables.net-buttons/js/buttons.html5.js";
 
 import ReactDOM from "react-dom/client";
 import { InfoModal, ActionButtons } from "@/components";
@@ -12,12 +12,15 @@ import { useApp } from "@/hooks/useApp";
 
 type ColumnSettings = DataTables.ColumnSettings;
 
-//@ts-expect-error -Error ignorado
+declare global {
+  interface Window {
+    JSZip: typeof JsZip;
+  }
+}
+
 window.JSZip = JsZip;
 
-
 export interface GenericDataTableProps<T> {
-
   title: string;
   columnKeys: (keyof T)[];
   labelMap: Record<string, string>;
@@ -38,7 +41,6 @@ export interface GenericDataTableProps<T> {
 }
 
 export function GenericDataTable<T>({
-
   title,
   columnKeys,
   labelMap,
@@ -119,12 +121,12 @@ export function GenericDataTable<T>({
         orderable: false,
         searchable: false,
         defaultContent: "",
-                render: function (_data, type, row) {
+        render: function (_data, type, row) {
           // ——— Para la exportación (Excel, CSV, Copiar, PDF) ———
           if (type === "export") {
             const nombre = row["avance"] ?? 0;
             // Capitaliza igual que en la badge
-            return nombre??  "";
+            return nombre ?? "";
           }
 
           // ——— Para los demás usos (“display”, “filter”, “sort”) ———
@@ -144,8 +146,8 @@ export function GenericDataTable<T>({
               porcentaje >= 80
                 ? "bg-success"
                 : porcentaje >= 50
-                  ? "bg-warning"
-                  : "bg-danger";
+                ? "bg-warning"
+                : "bg-danger";
 
             const content = (
               <div className="d-flex flex-column w-100 me-2">
@@ -222,7 +224,8 @@ export function GenericDataTable<T>({
               default: "badge badge-dark",
             };
 
-            const badgeClass = badgeClassMap[estado] || badgeClassMap["default"];
+            const badgeClass =
+              badgeClassMap[estado] || badgeClassMap["default"];
 
             const container = document.createElement("span");
             (cell as HTMLElement).innerHTML = "";
@@ -247,7 +250,7 @@ export function GenericDataTable<T>({
       orderable: false,
       searchable: false,
       defaultContent: "",
-      className: 'noExport text-center',
+      className: "noExport text-center",
       createdCell: (cell, _, row) => {
         try {
           const container = document.createElement("div");
@@ -266,7 +269,6 @@ export function GenericDataTable<T>({
           console.warn("Error render actions", err);
         }
       },
-
     });
     //#endregion
 
@@ -300,58 +302,58 @@ export function GenericDataTable<T>({
           info: "Mostrando página _PAGE_ de _PAGES_",
           infoEmpty: "Sin registros",
           paginate: {
-        first: "Primero",
-        last: "Último",
-        previous: "Anterior",
-        next: "Siguiente",
+            first: "Primero",
+            last: "Último",
+            previous: "Anterior",
+            next: "Siguiente",
           },
         },
         deferRender: true,
         destroy: true,
-        dom: 'Bfrtip',
+        dom: "Bfrtip",
         // @ts-expect-error  — «title» aún no está en las typings
         buttons: [
           {
-        extend: 'excelHtml5',
-        text: `
+            extend: "excelHtml5",
+            text: `
           <i class="bi bi-file-earmark-excel-fill fs-4 me-1"></i>
           <span class="d-none d-sm-inline">Exportar Excel</span>
           <i class="bi bi-download fs-5 ms-1"></i>
         `,
-        className:
-          'btn btn-success btn-sm mb-3 d-flex align-items-center justify-content-center gap-2',
-        filename:
-          'Reporte ' +
-          title +
-          ' ' +
-          new Date()
-            .toLocaleDateString('es-ES', {
-          day: '2-digit',
-          month: '2-digit',
-          year: 'numeric',
-            })
-            .split('/')
-            .join('-'),
-        titleAttr: 'Descargar como Excel',
-        exportOptions: {
-          columns: ':visible:not(.noExport)',
-          orthogonal: 'export',
-        },
-        title:
-          'Negocio: ' +
-          state.negocio?.nombreNegocio +
-          ', Reporte: ' +
-          title +
-          ' ' +
-          new Date()
-            .toLocaleDateString('es-ES', {
-          day: '2-digit',
-          month: '2-digit',
-          year: 'numeric',
-            })
-            .split('/')
-            .join('-'),
-        sheetName: 'Datos',
+            className:
+              "btn btn-success btn-sm mb-3 d-flex align-items-center justify-content-center gap-2",
+            filename:
+              "Reporte " +
+              title +
+              " " +
+              new Date()
+                .toLocaleDateString("es-ES", {
+                  day: "2-digit",
+                  month: "2-digit",
+                  year: "numeric",
+                })
+                .split("/")
+                .join("-"),
+            titleAttr: "Descargar como Excel",
+            exportOptions: {
+              columns: ":visible:not(.noExport)",
+              orthogonal: "export",
+            },
+            title:
+              "Negocio: " +
+              state.negocio?.nombreNegocio +
+              ", Reporte: " +
+              title +
+              " " +
+              new Date()
+                .toLocaleDateString("es-ES", {
+                  day: "2-digit",
+                  month: "2-digit",
+                  year: "numeric",
+                })
+                .split("/")
+                .join("-"),
+            sheetName: "Datos",
           },
         ],
       });
@@ -366,9 +368,9 @@ export function GenericDataTable<T>({
           const rawData = row.data() as T;
           const detail = modalInfoFields
             ? modalInfoFields.reduce((acc, key) => {
-              acc[String(key)] = rawData[key];
-              return acc;
-            }, {} as Record<string, unknown>)
+                acc[String(key)] = rawData[key];
+                return acc;
+              }, {} as Record<string, unknown>)
             : (rawData as Record<string, unknown>);
 
           setDetailData(detail);

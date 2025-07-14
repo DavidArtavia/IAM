@@ -21,3 +21,5 @@ export * from "./Range/CustomRange";
 export * from "./ReferenciasJson/ReferenciasCard";
 export * from "./ReferenciasJson/ReferenciasInput";
 export * from "./Tables/DataTable/GenericDataTable";
+export * from "./DetalleCuentaInput/DetalleCuentaInput";
+export * from "./FinancialSummaryCard/FinancialSummaryCard";

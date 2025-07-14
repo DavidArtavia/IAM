@@ -1,6 +1,7 @@
 import { useGenericForm } from "@/hooks/useGenericForm";
 import { FieldConfig } from "./types";
 
+//#region INTERFACES
 interface GenericFormModalProps<T> {
   title: string;
   show: boolean;
@@ -10,17 +11,9 @@ interface GenericFormModalProps<T> {
   onSubmit: () => void;
   fields: Array<FieldConfig<T>>;
 }
+//#endregion
 
-/**
- * Modal genérico para creación/edición de entidades.
- * Soporta:
- * - type="custom"   → renderer personalizado
- * - type="textarea"
- * - type="select"
- * - type="date"     → lógico: vacío si no hay fecha válida
- * - type="number"
- * - type="text"
- */
+//#region COMPONENT
 export const GenericFormModal = <T,>({
   title,
   show,
@@ -30,6 +23,7 @@ export const GenericFormModal = <T,>({
   onSubmit,
   fields,
 }: GenericFormModalProps<T>) => {
+  //#region HOOKS
   const {
     errors,
     touched,
@@ -39,19 +33,20 @@ export const GenericFormModal = <T,>({
     handleBlur,
     handleSubmit,
   } = useGenericForm(data, setData, fields, show, onSubmit);
+  //#endregion
 
   if (!show) return null;
 
+  //#region RENDER FIELD
   const renderField = (field: FieldConfig<T>, idx: number) => {
-    const { key, label, type = "text", options, renderer } = field;
+    const { key, label, type = "text", options, renderer, readOnly } = field;
     const rawVal = (data as any)[key];
     const localVal = localDisplay[key];
     const shouldShowError = touched[key] || wasSubmitted;
-    const errorMsg = shouldShowError ? errors[key] : "";    
-    const inputClass = `form-control form-control-solid ${
-      errorMsg ? (
-        <div className="invalid-feedback d-block">{errorMsg}</div>
-      ) : null
+    const errorMsg = shouldShowError ? errors[key] : "";
+
+    const inputClass = `form-control  ${
+      errorMsg ? "is-invalid" : ""
     }`;
     const wrapperClass =
       type === "custom"
@@ -63,14 +58,53 @@ export const GenericFormModal = <T,>({
         : idx < 2
         ? "col-md-6 fv-row"
         : "d-flex flex-column mb-5 fv-row";
+
     const labelClass =
       idx < 2
         ? "required fs-5 fw-bold mb-2"
         : "required fs-5 fw-bold mb-2 mt-6";
 
-    // ────────────────────────────────
-    // 1) CUSTOM
-    // ────────────────────────────────
+    //#region READ-ONLY LABEL
+    if (readOnly) {
+      //#region RENDER TO ESTADOS
+      if (typeof rawVal === "object" && rawVal !== null && "nombre" in rawVal) {
+        const nombre = String((rawVal as any).nombre).toLowerCase();
+        const badgeMap: Record<string, string> = {
+          activo: "badge-light-success",
+          nuevo: "badge badge-secondary",
+          "en proceso": "badge-light-primary",
+          "en espera": "badge-light-warning",
+          completado: "badge-light-success",
+          eliminado: "badge-light-danger",
+          inactivo: "badge-light-light",
+          default: "badge badge-dark",
+        };
+        const badgeClass = badgeMap[nombre] ?? badgeMap.default;
+
+        return (
+          <div className={wrapperClass} key={String(key)}>
+            <label className={labelClass}>
+              {label}:{" "}
+              <span className={badgeClass}>{(rawVal as any).nombre}</span>
+            </label>
+          </div>
+        );
+      }
+      //#endregion
+      return (
+        <div className={wrapperClass + " mb-3 "} key={String(key)}>
+          <label className={labelClass}>
+            {label}:{" "}
+            <span className="text-muted fw-semibold">
+              {String(rawVal ?? "–")}
+            </span>
+          </label>
+        </div>
+      );
+    }
+    //#endregion
+
+    //#region TYPE CUSTOM
     if (type === "custom" && renderer) {
       return (
         <div className={wrapperClass} key={String(key)}>
@@ -84,16 +118,15 @@ export const GenericFormModal = <T,>({
               handleBlur(key);
             },
           })}
-          {errorMsg ? (
+          {errorMsg && (
             <div className="invalid-feedback d-block">{errorMsg}</div>
-          ) : null}
+          )}
         </div>
       );
     }
+    //#endregion
 
-    // ────────────────────────────────
-    // 2) TEXTAREA
-    // ────────────────────────────────
+    //#region TYPE TEXTAREA
     if (type === "textarea") {
       return (
         <div className={wrapperClass} key={String(key)}>
@@ -107,16 +140,15 @@ export const GenericFormModal = <T,>({
             onChange={(e) => handleChange(key, e.target.value, "text")}
             onBlur={() => handleBlur(key)}
           />
-          {errorMsg ? (
+          {errorMsg && (
             <div className="invalid-feedback d-block">{errorMsg}</div>
-          ) : null}
+          )}
         </div>
       );
     }
+    //#endregion
 
-    // ────────────────────────────────
-    // 3) SELECT
-    // ────────────────────────────────
+    //#region TYPE SELECT
     if (type === "select") {
       return (
         <div className={wrapperClass} key={String(key)}>
@@ -138,24 +170,21 @@ export const GenericFormModal = <T,>({
               </option>
             ))}
           </select>
-          {errorMsg ? (
+          {errorMsg && (
             <div className="invalid-feedback d-block">{errorMsg}</div>
-          ) : null}
+          )}
         </div>
       );
     }
+    //#endregion
 
-    // ────────────────────────────────
-    // 4) DATE (Vacío si no hay fecha válida)
-    // ────────────────────────────────
+    //#region TYPE DATE
     if (type === "date") {
-      // Interpretar rawVal
       const parsed = rawVal ? new Date(String(rawVal)) : null;
       const valid =
         parsed instanceof Date &&
         !isNaN(parsed.getTime()) &&
         parsed.getFullYear() >= 1753;
-      // Valor: primero lo que el usuario tipeó, si no, la ISO válida, sino cadena vacía
       const dateVal =
         localVal ?? (valid ? parsed.toISOString().slice(0, 10) : "");
 
@@ -172,16 +201,15 @@ export const GenericFormModal = <T,>({
             onChange={(e) => handleChange(key, e.target.value, "date")}
             onBlur={() => handleBlur(key)}
           />
-          {errorMsg ? (
+          {errorMsg && (
             <div className="invalid-feedback d-block">{errorMsg}</div>
-          ) : null}
+          )}
         </div>
       );
     }
+    //#endregion
 
-    // ────────────────────────────────
-    // 5) NUMBER Y TEXT POR DEFECTO
-    // ────────────────────────────────
+    //#region DEFAULT TEXT/NUMBER
     return (
       <div className={wrapperClass} key={String(key)}>
         <label htmlFor={String(key)} className={labelClass}>
@@ -199,32 +227,35 @@ export const GenericFormModal = <T,>({
           onChange={(e) => handleChange(key, e.target.value, type)}
           onBlur={() => handleBlur(key)}
         />
-        {errorMsg ? (
-          <div className="invalid-feedback d-block">{errorMsg}</div>
-        ) : null}
+        {errorMsg && <div className="invalid-feedback d-block">{errorMsg}</div>}
       </div>
     );
+    //#endregion
   };
+  //#endregion
 
+  //#region RENDER MODAL
   return (
     <div
       className="modal fade show d-block shadowDarkBackground"
       onClick={onHide}
     >
       <div
-        className="modal-dialog modal-dialog-centered mw-650px"
+        className="modal-dialog modal-dialog-centered modal-lg"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="modal-content">
-          <div className="modal-header">
-            <h2>{title}</h2>
-            <button
-              type="button"
-              className="btn btn-sm btn-icon btn-active-color-primary"
-              onClick={onHide}
-            >
-              ✕
-            </button>
+        <div className="modal-content card card-custom example example-compact">
+          <div className="card-header">
+            <h3 className="card-title">{title}</h3>
+            <div className="card-toolbar">
+              <button
+                type="button"
+                className="btn btn-sm btn-icon btn-active-color-primary"
+                onClick={onHide}
+              >
+                ✕
+              </button>
+            </div>
           </div>
 
           <form
@@ -232,25 +263,33 @@ export const GenericFormModal = <T,>({
               e.preventDefault();
               handleSubmit();
             }}
+            className="form"
           >
-            <div className="modal-body py-10 px-lg-17">
-              <div className="row mb-5">{fields.map(renderField)}</div>
+            <div className="card-body">
+              {[...fields]
+                .sort((a, b) => (a.order ?? 999) - (b.order ?? 999))
+                .map((field, idx) => (
+                  <div key={String(field.key)} className="col-12 mb-4">
+                    {renderField(field, idx)}
+                    <div className="separator separator-dashed my-5" />
+                  </div>
+                ))}
             </div>
 
-            <div className="modal-footer flex-center">
-              <button
-                type="button"
-                className="btn btn-light me-3"
-                onClick={onHide}
-              >
-                Cancelar
-              </button>
+            <div className="card-footer">
               <button
                 type="submit"
-                className="btn btn-primary"
+                className="btn btn-primary me-3"
                 disabled={Object.values(errors).some((e) => !!e)}
               >
                 Guardar
+              </button>
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={onHide}
+              >
+                Cancelar
               </button>
             </div>
           </form>
@@ -258,4 +297,7 @@ export const GenericFormModal = <T,>({
       </div>
     </div>
   );
+
+  //#endregion
 };
+//#endregion

@@ -1,5 +1,6 @@
+import { DTO_DetalleCuentaJSON } from './DTO_DetalleCuentaJSON';
 import { DTO_Estado } from './DTO_Estado';
-import { DTO_Param } from './DTO_Param';
+
 
 export class DTO_Cuenta {
     iD_Cuenta: number = 0;
@@ -10,7 +11,7 @@ export class DTO_Cuenta {
     descripcion?: string;
     monto: number = 0;
     tipoCuenta: string = "";
-    detalleJSON?: Array<DTO_Param> = [];
+    detalleJSON?: DTO_DetalleCuentaJSON;
     fechaInicial: Date = new Date();
     fechaModificacion: Date = new Date();
     fechaLimite: Date = new Date();

@@ -12,3 +12,4 @@ export * from "./DTO_OrdenesDeServicio";
 export * from "./DTO_Cliente";
 export * from "./DTO_ItemOrdenServicio";
 export * from "./DTO_Transacciones";
+export * from "./DTO_DetalleCuentaJSON";
