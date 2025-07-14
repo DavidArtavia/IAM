@@ -50,4 +50,7 @@ export const API_ENDPOINTS = {
         GET_TRANSACTION: "/Transacciones/obtenerTransaccion",
         UPDATE_TRANSACTION: "/Transacciones/actualizarTransaccion",
     },
+    METRICA: {
+        GET_METRICA: "/MetricaKPI/obtenerMetrica"
+    },
 } as const;

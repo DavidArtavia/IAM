@@ -86,6 +86,8 @@ export const Monitor = () => {
     } else {
       item.avance = 0;
     }
+
+    
     itemsOrdenesService.actualizarItemsOrdensDeServicio(item).subscribe({
       next: (res) => {
         if (!(res as DTO_Respuesta).tipoRespuesta) {

@@ -13,3 +13,4 @@ export * from "./DTO_Cliente";
 export * from "./DTO_ItemOrdenServicio";
 export * from "./DTO_Transacciones";
 export * from "./DTO_DetalleCuentaJSON";
+export * from "./DTO_MetricaKPI";
