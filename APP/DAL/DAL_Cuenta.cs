@@ -200,7 +200,8 @@ namespace DAL
         {
             try
             {
-                string query = "CORE.SP_actualizarCuentas";
+                string query = "CORE.SP_actualizarCuenta";
+                string jsonDetalle = System.Text.Json.JsonSerializer.Serialize(cuenta.DetalleJSON);
 
                 using (SqlCommand sqlcmd = new(query, this.GetObjConexion()))
                 {
@@ -211,6 +212,7 @@ namespace DAL
                     sqlcmd.Parameters.Add("@Descripcion", SqlDbType.VarChar).Value = cuenta.Descripcion;
                     sqlcmd.Parameters.Add("@Monto", SqlDbType.Decimal).Value = cuenta.Monto;
                     sqlcmd.Parameters.Add("@ID_Estado", SqlDbType.VarChar).Value = cuenta.Estado.ID_Estado;
+                    sqlcmd.Parameters.AddWithValue("@DetalleJSON", jsonDetalle ?? (object)DBNull.Value);
 
                     foreach (SqlParameter param in sqlcmd.Parameters)
                     {

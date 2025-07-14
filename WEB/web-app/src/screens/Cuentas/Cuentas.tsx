@@ -34,14 +34,13 @@ export const Cuentas = () => {
 
   useEffect(() => {
     if (state.negocio) {
-      setSelectedBusiness(state.negocio)
+      setSelectedBusiness(state.negocio);
       handleSelectBusiness(state.negocio);
     }
   }, [state]);
 
   //#endregion
 
-  
   // Estado de negocio seleccionado
   const [selectedBusiness, setSelectedBusiness] = useState<DTO_Negocio | null>(
     null
@@ -49,7 +48,7 @@ export const Cuentas = () => {
   // Arreglo con DTO_CuentasPorPagar
   const [accountsPayable, setAccountsPayable] = useState<DTO_Cuenta[]>([]);
   const [disableButtonAdd, setDisableButtonAdd] = useState<boolean>(true);
-  
+
   // --------- Modales “Registrar” y “Editar” -----------
   const [isModalFormOpen, setIsModalFormOpen] = useState(false);
   const [formData, setFormData] = useState<DTO_Cuenta>(new DTO_Cuenta());
@@ -59,7 +58,7 @@ export const Cuentas = () => {
   const [rowEditSelected, setRowEditSelected] = useState<DTO_Cuenta | null>(
     null
   );
-  
+
   const [detalleHabilitado, setDetalleHabilitado] = useState<boolean>(
     !!formData.detalleJSON
   );
@@ -108,7 +107,6 @@ export const Cuentas = () => {
       error: (err) => errorHelpers.serverError(err),
       complete: () => {
         setLoading(false);
-      
       },
     });
   };
@@ -120,6 +118,8 @@ export const Cuentas = () => {
   };
   const handleSave = () => {    
     formData.iD_Negocio = selectedBusiness?.iD_Negocio || 0;
+       const parsed = parseFloat(montoInput.replace(/[^0-9.]/g, ""));
+       formData.monto = isNaN(parsed) ? 0 : parsed;
     cuentasService.registrarCuenta(formData).subscribe({
       next: (result: unknown) => {
         const mensaje =
@@ -133,7 +133,7 @@ export const Cuentas = () => {
       complete: () => {
         setDetalleHabilitado(false);
         setMontoInput("");
-      }
+      },
     });
   };
   const handleCancelAdd = () => {
@@ -144,17 +144,33 @@ export const Cuentas = () => {
 
   // ======== “Editar” ========
   const handleEdit = (rowData: DTO_Cuenta) => {
+
+    setFormData(new DTO_Cuenta()); // Reiniciar formulario
     setRowEditSelected(rowData);
     setEditData({ ...rowData }); // Hacemos copia para evitar mutar el original
+    // ✅ Activar el switch si ya viene detalle
+    setDetalleHabilitado(!!rowData.detalleJSON);
+
+    // ✅ Mostrar monto correcto
+    setMontoInput(
+      rowData.monto && rowData.monto !== 0 ? String(rowData.monto) : ""
+    );
     setShowEditModal(true);
   };
+
   const handleSaveEdit = (updatedData: DTO_Cuenta) => {
+     const parsed = parseFloat(montoInput.replace(/[^0-9.]/g, ""));
+     updatedData.monto = isNaN(parsed) ? 0 : parsed;
     if (!rowEditSelected) return;
     updatedData.iD_Cuenta = rowEditSelected.iD_Cuenta;
     updatedData.iD_Negocio = selectedBusiness?.iD_Negocio || 0;
     // Si no cambió “estado”, lo conservamos
     if (!updatedData.estado && rowEditSelected.estado) {
       updatedData.estado = { ...rowEditSelected.estado };
+    }
+    if (!detalleHabilitado) {
+      const parsed = parseFloat(montoInput.replace(/[^0-9.]/g, ""));
+      updatedData.monto = parsed;
     }
 
     cuentasService.actualizarCuenta(updatedData).subscribe({
@@ -183,17 +199,20 @@ export const Cuentas = () => {
         ...accountToDelete,
         estado: {
           ...accountToDelete.estado!,
-          iD_Estado: STATUS_TBL.ACCOUNT_PAYABLE.DELETED,
+          iD_Estado: STATUS_TBL.ACCOUNT.DELETED,
         },
         iD_Negocio: selectedBusiness?.iD_Negocio || 0,
       };
       cuentasService.actualizarCuenta(updatedData).subscribe({
-        next: () => {
-          notificationHelpers.infoAlert("Cuenta eliminada correctamente");
-          refetchAccounts();
-        },
         error: (err) => errorHelpers.serverError(err),
+        complete: () => {
+          notificationHelpers.successAlert(
+            "Cuenta eliminada correctamente"
+          );
+          refetchAccounts();
+        }
       });
+      
       setAccountToDelete(null);
     }
     setIsConfirmOpen(false);
@@ -237,82 +256,8 @@ export const Cuentas = () => {
       return new Date(String(val)).toLocaleDateString();
     },
   };
+  //#endregion
 
-  //#region 🧱 Campos personalizados y referencias dinámicas
-  // const buildRefFields = (item: DTO_OrdenServicio) =>
-  //   item.referenciaJSON?.map((r, idx) => ({
-  //     key: generateSafeKey(r.nombre) as keyof DTO_OrdenServicio,
-  //     label: r.nombre,
-  //     type: "custom" as const,
-  //     renderer: () => (
-  //       <input
-  //         className="form-control"
-  //         value={item.referenciaJSON?.[idx].valor || ""}
-  //         onChange={(e) => {
-  //           const arr = [...(item.referenciaJSON || [])];
-  //           arr[idx] = { nombre: r.nombre, valor: e.target.value };
-  //           if (item === formData) {
-  //             setFormData({ ...item, referenciaJSON: arr });
-  //           } else {
-  //             setEditData({ ...item, referenciaJSON: arr });
-  //           }
-  //         }}
-  //       />
-  //     ),
-  //   })) || [];
-
-
-
-  // const editFormFields: FieldConfig<DTO_OrdenServicio>[] = [
-  //   ...ordenServicioFormEditFields,
-  //   {
-  //     key: "iD_Cliente",
-  //     label: "Cliente",
-  //     type: "custom",
-  //     required: true,
-  //     renderer: ({ onChange }) => (
-  //       <AsyncClientSelect
-  //         value={selectedClientOption}
-  //         onChange={(opt) => {
-  //           setSelectedClientOption(opt);
-  //           onChange(opt?.value || 0);
-  //         }}
-  //       />
-  //     ),
-  //   },
-  //   {
-  //     key: "estado",
-  //     label: "Estado de la orden",
-  //     type: "custom",
-  //     required: true,
-  //     renderer: ({ value, onChange }) => {
-  //       const selectedOption = value?.iD_Estado
-  //         ? { value: value.iD_Estado, label: value.nombre || "" }
-  //         : null;
-  //       return (
-  //         <AsyncSelect
-  //           cacheOptions
-  //           defaultOptions={STATUS_ORDEN_SERVICIO_OPTIONS}
-  //           placeholder="Seleccione un estado"
-  //           value={selectedOption}
-  //           onChange={(opt) =>
-  //             onChange({ iD_Estado: opt?.value, nombre: opt?.label })
-  //           }
-  //           loadOptions={async (inputValue) =>
-  //             STATUS_ORDEN_SERVICIO_OPTIONS.filter((opt) =>
-  //               opt.label.toLowerCase().includes(inputValue.toLowerCase())
-  //             )
-  //           }
-  //         />
-  //       );
-  //     },
-  //   },
-  //   ...buildRefFields(editData),
-  // ];
- 
-  //#endregion 
-
-  
   const formAddFields: FieldConfig<DTO_Cuenta>[] = [
     ...cuentasFormAddFields,
     {
@@ -379,8 +324,75 @@ export const Cuentas = () => {
       },
     },
   ];
+const formEditFields: FieldConfig<DTO_Cuenta>[] = [
+  ...cuentasFormEditFields,
+  {
+    key: "detalleJSON",
+    label: "Detalle",
+    type: "custom",
+    required: detalleHabilitado,
+    order: 7,
+    renderer: ({ value, onChange }) => (
+      <DetalleCuentaInput
+        value={value}
+        onChange={onChange}
+        monto={editData?.monto ?? 0}
+        setMonto={(val) => {
+          setMontoInput(val !== 0 ? String(val) : "");
+          setEditData((prev) => (prev ? { ...prev, monto: val } : null)); // ✅ actualiza editData.monto
+        }}
+        onEnabledChange={(enabled) => setDetalleHabilitado(enabled)}
+      />
+    ),
+  },
+  {
+    key: "monto",
+    label: "Monto",
+    type: "custom",
+    required: !detalleHabilitado,
+    order: 8,
+    renderer: () => (
+      <div className="input-group">
+        <span className="input-group-text">₡</span>
+        <input
+          type="text"
+          className={`form-control fw-bold fs-5 text-start ${
+            detalleHabilitado ? "bg-light" : ""
+          }`}
+          readOnly={detalleHabilitado}
+          value={montoInput}
+          onFocus={() => {
+            if ((editData?.monto || 0) === 0) {
+              setMontoInput("");
+            }
+          }}
+          onChange={(e) => {
+            const val = e.target.value.replace(/[^0-9.]/g, "");
+            setMontoInput(val);
+            const num = parseFloat(val);
+            setEditData((prev) =>
+              prev ? { ...prev, monto: isNaN(num) ? 0 : num } : null
+            );
+          }}
+          onBlur={(e) => {
+            const val = e.target.value;
+            if (val === "" || isNaN(Number(val))) {
+              setMontoInput("");
+              setEditData((prev) => (prev ? { ...prev, monto: 0 } : null));
+            }
+          }}
+          placeholder="₡0.00"
+          min={0}
+          step={0.01}
+        />
+      </div>
+    ),
+  },
+];
 
-   
+
+
+
 
   //#region 🧱 Columna personalizada para detalleJSON
   const detalleJSONColumn = {
@@ -406,7 +418,9 @@ export const Cuentas = () => {
         htmlCell.innerHTML = "";
         container.classList.add("w-100");
         ReactDOM.createRoot(container).render(
-          <ReferenciaCards items={Array.isArray(row.detalleJSON) ? row.detalleJSON : []} />
+          <ReferenciaCards
+            items={Array.isArray(row.detalleJSON) ? row.detalleJSON : []}// hay que cambiarlo xq se debe mostrar en forma de DTO_DetalleCuentaJSON
+          />
         );
         htmlCell.appendChild(container);
       } catch (err) {
@@ -427,7 +441,9 @@ export const Cuentas = () => {
             title="Cuentas"
             columnKeys={columnKeysCuenta}
             labelMap={labelMapCuenta}
-            data={accountsPayable}
+            data={accountsPayable.filter(
+              (b) => b.estado?.iD_Estado !== STATUS_TBL.ACCOUNT.DELETED
+            )}
             onAdd={handleAddNew}
             onEdit={handleEdit}
             onDelete={handleDelete}
@@ -472,7 +488,7 @@ export const Cuentas = () => {
               handleSaveEdit(editData);
             }
           }}
-          fields={cuentasFormEditFields}
+          fields={formEditFields}
         />
       </div>
     </>

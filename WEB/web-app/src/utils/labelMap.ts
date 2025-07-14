@@ -277,13 +277,6 @@ export const cuentasFormEditFields: FieldConfig<DTO_Cuenta>[] = [
         ],
         order: 7,
     },
-    {
-        key: "monto",
-        label: labelMapCuenta["monto"] ?? "Monto",
-        type: "number",
-        required: true,
-        order: 8,
-    },
 ];
 
 export const clienteFormEditFields: Array<FieldConfig<DTO_Cliente>> = columnKeysCliente

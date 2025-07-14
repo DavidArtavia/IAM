@@ -1,25 +1,10 @@
 import { useEffect, useState } from "react";
 import { ConfirmModal } from "../Modals/LoadingModal/ConfirmModal";
-
-interface DTO_Param {
-  Nombre: "Monto" | "Porcentaje";
-  Valor: string;
-}
-
-interface FilaDetalle {
-  Nombre: string;
-  Valor: string;
-}
-
-interface DetalleCuentaJSON {
-  Filas: FilaDetalle[];
-  Descuento: DTO_Param;
-  Impuesto: DTO_Param;
-}
+import { DTO_DetalleCuentaJSON, DTO_Param } from "@/models";
 
 interface Props {
-  value?: DetalleCuentaJSON;
-  onChange: (val?: DetalleCuentaJSON) => void;
+  value?: DTO_DetalleCuentaJSON;
+  onChange: (val?: DTO_DetalleCuentaJSON) => void;
   monto: number;
   setMonto: (val: number) => void;
   onEnabledChange?: (enabled: boolean) => void;
@@ -33,70 +18,78 @@ export const DetalleCuentaInput = ({
   onEnabledChange,
 }: Props) => {
   const [enabled, setEnabled] = useState(!!value);
-  const [filas, setFilas] = useState<FilaDetalle[]>(value?.Filas || []);
+  const [filas, setFilas] = useState<DTO_Param[]>([]);
   const [nombreFila, setNombreFila] = useState("");
   const [valorFila, setValorFila] = useState("");
-  const [descuento, setDescuento] = useState<DTO_Param>(
-    value?.Descuento || { Nombre: "Monto", Valor: "" }
-  );
-  const [impuesto, setImpuesto] = useState<DTO_Param>(
-    value?.Impuesto || { Nombre: "Porcentaje", Valor: "" }
-  );
+  const [descuento, setDescuento] = useState<DTO_Param>({
+    nombre: "Monto",
+    valor: "",
+  });
+  const [impuesto, setImpuesto] = useState<DTO_Param>({
+    nombre: "Porcentaje",
+    valor: "",
+  });
 
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [confirmModalMessage, setConfirmModalMessage] = useState("");
   const [pendingToggle, setPendingToggle] = useState<boolean | null>(null);
+  const [autoInicializado, setAutoInicializado] = useState(false);
 
-  const confirmModalAction = (confirm: boolean | null) => {
-    if (confirm && pendingToggle !== null) {
-      if (pendingToggle) {
-        setEnabled(true);
-        setMonto(0);
-        onEnabledChange?.(true);
-      } else {
-        setMonto(0);
-        setEnabled(false);
-        onEnabledChange?.(false);
-        onChange(undefined);
-        setFilas([]);
-        setDescuento({ Nombre: "Monto", Valor: "" });
-        setImpuesto({ Nombre: "Porcentaje", Valor: "" });
-      }
+  // Se ejecuta una sola vez al recibir datos de edición
+  useEffect(() => {
+    if (!value || autoInicializado) return;
+
+    const tieneFilas = value.filas && value.filas.length > 0;
+    const tieneDescuento = !!value.descuento?.valor;
+    const tieneImpuesto = !!value.impuesto?.valor;
+
+    if (!tieneFilas && !tieneDescuento && !tieneImpuesto) {
+      setEnabled(false);
+      onEnabledChange?.(false); // 🔒 importante para estado externo
+      setAutoInicializado(true);
+      return;
     }
-    setIsConfirmOpen(false);
-    setPendingToggle(null);
-  };
 
-    useEffect(() => {
+    setFilas(value.filas || []);
+    setDescuento(value.descuento || { nombre: "Monto", valor: "" });
+    setImpuesto(value.impuesto || { nombre: "Porcentaje", valor: "" });
+
+    setEnabled(true);
+    onEnabledChange?.(true);
+    setAutoInicializado(true);
+  }, [value, autoInicializado]);
+
+  // Cálculo de monto dinámico
+  useEffect(() => {
     if (!enabled) return;
 
     const suma = filas.reduce(
-      (acc, item) => acc + parseFloat(item.Valor || "0"),
+      (acc, item) => acc + parseFloat(item.valor || "0"),
       0
     );
 
     const desc =
-      descuento.Nombre === "Porcentaje"
-        ? suma * (parseFloat(descuento.Valor || "0") / 100)
-        : parseFloat(descuento.Valor || "0");
+      descuento.nombre === "Porcentaje"
+        ? suma * (parseFloat(descuento.valor || "0") / 100)
+        : parseFloat(descuento.valor || "0");
 
     const imp =
-      suma > 0 ? (suma - desc) * (parseFloat(impuesto.Valor || "0") / 100) : 0;
+      suma > 0 ? (suma - desc) * (parseFloat(impuesto.valor || "0") / 100) : 0;
 
     const total = suma - desc + imp;
 
     setMonto(parseFloat(total.toFixed(2)));
 
     onChange({
-      Filas: filas,
-      Descuento: descuento,
-      Impuesto: impuesto,
+      filas,
+      descuento,
+      impuesto,
     });
   }, [filas, descuento, impuesto, enabled]);
 
   const agregarFila = () => {
     if (nombreFila && valorFila && !isNaN(parseFloat(valorFila))) {
-      setFilas([...filas, { Nombre: nombreFila, Valor: valorFila }]);
+      setFilas([...filas, { nombre: nombreFila, valor: valorFila }]);
       setNombreFila("");
       setValorFila("");
     }
@@ -129,6 +122,26 @@ export const DetalleCuentaInput = ({
     setIsConfirmOpen(true);
   };
 
+  const confirmModalAction = (confirm: boolean | null) => {
+    if (confirm && pendingToggle !== null) {
+      if (pendingToggle) {
+        setEnabled(true);
+        setMonto(0);
+        onEnabledChange?.(true);
+      } else {
+        setMonto(0);
+        setEnabled(false);
+        onEnabledChange?.(false);
+        onChange(undefined);
+        setFilas([]);
+        setDescuento({ nombre: "Monto", valor: "" });
+        setImpuesto({ nombre: "Porcentaje", valor: "" });
+      }
+    }
+    setIsConfirmOpen(false);
+    setPendingToggle(null);
+  };
+
   return (
     <div className="mt-3">
       <div className="d-flex align-items-center mb-3">
@@ -157,7 +170,6 @@ export const DetalleCuentaInput = ({
 
       {enabled && (
         <div className="border rounded-3 shadow-sm p-4 bg-white">
-          {/* Lista de filas */}
           <div className="mb-4">
             <h5 className="fw-bold mb-3">Detalles</h5>
             {filas.length === 0 && (
@@ -171,11 +183,11 @@ export const DetalleCuentaInput = ({
                 className="d-flex justify-content-between align-items-center py-2 px-3 mb-2 rounded bg-light"
               >
                 <div>
-                  <span className="fw-semibold">{item.Nombre}</span>
+                  <span className="fw-semibold">{item.nombre}</span>
                   <span className="mx-2 text-secondary">|</span>
                   <span className="text-success fw-bold">
                     ₡
-                    {parseFloat(item.Valor).toLocaleString("en-US", {
+                    {parseFloat(item.valor).toLocaleString("en-US", {
                       minimumFractionDigits: 2,
                       maximumFractionDigits: 2,
                     })}
@@ -187,27 +199,12 @@ export const DetalleCuentaInput = ({
                   onClick={() => eliminarFila(idx)}
                   title="Eliminar"
                 >
-                  <i
-                    className="bi bi-trash"
-                    style={{
-                      fontSize: "1.2rem",
-                      transition: "color 0.2s, font-size 0.2s",
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.color = "red";
-                      e.currentTarget.style.fontSize = "1.5rem";
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.color = "";
-                      e.currentTarget.style.fontSize = "1.2rem";
-                    }}
-                  ></i>
+                  <i className="bi bi-trash" />
                 </button>
               </div>
             ))}
           </div>
 
-          {/* Agregar nueva fila */}
           <div className="row g-3 mb-2">
             <div className="col-md-6">
               <label className="form-label fw-semibold">
@@ -247,7 +244,7 @@ export const DetalleCuentaInput = ({
                 </button>
               </div>
             </div>
-            {/* Descuento + Impuesto */}
+
             <div className="row g-3 mb-2">
               <div className="col-md-6">
                 <label className="form-label fw-semibold">Descuento</label>
@@ -255,42 +252,41 @@ export const DetalleCuentaInput = ({
                   <input
                     type="number"
                     className="form-control"
-                    value={descuento.Valor}
+                    value={descuento.valor}
                     onChange={(e) => {
                       let val = e.target.value;
-                      if (descuento.Nombre === "Porcentaje") {
+                      if (descuento.nombre === "Porcentaje") {
                         if (parseFloat(val) > 100) val = "100";
                         if (parseFloat(val) < 0) val = "0";
                       } else {
                         if (parseFloat(val) < 0) val = "0";
                       }
-                      setDescuento({ ...descuento, Valor: val });
+                      setDescuento({ ...descuento, valor: val });
                     }}
                     min="0"
-                    {...(descuento.Nombre === "Porcentaje" ? { max: 100 } : {})}
+                    {...(descuento.nombre === "Porcentaje" ? { max: 100 } : {})}
                   />
                   <button
                     type="button"
                     className={`btn ${
-                      descuento.Nombre === "Porcentaje"
+                      descuento.nombre === "Porcentaje"
                         ? "btn-primary"
                         : "btn-secondary"
                     }`}
-                    onClick={() =>
+                    onClick={() => {
                       setDescuento((prev) => ({
-                        ...prev,
-                        Nombre:
-                          prev.Nombre === "Porcentaje" ? "Monto" : "Porcentaje",
-                        Valor: "0",
-                      }))
-                    }
+                        nombre:
+                          prev.nombre === "Porcentaje" ? "Monto" : "Porcentaje",
+                        valor: "0",
+                      }));
+                    }}
                     title="Cambiar tipo"
                   >
-                    {descuento.Nombre === "Porcentaje" ? "%" : "₡"}
+                    {descuento.nombre === "Porcentaje" ? "%" : "₡"}
                   </button>
                 </div>
                 <small className="form-text text-muted">
-                  Tipo: <span className="fw-bold">{descuento.Nombre}</span>
+                  Tipo: <span className="fw-bold">{descuento.nombre}</span>
                 </small>
               </div>
 
@@ -299,12 +295,12 @@ export const DetalleCuentaInput = ({
                 <input
                   type="number"
                   className="form-control"
-                  value={impuesto.Valor}
+                  value={impuesto.valor}
                   onChange={(e) => {
                     let val = e.target.value;
                     if (parseFloat(val) > 100) val = "100";
                     if (parseFloat(val) < 0) val = "0";
-                    setImpuesto({ Nombre: "Porcentaje", Valor: val });
+                    setImpuesto({ nombre: "Porcentaje", valor: val });
                   }}
                   min="0"
                   max="100"

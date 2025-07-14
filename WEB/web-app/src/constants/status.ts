@@ -25,7 +25,7 @@ export const STATUS_TBL = {
         DELETED: 11,
         INACTIVE: 0,
     },
-    ACCOUNT_PAYABLE: {
+    ACCOUNT: {
         ACTIVE: 5,
         DELETED: 14,
         INACTIVE: 0,
