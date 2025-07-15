@@ -64,74 +64,285 @@ export const columnKeysTransacciones: (keyof DTO_Transacciones)[] = [
 //#region modal para visualizar detalles de objetos
 
 // Define los atributos que se mostrarán en el infoModal de las filas de las tablas de los modelos.
-export const keysInfoModalOrdenDeServicio: (keyof DTO_OrdenServicio)[] = [
-
-    "iD_OrdenServicio",
-    "fechaOrdenServicio",
-    "fechaEstimadaEntrega",
-    "fechaInicio",
-    "fechaFinal",
-    "fechaEntrega",
-    "notaOrdenServicio",
-    "referenciaJSON",
-    "estado",
-
+export const keysInfoModalOrdenDeServicio: FieldConfig<DTO_OrdenServicio>[] = [
+    {
+        key: "iD_OrdenServicio",
+        label: "Código",
+        type: "text",
+        order: 1,
+    },
+    {
+        key: "fechaOrdenServicio",
+        label: "Fecha de Orden",
+        type: "date",
+        order: 2,
+    },
+    {
+        key: "fechaEstimadaEntrega",
+        label: "Entrega Estimada",
+        type: "date",
+        order: 3,
+    },
+    {
+        key: "fechaInicio",
+        label: "Fecha de Inicio",
+        type: "date",
+        order: 4,
+    },
+    {
+        key: "fechaFinal",
+        label: "Fecha Final",
+        type: "date",
+        order: 5,
+    },
+    {
+        key: "fechaEntrega",
+        label: "Fecha de Entrega",
+        type: "date",
+        order: 6,
+    },
+    {
+        key: "notaOrdenServicio",
+        label: "Nota",
+        type: "text",
+        order: 7,
+    },
+    {
+        key: "estado",
+        label: "Estado",
+        type: "text",
+        order: 8,
+    },
 ];
-export const keysInfoModalNegocio: (keyof DTO_Negocio)[] = [
+export const keysInfoModalNegocio: FieldConfig<DTO_Negocio>[]  = [
 
-    "iD_Negocio",
-    "nombreNegocio",
-    "descripcion",
-    "direccion",
-    "telefonoNegocio",
-    "correoNegocio",
-    "fechaRegistro",
-    "estado",
-    "referenciaJSON"
+  {
+      key: "iD_Negocio",
+      label: "Código",
+      type: "text",
+      order: 1,
+    },
+    {
+      key: "nombreNegocio",
+      label: "Nombre",
+      type: "text",
+      order: 2,
+    },
+    {
+      key: "descripcion",
+      label: "Descripción",
+      type: "text",
+      order: 3,
+    },
+    {
+      key: "direccion",
+      label: "Dirección",
+      type: "text",
+      order: 4,
+    },
+    {
+      key: "telefonoNegocio",
+      label: "Teléfono",
+      type: "text",
+      order: 5,
+    },
+    {
+      key: "correoNegocio",
+      label: "Correo",
+      type: "text",
+      order: 6,
+    },
+    {
+      key: "fechaRegistro",
+      label: "Fecha",
+      type: "date",
+      order: 7,
+    },
+    {
+      key: "estado",
+      label: "Estado",
+      type: "text",
+      order: 8,
+    },
 ];
 
-export const keysInfoModalCuenta: (keyof DTO_Cuenta)[] = [
-    "iD_Cuenta",
-    "estado",
-    "concepto",
-    "monto",
-    "descripcion",
-    "fechaInicial",
-    "fechaLimite",
-    "fechaModificacion",
-    "tipoCuenta",
-    "iD_OrdenServicio",
-    "detalleJSON",
+export const keysInfoModalCuenta: FieldConfig<DTO_Cuenta>[] = [
+    {
+        key: "iD_OrdenServicio",
+        label: "Orden De Servicio #",
+        type: "text",
+        order: 0,
+    },
+    {
+        key: "iD_Cuenta",
+        label: "Código",
+        type: "text",
+        order: 1,
+    },
+    {
+        key: "estado",
+        label: "Estado",
+        type: "text",
+        order: 2,
+    },
+    {
+        key: "fechaInicial",
+        label: "Fecha Inicial",
+        type: "date",
+        order: 3,
+    },
+    {
+        key: "fechaLimite",
+        label: "Fecha Límite",
+        type: "date",
+        order: 4,
+    },
+    {
+        key: "fechaModificacion",
+        label: "Fecha de Modificación",
+        type: "date",
+        order: 5,
+    },
+    {
+        key: "concepto",
+        label: "Concepto",
+        type: "text",
+        order: 6,
+    },
+    {
+        key: "tipoCuenta",
+        label: "Tipo De Cuenta",
+        type: "text",
+        order: 7,
+    },
+    {
+        key: "descripcion",
+        label: "Descripción",
+        type: "text",
+        order: 9,
+    },
 ];
 
-export const keysInfoModalCliente: (keyof DTO_Cliente)[] = [
-    "iD_Cliente",
-    "nombreCliente",
-    "apellidoCliente",
-    "telefonoCliente",
-    "correoCliente",
-    "estado",
+export const keysInfoModalCliente: FieldConfig<DTO_Cliente>[] = [
+    {
+        key: "iD_Cliente",
+        label: "Código",
+        type: "text",
+        order: 1,
+    },
+    {
+        key: "estado",
+        label: "Estado",
+        type: "text",
+        order: 1.5,
+    },
+    {
+        key: "nombreCliente",
+        label: "Nombre",
+        type: "text",
+        order: 2,
+    },
+    {
+        key: "apellidoCliente",
+        label: "Apellido(s)",
+        type: "text",
+        order: 3,
+    },
+    {
+        key: "telefonoCliente",
+        label: "Teléfono",
+        type: "text",
+        order: 4,
+    },
+    {
+        key: "correoCliente",
+        label: "Correo",
+        type: "text",
+        order: 5,
+    },
 ];
-export const keysInfoModalItemsOrdenServicio: (keyof DTO_ItemOrdenServicio)[] = [
-    "iD_ItemOrdenServicio",
-    "iD_OrdenServicio",
-    "nombreItemOrdenServicio",
-    "descripcion",
-    "monto",
-    "avance",
-    "estado",
+export const keysInfoModalItemsOrdenServicio: FieldConfig<DTO_ItemOrdenServicio>[] = [
+    {
+        key: "iD_ItemOrdenServicio",
+        label: "Item #",
+        type: "text",
+        order: 1,
+    },
+    {
+        key: "iD_OrdenServicio",
+        label: "Orden Servicio #",
+        type: "text",
+        order: 2,
+    },
+    {
+        key: "nombreItemOrdenServicio",
+        label: "Nombre del Item",
+        type: "text",
+        order: 4,
+    },
+    {
+        key: "descripcion",
+        label: "Descripción",
+        type: "text",
+        order: 5,
+    },
+    {
+        key: "estado",
+        label: "Estado",
+        type: "text",
+        order: 8,
+    },
 ];
 
-export const keysInfoModalTransacciones: (keyof DTO_Transacciones)[] = [
-    "iD_Transaccion",
-    "iD_Negocio",
-    "fechaTransaccion",
-    "concepto",
-    "monto",
-    "tipo",
-    "tipoNumReferencia",
-    "numReferencia",
-    "estado"
+export const keysInfoModalTransacciones: FieldConfig<DTO_Transacciones>[] = [
+    {
+        key: "iD_Transaccion",
+        label: "Transacción #",
+        type: "text",
+        order: 1,
+    },
+    {
+        key: "iD_Negocio",
+        label: "Negocio #",
+        type: "text",
+        order: 2,
+    },
+    {
+        key: "fechaTransaccion",
+        label: "Fecha",
+        type: "date",
+        order: 3,
+    },
+    {
+        key: "concepto",
+        label: "Concepto",
+        type: "text",
+        order: 4,
+    },
+    {
+        key: "tipo",
+        label: "Tipo",
+        type: "text",
+        order: 6,
+    },
+    {
+        key: "tipoNumReferencia",
+        label: "Tipo Referencia",
+        type: "text",
+        order: 7,
+    },
+    {
+        key: "numReferencia",
+        label: "N° Referencia",
+        type: "text",
+        order: 8,
+    },
+    {
+        key: "estado",
+        label: "Estado",
+        type: "text",
+        order: 9,
+    },
 ];
 
 //#endregion
@@ -227,8 +438,8 @@ export const cuentasFormEditFields: FieldConfig<DTO_Cuenta>[] = [
         label: labelMapCuenta["iD_Cuenta"] ?? "Cuenta #",
         type: "text",
         required: true,
-        readOnly: true, // Solo visualizable, no editable
-        order: 1,
+        readOnly: true,
+        order: 2,
     },
     {
         key: "estado",
@@ -236,35 +447,43 @@ export const cuentasFormEditFields: FieldConfig<DTO_Cuenta>[] = [
         type: "text",
         required: true,
         readOnly: true,
-        order: 2,
+        order: 3,
+    },
+    {
+        key: "iD_OrdenServicio",
+        label: labelMapCuenta["iD_OrdenServicio"] ?? "Orden De Servicio #",
+        type: "text",
+        required: true,
+        readOnly: true,
+        order: 4,
     },
     {
         key: "concepto",
         label: labelMapCuenta["concepto"] ?? "Concepto",
         type: "text",
         required: true,
-        order: 3,
+        order: 5,
     },
     {
         key: "descripcion",
         label: labelMapCuenta["descripcion"] ?? "Descripción",
         type: "textarea",
         required: false,
-        order: 4,
+        order: 6,
     },
     {
         key: "fechaInicial",
         label: labelMapCuenta["fechaInicial"] ?? "Fecha Inicial",
         type: "date",
         required: true,
-        order: 5,
+        order: 7,
     },
     {
         key: "fechaLimite",
         label: labelMapCuenta["fechaLimite"] ?? "Fecha Límite",
         type: "date",
         required: true,
-        order: 6,
+        order: 8,
     },
     {
         key: "tipoCuenta",
@@ -275,7 +494,7 @@ export const cuentasFormEditFields: FieldConfig<DTO_Cuenta>[] = [
             { label: "Cuenta Por Cobrar", value: "Cuentas Por Cobrar" },
             { label: "Cuenta Por Pagar", value: "Cuenta Por Pagar" },
         ],
-        order: 7,
+        order: 9,
     },
 ];
 
@@ -401,4 +620,4 @@ export const cuentasFormAddFields: FieldConfig<DTO_Cuenta>[] = [
         order: 5,
     },
 ];
-// endregion
+//#endregion

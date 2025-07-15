@@ -17,7 +17,7 @@ export const DetalleCuentaInput = ({
   setMonto,
   onEnabledChange,
 }: Props) => {
-  const [enabled, setEnabled] = useState(!!value);
+  const [enabled, setEnabled] = useState(false);
   const [filas, setFilas] = useState<DTO_Param[]>([]);
   const [nombreFila, setNombreFila] = useState("");
   const [valorFila, setValorFila] = useState("");
@@ -35,31 +35,29 @@ export const DetalleCuentaInput = ({
   const [pendingToggle, setPendingToggle] = useState<boolean | null>(null);
   const [autoInicializado, setAutoInicializado] = useState(false);
 
-  // Se ejecuta una sola vez al recibir datos de edición
+  // ✅ Inicialización única si hay datos
   useEffect(() => {
-    if (!value || autoInicializado) return;
+    if (autoInicializado) return;
 
-    const tieneFilas = value.filas && value.filas.length > 0;
-    const tieneDescuento = !!value.descuento?.valor;
-    const tieneImpuesto = !!value.impuesto?.valor;
+    const tieneFilas = value?.filas?.length;
+    const tieneDescuento = !!value?.descuento?.valor;
+    const tieneImpuesto = !!value?.impuesto?.valor;
 
-    if (!tieneFilas && !tieneDescuento && !tieneImpuesto) {
+    if (tieneFilas || tieneDescuento || tieneImpuesto) {
+      setFilas(value?.filas || []);
+      setDescuento(value?.descuento || { nombre: "Monto", valor: "" });
+      setImpuesto(value?.impuesto || { nombre: "Porcentaje", valor: "" });
+      setEnabled(true);
+      onEnabledChange?.(true);
+    } else {
       setEnabled(false);
-      onEnabledChange?.(false); // 🔒 importante para estado externo
-      setAutoInicializado(true);
-      return;
+      onEnabledChange?.(false);
     }
 
-    setFilas(value.filas || []);
-    setDescuento(value.descuento || { nombre: "Monto", valor: "" });
-    setImpuesto(value.impuesto || { nombre: "Porcentaje", valor: "" });
-
-    setEnabled(true);
-    onEnabledChange?.(true);
     setAutoInicializado(true);
   }, [value, autoInicializado]);
 
-  // Cálculo de monto dinámico
+  // ✅ Calcula monto si está habilitado
   useEffect(() => {
     if (!enabled) return;
 
@@ -129,8 +127,8 @@ export const DetalleCuentaInput = ({
         setMonto(0);
         onEnabledChange?.(true);
       } else {
-        setMonto(0);
         setEnabled(false);
+        setMonto(0);
         onEnabledChange?.(false);
         onChange(undefined);
         setFilas([]);
@@ -149,7 +147,7 @@ export const DetalleCuentaInput = ({
           <input
             className="form-check-input"
             type="checkbox"
-            checked={pendingToggle !== null ? pendingToggle : enabled}
+            checked={enabled}
             onChange={toggleDetalle}
             id="detalleSwitch"
           />
@@ -205,6 +203,7 @@ export const DetalleCuentaInput = ({
             ))}
           </div>
 
+          {/* Nueva fila */}
           <div className="row g-3 mb-2">
             <div className="col-md-6">
               <label className="form-label fw-semibold">
@@ -245,6 +244,7 @@ export const DetalleCuentaInput = ({
               </div>
             </div>
 
+            {/* Descuento & Impuesto */}
             <div className="row g-3 mb-2">
               <div className="col-md-6">
                 <label className="form-label fw-semibold">Descuento</label>

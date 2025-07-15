@@ -5,6 +5,7 @@ import {
   FieldConfig,
   GenericDataTable,
   GenericFormModal,
+  InfoModal,
   ReferenciaCards,
   ReferenciasJsonInput,
 } from "@/components";
@@ -36,6 +37,11 @@ export const Negocio = () => {
   const [filtroEstado] = useState<DTO_FiltroEstado>({
     filtroEstado: FILTER_STATUS.ACTIVO,
   });
+  //#endregion
+
+  //#region ℹ️ info Modal estados;
+  const [rowTableSelected, setRowTableSelected] = useState<DTO_Negocio>();
+
   //#endregion
 
   //#region ➕ Registro
@@ -300,6 +306,20 @@ export const Negocio = () => {
   
   //#endregion
 
+  //#region 🔑 Claves de información para el modal
+  const infoModalFields: FieldConfig<DTO_Negocio>[] = [
+  ...keysInfoModalNegocio,
+    {
+      key: "referenciaJSON",
+      label: "Referencias",
+      type: "custom",
+      order: 9,
+      renderer: ({ value }) => <ReferenciaCards items={value ?? []} />,
+    },
+  ];
+  
+  //#endregion
+
   //#region 🎨 Render
   return (
     <div className="row p-4 col-12 gx-0">
@@ -319,9 +339,17 @@ export const Negocio = () => {
           fechaRegistro: (val: unknown) =>
             val ? new Date(String(val)).toLocaleDateString() : "",
         }}
-        modalInfoFields={keysInfoModalNegocio}
         customColumns={[referenciaJSONColumn]}
-        datekeys={["fechaRegistro"]}
+        onRowClick={(rowData) => {
+          setRowTableSelected(rowData);
+        }}
+      />
+
+      <InfoModal
+        show={!!rowTableSelected}
+        onHide={() => setRowTableSelected(undefined)}
+        data={rowTableSelected!}
+        fields={infoModalFields}
       />
 
       <GenericFormModal

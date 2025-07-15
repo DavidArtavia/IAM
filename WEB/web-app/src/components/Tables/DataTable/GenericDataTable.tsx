@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useMemo, useState } from "react";
+import React, { useEffect, useRef, useMemo } from "react";
 import $ from "jquery";
 import "datatables.net-bs5";
 import DataTable from "datatables.net-dt";
@@ -7,8 +7,8 @@ import Buttons from "datatables.net-buttons";
 import "datatables.net-buttons/js/buttons.html5.js";
 
 import ReactDOM from "react-dom/client";
-import { InfoModal, ActionButtons } from "@/components";
 import { useApp } from "@/hooks/useApp";
+import { ActionButtons } from "@/components";
 
 type ColumnSettings = DataTables.ColumnSettings;
 
@@ -34,10 +34,9 @@ export interface GenericDataTableProps<T> {
     [K in keyof T]: (value: unknown, rowData: T) => React.ReactNode;
   }>;
   includeEstadoColumn?: boolean;
-  modalInfoFields?: (keyof T)[];
   showItemsButton?: boolean;
-  datekeys?: string[];
   customColumns?: ColumnSettings[];
+  onRowClick?: (rowData: T) => void;
 }
 
 export function GenericDataTable<T>({
@@ -52,10 +51,9 @@ export function GenericDataTable<T>({
   disableButtonAdd = false,
   customRenderers = {},
   includeEstadoColumn = false,
-  modalInfoFields,
   showItemsButton = false,
   customColumns = [],
-  datekeys,
+  onRowClick,
 }: GenericDataTableProps<T>) {
   //🔄 Estado general
   const { state } = useApp();
@@ -63,8 +61,6 @@ export function GenericDataTable<T>({
   //#endregion
   DataTable.use(Buttons);
   const tableRef = useRef<HTMLTableElement>(null);
-  const [showInfo, setShowInfo] = useState(false);
-  const [detailData, setDetailData] = useState<Record<string, unknown>>({});
 
   //#region 🔧 Columnas dinámicas DataTable
   const dtColumns = useMemo<ColumnSettings[]>(() => {
@@ -100,17 +96,11 @@ export function GenericDataTable<T>({
     });
 
     //#region 🧩 Custom columns (user-defined)
-    // Puedes agregar aquí columnas personalizadas adicionales si lo deseas.
-    // Ejemplo:
-    // cols.push({
-    //   title: "Custom",
-    //   data: "customField",
-    //   render: (data) => <span>{data}</span>,
-    // });
-    //#endregion
+
     if (customColumns) {
       cols.push(...customColumns);
     }
+    //#endregion
     //#endregion
 
     //#region 📊 Columna Avance (barra de progreso)
@@ -364,23 +354,13 @@ export function GenericDataTable<T>({
         .on("click", "tbody tr", function () {
           const row = dtInstance.row(this);
           if (!row.any()) return;
-
           const rawData = row.data() as T;
-          const detail = modalInfoFields
-            ? modalInfoFields.reduce((acc, key) => {
-                acc[String(key)] = rawData[key];
-                return acc;
-              }, {} as Record<string, unknown>)
-            : (rawData as Record<string, unknown>);
-
-          setDetailData(detail);
-          setShowInfo(true);
+          onRowClick?.(rawData); // ✅ envia al componente padre
         });
     } catch (err) {
       console.error("DataTable error", err);
     }
-    //David, este parámetro dtColumns es el que hace brincar la tabla
-  }, [dtColumns, modalInfoFields]);
+  }, []);
   //#endregion
 
   //#region 🔁 Actualización de datos al cambiar props
@@ -400,14 +380,6 @@ export function GenericDataTable<T>({
   //#region 🎨 Render
   return (
     <>
-      <InfoModal
-        show={showInfo}
-        onHide={() => setShowInfo(false)}
-        data={detailData}
-        labelMap={labelMap}
-        dateKeys={datekeys}
-      />
-
       <div className="card shadow-sm mt-5">
         <div className="card-header d-flex justify-content-between align-items-center py-10 px-lg-17">
           <h3 className="card-title text-gray-600">{title}</h3>
