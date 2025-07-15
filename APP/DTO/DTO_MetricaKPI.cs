@@ -14,6 +14,8 @@
         private string ordenValores;
         private string icono;
         private string info;
+        private string filtro;
+        private int iD_Negocio;
 
         #endregion
 
@@ -32,6 +34,8 @@
             OrdenValores = string.Empty;
             Icono = string.Empty;
             Info = string.Empty;
+            Filtro = string.Empty;
+            ID_Negocio = 0;
         }
 
         #endregion
@@ -48,6 +52,8 @@
         public string OrdenValores { get => ordenValores; set => ordenValores = value; }
         public string Icono { get => icono; set => icono = value; }
         public string Info { get => info; set => info = value; }
+        public string Filtro { get => filtro; set => filtro = value; }
+        public int ID_Negocio { get => iD_Negocio; set => iD_Negocio = value; }
 
         #endregion
     }
