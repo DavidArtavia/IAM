@@ -227,8 +227,8 @@ export const cuentasFormEditFields: FieldConfig<DTO_Cuenta>[] = [
         label: labelMapCuenta["iD_Cuenta"] ?? "Cuenta #",
         type: "text",
         required: true,
-        readOnly: true, // Solo visualizable, no editable
-        order: 1,
+        readOnly: true,
+        order: 2,
     },
     {
         key: "estado",
@@ -236,35 +236,43 @@ export const cuentasFormEditFields: FieldConfig<DTO_Cuenta>[] = [
         type: "text",
         required: true,
         readOnly: true,
-        order: 2,
+        order: 3,
+    },
+    {
+        key: "iD_OrdenServicio",
+        label: labelMapCuenta["iD_OrdenServicio"] ?? "Orden De Servicio #",
+        type: "text",
+        required: true,
+        readOnly: true,
+        order: 4,
     },
     {
         key: "concepto",
         label: labelMapCuenta["concepto"] ?? "Concepto",
         type: "text",
         required: true,
-        order: 3,
+        order: 5,
     },
     {
         key: "descripcion",
         label: labelMapCuenta["descripcion"] ?? "Descripción",
         type: "textarea",
         required: false,
-        order: 4,
+        order: 6,
     },
     {
         key: "fechaInicial",
         label: labelMapCuenta["fechaInicial"] ?? "Fecha Inicial",
         type: "date",
         required: true,
-        order: 5,
+        order: 7,
     },
     {
         key: "fechaLimite",
         label: labelMapCuenta["fechaLimite"] ?? "Fecha Límite",
         type: "date",
         required: true,
-        order: 6,
+        order: 8,
     },
     {
         key: "tipoCuenta",
@@ -275,7 +283,7 @@ export const cuentasFormEditFields: FieldConfig<DTO_Cuenta>[] = [
             { label: "Cuenta Por Cobrar", value: "Cuentas Por Cobrar" },
             { label: "Cuenta Por Pagar", value: "Cuenta Por Pagar" },
         ],
-        order: 7,
+        order: 9,
     },
 ];
 
@@ -401,4 +409,4 @@ export const cuentasFormAddFields: FieldConfig<DTO_Cuenta>[] = [
         order: 5,
     },
 ];
-// endregion
+//#endregion

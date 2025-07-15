@@ -4,8 +4,8 @@
 // -------------------------------------------------------------------------------------------------
 
 import React from "react";
-import { ReferenciaCards } from "@/components/ReferenciasJson/ReferenciasCard";
 import { dateHelpers } from "@/utils";
+import { ReferenciaCards } from "@/components";
 
 interface InfoModalProps {
   show: boolean;
