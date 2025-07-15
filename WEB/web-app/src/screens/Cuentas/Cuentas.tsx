@@ -1,6 +1,11 @@
 // src/pages/Cuentas.tsx
 import { useEffect, useState } from "react";
-import { DTO_Negocio, DTO_Respuesta, DTO_Cuenta, DTO_DetalleCuentaJSON } from "@/models";
+import {
+  DTO_Negocio,
+  DTO_Respuesta,
+  DTO_Cuenta,
+  DTO_DetalleCuentaJSON,
+} from "@/models";
 import { cuentasService } from "@/services";
 import {
   errorHelpers,
@@ -12,6 +17,7 @@ import {
   keysInfoModalCuenta,
   parametrosAString,
   cuentasFormAddFields,
+  formatColones,
 } from "@/utils";
 import {
   ConfirmModal,
@@ -19,9 +25,9 @@ import {
   FieldConfig,
   GenericDataTable,
   GenericFormModal,
+  InfoModal,
   InfoPanel,
   LoadingPanel,
-  ReferenciaCards,
 } from "@/components";
 import { STATUS_TBL } from "@/constants";
 import { useApp } from "@/hooks/useApp";
@@ -69,6 +75,11 @@ export const Cuentas = () => {
   const [montoInput, setMontoInput] = useState<string>(
     formData.monto && formData.monto !== 0 ? String(formData.monto) : ""
   );
+  //#endregion
+
+  //#region ℹ️ info Modal estados;
+  const [rowTableSelected, setRowTableSelected] = useState<DTO_Cuenta>();
+
   //#endregion
 
   //#region 🧮 Sincronización de montoInput y formData
@@ -196,8 +207,10 @@ export const Cuentas = () => {
   //#endregion
 
   //#region 🗑 Eliminar
-  const handleDelete = (rowData: DTO_Cuenta) => {    
-    setConfirmModalMessage(`¿Estás seguro de que deseas eliminar la cuenta: ${rowData.iD_Cuenta}?`);
+  const handleDelete = (rowData: DTO_Cuenta) => {
+    setConfirmModalMessage(
+      `¿Estás seguro de que deseas eliminar la cuenta: ${rowData.iD_Cuenta}?`
+    );
     setAccountToDelete(rowData);
     setConfirmContext("delete");
     setIsConfirmOpen(true);
@@ -285,36 +298,42 @@ export const Cuentas = () => {
         htmlCell.innerHTML = "";
         container.classList.add("w-100");
 
-        // Validar y extraer datos de detalleJSON
         const detalle = row.detalleJSON as DTO_DetalleCuentaJSON;
-
         const filas = detalle?.filas ?? [];
         const descuento = detalle?.descuento?.valor ?? "0";
         const impuesto = detalle?.impuesto?.valor ?? "0";
+        const tipoDescuento = detalle?.descuento?.nombre;
 
         ReactDOM.createRoot(container).render(
-          <div className="mb-2">
-            <div className="d-flex flex-wrap gap-2 mb-2"></div>
-            <div className="d-flex flex-wrap gap-2">
-              <div className="border rounded px-2 py-1 bg-success bg-opacity-10 text-success small shadow-sm">
-                <strong>Descuento:</strong>
-                {detalle.descuento.nombre === "Monto"
-                  ? `₡${Number(descuento).toLocaleString("es-CR")}`
-                  : `${Number(descuento).toLocaleString("es-CR")}%`}
-              </div>
-              <div className="border rounded px-2 py-1 bg-primary bg-opacity-10 text-primary small shadow-sm">
-                <strong>Impuesto:</strong>{" "}
-                {Number(impuesto).toLocaleString("es-CR")}%
-              </div>
-              <div className="border rounded px-2 py-1 bg-info bg-opacity-10 text-info small shadow-sm">
-                <strong>Filas:</strong> {filas.length}
-              </div>
+          <div className="d-flex flex-wrap gap-1">
+            {/* Descuento */}
+            <div className="bg-light border rounded px-2 py-1 fs-8 text-gray-700">
+              <strong className="me-1">Desc:</strong>
+              {tipoDescuento === "Monto"
+                ? `₡ ${Number(descuento)
+                    .toFixed(2)
+                    .replace(/\B(?=(\d{3})+(?!\d))/g, " ")
+                    .replace(".", ",")}`
+                : `${Number(descuento).toLocaleString("es-CR")}%`}
+            </div>
+
+            {/* Impuesto */}
+            <div className="bg-light border rounded px-2 py-1 fs-8 text-gray-700">
+              <strong className="me-1">Imp:</strong>
+              {Number(impuesto).toLocaleString("es-CR")}%
+            </div>
+
+            {/* Filas */}
+            <div className="bg-light border rounded px-2 py-1 fs-8 text-gray-700">
+              <strong className="me-1">Filas:</strong>
+              {filas.length}
             </div>
           </div>
         );
+
         htmlCell.appendChild(container);
       } catch (err) {
-        console.warn("Error details JSON", err);
+        console.warn("Error rendering detalleJSON column", err);
       }
     },
   };
@@ -490,6 +509,123 @@ export const Cuentas = () => {
     },
   ];
 
+  //#region 🔑 Claves de información para el modal
+  const infoModalFields: FieldConfig<DTO_Cuenta>[] = [
+    ...keysInfoModalCuenta,
+    {
+      key: "detalleJSON",
+      label: "Detalles",
+      type: "custom",
+      order: 8,
+      renderer: ({ value }) => {
+        if (!value) {
+          return (
+            <div className="text-muted fst-italic">
+              <i className="bi bi-info-circle me-2"></i>
+              Sin detalles registrados
+            </div>
+          );
+        }
+
+        const detalle = value as DTO_DetalleCuentaJSON;
+        const filas = detalle.filas ?? [];
+
+        return (
+          <div className="d-flex flex-column gap-4">
+            {/* Resumen de parámetros */}
+            <div className="d-flex flex-wrap gap-4">
+              <div className="bg-light border rounded px-4 py-3 d-flex flex-column shadow-sm">
+                <span className="text-muted fw-semibold small">Descuento</span>
+                <span className="fw-bold text-gray-800 fs-6">
+                  {detalle.descuento?.nombre === "Monto"
+                    ? `₡${Number(detalle.descuento?.valor ?? 0).toLocaleString(
+                        "es-CR",
+                        {
+                          minimumFractionDigits: 2,
+                        }
+                      )}`
+                    : `${Number(detalle.descuento?.valor ?? 0).toLocaleString(
+                        "es-CR"
+                      )}%`}
+                </span>
+              </div>
+
+              <div className="bg-light border rounded px-4 py-3 d-flex flex-column shadow-sm">
+                <span className="text-muted fw-semibold small">Impuesto</span>
+                <span className="fw-bold text-gray-800 fs-6">
+                  {Number(detalle.impuesto?.valor ?? 0).toLocaleString("es-CR")}
+                  %
+                </span>
+              </div>
+
+              <div className="bg-light border rounded px-4 py-3 d-flex flex-column shadow-sm">
+                <span className="text-muted fw-semibold small">Filas</span>
+                <span className="fw-bold text-gray-800 fs-6">
+                  {filas.length}
+                </span>
+              </div>
+            </div>
+
+            {/* Tabla de filas */}
+            {filas.length > 0 && (
+              <div className="table-responsive bg-white border rounded shadow-sm p-0">
+                <table className="table table-borderless table-sm align-middle w-100 mb-0">
+                  <thead className="bg-light text-muted text-uppercase fs-8 fw-bold">
+                    <tr>
+                      <th className="ps-4 w-60">Nombre</th>
+                      <th className="text-end pe-4 w-40">Valor</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filas.map((fila, idx) => (
+                      <tr key={idx} className="border-bottom border-gray-200">
+                        <td className="ps-4">
+                          <div className="d-flex align-items-center gap-3">
+                            <span className="badge bg-light fw-bold text-dark fs-8 px-2 py-1 shadow-sm">
+                              #{idx + 1}
+                            </span>
+                            <span className="fw-semibold text-gray-800 fs-6">
+                              {fila.nombre}
+                            </span>
+                          </div>
+                        </td>
+                        <td className="text-end pe-4">
+                          <span className="fw-bold text-dark fs-6">
+                            {formatColones(fila.valor)}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        );
+      },
+    },
+    {
+      key: "monto",
+      label: "Monto (₡)",
+      type: "custom",
+      order: 9,
+      renderer: ({ value }) => {
+        const monto = Number(value || 0);
+
+        return (
+          <div className="border border-gray-200 rounded px-4 py-3 d-flex align-items-center justify-content-between shadow-sm">
+            <i className="bi bi-cash-coin fs-4 text-gray-600 me-3"></i>
+            <span className="fw-semibold fs-5 text-gray-800">
+            </span>
+              {formatColones(monto)}
+          </div>
+        );
+      },
+    },
+  ];
+
+  //#endregion
+
   //#endregion
 
   //#region 🧩 Renderizado
@@ -513,13 +649,21 @@ export const Cuentas = () => {
             disableButtonAdd={disableButtonAdd}
             includeEstadoColumn
             customRenderers={customRenderers}
-            modalInfoFields={keysInfoModalCuenta}
             customColumns={[detalleJSONColumn]}
-            datekeys={["fechaInicial", "fechaModificacion", "fechaLimite"]}
+            onRowClick={(row) => {
+              setRowTableSelected(row);
+            }}
           />
         ) : (
           <InfoPanel msj="Por favor, selecciona un negocio para ver sus cuentas por pagar." />
         )}
+
+        <InfoModal
+          show={!!rowTableSelected}
+          onHide={() => setRowTableSelected(undefined)}
+          data={rowTableSelected!}
+          fields={infoModalFields}
+        />
 
         <GenericFormModal<DTO_Cuenta>
           title="Crear una Cuenta"

@@ -7,6 +7,7 @@ import {
   FieldConfig,
   GenericDataTable,
   GenericFormModal,
+  InfoModal,
   InfoPanel,
   LoadingPanel,
   RestriccionModal,
@@ -16,6 +17,7 @@ import {
   columnKeysTransacciones,
   transaccionesFormEditFields,
   keysInfoModalTransacciones,
+  formatColones,
 } from "@/utils";
 import { errorHelpers, notificationHelpers, procesarRespuesta } from "@/utils";
 import { STATUS_TBL } from "@/constants";
@@ -23,17 +25,17 @@ import { transaccionesService } from "@/services/transacciones.service";
 import { useApp } from "@/hooks/useApp";
 
 export const Transacciones = () => {
-    //🔄 Estado general
-    const { state } = useApp();
-  
-    useEffect(() => {
-      if (state.negocio) {
-        setSelectedBusiness(state.negocio)
-        handleSelectBusiness(state.negocio);
-      }
-    }, [state]);
-  
-    //#endregion
+  //🔄 Estado general
+  const { state } = useApp();
+
+  useEffect(() => {
+    if (state.negocio) {
+      setSelectedBusiness(state.negocio);
+      handleSelectBusiness(state.negocio);
+    }
+  }, [state]);
+
+  //#endregion
 
   //#region 🔄 Estado y carga
   const [selectedBusiness, setSelectedBusiness] = useState<DTO_Negocio | null>(
@@ -42,6 +44,11 @@ export const Transacciones = () => {
   const [transacciones, setTransacciones] = useState<DTO_Transacciones[]>([]);
   const [loading, setLoading] = useState(false);
   const [disableButtonAdd, setDisableButtonAdd] = useState(true);
+  //#endregion
+
+  //#region ℹ️ info Modal estados;
+  const [rowTableSelected, setRowTableSelected] = useState<DTO_Transacciones>();
+
   //#endregion
 
   //#region ➕ Registro
@@ -268,10 +275,38 @@ export const Transacciones = () => {
     });
   //#endregion
 
+  //#region 🖼️ Custom Renderers
+  const customRenderers = {
+    monto: (val: unknown) => formatColones(Number(val) || 0),
+    fechaTransaccion: (val: unknown) =>
+      val ? new Date(String(val)).toLocaleDateString() : "",
+  };
+  //#endregion
+
+    //#region 🔑 Claves de información para el modal
+    const infoModalFields: FieldConfig<DTO_Transacciones>[] = [
+      ...keysInfoModalTransacciones,
+      {
+      key: "monto",
+      label: "Monto",
+      type: "custom",
+      order: 9,
+      renderer: ({ value }) => (
+        <div className="border border-gray-200 rounded px-4 py-3 d-flex align-items-center justify-content-between shadow-sm">
+        <i className="bi bi-cash-coin fs-4 text-gray-600 me-3"></i>
+        <span className="fw-semibold fs-5 text-gray-800"></span>
+        {formatColones(Number(value) || 0)}
+        </div>
+      ),
+      },
+    ];
+    
+    //#endregion
+
   //#region 🎨 Render
   return (
     <div className="row p-4 col-12 gx-0">
- {state.negocio == null}
+      {state.negocio == null}
       {loading ? (
         <LoadingPanel msj="Cargando transacciones..." />
       ) : selectedBusiness ? (
@@ -279,28 +314,27 @@ export const Transacciones = () => {
           title="Transacciones"
           columnKeys={columnKeysTransacciones}
           labelMap={labelMapTransacciones}
-          data={transacciones}
+          data={transacciones.filter(
+            (t) => t.estado?.iD_Estado !== STATUS_TBL.TRANSACTION.DELETED
+          )}
           onAdd={handleAddNew}
           onEdit={handleEdit}
           onDelete={handleDelete}
           disableButtonAdd={disableButtonAdd}
+          onRowClick={(row) => setRowTableSelected(row)}
           includeEstadoColumn
-          customRenderers={{
-            monto: (val: unknown) =>
-              new Intl.NumberFormat("es-CR", {
-                style: "currency",
-                currency: "CRC",
-                minimumFractionDigits: 2,
-              }).format(Number(val) || 0),
-            fechaTransaccion: (val: unknown) =>
-              val ? new Date(String(val)).toLocaleDateString() : "",
-          }}
-          modalInfoFields={keysInfoModalTransacciones}
-          datekeys={["fechaTransaccion"]}
+            customRenderers={customRenderers}
         />
       ) : (
         <InfoPanel msj="Selecciona un negocio para ver sus transacciones." />
       )}
+
+      <InfoModal
+        show={!!rowTableSelected}
+        onHide={() => setRowTableSelected(undefined)}
+        data={rowTableSelected!}
+        fields={infoModalFields}
+      />
 
       <GenericFormModal<DTO_Transacciones>
         title="Registrar Transacción"

@@ -3,6 +3,7 @@ import {
   ConfirmModal,
   GenericDataTable,
   GenericFormModal,
+  InfoModal,
   LoadingPanel,
 } from "@/components";
 import { DTO_Cliente, DTO_Respuesta } from "@/models";
@@ -25,6 +26,11 @@ export const Clientes = () => {
   const [loading, setLoading] = useState(false);
   //#endregion
 
+  //#region ℹ️ info Modal estados;
+  const [rowTableSelected, setRowTableSelected] = useState<DTO_Cliente>();
+
+  //#endregio
+  
   //#region ➕ Registrar
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [formData, setFormData] = useState<DTO_Cliente>(new DTO_Cliente());
@@ -202,10 +208,17 @@ export const Clientes = () => {
           onAdd={handleAddNew}
           onEdit={handleEdit}
           onDelete={handleDelete}
-          includeEstadoColumn
-          modalInfoFields={keysInfoModalCliente}
+            includeEstadoColumn
+            onRowClick={(row) => setRowTableSelected(row)}
         />
       )}
+
+      <InfoModal
+        show={!!rowTableSelected}
+        onHide={() => setRowTableSelected(undefined)}
+        data={rowTableSelected!}
+        fields={keysInfoModalCliente}
+      />
 
       <GenericFormModal
         title="Registrar Cliente"

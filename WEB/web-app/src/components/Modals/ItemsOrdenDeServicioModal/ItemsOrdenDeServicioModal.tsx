@@ -12,11 +12,17 @@ import {
   notificationHelpers,
   errorHelpers,
   updateItemById,
+  formatColones,
 } from "@/utils";
 import { itemsOrdenesService } from "@/services";
 import { STATUS_TBL } from "@/constants";
 import { DTO_ItemOrdenServicio, DTO_Respuesta } from "@/models";
-import { ConfirmModal, FieldConfig, GenericFormModal } from "@/components";
+import {
+  ConfirmModal,
+  FieldConfig,
+  GenericFormModal,
+  InfoModal,
+} from "@/components";
 
 interface ItemsOrdenDeServicioModalProps {
   open: boolean;
@@ -34,6 +40,12 @@ export const ItemsOrdenDeServicioModal = ({
   //#region 🔄 Estados generales
   const [itemsOrdenes, setItemsOrdenes] = useState<DTO_ItemOrdenServicio[]>([]);
   const [loading, setLoading] = useState(false);
+  //#endregion
+
+  //#region ℹ️ info Modal estados;
+  const [rowTableSelected, setRowTableSelected] =
+    useState<DTO_ItemOrdenServicio>();
+
   //#endregion
 
   //#region ➕ Registro
@@ -176,7 +188,8 @@ export const ItemsOrdenDeServicioModal = ({
 
   const getActiveItemsOrdenes = () =>
     itemsOrdenes.filter(
-      (item) => item.estado?.iD_Estado !== STATUS_TBL.ITEMS_ORDER_SERVICE.DELETED
+      (item) =>
+        item.estado?.iD_Estado !== STATUS_TBL.ITEMS_ORDER_SERVICE.DELETED
     );
   //#endregion
 
@@ -237,12 +250,68 @@ export const ItemsOrdenDeServicioModal = ({
   ];
 
   const customRenderers = {
-    monto: (val: unknown) =>
-      new Intl.NumberFormat("es-CR", {
-        style: "currency",
-        currency: "CRC",
-      }).format(Number(val) || 0),
+    monto: (val: unknown) => formatColones(Number(val) || 0),
   };
+  //#endregion
+
+  //#region 🔑 Claves de información para el modal
+  const infoModalFields: FieldConfig<DTO_ItemOrdenServicio>[] = [
+    ...keysInfoModalItemsOrdenServicio,
+    {
+      key: "avance",
+      label: "Avance",
+      type: "custom",
+      order: 7,
+      renderer: () => {
+        const porcentaje = rowTableSelected?.avance ?? 0;
+        const barColor =
+          porcentaje >= 80
+            ? "bg-success"
+            : porcentaje >= 50
+            ? "bg-warning"
+            : "bg-danger";
+        return (
+          <div
+            className="d-flex flex-column w-100 me-2"
+            style={{ minWidth: 120 }}
+          >
+            <div className="d-flex flex-stack mb-2">
+              <span className="text-muted me-2 fs-7 fw-bold">
+                {porcentaje}%
+              </span>
+            </div>
+            <div className="progress h-6px w-100">
+              <div
+                className={`progress-bar ${barColor}`}
+                role="progressbar"
+                style={{ width: `${porcentaje}%` }}
+                aria-valuenow={porcentaje}
+                aria-valuemin={0}
+                aria-valuemax={100}
+              ></div>
+            </div>
+          </div>
+        );
+      },
+    },
+    {
+      key: "monto",
+      label: "Monto",
+      type: "custom",
+      order: 6,
+      renderer: () => {
+        const value = rowTableSelected?.monto;
+        return (
+          <div className="border border-gray-200 rounded px-4 py-3 d-flex align-items-center justify-content-between shadow-sm">
+            <i className="bi bi-cash-coin fs-4 text-gray-600 me-3"></i>
+            <span className="fw-semibold fs-5 text-gray-800"></span>
+            {formatColones(Number(value) || 0)}
+          </div>
+        );
+      },
+    },
+  ];
+
   //#endregion
 
   if (!open) return null;
@@ -284,9 +353,18 @@ export const ItemsOrdenDeServicioModal = ({
                 onDelete={handleDelete}
                 customRenderers={customRenderers}
                 includeEstadoColumn
-                modalInfoFields={keysInfoModalItemsOrdenServicio}
+                onRowClick={(row) =>
+                  setRowTableSelected(row as DTO_ItemOrdenServicio)
+                }
               />
             )}
+
+            <InfoModal
+              show={!!rowTableSelected}
+              onHide={() => setRowTableSelected(undefined)}
+              data={rowTableSelected!}
+              fields={infoModalFields}
+            />
 
             <GenericFormModal
               title="Registrar Item de Orden de Servicio"
