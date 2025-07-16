@@ -45,3 +45,24 @@ export function parametrosAString(
         .join(", ");
 }
 //#endregion
+
+
+//#region formatColones: Formatea un valor numérico como colones costarricenses
+/**
+ * Formatea un valor como moneda colón costarricense.
+ * Si el valor no es numérico, retorna "₡ 0,00".
+ * 
+ * @param valor - Valor a formatear.
+ * @returns String con el valor formateado en colones.
+ */
+export const formatColones = (valor: unknown): string => {
+    const numero = typeof valor === "number" ? valor : Number(valor);
+
+    if (isNaN(numero)) return "₡ 0,00";
+
+    return `₡ ${numero
+        .toFixed(2)
+        .replace(/\B(?=(\d{3})+(?!\d))/g, " ")
+        .replace(".", ",")}`;
+};
+//#endregion

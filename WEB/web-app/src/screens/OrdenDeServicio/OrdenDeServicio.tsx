@@ -5,6 +5,7 @@ import {
   FieldConfig,
   GenericDataTable,
   GenericFormModal,
+  InfoModal,
   InfoPanel,
   ItemsOrdenDeServicioModal,
   LoadingPanel,
@@ -61,6 +62,11 @@ export const OrdenDeServicio = () => {
   const [disableButtonAdd, setDisableButtonAdd] = useState(true);
   const [selectedClientOption, setSelectedClientOption] =
     useState<ClientOption | null>(null);
+  //#endregion
+
+  //#region ℹ️ info Modal estados;
+  const [rowTableSelected, setRowTableSelected] = useState<DTO_OrdenServicio>();
+
   //#endregion
 
   //#region ➕ Registro
@@ -427,7 +433,7 @@ export const OrdenDeServicio = () => {
   //#endregion
 
   //#region 🧠 Memo tabla
-  const { data, labelMap, modalFields } = useMemo(() => {
+  const { data, labelMap } = useMemo(() => {
     const referenceMap = new Map<string, string>();
     ordenes.forEach((o) => {
       o.referenciaJSON?.forEach((r) => {
@@ -453,14 +459,9 @@ export const OrdenDeServicio = () => {
       extLabelMap[safe] = raw;
     });
 
-    const refCols = Array.from(referenceMap.values());
-    const staticKeys = keysInfoModalOrdenDeServicio as string[];
-    const dynKeys = refCols.filter((k) => !staticKeys.includes(k));
-
     return {
       data: prepared,
-      labelMap: extLabelMap,
-      modalFields: [...staticKeys, ...dynKeys],
+      labelMap: extLabelMap
     };
   }, [ordenes]);
   //#endregion
@@ -500,6 +501,20 @@ export const OrdenDeServicio = () => {
   };
   //#endregion
 
+  //#region 🔑 Claves de información para el modal
+  const infoModalFields: FieldConfig<DTO_OrdenServicio>[] = [
+    ...keysInfoModalOrdenDeServicio,
+    {
+      key: "referenciaJSON",
+      label: "Referencias",
+      type: "custom",
+      order: 9,
+      renderer: ({ value }) => <ReferenciaCards items={value ?? []} />,
+    },
+  ];
+
+  //#endregion
+
   // #region 🧩 Render
   return (
     <div className="row p-4 gx-0">
@@ -517,20 +532,13 @@ export const OrdenDeServicio = () => {
           onDelete={handleDelete}
           disableButtonAdd={disableButtonAdd}
           includeEstadoColumn
-          modalInfoFields={modalFields}
           showItemsButton
-          datekeys={[
-            // fechas que se muestran como 	24/6/2025 y si es 1/1/1
-            //-> se muestra No se ha definido aún en el modal de info
-            "fechaOrdenServicio",
-            "fechaEstimadaEntrega",
-            "fechaInicio",
-            "fechaFinal",
-            "fechaEntrega",
-          ]}
           onOpenItemsModal={(rowData) => {
             setShowItemsOrdenFormModal(true);
             setDataToItemsOrder(rowData as DTO_OrdenServicio);
+          }}
+          onRowClick={(rowData) => {
+            setRowTableSelected(rowData as DTO_OrdenServicio);
           }}
           customColumns={[referenciaJSONColumn]} // Añadimos la columna personalizada
           customRenderers={customRenderers}
@@ -538,6 +546,13 @@ export const OrdenDeServicio = () => {
       ) : (
         <InfoPanel msj="Seleccione un negocio para ver las órdenes de servicio" />
       )}
+
+      <InfoModal
+        show={!!rowTableSelected}
+        onHide={() => setRowTableSelected(undefined)}
+        data={rowTableSelected!}
+        fields={infoModalFields}
+      />
 
       {/* Modal Registrar */}
       <GenericFormModal<DTO_OrdenServicio>

@@ -1,141 +1,116 @@
 // -------------------------------------------------------------------------------------------------
-// InfoModal.tsx - Modal genérico para mostrar información detallada.
-// Renderiza valores según tipo: fechas, arrays, objetos y primitivos.
+// InfoModal.tsx - Modal genérico basado en FieldConfig<T>
+// Muestra valores formateados, con soporte para custom renderers.
 // -------------------------------------------------------------------------------------------------
 
 import React from "react";
-import { ReferenciaCards } from "@/components/ReferenciasJson/ReferenciasCard";
 import { dateHelpers } from "@/utils";
+import { FieldConfig } from "../GenericFormModal/types";
 
-interface InfoModalProps {
+
+interface InfoModalProps<T> {
   show: boolean;
   onHide: () => void;
-  data: Record<string, unknown>;
-  labelMap: Record<string, string>;
+  data: T;
+  fields: FieldConfig<T>[];
   title?: string;
-  dateKeys?: string[]; // ⬅️ Lista de claves que deben ser tratadas como fecha
 }
 
 /**
- * Intenta formatear un valor como fecha si es válido y superior a 1753.
+ * Formatea fechas válidas si están después del año 1753.
  */
-const tryParseDate = (val: unknown): string | null => {
-  if (!val) return null;
-
-  const asDate =
+const tryFormatDate = (val: unknown): string | null => {
+  const date =
     val instanceof Date
       ? val
       : typeof val === "string" || typeof val === "number"
       ? new Date(val)
       : new Date(NaN);
-
-  if (isNaN(asDate.getTime()) || asDate.getFullYear() < 1753) return null;
-
-  return dateHelpers.formatFechaDDMMYYYY(asDate);
+  if (isNaN(date.getTime()) || date.getFullYear() < 1753) return null;
+  return dateHelpers.formatFechaDDMMYYYY(date);
 };
 
 /**
- * Renderiza un valor según su tipo (string, objeto, array, fecha, primitivo)
+ * Render automático de valores según tipo
  */
-const renderValue = (
-  key: string,
-  value: unknown,
-  labelMap: Record<string, string>,
-  dateKeys?: string[]
-): React.ReactNode => {
-  // 1) Fechas
-  if (dateKeys?.includes(key)) {
-    const maybeDate = tryParseDate(value);
-    if (maybeDate !== null) return <span>{maybeDate}</span>;
+function renderValue<T>(
+  field: FieldConfig<T>,
+  value: unknown
+): React.ReactNode {
+  const type = field.type ?? "text";
 
-    if (typeof value === "string" && value.startsWith("0001-01-01")) {
+  if (type === "custom" && field.renderer) {
+    return field.renderer({ value, onChange: () => {}, readOnly: true });
+  }
+
+  if (type === "date") {
+    const formatted = tryFormatDate(value);
+    if (formatted) return <span>{formatted}</span>;
+    if (value === "0001-01-01T00:00:00") {
       return (
         <span className="badge bg-warning text-dark">
           No se ha definido aún
         </span>
       );
     }
+    return <span className="text-muted">[Fecha inválida]</span>;
   }
 
-  // 2) Array
-  if (Array.isArray(value)) {
-    if (value.length === 0)
-      return <span className="text-muted">[Sin datos]</span>;
-
-    const allNamed = value.every(
-      (item) =>
-        typeof item === "object" &&
-        item !== null &&
-        "nombre" in item &&
-        "valor" in item
-    );
-
-    return allNamed ? (
-      <ReferenciaCards items={value as any} />
-    ) : (
-      <pre
-        className="bg-light rounded p-2"
-        style={{ maxHeight: 200, overflowY: "auto" }}
-      >
-        {JSON.stringify(value, null, 2)}
-      </pre>
-    );
-  }
-
-  // 3) Objeto
-  if (typeof value === "object" && value !== null) {
-    if ("nombre" in value) {
-      const nombre = String((value as any).nombre).toLowerCase();
-
-      const badgeMap: Record<string, string> = {
-        activo: "badge-light-success",
-        nuevo: "badge badge-secondary",
-        "en proceso": "badge-light-primary",
-        "en espera": "badge-light-warning",
-        completado: "badge-light-success",
-        eliminado: "badge-light-danger",
-        inactivo: "badge-light-light",
-        default: "badge badge-dark",
-      };
-
-      const badgeClass = badgeMap[nombre] ?? badgeMap.default;
-
-      return <span className={badgeClass}>{(value as any).nombre}</span>;
-    }
-
+  if (type === "boolean") {
     return (
-      <div className="row gx-2">
-        {Object.entries(value).map(([k, v]) => (
-          <div key={k} className="col-12 d-flex justify-content-between mb-1">
-            <strong>{labelMap[k] ?? k}:</strong>
-            <span>{String(v)}</span>
-          </div>
-        ))}
-      </div>
+      <span
+        className={`badge ${value ? "bg-success" : "bg-secondary"} text-white`}
+      >
+        {value ? "Sí" : "No"}
+      </span>
     );
   }
 
-  // 4) Valores nulos o indefinidos
-  if (value === undefined || value === null) {
-    return <span className="badge bg-secondary">No disponible</span>;
+  // Renderiza estado con badge si viene como objeto con .nombre
+  if (
+    typeof value === "object" &&
+    value !== null &&
+    "nombre" in value &&
+    typeof (value as any).nombre === "string"
+  ) {
+    const nombre = String((value as any).nombre).toLowerCase();
+    const badgeMap: Record<string, string> = {
+      activo: "badge-light-success",
+      nuevo: "badge-secondary",
+      "en proceso": "badge-light-primary",
+      "en espera": "badge-light-warning",
+      completado: "badge-light-success",
+      eliminado: "badge-light-danger",
+      inactivo: "badge-light-light",
+      default: "badge-dark",
+    };
+    const badgeClass = badgeMap[nombre] ?? badgeMap.default;
+    const capitalizedNombre = nombre.charAt(0).toUpperCase() + nombre.slice(1);
+    return <span className={`badge ${badgeClass}`}>{capitalizedNombre}</span>;
   }
 
-  // 5) Primitivos
+  if (value === null || value === undefined || value === "") {
+    return <span className="text-muted">[No disponible]</span>;
+  }
+
   return <span>{String(value)}</span>;
-};
+}
 
 /**
- * Componente modal reutilizable para mostrar información detallada de un objeto.
+ * Modal Info reutilizable basado en FieldConfig
  */
-export const InfoModal: React.FC<InfoModalProps> = ({
+export const InfoModal = <T,>({
   show,
   onHide,
   data,
-  labelMap,
-  title = "Información Detallada",
-  dateKeys = [], // ⬅️ Se asegura valor por defecto
-}) => {
+  fields,
+  title = "Detalles",
+}: InfoModalProps<T>) => {
   if (!show) return null;
+
+  const sortedFields = [...fields].sort(
+    (a, b) => (a.order ?? 0) - (b.order ?? 0)
+  );
 
   return (
     <div
@@ -143,50 +118,45 @@ export const InfoModal: React.FC<InfoModalProps> = ({
       onClick={onHide}
     >
       <div
-        className="modal-dialog modal-dialog-centered mw-650px"
+        className="modal-dialog modal-dialog-centered mw-750px"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="modal-content">
+        <div className="modal-content border border-gray-200 shadow-sm">
           {/* Título */}
-          <div className="modal-header">
-            <h2>{title}</h2>
+          <div className="modal-header border-bottom border-gray-300">
+            <h2 className="fw-bold text-gray-800">{title}</h2>
             <button
               type="button"
-              className="btn btn-sm btn-icon"
+              className="btn btn-sm btn-icon btn-active-light-primary"
               onClick={onHide}
             >
               ✕
             </button>
           </div>
 
-          {/* Contenido */}
-          <div className="modal-body py-10 px-lg-17">
-            <div className="table-responsive">
-              {Object.entries(data).map(([key, val]) => (
-                <div
-                  key={key}
-                  className="d-flex flex-stack py-5 border-bottom border-gray-300 border-bottom-dashed"
-                >
-                  <div className="d-flex align-items-center">
-                    <div className="ms-6">
-                      <strong className="fs-5 fw-bold text-dark">
-                        {labelMap[key] ?? key}
-                      </strong>
+          {/* Cuerpo */}
+          <div className="modal-body py-10 px-10 px-lg-17">
+            <div className="row g-6">
+              {sortedFields.map((field) => {
+                const value = data[field.key];
+                return (
+                  <div key={String(field.key)} className="col-12 col-md-6">
+                    <div className="bg-light border rounded p-4 shadow-sm h-100">
+                      <div className="text-muted fw-semibold fs-7 mb-1">
+                      {field.label}
+                      </div>
+                      <div className="fw-bold fs-6 text-gray-900">
+                      {renderValue(field, value)}
+                      </div>
                     </div>
                   </div>
-
-                  <div className="d-flex align-items-center">
-                    <div className="ms-6">
-                      {renderValue(key, val, labelMap, dateKeys)}
-                    </div>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
 
           {/* Footer */}
-          <div className="modal-footer flex-center">
+          <div className="modal-footer flex-center py-5">
             <button type="button" className="btn btn-light" onClick={onHide}>
               Cerrar
             </button>
