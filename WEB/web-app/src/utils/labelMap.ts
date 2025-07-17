@@ -586,6 +586,7 @@ export const cuentasFormAddFields: FieldConfig<DTO_Cuenta>[] = [
         type: "text",
         required: true,
         order: 1,
+        errorMessage: "El concepto es obligatorio",
     },
     {
         key: "descripcion",
@@ -600,6 +601,7 @@ export const cuentasFormAddFields: FieldConfig<DTO_Cuenta>[] = [
         type: "date",
         required: true,
         order: 3,
+        errorMessage: "La fecha inicial es obligatoria",
     },
     {
         key: "fechaLimite",

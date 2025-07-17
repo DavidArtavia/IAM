@@ -346,6 +346,9 @@ export const Cuentas = () => {
       type: "custom",
       required: detalleHabilitado, // requerido solo si el switch está activado
       order: 6,
+      errorMessage:
+        "Tienes datos sin agregar. Presiona el botón ➕ antes de continuar.",
+
       renderer: ({ value, onChange }) => (
         <DetalleCuentaInput
           value={value}
@@ -443,6 +446,7 @@ export const Cuentas = () => {
       type: "custom",
       required: detalleHabilitado,
       order: 10,
+      errorMessage: "Tienes datos sin agregar. Presiona el botón ➕ antes de continuar.",
       renderer: ({ value, onChange }) => (
         <DetalleCuentaInput
           value={value}

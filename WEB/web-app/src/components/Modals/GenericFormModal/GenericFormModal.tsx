@@ -114,12 +114,17 @@ export const GenericFormModal = <T,>({
           {renderer({
             value: rawVal,
             onChange: (val) => {
-              setData({ ...data, [key]: val as any });
-              handleBlur(key);
+              setData((prev) => ({ ...prev, [key]: val }));
             },
+            onBlur: () => handleBlur(key),
           })}
+
           {errorMsg && (
-            <div className="invalid-feedback d-block">{errorMsg}</div>
+            <div className="invalid-feedback d-block">
+              {typeof field.errorMessage === "function"
+                ? field.errorMessage(rawVal)
+                : field.errorMessage || errorMsg}
+            </div>
           )}
         </div>
       );
@@ -141,7 +146,11 @@ export const GenericFormModal = <T,>({
             onBlur={() => handleBlur(key)}
           />
           {errorMsg && (
-            <div className="invalid-feedback d-block">{errorMsg}</div>
+            <div className="invalid-feedback d-block">
+              {typeof field.errorMessage === "function"
+                ? field.errorMessage(rawVal)
+                : field.errorMessage || errorMsg}
+            </div>
           )}
         </div>
       );
@@ -171,7 +180,11 @@ export const GenericFormModal = <T,>({
             ))}
           </select>
           {errorMsg && (
-            <div className="invalid-feedback d-block">{errorMsg}</div>
+            <div className="invalid-feedback d-block">
+              {typeof field.errorMessage === "function"
+                ? field.errorMessage(rawVal)
+                : field.errorMessage || errorMsg}
+            </div>
           )}
         </div>
       );
@@ -202,7 +215,11 @@ export const GenericFormModal = <T,>({
             onBlur={() => handleBlur(key)}
           />
           {errorMsg && (
-            <div className="invalid-feedback d-block">{errorMsg}</div>
+            <div className="invalid-feedback d-block">
+              {typeof field.errorMessage === "function"
+                ? field.errorMessage(rawVal)
+                : field.errorMessage || errorMsg}
+            </div>
           )}
         </div>
       );
@@ -227,7 +244,13 @@ export const GenericFormModal = <T,>({
           onChange={(e) => handleChange(key, e.target.value, type)}
           onBlur={() => handleBlur(key)}
         />
-        {errorMsg && <div className="invalid-feedback d-block">{errorMsg}</div>}
+        {errorMsg && (
+          <div className="invalid-feedback d-block">
+            {typeof field.errorMessage === "function"
+              ? field.errorMessage(rawVal)
+              : field.errorMessage || errorMsg}
+          </div>
+        )}
       </div>
     );
     //#endregion

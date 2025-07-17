@@ -12,13 +12,15 @@ export interface FieldConfig<T> {
   label: string;
   type?: FieldType;
   options?: Array<{ value: string | number; label: string }>;
-  renderer?: (args: {
-    value: any;
-    onChange: (val: any) => void;
-    readOnly?: boolean; // Permite desactivar edición
-  }) => React.ReactElement;
+  errorMessage?: string | ((value: unknown) => string);
   required?: boolean;
   validate?: (value: unknown) => string; // función personalizada
   readOnly?: boolean; // Permite mostrar el campo solo para ver, no editar
   order?: number; // Permite definir el orden de los campos
+  renderer?: (args: {
+    value: any;
+    onChange: (val: any) => void;
+    onBlur?: () => void;
+    readOnly?: boolean; // Permite desactivar edición
+  }) => React.ReactElement;
 }
