@@ -42,7 +42,7 @@ function formatDetalleJSON(
   if (filas.length === 0) {
     filasStr += "0";
   } else {
-    const limit = 3;
+    const limit = 2;
     const mapped = filas.slice(0, limit).map(
       (f: any) =>
         `${f.nombre}: ${Number(f.valor).toLocaleString("es-CR", {
@@ -59,9 +59,9 @@ function formatDetalleJSON(
 
   return `
     <div class="d-flex flex-column gap-1">
-      <div class="badge bg-light fw-normal text-dark fs-8">${descStr}</div>
-      <div class="badge bg-light fw-normal text-dark fs-8">${impStr}</div>
-      <div class="badge bg-light fw-normal text-dark fs-8">${filasStr}</div>
+      <div class="badge rounded-pill bg-primary-subtle text-dark fw-semibold px-2 py-1 fs-9 shadow-sm" style="font-size: 0.85rem;">${descStr}</div>
+      <div class="badge rounded-pill bg-info-subtle text-dark fw-semibold px-2 py-1 fs-9 shadow-sm" style="font-size: 0.85rem;">${impStr}</div>
+      <div class="badge rounded-pill bg-secondary-subtle text-dark fw-semibold px-2 py-1 fs-9 shadow-sm" style="font-size: 0.85rem;">${filasStr}</div>
     </div>
   `;
 }

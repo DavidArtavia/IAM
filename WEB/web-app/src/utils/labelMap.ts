@@ -167,12 +167,7 @@ export const keysInfoModalNegocio: FieldConfig<DTO_Negocio>[]  = [
 ];
 
 export const keysInfoModalCuenta: FieldConfig<DTO_Cuenta>[] = [
-    {
-        key: "iD_OrdenServicio",
-        label: "Orden De Servicio #",
-        type: "text",
-        order: 0,
-    },
+  
     {
         key: "iD_Cuenta",
         label: "Código",
@@ -448,14 +443,6 @@ export const cuentasFormEditFields: FieldConfig<DTO_Cuenta>[] = [
         required: true,
         readOnly: true,
         order: 3,
-    },
-    {
-        key: "iD_OrdenServicio",
-        label: labelMapCuenta["iD_OrdenServicio"] ?? "Orden De Servicio #",
-        type: "text",
-        required: true,
-        readOnly: true,
-        order: 4,
     },
     {
         key: "concepto",

@@ -1,6 +1,6 @@
 // ✅ RP-19: Pantalla Transacciones adaptada a estructura definitiva (estado local, sin refetch completo, edición con lógica de cuentas)
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import { DTO_Negocio, DTO_Transacciones, DTO_Respuesta } from "@/models";
 import {
   ConfirmModal,
@@ -23,6 +23,7 @@ import { errorHelpers, notificationHelpers, procesarRespuesta } from "@/utils";
 import { STATUS_TBL } from "@/constants";
 import { transaccionesService } from "@/services/transacciones.service";
 import { useApp } from "@/hooks/useApp";
+import { AutoAccountTransactionInfoField } from "./AutoAccountTransactionInfoField";
 
 export const Transacciones = () => {
   //🔄 Estado general
@@ -223,37 +224,6 @@ export const Transacciones = () => {
   //#endregion
 
   //#region 🧾 Campos edición (cuenta bloqueada)
-  const CuentaFieldRenderer = ({
-    field,
-    editData,
-  }: {
-    field: FieldConfig<DTO_Transacciones>;
-    editData: DTO_Transacciones | null;
-  }) => {
-    const infoIconRef = useRef<HTMLElement>(null);
-    useEffect(() => {
-      if (infoIconRef.current && (window as any).bootstrap) {
-        new (window as any).bootstrap.Tooltip(infoIconRef.current);
-      }
-    }, []);
-    return (
-      <div className="d-flex align-items-center gap-2">
-        <input
-          type="text"
-          className="form-control form-control-solid null"
-          value={String(editData?.[field.key] ?? "")}
-          disabled
-        />
-        <i
-          ref={infoIconRef}
-          className="bi bi-info-circle-fill text-info"
-          data-bs-toggle="tooltip"
-          data-bs-placement="top"
-          title="Esta es una transacción creada automáticamente desde una cuenta. Para modificarla, elimínela y créela manualmente."
-        />
-      </div>
-    );
-  };
 
   const editFormFields: FieldConfig<DTO_Transacciones>[] =
     transaccionesFormEditFields.map((field) => {
@@ -267,7 +237,10 @@ export const Transacciones = () => {
           ...field,
           type: "custom",
           renderer: () => (
-            <CuentaFieldRenderer field={field} editData={editData} />
+            <AutoAccountTransactionInfoField
+              field={field}
+              editData={editData}
+            />
           ),
         };
       }
@@ -283,25 +256,25 @@ export const Transacciones = () => {
   };
   //#endregion
 
-    //#region 🔑 Claves de información para el modal
-    const infoModalFields: FieldConfig<DTO_Transacciones>[] = [
-      ...keysInfoModalTransacciones,
-      {
+  //#region 🔑 Claves de información para el modal
+  const infoModalFields: FieldConfig<DTO_Transacciones>[] = [
+    ...keysInfoModalTransacciones,
+    {
       key: "monto",
       label: "Monto",
       type: "custom",
       order: 9,
       renderer: ({ value }) => (
         <div className="border border-gray-200 rounded px-4 py-3 d-flex align-items-center justify-content-between shadow-sm">
-        <i className="bi bi-cash-coin fs-4 text-gray-600 me-3"></i>
-        <span className="fw-semibold fs-5 text-gray-800"></span>
-        {formatColones(Number(value) || 0)}
+          <i className="bi bi-cash-coin fs-4 text-gray-600 me-3"></i>
+          <span className="fw-semibold fs-5 text-gray-800"></span>
+          {formatColones(Number(value) || 0)}
         </div>
       ),
-      },
-    ];
-    
-    //#endregion
+    },
+  ];
+
+  //#endregion
 
   //#region 🎨 Render
   return (
@@ -323,7 +296,7 @@ export const Transacciones = () => {
           disableButtonAdd={disableButtonAdd}
           onRowClick={(row) => setRowTableSelected(row)}
           includeEstadoColumn
-            customRenderers={customRenderers}
+          customRenderers={customRenderers}
         />
       ) : (
         <InfoPanel msj="Selecciona un negocio para ver sus transacciones." />

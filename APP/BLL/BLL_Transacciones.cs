@@ -20,6 +20,11 @@ namespace BLL
 
             return await dal_trasacciones.obtenerTransaccion(negocio);
         }
+        public async Task<DTO_Respuesta> obtenerTransaccionPorCuenta(DTO_Cuenta cuenta)
+        {
+
+            return await dal_trasacciones.obtenerTransaccionPorCuenta(cuenta);
+        }
         public async Task<DTO_Respuesta> actualizarTransaccion(DTO_Transacciones transaccion)
         {
             return await dal_trasacciones.actualizarTransaccion(transaccion);

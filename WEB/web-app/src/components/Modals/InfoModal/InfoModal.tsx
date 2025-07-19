@@ -116,6 +116,8 @@ export const InfoModal = <T,>({
     (a, b) => (a.order ?? 0) - (b.order ?? 0)
   );
 
+  if (!data) return null;
+
   return (
     <div
       className="modal fade show d-block shadowDarkBackground"
