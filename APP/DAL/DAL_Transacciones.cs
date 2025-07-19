@@ -157,6 +157,87 @@ namespace DAL
             }
         }
 
+        public async Task<DTO_Respuesta> obtenerTransaccionPorCuenta(DTO_Cuenta cuenta)
+        {
+            DTO_Transacciones transacciones;
+            List<DTO_Transacciones> listaTransacciones = [];
+            DTO_Respuesta respuesta = new DTO_Respuesta();
+            try
+            {
+                string query = "CORE.SP_obtenerTransaccionesPorCuenta";
+
+                using (SqlCommand sqlcmd = new SqlCommand(query, this.GetObjConexion()))
+                {
+                    sqlcmd.CommandType = CommandType.StoredProcedure;
+                    sqlcmd.Parameters.Add("@CuentaId", SqlDbType.VarChar).Value = cuenta.ID_Cuenta.ToString();
+
+                    foreach (SqlParameter param in sqlcmd.Parameters)
+                        param.Direction = ParameterDirection.Input;
+
+                    this.Open();
+
+                    using (SqlDataReader reader = await sqlcmd.ExecuteReaderAsync())
+                    {
+
+                        do
+                        {
+                            var columnas = Enumerable.Range(0, reader.FieldCount)
+                                .Select(i => reader.GetName(i))
+                                .ToList();
+
+                            if (columnas.Contains("ID_Transaccion") && columnas.Contains("Concepto"))
+                            {
+                                while (reader.Read())
+                                {
+                                    transacciones = new DTO_Transacciones
+                                    {
+                                        ID_Transaccion = UTL_DBHelper.ReadNullSafeInt(reader["ID_Transaccion"]),
+                                        ID_Negocio = UTL_DBHelper.ReadNullSafeInt(reader["ID_Negocio"]),
+                                        Estado = new()
+                                        {
+                                            ID_Estado = UTL_DBHelper.ReadNullSafeInt(reader["Estado_ID_Estado"]),
+                                            Nombre = UTL_DBHelper.ReadNullSafeString(reader["NombreEstado"])
+                                        },
+                                        Tipo = UTL_DBHelper.ReadNullSafeString(reader["Tipo"]),
+                                        Concepto = UTL_DBHelper.ReadNullSafeString(reader["Concepto"]),
+                                        Monto = UTL_DBHelper.ReadNullSafeDecimal(reader["Monto"]),
+                                        NumReferencia = UTL_DBHelper.ReadNullSafeString(reader["NumReferencia"]),
+                                        TipoNumReferencia = UTL_DBHelper.ReadNullSafeString(reader["TipoNumReferencia"]),
+                                        FechaTransaccion = UTL_DBHelper.ReadNullSafeDateTime(reader["FechaTransaccion"]) ?? DateTime.MinValue
+                                    };
+
+                                    listaTransacciones.Add(transacciones);
+                                }
+
+                            }
+                            else if (columnas.Contains("COD_ALERTA") && columnas.Contains("Mensaje"))
+                            {
+                                while (reader.Read())
+                                {
+                                    respuesta = manejarRespuesta(reader);
+                                }
+                            }
+
+                        } while (await reader.NextResultAsync());
+
+                        respuesta.Resultado.Add(listaTransacciones);
+                    }
+
+                    return respuesta;
+                }
+            }
+            catch (Exception ex)
+            {
+                this.Close();
+                System.Diagnostics.Debug.WriteLine($"❌ Error en API: {ex.Message}");
+                throw;
+            }
+            finally
+            {
+                this.Close();
+            }
+        }
+
         public async Task<DTO_Respuesta> actualizarTransaccion(DTO_Transacciones transaccion)
         {
             try

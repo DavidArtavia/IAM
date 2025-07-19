@@ -90,7 +90,11 @@ function renderValue<T>(
   }
 
   if (value === null || value === undefined || value === "") {
-    return <span className="text-muted">[No disponible]</span>;
+   return (
+     <span className="px-3 py-2 fs-7">
+       <i className="bi bi-info-circle me-1"></i>[No disponible]
+     </span>
+   );
   }
 
   return <span>{String(value)}</span>;
@@ -111,6 +115,8 @@ export const InfoModal = <T,>({
   const sortedFields = [...fields].sort(
     (a, b) => (a.order ?? 0) - (b.order ?? 0)
   );
+
+  if (!data) return null;
 
   return (
     <div

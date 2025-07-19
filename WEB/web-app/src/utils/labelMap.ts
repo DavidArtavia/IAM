@@ -167,12 +167,7 @@ export const keysInfoModalNegocio: FieldConfig<DTO_Negocio>[]  = [
 ];
 
 export const keysInfoModalCuenta: FieldConfig<DTO_Cuenta>[] = [
-    {
-        key: "iD_OrdenServicio",
-        label: "Orden De Servicio #",
-        type: "text",
-        order: 0,
-    },
+  
     {
         key: "iD_Cuenta",
         label: "Código",
@@ -450,14 +445,6 @@ export const cuentasFormEditFields: FieldConfig<DTO_Cuenta>[] = [
         order: 3,
     },
     {
-        key: "iD_OrdenServicio",
-        label: labelMapCuenta["iD_OrdenServicio"] ?? "Orden De Servicio #",
-        type: "text",
-        required: true,
-        readOnly: true,
-        order: 4,
-    },
-    {
         key: "concepto",
         label: labelMapCuenta["concepto"] ?? "Concepto",
         type: "text",
@@ -586,6 +573,7 @@ export const cuentasFormAddFields: FieldConfig<DTO_Cuenta>[] = [
         type: "text",
         required: true,
         order: 1,
+        errorMessage: "El concepto es obligatorio",
     },
     {
         key: "descripcion",
@@ -600,6 +588,7 @@ export const cuentasFormAddFields: FieldConfig<DTO_Cuenta>[] = [
         type: "date",
         required: true,
         order: 3,
+        errorMessage: "La fecha inicial es obligatoria",
     },
     {
         key: "fechaLimite",

@@ -48,6 +48,7 @@ export const API_ENDPOINTS = {
     TRANSACTIONS: {
         ADD_TRANSACTION: "/Transacciones/registrarTransaccion",
         GET_TRANSACTION: "/Transacciones/obtenerTransaccion",
+        GET_TRANSACTION_BY_ACCOUNT: "/Transacciones/obtenerTransaccionPorCuenta",
         UPDATE_TRANSACTION: "/Transacciones/actualizarTransaccion",
     },
     METRICA: {

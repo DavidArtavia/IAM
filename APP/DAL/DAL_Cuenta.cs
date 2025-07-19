@@ -196,6 +196,7 @@ namespace DAL
             }
         }
 
+
         public DTO_Respuesta actualizarCuenta(DTO_Cuenta cuenta)
         {
             try

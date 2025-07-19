@@ -9,6 +9,7 @@ export * from "./Modals/GenericFormModal/GenericFormModal";
 export * from "./Modals/GenericFormModal/types";
 export * from "./Modals/InfoModal/InfoModal";
 export * from "./Modals/ItemsOrdenDeServicioModal/ItemsOrdenDeServicioModal";
+export * from "./Modals/TransaccionesPorCuentaModal/TransaccionesPorCuentaModal";
 export * from "./Modals/LoadingModal/ConfirmModal";
 export * from "./Modals/LoadingModal/LoadingModal";
 export * from "./Modals/RestriccionModal/RestriccionModal";

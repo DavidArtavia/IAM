@@ -28,6 +28,7 @@ import {
   InfoModal,
   InfoPanel,
   LoadingPanel,
+  TransaccionesPorCuentaModal,
 } from "@/components";
 import { STATUS_TBL } from "@/constants";
 import { useApp } from "@/hooks/useApp";
@@ -54,6 +55,7 @@ export const Cuentas = () => {
 
   //#region 📦 Estados generales
   const [isModalFormOpen, setIsModalFormOpen] = useState(false);
+  const [isInfoModalOpen, setIsInfoModalOpen] = useState(false);
   const [formData, setFormData] = useState<DTO_Cuenta>(new DTO_Cuenta());
   const [loading, setLoading] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -75,6 +77,11 @@ export const Cuentas = () => {
   const [montoInput, setMontoInput] = useState<string>(
     formData.monto && formData.monto !== 0 ? String(formData.monto) : ""
   );
+
+  const [isTransaccionesModalOpen, setIsTransaccionesModalOpen] =
+    useState(false);
+  const [accountTransactions, setAccountTransactions] =
+    useState<DTO_Cuenta | null>(null);
   //#endregion
 
   //#region ℹ️ info Modal estados;
@@ -142,13 +149,14 @@ export const Cuentas = () => {
     const parsed = parseFloat(montoInput.replace(/[^0-9.]/g, ""));
     formData.monto = isNaN(parsed) ? 0 : parsed;
     cuentasService.registrarCuenta(formData).subscribe({
-      next: (result: unknown) => {
-        const mensaje =
-          (result as DTO_Respuesta)?.mensaje ||
-          "Cuenta registrada correctamente";
-        notificationHelpers.successAlert(mensaje);
-        refetchAccounts();
-        setIsModalFormOpen(false);
+       next: (result: any) => {
+      const nueva = (result.resultado as DTO_Cuenta[])[0];
+      // ✅ Filtramos si no es eliminado antes de agregar
+      if (nueva.estado?.iD_Estado !== STATUS_TBL.ACCOUNT.DELETED) {
+        setAccountsPayable((prev) => [nueva, ...prev]);
+      }
+      notificationHelpers.successAlert(result.mensaje || "Cuenta registrada correctamente");
+      setIsModalFormOpen(false);
       },
       error: (err) => errorHelpers.serverError(err),
       complete: () => {
@@ -207,6 +215,7 @@ export const Cuentas = () => {
   //#endregion
 
   //#region 🗑 Eliminar
+
   const handleDelete = (rowData: DTO_Cuenta) => {
     setConfirmModalMessage(
       `¿Estás seguro de que deseas eliminar la cuenta: ${rowData.iD_Cuenta}?`
@@ -231,6 +240,9 @@ export const Cuentas = () => {
         next: (result: DTO_Respuesta) => {
           if (result.codigo !== "B012") {
             notificationHelpers.successAlert("Cuenta eliminada correctamente");
+            setAccountsPayable((prev) =>
+              prev.filter((c) => c.iD_Cuenta !== accountToDelete.iD_Cuenta)
+            );
           } else {
             const mensaje = result.mensaje;
             notificationHelpers.successAlert(mensaje);
@@ -238,13 +250,22 @@ export const Cuentas = () => {
         },
         complete: () => {
           setShowEditModal(false);
-          refetchAccounts();
         },
       });
       setAccountToDelete(null);
     }
     setIsConfirmOpen(false);
   };
+  //#endregion
+
+  //#region 🔄 Obtener transacciones por cuenta
+
+  const handleTransaction = (row: DTO_Cuenta) => {
+  
+    setAccountTransactions(row);
+    setIsTransaccionesModalOpen(true);
+  };
+
   //#endregion
 
   //#region ❓ Confirmación Modal
@@ -255,9 +276,11 @@ export const Cuentas = () => {
         notificationHelpers.infoAlert("Registro cancelado");
       } else if (confirmContext === "delete") {
         handleConfirmDelete(true);
+        setIsInfoModalOpen(false);
       }
     }
     setIsConfirmOpen(false);
+    
     setConfirmContext(null);
   };
   //#endregion
@@ -346,6 +369,9 @@ export const Cuentas = () => {
       type: "custom",
       required: detalleHabilitado, // requerido solo si el switch está activado
       order: 6,
+      errorMessage:
+        "Tienes datos sin agregar. Presiona el botón ➕ antes de continuar.",
+
       renderer: ({ value, onChange }) => (
         <DetalleCuentaInput
           value={value}
@@ -417,7 +443,7 @@ export const Cuentas = () => {
             <button
               onClick={(e) => {
                 e.preventDefault();
-                console.log("Se ejecuta transaciones");
+                handleTransaction(editData!);
               }}
               className="btn btn-primary me-2"
             >
@@ -437,12 +463,24 @@ export const Cuentas = () => {
       },
     },
     ...cuentasFormEditFields,
+    ...(rowTableSelected?.iD_OrdenServicio
+      ? [
+          {
+            key: "iD_OrdenServicio",
+            label: "Orden De Servicio #",
+            type: "text",
+            order: 4,
+          } as FieldConfig<any>,
+        ]
+      : []),
     {
       key: "detalleJSON",
       label: "Detalle",
       type: "custom",
       required: detalleHabilitado,
       order: 10,
+      errorMessage:
+        "Tienes datos sin agregar. Presiona el botón ➕ antes de continuar.",
       renderer: ({ value, onChange }) => (
         <DetalleCuentaInput
           value={value}
@@ -508,9 +546,50 @@ export const Cuentas = () => {
       },
     },
   ];
-
   //#region 🔑 Claves de información para el modal
-  const infoModalFields: FieldConfig<DTO_Cuenta>[] = [
+  const infoModalFields: FieldConfig<any>[] = [
+    ...(rowTableSelected?.iD_OrdenServicio
+      ? [
+          {
+            key: "iD_OrdenServicio",
+            label: "Orden De Servicio #",
+            type: "text",
+            order: 0,
+          } as FieldConfig<any>,
+        ]
+      : []),
+    {
+      key: "acciones",
+      label: "Acciones",
+      type: "custom",
+      required: false,
+      order: 99,
+      renderer: () => {
+        return (
+          <div className="d-flex justify-content-star mb-3">
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                handleTransaction(rowTableSelected!);
+                setIsTransaccionesModalOpen(true);
+              }}
+              className="btn btn-primary me-2"
+            >
+              Transacciones
+            </button>
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                handleDelete(rowTableSelected!);
+              }}
+              className="btn btn-danger"
+            >
+              Eliminar
+            </button>
+          </div>
+        );
+      },
+    },
     ...keysInfoModalCuenta,
     {
       key: "detalleJSON",
@@ -615,9 +694,8 @@ export const Cuentas = () => {
         return (
           <div className="border border-gray-200 rounded px-4 py-3 d-flex align-items-center justify-content-between shadow-sm">
             <i className="bi bi-cash-coin fs-4 text-gray-600 me-3"></i>
-            <span className="fw-semibold fs-5 text-gray-800">
-            </span>
-              {formatColones(monto)}
+            <span className="fw-semibold fs-5 text-gray-800"></span>
+            {formatColones(monto)}
           </div>
         );
       },
@@ -652,6 +730,7 @@ export const Cuentas = () => {
             customColumns={[detalleJSONColumn]}
             onRowClick={(row) => {
               setRowTableSelected(row);
+              setIsInfoModalOpen(true);
             }}
           />
         ) : (
@@ -659,7 +738,7 @@ export const Cuentas = () => {
         )}
 
         <InfoModal
-          show={!!rowTableSelected}
+          show={isInfoModalOpen}
           onHide={() => setRowTableSelected(undefined)}
           data={rowTableSelected!}
           fields={infoModalFields}
@@ -692,6 +771,13 @@ export const Cuentas = () => {
           show={isConfirmOpen}
           confirmMessage={confirmModalMessage}
           onAction={confirmModalAction}
+        />
+
+        <TransaccionesPorCuentaModal
+          open={isTransaccionesModalOpen}
+          onHide={() => setIsTransaccionesModalOpen(false)}
+          cuenta={accountTransactions || new DTO_Cuenta()}
+          negocioId={selectedBusiness?.iD_Negocio || 0}
         />
       </div>
     </>
