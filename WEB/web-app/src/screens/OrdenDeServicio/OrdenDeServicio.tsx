@@ -2,6 +2,7 @@ import {
   AsyncClientSelect,
   ClientOption,
   ConfirmModal,
+  DetalleCuentaInput,
   FieldConfig,
   GenericDataTable,
   GenericFormModal,
@@ -17,8 +18,18 @@ import {
   STATUS_ORDEN_SERVICIO_OPTIONS,
   STATUS_TBL,
 } from "@/constants";
-import { DTO_Negocio, DTO_OrdenServicio, DTO_Respuesta } from "@/models";
-import { ordenesService } from "@/services";
+import {
+  DTO_Cuenta,
+  DTO_ItemOrdenServicio,
+  DTO_Negocio,
+  DTO_OrdenServicio,
+  DTO_Respuesta,
+} from "@/models";
+import {
+  cuentasService,
+  itemsOrdenesService,
+  ordenesService,
+} from "@/services";
 import {
   keysInfoModalOrdenDeServicio,
   columnKeysOrdenDeServicio,
@@ -28,6 +39,7 @@ import {
   notificationHelpers,
   ordenServicioFormEditFields,
   parametrosAString,
+  ordenservicioFormCrearCuenta,
 } from "@/utils";
 import { useApp } from "@/hooks/useApp";
 
@@ -62,8 +74,14 @@ export const OrdenDeServicio = () => {
   const [disableButtonAdd, setDisableButtonAdd] = useState(true);
   const [selectedClientOption, setSelectedClientOption] =
     useState<ClientOption | null>(null);
-  //#endregion
-
+  const [account, setAccount] = useState<DTO_Cuenta>();
+  const [showCreateAccount, setShowCreateAccount] = useState(false);
+  const [detalleHabilitado, setDetalleHabilitado] = useState<boolean>(
+    !!account?.detalleJSON
+  );
+  const [montoInput, setMontoInput] = useState<string>(
+    account?.monto && account?.monto !== 0 ? String(account?.monto) : ""
+  );
   //#region ℹ️ info Modal estados;
   const [rowTableSelected, setRowTableSelected] = useState<DTO_OrdenServicio>();
 
@@ -461,7 +479,7 @@ export const OrdenDeServicio = () => {
 
     return {
       data: prepared,
-      labelMap: extLabelMap
+      labelMap: extLabelMap,
     };
   }, [ordenes]);
   //#endregion
@@ -514,6 +532,274 @@ export const OrdenDeServicio = () => {
   ];
 
   //#endregion
+
+  //#region Crear Cuenta de orden de servicio
+  const getOrderServiceAccount = (
+    rowData: DTO_OrdenServicio
+  ): Promise<void> => {
+    return new Promise((resolve, reject) => {
+      if (!rowData) return resolve();
+
+      const request = {
+        iD_OrdenServicio: rowData.iD_OrdenServicio,
+      } as DTO_ItemOrdenServicio;
+
+      itemsOrdenesService.obtenerItemsOrdensDeServicio(request).subscribe({
+        next: (result: DTO_Respuesta) => {
+          if (!result.tipoRespuesta) {
+            notificationHelpers.errorAlert(
+              result.mensaje || "Error al cargar ítems"
+            );
+            return reject();
+          }
+
+          const raw = result.resultado?.[0];
+          const items = Array.isArray(raw)
+            ? (raw as DTO_ItemOrdenServicio[])
+            : [];
+
+          const cuenta: DTO_Cuenta = {
+            ...new DTO_Cuenta(),
+            iD_Negocio: rowData.iD_Negocio ?? 0,
+            iD_OrdenServicio: rowData.iD_OrdenServicio,
+            tipoCuenta: "Cuenta Por Cobrar",
+            concepto: `Cuenta por cobrar de la orden de servicio #${rowData.iD_OrdenServicio}`,
+            monto: items.reduce(
+              (acc, item) =>
+                acc +
+                (typeof item.monto === "number"
+                  ? item.monto
+                  : parseFloat(item.monto ?? "0")),
+              0
+            ),
+            detalleJSON: {
+              filas: items.map((item) => ({
+                nombre:
+                  item.nombreItemOrdenServicio ||
+                  `Item ${item.iD_ItemOrdenServicio}`,
+                valor:
+                  typeof item.monto === "string"
+                    ? item.monto
+                    : item.monto?.toString() || "0.00",
+              })),
+              descuento: { nombre: "Descuento", valor: "0" },
+              impuesto: { nombre: "Impuesto", valor: "0" },
+            },
+          };
+
+          setAccount(cuenta);
+          resolve();
+        },
+        error: (err) => {
+          errorHelpers.serverError(err);
+          reject(err);
+        },
+      });
+    });
+  };
+
+  const formCreateAccountFields: FieldConfig<any>[] = [
+    ...ordenservicioFormCrearCuenta,
+    ...(account?.iD_OrdenServicio
+      ? [
+          {
+            key: "iD_OrdenServicio",
+            label: "Orden De Servicio #",
+            type: "text",
+            readOnly: true,
+            order: 4,
+          } as FieldConfig<any>,
+        ]
+      : []),
+      {
+        key: "tipoCuenta",
+        label:"Tipo de Cuenta",
+        type: "custom",
+        required: false,
+        order: 4,
+        readOnly: true,
+        renderer: ({ value }) => (
+          <input
+            className="form-control"
+            value={value || "Cuenta Por Cobrar"}
+            readOnly
+            disabled
+          />
+        ),
+      },
+    {
+      key: "detalleJSON",
+      label: "Detalle",
+      type: "custom",
+      required: detalleHabilitado,
+      order: 10,
+      errorMessage:
+        "Tienes datos sin agregar. Presiona el botón ➕ antes de continuar.",
+      renderer: ({ value, onChange }) => (
+        <DetalleCuentaInput
+          value={value}
+          onChange={onChange}
+          monto={account?.monto ?? 0}
+          setMonto={(val) => {
+            setMontoInput(val !== 0 ? String(val) : "");
+            setAccount((prev) => (prev ? { ...prev, monto: val } : undefined));
+          }}
+          onEnabledChange={(enabled) => setDetalleHabilitado(enabled)}
+        />
+      ),
+    },
+    {
+      key: "monto",
+      label: "Monto",
+      type: "custom",
+      required: !detalleHabilitado,
+      order: 11,
+      renderer: () => {
+        return (
+          <div className="input-group">
+            <span className="input-group-text">₡</span>
+            <input
+              type="text"
+              className={`form-control fw-bold fs-5 text-start ${
+                detalleHabilitado ? "bg-light" : ""
+              }`}
+              readOnly={detalleHabilitado}
+              value={
+                montoInput !== ""
+                  ? montoInput
+                  : account?.monto !== undefined && account?.monto !== 0
+                  ? String(account.monto)
+                  : ""
+              }
+              onFocus={() => {
+                if ((account?.monto || 0) === 0) {
+                  setMontoInput("");
+                }
+              }}
+              onChange={(e) => {
+                const val = e.target.value.replace(/[^0-9.]/g, "");
+                setMontoInput(val);
+                const num = parseFloat(val);
+                setAccount((prev) =>
+                  prev ? { ...prev, monto: isNaN(num) ? 0 : num } : undefined
+                );
+              }}
+              onBlur={(e) => {
+                const val = e.target.value;
+                if (val === "" || isNaN(Number(val))) {
+                  setMontoInput("");
+                  setAccount((prev) =>
+                    prev ? { ...prev, monto: 0 } : undefined
+                  );
+                }
+              }}
+              placeholder="₡0.00"
+              min={0}
+              step={0.01}
+            />
+          </div>
+        );
+      },
+    },
+  ];
+
+  const handleCreateAccount = (cuenta: DTO_Cuenta) => {
+
+    console.log("Crear cuenta con datos:", cuenta);
+    
+    if (!cuenta.iD_Negocio || !cuenta.iD_OrdenServicio) {
+      notificationHelpers.errorAlert("Negocio o Orden de Servicio no válidos");
+      return;
+    }
+    // registrar la nueva cuenta
+    cuentasService.registrarCuenta(cuenta).subscribe({
+      next: (res: DTO_Respuesta) => {
+        notificationHelpers.successAlert(res.mensaje);
+        setShowCreateAccount(false);
+      },
+      error: errorHelpers.serverError,
+    });
+
+    //Actualizar el estado de la orden de servicio a "Archivado"
+    ordenesService.actualizarOrdensDeServicio({
+      ...editData,
+      estado: {
+      ...editData.estado,
+      iD_Estado: STATUS_TBL.ORDER_SERVICE.ARCHIVED,
+      },
+    } as DTO_OrdenServicio).subscribe({
+      next: () => {
+      const sanitized = {
+        ...editData,
+        estado: {
+        ...editData.estado,
+        iD_Estado: STATUS_TBL.ORDER_SERVICE.ARCHIVED,
+        },
+      };
+      setOrdenes((prev) =>
+        prev.map((o) =>
+        o.iD_OrdenServicio === sanitized.iD_OrdenServicio ? sanitized : o
+        )
+      );
+      },
+      error: errorHelpers.serverError,
+    });
+  };
+
+  const headerButtonsToEdit = [
+    {
+      titulo: "Crear Cuenta",
+      onClick: () => {
+        if (
+          editData?.estado?.nombre === "Archivado" ||
+          editData?.estado?.iD_Estado === 12
+        ) {
+          // Mostrar popover manualmente
+          const popover = document.createElement("div");
+          popover.className =
+            "popover bs-popover-top show position-absolute";
+          popover.style.zIndex = "9999";
+          popover.style.background = "#fff";
+          popover.style.border = "1px solid #0d6efd";
+          popover.style.padding = "8px 12px";
+          popover.style.borderRadius = "6px";
+          popover.style.top = "60px";
+          popover.style.left = "50%";
+          popover.style.transform = "translateX(-50%)";
+            popover.innerHTML =
+              '<div class="popover-header fw-bold">Cuenta ya registrada</div><div class="popover-body">Esta orden de servicio ya tiene una cuenta asociada. No es posible crear una nueva cuenta para esta orden.</div>';
+
+          document.body.appendChild(popover);
+
+          setTimeout(() => {
+            document.body.removeChild(popover);
+          }, 6000);
+        } else {
+          getOrderServiceAccount(editData!).then(() => {
+            setShowCreateAccount(true);
+          });
+        }
+      },
+      className: "btn btn-bg-light btn-active-color-info",
+      icon:
+        (editData?.estado?.nombre === "Archivado" ||
+          editData?.estado?.iD_Estado === 12) && (
+          <span
+            className="ms-2"
+            style={{ cursor: "pointer", color: "#0d6efd" }}
+          >
+            <i className="bi bi-info-circle"></i>
+          </span>
+        ),
+    },
+    {
+      titulo: "Eliminar",
+      onClick: () => {
+        handleDelete(editData!);
+      },
+      className: "btn btn-bg-light btn-active-color-danger",
+    },
+  ];
 
   // #region 🧩 Render
   return (
@@ -574,6 +860,22 @@ export const OrdenDeServicio = () => {
         setData={setEditData}
         onSubmit={handleSaveEdit}
         fields={editFormFields}
+        headerButtons={headerButtonsToEdit}
+      />
+
+      {/* Modal Crear Cuenta */}
+      <GenericFormModal<DTO_Cuenta>
+        title="Crear Cuenta"
+        show={showCreateAccount}
+        onHide={() => setShowCreateAccount(false)}
+        data={account!}
+        setData={(x) => setAccount(x as DTO_Cuenta)}
+        onSubmit={() => {
+          if (account) {
+            handleCreateAccount(account);
+          }
+        }}
+        fields={formCreateAccountFields}
       />
 
       <ItemsOrdenDeServicioModal

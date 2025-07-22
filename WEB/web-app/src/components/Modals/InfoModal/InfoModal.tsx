@@ -6,6 +6,8 @@
 import React from "react";
 import { dateHelpers } from "@/utils";
 import { FieldConfig } from "../GenericFormModal/types";
+import { DynamicButtonConfig, ModalHeaderButtons } from "@/components";
+
 
 
 interface InfoModalProps<T> {
@@ -14,6 +16,7 @@ interface InfoModalProps<T> {
   data: T;
   fields: FieldConfig<T>[];
   title?: string;
+  headerButtons?: DynamicButtonConfig[];
 }
 
 /**
@@ -109,6 +112,7 @@ export const InfoModal = <T,>({
   data,
   fields,
   title = "Detalles",
+  headerButtons,
 }: InfoModalProps<T>) => {
   if (!show) return null;
 
@@ -131,6 +135,9 @@ export const InfoModal = <T,>({
           {/* Título */}
           <div className="modal-header border-bottom border-gray-300">
             <h2 className="fw-bold text-gray-800">{title}</h2>
+            {headerButtons && headerButtons.length > 0 && (
+              <ModalHeaderButtons buttons={headerButtons} />
+            )}
             <button
               type="button"
               className="btn btn-sm btn-icon btn-active-light-primary"
@@ -149,10 +156,10 @@ export const InfoModal = <T,>({
                   <div key={String(field.key)} className="col-12 col-md-6">
                     <div className="bg-light border rounded p-4 shadow-sm h-100">
                       <div className="text-muted fw-semibold fs-7 mb-1">
-                      {field.label}
+                        {field.label}
                       </div>
                       <div className="fw-bold fs-6 text-gray-900">
-                      {renderValue(field, value)}
+                        {renderValue(field, value)}
                       </div>
                     </div>
                   </div>

@@ -1,5 +1,6 @@
 import { useGenericForm } from "@/hooks/useGenericForm";
 import { FieldConfig } from "./types";
+import { DynamicButtonConfig, ModalHeaderButtons } from "@/components";
 
 //#region INTERFACES
 interface GenericFormModalProps<T> {
@@ -10,6 +11,7 @@ interface GenericFormModalProps<T> {
   setData: React.Dispatch<React.SetStateAction<T>>;
   onSubmit: () => void;
   fields: Array<FieldConfig<T>>;
+  headerButtons?: DynamicButtonConfig[];
 }
 //#endregion
 
@@ -22,6 +24,7 @@ export const GenericFormModal = <T,>({
   setData,
   onSubmit,
   fields,
+  headerButtons,  
 }: GenericFormModalProps<T>) => {
   //#region HOOKS
   const {
@@ -45,9 +48,7 @@ export const GenericFormModal = <T,>({
     const shouldShowError = touched[key] || wasSubmitted;
     const errorMsg = shouldShowError ? errors[key] : "";
 
-    const inputClass = `form-control  ${
-      errorMsg ? "is-invalid" : ""
-    }`;
+    const inputClass = `form-control  ${errorMsg ? "is-invalid" : ""}`;
     const wrapperClass =
       type === "custom"
         ? idx < 2
@@ -60,9 +61,10 @@ export const GenericFormModal = <T,>({
         : "d-flex flex-column mb-5 fv-row";
 
     const labelClass =
-      idx < 2
-        ? "required fs-5 fw-bold mb-2"
-        : "required fs-5 fw-bold mb-2 mt-6";
+      (field.required ? "required " : "") +
+      (idx < 2
+      ? "fs-5 fw-bold mb-2"
+      : "fs-5 fw-bold mb-2 mt-6");
 
     //#region READ-ONLY LABEL
     if (readOnly) {
@@ -271,6 +273,9 @@ export const GenericFormModal = <T,>({
           <div className="card-header">
             <h3 className="card-title">{title}</h3>
             <div className="card-toolbar">
+              {headerButtons && headerButtons.length > 0 && (
+                <ModalHeaderButtons buttons={headerButtons} />
+              )}
               <button
                 type="button"
                 className="btn btn-sm btn-icon btn-active-color-primary"

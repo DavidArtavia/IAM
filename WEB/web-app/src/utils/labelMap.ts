@@ -484,6 +484,39 @@ export const cuentasFormEditFields: FieldConfig<DTO_Cuenta>[] = [
         order: 9,
     },
 ];
+export const ordenservicioFormCrearCuenta: FieldConfig<DTO_Cuenta>[] = [
+
+    {
+        key: "concepto",
+        label: labelMapCuenta["concepto"] ?? "Concepto",
+        type: "text",
+        required: false,
+        readOnly: true,
+        order: 5,
+    },
+    {
+        key: "descripcion",
+        label: labelMapCuenta["descripcion"] ?? "Descripción",
+        type: "textarea",
+        required: false,
+        order: 6,
+    },
+    {
+        key: "fechaInicial",
+        label: labelMapCuenta["fechaInicial"] ?? "Fecha Inicial",
+        type: "date",
+        required: true,
+        order: 7,
+    },
+    {
+        key: "fechaLimite",
+        label: labelMapCuenta["fechaLimite"] ?? "Fecha Límite",
+        type: "date",
+        required: true,
+        order: 8,
+    },
+ 
+];
 
 export const clienteFormEditFields: Array<FieldConfig<DTO_Cliente>> = columnKeysCliente
     .filter(key => key !== "iD_Cliente" && key !== "iD_Usuario") // Excluye campos que no se editan

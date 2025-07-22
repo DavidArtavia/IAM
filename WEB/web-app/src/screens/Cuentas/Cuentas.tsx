@@ -304,7 +304,7 @@ export const Cuentas = () => {
     data: "detalleJSON",
     orderable: true,
     searchable: true,
-    className: "text-start",
+    className: "text-center",
     defaultContent: "",
     render: function (_: unknown, type: "display" | "export" | "filter" | "sort", row: DTO_Cuenta) {
       return formatDetalleJSON(row?.detalleJSON ?? {}, type);
@@ -382,37 +382,6 @@ export const Cuentas = () => {
     },
   ];
   const formEditFields: FieldConfig<any>[] = [
-    {
-      key: "acciones",
-      label: "",
-      type: "custom",
-      required: false,
-      order: 1,
-      renderer: () => {
-        return (
-          <div className="d-flex justify-content-star mb-3">
-            <button
-              onClick={(e) => {
-                e.preventDefault();
-                handleTransaction(editData!);
-              }}
-              className="btn btn-primary me-2"
-            >
-              Ver transacciones
-            </button>
-            <button
-              onClick={(e) => {
-                e.preventDefault();
-                handleDelete(editData!);
-              }}
-              className="btn btn-danger"
-            >
-              Eliminar Cuenta
-            </button>
-          </div>
-        );
-      },
-    },
     ...cuentasFormEditFields,
     ...(rowTableSelected?.iD_OrdenServicio
       ? [
@@ -509,39 +478,6 @@ export const Cuentas = () => {
           } as FieldConfig<any>,
         ]
       : []),
-      
-    {
-      key: "acciones",
-      label: "Acciones",
-      type: "custom",
-      required: false,
-      order: 0,
-      renderer: () => {
-        return (
-          <div className="d-flex justify-content-star mb-3">
-            <button
-              onClick={(e) => {
-                e.preventDefault();
-                handleTransaction(rowTableSelected!);
-                setIsTransaccionesModalOpen(true);
-              }}
-              className="btn btn-primary me-2"
-            >
-             Ver transacciones
-            </button>
-            <button
-              onClick={(e) => {
-                e.preventDefault();
-                handleDelete(rowTableSelected!);
-              }}
-              className="btn btn-danger"
-            >
-              Eliminar cuenta
-            </button>
-          </div>
-        );
-      },
-    },
     ...keysInfoModalCuenta,
     {
       key: "detalleJSON",
@@ -654,6 +590,45 @@ export const Cuentas = () => {
     },
   ];
 
+  //#region Botones custom del header del modal
+  const headerButtonsToInfo = [
+    {
+      titulo: "Ver Transacciones",
+      onClick: () => {
+        handleTransaction(rowTableSelected!);
+        setIsTransaccionesModalOpen(true);
+      },
+      className: "btn btn-bg-light btn-active-color-primary",
+    },
+    {
+      titulo: "Eliminar",
+      onClick: () => {
+        handleDelete(rowTableSelected!);
+      },
+      className: "btn btn-bg-light btn-active-color-danger",
+    },
+  ];
+  const headerButtonsToEdit = [
+    {
+      titulo: "Ver Transacciones",
+      onClick: () => {
+        handleTransaction(editData!);
+      },
+      className: "btn btn-bg-light btn-active-color-primary",
+    },
+    {
+      titulo: "Eliminar",
+      onClick: () => {
+        handleDelete(editData!);
+      },
+      className: "btn btn-bg-light btn-active-color-danger",
+    },
+  ];
+
+  //#endregion
+  
+  //#endregion
+
   //#endregion
 
   //#endregion
@@ -661,41 +636,46 @@ export const Cuentas = () => {
   //#region 🧩 Renderizado
   return (
     <>
+      {/* #region 🧾 Tabla de cuentas */}
       <div className="row p-4 col-12 gx-0">
         {state.negocio == null}
         {loading ? (
           <LoadingPanel msj="Cargando cuentas..." />
         ) : selectedBusiness ? (
           <GenericDataTable<DTO_Cuenta>
-            title="Cuentas"
-            columnKeys={columnKeysCuenta}
-            labelMap={labelMapCuenta}
-            data={accountsPayable.filter(
-              (b) => b.estado?.iD_Estado !== STATUS_TBL.ACCOUNT.DELETED
-            )}
-            onAdd={handleAddNew}
-            onEdit={handleEdit}
-            onDelete={handleDelete}
-            disableButtonAdd={disableButtonAdd}
-            includeEstadoColumn
-            customRenderers={customRenderers}
-            customColumns={[detalleJSONColumn]}
-            onRowClick={(row) => {
-              setRowTableSelected(row);
-              setIsInfoModalOpen(true);
-            }}
+        title="Cuentas"
+        columnKeys={columnKeysCuenta}
+        labelMap={labelMapCuenta}
+        data={accountsPayable.filter(
+          (b) => b.estado?.iD_Estado !== STATUS_TBL.ACCOUNT.DELETED
+        )}
+        onAdd={handleAddNew}
+        onEdit={handleEdit}
+        onDelete={handleDelete}
+        disableButtonAdd={disableButtonAdd}
+        includeEstadoColumn
+        customRenderers={customRenderers}
+        customColumns={[detalleJSONColumn]}
+        onRowClick={(row) => {
+          setRowTableSelected(row);
+          setIsInfoModalOpen(true);
+        }}
           />
         ) : (
           <InfoPanel msj="Por favor, selecciona un negocio para ver sus cuentas por pagar." />
         )}
 
+        {/* #region ℹ️ Modal de información */}
         <InfoModal
           show={isInfoModalOpen}
           onHide={() => setRowTableSelected(undefined)}
           data={rowTableSelected!}
           fields={infoModalFields}
+          headerButtons={headerButtonsToInfo}
         />
+        {/* #endregion */}
 
+        {/* #region ➕ Modal de agregar cuenta */}
         <GenericFormModal<DTO_Cuenta>
           title="Crear una Cuenta"
           show={isModalFormOpen}
@@ -705,7 +685,9 @@ export const Cuentas = () => {
           onSubmit={handleSave}
           fields={formAddFields}
         />
+        {/* #endregion */}
 
+        {/* #region ✏️ Modal de editar cuenta */}
         <GenericFormModal<DTO_Cuenta>
           title="Editar Cuenta"
           show={showEditModal}
@@ -713,25 +695,33 @@ export const Cuentas = () => {
           data={editData!}
           setData={(x) => setEditData(x as DTO_Cuenta)}
           onSubmit={() => {
-            if (editData) {
-              handleSaveEdit(editData);
-            }
+        if (editData) {
+          handleSaveEdit(editData);
+        }
           }}
           fields={formEditFields}
+          headerButtons={headerButtonsToEdit}
         />
+        {/* #endregion */}
+
+        {/* #region ❓ Modal de confirmación */}
         <ConfirmModal
           show={isConfirmOpen}
           confirmMessage={confirmModalMessage}
           onAction={confirmModalAction}
         />
+        {/* #endregion */}
 
+        {/* #region 🔄 Modal de transacciones por cuenta */}
         <TransaccionesPorCuentaModal
           open={isTransaccionesModalOpen}
           onHide={() => setIsTransaccionesModalOpen(false)}
           cuenta={accountTransactions || new DTO_Cuenta()}
           negocioId={selectedBusiness?.iD_Negocio || 0}
         />
+        {/* #endregion */}
       </div>
+      {/* #endregion */}
     </>
   );
   //#endregion
