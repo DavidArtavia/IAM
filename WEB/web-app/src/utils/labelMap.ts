@@ -214,7 +214,7 @@ export const keysInfoModalCuenta: FieldConfig<DTO_Cuenta>[] = [
         key: "descripcion",
         label: "Descripción",
         type: "text",
-        order: 9,
+        order: 6,
     },
 ];
 

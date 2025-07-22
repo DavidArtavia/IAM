@@ -66,3 +66,58 @@ export const formatColones = (valor: unknown): string => {
         .replace(".", ",")}`;
 };
 //#endregion
+
+//#region formatDetalleJSON: Formatea el detalle JSON para mostrar, exportar, filtrar o ordenar
+/**
+ * Formatea el objeto detalleJSON en un string legible o HTML según el tipo.
+ * 
+ * @param detalle - Objeto detalleJSON con filas, descuento e impuesto.
+ * @param type - Tipo de formato: "display", "export", "filter" o "sort".
+ * @returns String con el detalle formateado.
+ */
+export function formatDetalleJSON(
+    detalle: any,
+    type: "display" | "export" | "filter" | "sort" = "display"
+): string {
+    const filas = detalle?.filas ?? [];
+    const desc = detalle?.descuento?.valor ?? "0";
+    const tipoDesc = detalle?.descuento?.nombre ?? "Monto";
+    const imp = detalle?.impuesto?.valor ?? "0";
+
+    const descStr =
+        tipoDesc === "Monto"
+            ? `Desc: ₡${Number(desc).toLocaleString("es-CR", {
+                minimumFractionDigits: 2,
+            })}`
+            : `Desc: ${Number(desc)}%`;
+
+    const impStr = `Imp: ${Number(imp)}%`;
+
+    let filasStr = "Filas: ";
+    if (filas.length === 0) {
+        filasStr += "0";
+    } else {
+        const limit = 7;
+        const mapped = filas.slice(0, limit).map(
+            (f: any) =>
+                `${f.nombre}: ${Number(f.valor).toLocaleString("es-CR", {
+                    minimumFractionDigits: 2,
+                })}`
+        );
+        filasStr += mapped.join(", ");
+        if (filas.length > limit) filasStr += ", ...";
+    }
+
+    if (type === "export" || type === "filter" || type === "sort") {
+        return `${descStr}, ${impStr}, ${filasStr}`;
+    }
+
+    return `
+    <div class="row">
+      <div class="text-truncate bg-primary-subtle text-dark px-2 py-1 " >${descStr}</div>
+      <div class="text-truncate bg-info-subtle text-dark px-2 py-1 " >${impStr}</div>
+      <div class="text-truncate bg-secondary-subtle text-dark px-2 py-1 " >${filasStr}</div>
+    </div>
+  `;
+}
+//#endregion

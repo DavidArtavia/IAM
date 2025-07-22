@@ -43,6 +43,7 @@ BEGIN
     FROM CORE.TBL_TRANSACCIONES TRANS
         INNER JOIN UTIL.TBL_ESTADOS ESTADO ON TRANS.ID_Estado = ESTADO.ID_Estado
     WHERE TRANS.NumReferencia = @CuentaId
+    AND TRANS.TipoNumReferencia = 'Cuenta'
     ORDER BY TRANS.ID_Transaccion DESC;
 
     -- Alerta de éxito
