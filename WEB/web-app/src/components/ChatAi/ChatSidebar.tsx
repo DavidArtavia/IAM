@@ -67,43 +67,45 @@ export const ChatSidebar = ({ chats, selectedChat, onSelectChat, negocio }: Prop
             </button>
           </div>
         </div>
-
-        <div className="card-body">
+        <div
+          className="card-body mh-700px"
+          style={{ overflowY: "auto", maxHeight: "700px" }}
+        >
           {newChat?.map((chat) => (
             <div key={chat.iD_ChatIA} onClick={() => onSelectChat(chat)}>
               <div className="d-flex flex-stack">
-                <div className="d-flex align-items-center">
-                  <div className="symbol symbol-45px symbol-circle">
-                    <span
-                      className={`symbol-label fs-6 fw-bolder${
-                        selectedChat?.iD_ChatIA === chat?.iD_ChatIA
-                          ? " bg-dark"
-                          : " "
-                      }`}
-                    >
-                      <i className="bi bi-chat-left-text fs-1"></i>
-                    </span>
-                  </div>
-                  <div className="ms-5">
-                    <a
-                      href="#kt_chat_messenger_footer"
-                      className="fs-5 fw-bolder text-gray-900 text-hover-primary mb-2"
-                    >
-                      Chat #
-                      {newChat?.findIndex(
-                        (c) => c.iD_ChatIA === chat.iD_ChatIA
-                      ) + 1}
-                    </a>
-                    <div className="fw-bold text-muted">
-                      {dateHelpers.formatFechaDDMMYYYY(chat.fechaInicial)}
-                    </div>
-                  </div>
-                </div>
-                <div className="d-flex flex-column align-items-end ms-2">
-                  <span className="text-muted fs-7 mb-1">
-                    {dateHelpers.formatTimeDifference(chat.fechaInicial)}
-                  </span>
-                </div>
+          <div className="d-flex align-items-center">
+            <div className="symbol symbol-45px symbol-circle">
+              <span
+                className={`symbol-label fs-6 fw-bolder${
+            selectedChat?.iD_ChatIA === chat?.iD_ChatIA
+              ? " bg-dark"
+              : " "
+                }`}
+              >
+                <i className="bi bi-chat-left-text fs-1"></i>
+              </span>
+            </div>
+            <div className="ms-5">
+              <a
+                href="#kt_chat_messenger_footer"
+                className="fs-5 fw-bolder text-gray-900 text-hover-primary mb-2"
+              >
+                Chat #
+                {newChat?.findIndex(
+            (c) => c.iD_ChatIA === chat.iD_ChatIA
+                ) + 1}
+              </a>
+              <div className="fw-bold text-muted">
+                {dateHelpers.formatFechaDDMMYYYY(chat.fechaInicial)}
+              </div>
+            </div>
+          </div>
+          <div className="d-flex flex-column align-items-end ms-2">
+            <span className="text-muted fs-7 mb-1">
+              {dateHelpers.formatTimeDifference(chat.fechaInicial)}
+            </span>
+          </div>
               </div>
               <div className="separator border-solid mt-10 mb-12"></div>
             </div>

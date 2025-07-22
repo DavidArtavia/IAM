@@ -20,52 +20,6 @@ declare global {
 
 window.JSZip = JsZip;
 
-function formatDetalleJSON(
-  detalle: any,
-  type: "display" | "export" | "filter" | "sort" = "display"
-): string {
-  const filas = detalle?.filas ?? [];
-  const desc = detalle?.descuento?.valor ?? "0";
-  const tipoDesc = detalle?.descuento?.nombre ?? "Monto";
-  const imp = detalle?.impuesto?.valor ?? "0";
-
-  const descStr =
-    tipoDesc === "Monto"
-      ? `Desc: ₡${Number(desc).toLocaleString("es-CR", {
-          minimumFractionDigits: 2,
-        })}`
-      : `Desc: ${Number(desc)}%`;
-
-  const impStr = `Imp: ${Number(imp)}%`;
-
-  let filasStr = "Filas: ";
-  if (filas.length === 0) {
-    filasStr += "0";
-  } else {
-    const limit = 2;
-    const mapped = filas.slice(0, limit).map(
-      (f: any) =>
-        `${f.nombre}: ${Number(f.valor).toLocaleString("es-CR", {
-          minimumFractionDigits: 2,
-        })}`
-    );
-    filasStr += mapped.join(", ");
-    if (filas.length > limit) filasStr += ", ...";
-  }
-
-  if (type === "export" || type === "filter" || type === "sort") {
-    return `${descStr}, ${impStr}, ${filasStr}`;
-  }
-
-  return `
-    <div class="d-flex flex-column gap-1">
-      <div class="badge rounded-pill bg-primary-subtle text-dark fw-semibold px-2 py-1 fs-9 shadow-sm" style="font-size: 0.85rem;">${descStr}</div>
-      <div class="badge rounded-pill bg-info-subtle text-dark fw-semibold px-2 py-1 fs-9 shadow-sm" style="font-size: 0.85rem;">${impStr}</div>
-      <div class="badge rounded-pill bg-secondary-subtle text-dark fw-semibold px-2 py-1 fs-9 shadow-sm" style="font-size: 0.85rem;">${filasStr}</div>
-    </div>
-  `;
-}
-
 
 export interface GenericDataTableProps<T> {
   title: string;
@@ -278,25 +232,6 @@ export function GenericDataTable<T>({
         },
       });
     }
-    //#endregion
-
-    //#region DetallesJson
-  if (labelMap["detalleJSON"]) {
-    cols.push({
-      title: labelMap["detalleJSON"] ?? "Detalle",
-      data: "detalleJSON",
-      orderable: true,
-      searchable: true,
-      className: "text-start",
-      defaultContent: "",
-      render: function (data, type, row) {
-        return formatDetalleJSON(row?.detalleJSON ?? {}, type);
-      },
-    });
-  }
-
-
-
     //#endregion
 
     //#region 🛠️ Columna Acciones

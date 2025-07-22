@@ -15,9 +15,9 @@ import {
   cuentasFormEditFields,
   columnKeysCuenta,
   keysInfoModalCuenta,
-  parametrosAString,
   cuentasFormAddFields,
   formatColones,
+  formatDetalleJSON,
 } from "@/utils";
 import {
   ConfirmModal,
@@ -32,7 +32,6 @@ import {
 } from "@/components";
 import { STATUS_TBL } from "@/constants";
 import { useApp } from "@/hooks/useApp";
-import ReactDOM from "react-dom/client";
 import { labelMapCuenta as labelMap } from "@/utils";
 
 //#region 🔁 Estado Global y Negocio
@@ -299,67 +298,19 @@ export const Cuentas = () => {
       val ? new Date(String(val)).toLocaleDateString() : "",
   };
 
+  //#region custom column DetallesJson
   const detalleJSONColumn = {
-    title: labelMap["detalleJSON"],
-    data: null,
+    title: labelMap["detalleJSON"] ?? "Detalle",
+    data: "detalleJSON",
     orderable: true,
     searchable: true,
+    className: "text-start",
     defaultContent: "",
-    render: function (_data: unknown, type: string, row: DTO_Cuenta) {
-      if (
-        (type === "export" || type === "filter" || type === "sort") &&
-        Array.isArray(row.detalleJSON)
-      ) {
-        return parametrosAString(row.detalleJSON);
-      }
-      return "";
-    },
-    createdCell: (cell: Node, _data: unknown, row: DTO_Cuenta) => {
-      try {
-        const container = document.createElement("div");
-        const htmlCell = cell as HTMLElement;
-        htmlCell.innerHTML = "";
-        container.classList.add("w-100");
-
-        const detalle = row.detalleJSON as DTO_DetalleCuentaJSON;
-        const filas = detalle?.filas ?? [];
-        const descuento = detalle?.descuento?.valor ?? "0";
-        const impuesto = detalle?.impuesto?.valor ?? "0";
-        const tipoDescuento = detalle?.descuento?.nombre;
-
-        ReactDOM.createRoot(container).render(
-          <div className="d-flex flex-wrap gap-1">
-            {/* Descuento */}
-            <div className="bg-light border rounded px-2 py-1 fs-8 text-gray-700">
-              <strong className="me-1">Desc:</strong>
-              {tipoDescuento === "Monto"
-                ? `₡ ${Number(descuento)
-                    .toFixed(2)
-                    .replace(/\B(?=(\d{3})+(?!\d))/g, " ")
-                    .replace(".", ",")}`
-                : `${Number(descuento).toLocaleString("es-CR")}%`}
-            </div>
-
-            {/* Impuesto */}
-            <div className="bg-light border rounded px-2 py-1 fs-8 text-gray-700">
-              <strong className="me-1">Imp:</strong>
-              {Number(impuesto).toLocaleString("es-CR")}%
-            </div>
-
-            {/* Filas */}
-            <div className="bg-light border rounded px-2 py-1 fs-8 text-gray-700">
-              <strong className="me-1">Filas:</strong>
-              {filas.length}
-            </div>
-          </div>
-        );
-
-        htmlCell.appendChild(container);
-      } catch (err) {
-        console.warn("Error rendering detalleJSON column", err);
-      }
+    render: function (_: unknown, type: "display" | "export" | "filter" | "sort", row: DTO_Cuenta) {
+      return formatDetalleJSON(row?.detalleJSON ?? {}, type);
     },
   };
+  //#endregion
 
   const formAddFields: FieldConfig<DTO_Cuenta>[] = [
     ...cuentasFormAddFields,
@@ -433,7 +384,7 @@ export const Cuentas = () => {
   const formEditFields: FieldConfig<any>[] = [
     {
       key: "acciones",
-      label: "Acciones",
+      label: "",
       type: "custom",
       required: false,
       order: 1,
@@ -447,7 +398,7 @@ export const Cuentas = () => {
               }}
               className="btn btn-primary me-2"
             >
-              Transacciones
+              Ver transacciones
             </button>
             <button
               onClick={(e) => {
@@ -456,7 +407,7 @@ export const Cuentas = () => {
               }}
               className="btn btn-danger"
             >
-              Eliminar
+              Eliminar Cuenta
             </button>
           </div>
         );
@@ -558,12 +509,13 @@ export const Cuentas = () => {
           } as FieldConfig<any>,
         ]
       : []),
+      
     {
       key: "acciones",
       label: "Acciones",
       type: "custom",
       required: false,
-      order: 99,
+      order: 0,
       renderer: () => {
         return (
           <div className="d-flex justify-content-star mb-3">
@@ -575,7 +527,7 @@ export const Cuentas = () => {
               }}
               className="btn btn-primary me-2"
             >
-              Transacciones
+             Ver transacciones
             </button>
             <button
               onClick={(e) => {
@@ -584,7 +536,7 @@ export const Cuentas = () => {
               }}
               className="btn btn-danger"
             >
-              Eliminar
+              Eliminar cuenta
             </button>
           </div>
         );
@@ -595,7 +547,7 @@ export const Cuentas = () => {
       key: "detalleJSON",
       label: "Detalles",
       type: "custom",
-      order: 8,
+      order: 6,
       renderer: ({ value }) => {
         if (!value) {
           return (
