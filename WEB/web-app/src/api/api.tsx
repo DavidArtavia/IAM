@@ -48,7 +48,7 @@ api.interceptors.response.use(
     }
 
     // 403 → posible renovación de token
-    if (error.response.status === 403 && !originalRequest._retry) {
+    if (error.response.status === STATUS.TOKEN_REFRESH_REQUIRED && !originalRequest._retry) {
       originalRequest._retry = true;
 
       const nuevoToken = error.response?.data?.resultado?.[0]?.accesToken;

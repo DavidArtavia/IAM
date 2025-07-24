@@ -11,6 +11,7 @@ import {
   procesarRespuesta,
 } from '@/utils';
 import { useApp } from '@/hooks/useApp';
+import Select from "react-select";
 
 export const BusinessButtons = () => {
   const { state, setNegocio, setListaNegocios } = useApp();
@@ -36,38 +37,38 @@ export const BusinessButtons = () => {
     return () => sub.unsubscribe();
   }, [listaNegocios]);  
 
+const opcionesNegocios = listaNegocios.map((b) => ({
+  value: b.iD_Negocio,
+  label: b.nombreNegocio,
+}));
 
   return (
     <div className="container py-3" style={{ paddingLeft: 0 }}>
       <div className="row gx-0">
         <div className="col-12 col-lg-3">
-          <select
-            data-control="select2"
-            className="form-control form-control-solid"
-            disabled={listaNegocios.length === 0}
-            value={negocio?.iD_Negocio ?? ''}
-            onChange={(e) => {
-              const id = Number(e.target.value);
-              setNegocio(listaNegocios.find(n => n.iD_Negocio === id) ?? null);
+          <Select
+            className="basic-single"
+            classNamePrefix="select"
+            isDisabled={listaNegocios.length === 0}
+            isClearable={false}
+            placeholder={
+              listaNegocios.length === 0
+                ? "Sin negocios creados"
+                : "Seleccione un negocio"
+            }
+            value={
+              negocio
+                ? { value: negocio.iD_Negocio, label: negocio.nombreNegocio }
+                : null
+            }
+            onChange={(opcion) => {
+              const id = opcion?.value;
+              const seleccionado =
+                listaNegocios.find((n) => n.iD_Negocio === id) ?? null;
+              setNegocio(seleccionado);
             }}
-          >
-            {listaNegocios.length === 0 ? (
-              <option value="" disabled>Sin negocios creados</option>
-            ) : (
-              <>
-                {!negocio && (                         
-                  <option value="" disabled>
-                    Seleccione un negocio
-                  </option>
-                )}
-                {listaNegocios.map(b => (
-                  <option key={b.iD_Negocio} value={b.iD_Negocio}>
-                    {b.nombreNegocio}
-                  </option>
-                ))}
-              </>
-            )}
-          </select>
+            options={opcionesNegocios}
+          />
         </div>
       </div>
     </div>

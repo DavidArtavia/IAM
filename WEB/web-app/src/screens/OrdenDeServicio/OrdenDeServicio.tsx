@@ -231,12 +231,11 @@ export const OrdenDeServicio = () => {
   };
 
   const handleEdit = (row: DTO_OrdenServicio) => {
-    if (!selectedBusiness) return;
     const cleanedNote = row.notaOrdenServicio?.split("|").pop()?.trim() || "";
     const copy: any = {
       ...row,
       notaOrdenServicio: cleanedNote,
-      iD_Negocio: selectedBusiness.iD_Negocio,
+      iD_Negocio: row.iD_Negocio,
       fechaInicio: normalizeIncomingDate(row.fechaInicio),
       fechaFinal: normalizeIncomingDate(row.fechaFinal),
       fechaEntrega: normalizeIncomingDate(row.fechaEntrega),

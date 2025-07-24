@@ -1,4 +1,4 @@
-import { ReactNode, useState } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import { AuthContext } from "@/context";
 import { DTO_Usuario } from "@/models";
 
@@ -7,32 +7,34 @@ type Props = {
 };
 
 const AuthProvider = (props: Props) => {
-    const [user, setUser] = useState<DTO_Usuario | null>(null);
-    const [token, setToken] = useState<string>("");
-    const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [user, setUser] = useState<DTO_Usuario | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-  const onLogin = (user: DTO_Usuario, token: string) => {
+  useEffect(() => {
+    const storedUser = sessionStorage.getItem("auth_user");
+    if (storedUser) {
+      try {
+        const parsedUser = JSON.parse(storedUser) as DTO_Usuario;
+        setUser(parsedUser);
+        setIsAuthenticated(true);
+      } catch (error) {
+        console.error("Error parsing user from sessionStorage:", error);
+        sessionStorage.removeItem("auth_user");
+      }
+    }
+  }, []);
 
+  const login = (user: DTO_Usuario) => {
     setUser(user);
-    setToken(token);
     setIsAuthenticated(true);
+    sessionStorage.setItem("auth_user", JSON.stringify(user)); // Persistir en sesión
   };
 
-  const onLogout = () => {
-
-    setUser(null);
-    setToken('');
-    setIsAuthenticated(false);
-  };
-
-  // Solución con type assertion para asegurar compatibilidad
   const contextValue = {
     user,
     setUser,
-    token,
     isAuthenticated,
-    login: onLogin,
-    logout: onLogout,
+    login,
   };
 
   return (

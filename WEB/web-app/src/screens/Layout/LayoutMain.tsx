@@ -113,13 +113,13 @@ export const LayoutMain = () => {
         data-kt-drawer-toggle="#kt_aside_mobile_toggle"
       >
         <div className="aside-logo py-8" id="kt_aside_logo">
-          <a href="/" className="d-flex align-items-center">
+          <Link to={ROUTES.HOME} className="d-flex align-items-center">
             <img
               alt="Logo"
               className="h-45px logo"
               src="src/assets/media/logos/logo-demo-6.svg"
             />
-          </a>
+          </Link>
         </div>
 
         <div className="aside-menu flex-column-fluid" id="kt_aside_menu">
@@ -140,8 +140,9 @@ export const LayoutMain = () => {
               <div className="menu-item py-2">
                 <Link
                   to={ROUTES.HOME}
-                  className={`menu-link menu-center${pathname === ROUTES.HOME ? " active" : ""
-                    }`}
+                  className={`menu-link menu-center${
+                    pathname === ROUTES.HOME ? " active" : ""
+                  }`}
                   data-bs-trigger="hover"
                   data-bs-dismiss="click"
                   data-bs-placement="right"
@@ -156,8 +157,9 @@ export const LayoutMain = () => {
               <div className="menu-item py-2">
                 <Link
                   to={ROUTES.CHAT_AI}
-                  className={`menu-link menu-center${pathname === ROUTES.CHAT_AI ? " active" : ""
-                    }`}
+                  className={`menu-link menu-center${
+                    pathname === ROUTES.CHAT_AI ? " active" : ""
+                  }`}
                   data-bs-trigger="hover"
                   data-bs-dismiss="click"
                   data-bs-placement="right"
@@ -172,8 +174,9 @@ export const LayoutMain = () => {
               <div className="menu-item py-2">
                 <Link
                   to={ROUTES.NEGOCIO}
-                  className={`menu-link menu-center${pathname === ROUTES.NEGOCIO ? " active" : ""
-                    }`}
+                  className={`menu-link menu-center${
+                    pathname === ROUTES.NEGOCIO ? " active" : ""
+                  }`}
                   data-bs-trigger="hover"
                   data-bs-dismiss="click"
                   data-bs-placement="right"
@@ -188,8 +191,9 @@ export const LayoutMain = () => {
               <div className="menu-item py-2">
                 <Link
                   to={ROUTES.CLIENTES}
-                  className={`menu-link menu-center${pathname === ROUTES.CLIENTES ? " active" : ""
-                    }`}
+                  className={`menu-link menu-center${
+                    pathname === ROUTES.CLIENTES ? " active" : ""
+                  }`}
                   data-bs-trigger="hover"
                   data-bs-dismiss="click"
                   data-bs-placement="right"
@@ -204,8 +208,9 @@ export const LayoutMain = () => {
               <div className="menu-item py-2">
                 <Link
                   to={ROUTES.CUENTAS}
-                  className={`menu-link menu-center${pathname === ROUTES.CUENTAS ? " active" : ""
-                    }`}
+                  className={`menu-link menu-center${
+                    pathname === ROUTES.CUENTAS ? " active" : ""
+                  }`}
                   data-bs-trigger="hover"
                   data-bs-dismiss="click"
                   data-bs-placement="right"
@@ -220,8 +225,9 @@ export const LayoutMain = () => {
               <div className="menu-item py-2">
                 <Link
                   to={ROUTES.SERVICE_ORDER}
-                  className={`menu-link menu-center${pathname === ROUTES.SERVICE_ORDER ? " active" : ""
-                    }`}
+                  className={`menu-link menu-center${
+                    pathname === ROUTES.SERVICE_ORDER ? " active" : ""
+                  }`}
                   data-bs-trigger="hover"
                   data-bs-dismiss="click"
                   data-bs-placement="right"
@@ -236,8 +242,9 @@ export const LayoutMain = () => {
               <div className="menu-item py-2">
                 <Link
                   to={ROUTES.MONITOR}
-                  className={`menu-link menu-center${pathname === ROUTES.MONITOR ? " active" : ""
-                    }`}
+                  className={`menu-link menu-center${
+                    pathname === ROUTES.MONITOR ? " active" : ""
+                  }`}
                   data-bs-trigger="hover"
                   data-bs-dismiss="click"
                   data-bs-placement="right"
@@ -252,7 +259,9 @@ export const LayoutMain = () => {
               <div className="menu-item py-2">
                 <Link
                   to={ROUTES.TRANSACTIONS}
-                  className={`menu-link menu-center${pathname === ROUTES.TRANSACTIONS ? " active" : ""}`}
+                  className={`menu-link menu-center${
+                    pathname === ROUTES.TRANSACTIONS ? " active" : ""
+                  }`}
                   data-bs-trigger="hover"
                   data-bs-dismiss="click"
                   data-bs-placement="right"
@@ -267,7 +276,9 @@ export const LayoutMain = () => {
               <div className="menu-item py-2">
                 <Link
                   to={ROUTES.METRICAS}
-                  className={`menu-link menu-center${pathname === ROUTES.METRICAS ? " active" : ""}`}
+                  className={`menu-link menu-center${
+                    pathname === ROUTES.METRICAS ? " active" : ""
+                  }`}
                   data-bs-trigger="hover"
                   data-bs-dismiss="click"
                   data-bs-placement="right"
@@ -335,8 +346,7 @@ export const LayoutMain = () => {
 
             <div className="separator my-2" />
 
-
-                  <BusinessButtons></BusinessButtons>
+            <BusinessButtons />
 
             <div className="d-flex align-items-stretch justify-content-between flex-lg-grow-1">
               <div className="d-flex align-items-stretch" id="kt_header_nav" />
@@ -371,9 +381,11 @@ export const LayoutMain = () => {
                   <div className="menu-item px-3">
                     <div className="menu-content d-flex align-items-center px-3">
                       <div className="symbol symbol-50px me-5">
+                        {/* {Aqui debe ir la foto del cliente usuario } */}
                         <img
-                          alt="Logo"
-                          src="src/assets/media/avatars/150-26.jpg"
+                          // src={user?.fotoUsuario || "src/assets/media/avatars/blank.png"}
+                          src={"src/assets/media/avatars/blank.png"}
+                          alt="Foto de usuario"
                         />
                       </div>
 
