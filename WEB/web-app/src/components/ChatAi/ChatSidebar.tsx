@@ -1,8 +1,13 @@
-
 import { DTO_ChatIA, DTO_Negocio } from "@/models";
 import { chatService } from "@/services";
-import { dateHelpers, errorHelpers, notificationHelpers, procesarRespuesta } from "@/utils";
+import {
+  dateHelpers,
+  errorHelpers,
+  notificationHelpers,
+  procesarRespuesta,
+} from "@/utils";
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 
 interface Props {
   chats: Array<DTO_ChatIA>;
@@ -11,17 +16,20 @@ interface Props {
   negocio: DTO_Negocio;
 }
 
-export const ChatSidebar = ({ chats, selectedChat, onSelectChat, negocio }: Props) => {
-
+export const ChatSidebar = ({
+  chats,
+  selectedChat,
+  onSelectChat,
+  negocio,
+}: Props) => {
   const [newChat, setNewChat] = useState<DTO_ChatIA[]>();
-  
+
   useEffect(() => {
     setNewChat(chats);
   }, [chats]);
 
   const handleNewChat = () => {
-
-    if(!negocio) return;
+    if (!negocio) return;
     chatService.crearChat(negocio).subscribe({
       next: (result) => {
         notificationHelpers.infoAlert(
@@ -40,12 +48,9 @@ export const ChatSidebar = ({ chats, selectedChat, onSelectChat, negocio }: Prop
         if (chatsArray.length > 0) {
           onSelectChat(chatsArray[chatsArray.length - 1]);
         }
-
       },
       error: (err) => errorHelpers.serverError(err),
-      complete: () => {
-      }
-      
+      complete: () => {},
     });
   };
 
@@ -72,40 +77,44 @@ export const ChatSidebar = ({ chats, selectedChat, onSelectChat, negocio }: Prop
           style={{ overflowY: "auto", maxHeight: "700px" }}
         >
           {newChat?.map((chat) => (
-            <div key={chat.iD_ChatIA} onClick={() => onSelectChat(chat)}>
+            <div
+              className="cursor-pointer"
+              key={chat.iD_ChatIA}
+              onClick={() => onSelectChat(chat)}
+            >
               <div className="d-flex flex-stack">
-          <div className="d-flex align-items-center">
-            <div className="symbol symbol-45px symbol-circle">
-              <span
-                className={`symbol-label fs-6 fw-bolder${
-            selectedChat?.iD_ChatIA === chat?.iD_ChatIA
-              ? " bg-dark"
-              : " "
-                }`}
-              >
-                <i className="bi bi-chat-left-text fs-1"></i>
-              </span>
-            </div>
-            <div className="ms-5">
-              <a
-                href="#kt_chat_messenger_footer"
-                className="fs-5 fw-bolder text-gray-900 text-hover-primary mb-2"
-              >
-                Chat #
-                {newChat?.findIndex(
-            (c) => c.iD_ChatIA === chat.iD_ChatIA
-                ) + 1}
-              </a>
-              <div className="fw-bold text-muted">
-                {dateHelpers.formatFechaDDMMYYYY(chat.fechaInicial)}
+              <div className="d-flex align-items-center">
+                <div className="symbol symbol-45px symbol-circle ">
+                <span
+                  className={`symbol-label fs-6 fw-bolder${
+                  selectedChat?.iD_ChatIA === chat?.iD_ChatIA
+                    ? " bg-dark"
+                    : " "
+                  }`}
+                >
+                  <i className="bi bi-chat-left-text fs-1"></i>
+                </span>
+                </div>
+                <div className="ms-5">
+                <Link
+                  to="#kt_chat_messenger_footer"
+                  className="fs-5 fw-bolder text-gray-900 text-hover-primary mb-2"
+                >
+                  Chat #
+                  {newChat?.findIndex(
+                  (c) => c.iD_ChatIA === chat.iD_ChatIA
+                  ) + 1}
+                </Link>
+                <div className="fw-bold text-muted">
+                  {dateHelpers.formatFechaDDMMYYYY(chat.fechaInicial)}
+                </div>
+                </div>
               </div>
-            </div>
-          </div>
-          <div className="d-flex flex-column align-items-end ms-2">
-            <span className="text-muted fs-7 mb-1">
-              {dateHelpers.formatTimeDifference(chat.fechaInicial)}
-            </span>
-          </div>
+              <div className="d-flex flex-column align-items-end ms-2">
+                <span className="text-muted fs-7 mb-1">
+                {dateHelpers.formatTimeDifference(chat.fechaInicial)}
+                </span>
+              </div>
               </div>
               <div className="separator border-solid mt-10 mb-12"></div>
             </div>
@@ -114,5 +123,4 @@ export const ChatSidebar = ({ chats, selectedChat, onSelectChat, negocio }: Prop
       </div>
     </div>
   );
-}
-
+};

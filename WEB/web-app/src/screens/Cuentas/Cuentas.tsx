@@ -31,6 +31,7 @@ import {
 import { STATUS_TBL } from "@/constants";
 import { useApp } from "@/hooks/useApp";
 import { labelMapCuenta as labelMap } from "@/utils";
+import Select from "react-select";
 
 //#region 🔁 Estado Global y Negocio
 //#region 🔁 Estado Global y Negocio
@@ -383,6 +384,41 @@ export const Cuentas = () => {
         );
       },
     },
+    {
+      key: "tipoCuenta",
+      label: labelMapCuenta["tipoCuenta"] ?? "Tipo de Cuenta",
+      type: "custom",
+      required: true,
+      errorMessage: "Seleccione un tipo de cuenta",
+      order: 5,
+      renderer: ({ value, onChange }) => (
+        <Select
+          value={
+            value
+              ? {
+                  label:
+                    value === "Cuenta Por Pagar"
+                      ? "Cuenta Por Pagar"
+                      : "Cuenta Por Cobrar",
+                  value,
+                }
+              : null
+          }
+          onChange={(option) => {
+            onChange(option?.value);
+            setEditData((prev) =>
+              prev ? { ...prev, tipoCuenta: option?.value } : null
+            );
+          }}
+          options={[
+            { label: "Cuenta Por Cobrar", value: "Cuentas Por Cobrar" },
+            { label: "Cuenta Por Pagar", value: "Cuenta Por Pagar" },
+          ]}
+          placeholder="Seleccione tipo de cuenta"
+          isSearchable={false}
+        />
+      ),
+    },
   ];
   //#endregion
 
@@ -394,7 +430,7 @@ export const Cuentas = () => {
 
   const formEditFields: FieldConfig<any>[] = [
     ...cuentasFormEditFields,
-    ...(rowTableSelected?.iD_OrdenServicio
+    ...(editData?.iD_OrdenServicio
       ? [
           {
             key: "iD_OrdenServicio",
@@ -486,14 +522,38 @@ export const Cuentas = () => {
     {
       key: "tipoCuenta",
       label: labelMapCuenta["tipoCuenta"] ?? "Tipo de Cuenta",
-      type: "select",
+      type: "custom",
       required: !isCuentaPorCobrarOS,
-      readOnly: isCuentaPorCobrarOS,
-      options: [
-        { label: "Cuenta Por Cobrar", value: "Cuentas Por Cobrar" },
-        { label: "Cuenta Por Pagar", value: "Cuenta Por Pagar" },
-      ],
+      errorMessage: "Seleccione un tipo de cuenta",
       order: 9,
+      renderer: ({ value, onChange }) => (
+        <Select
+          isDisabled={isCuentaPorCobrarOS}
+          value={
+            value
+              ? {
+                  label:
+                    value === "Cuenta Por Pagar"
+                      ? "Cuenta Por Pagar"
+                      : "Cuenta Por Cobrar",
+                  value,
+                }
+              : null
+          }
+          onChange={(option) => {
+            onChange(option?.value);
+            setEditData((prev) =>
+              prev ? { ...prev, tipoCuenta: option?.value } : null
+            );
+          }}
+          options={[
+            { label: "Cuenta Por Cobrar", value: "Cuentas Por Cobrar" },
+            { label: "Cuenta Por Pagar", value: "Cuenta Por Pagar" },
+          ]}
+          placeholder="Seleccione tipo de cuenta"
+          isSearchable={false}
+        />
+      ),
     },
   ];
   //#endregion

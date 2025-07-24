@@ -601,16 +601,5 @@ export const cuentasFormAddFields: FieldConfig<DTO_Cuenta>[] = [
         required: true,
         order: 4,
     },
-    {
-        key: "tipoCuenta",
-        label: labelMapCuenta["tipoCuenta"] ?? "Tipo de Cuenta",
-        type: "select",
-        required: true,
-        options: [
-            { label: "Cuenta Por Cobrar", value: "Cuentas Por Cobrar" },
-            { label: "Cuenta Por Pagar", value: "Cuenta Por Pagar" },
-        ],
-        order: 5,
-    },
 ];
 //#endregion
