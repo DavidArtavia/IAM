@@ -13,6 +13,7 @@ export * from "./Modals/TransaccionesPorCuentaModal/TransaccionesPorCuentaModal"
 export * from "./Modals/LoadingModal/ConfirmModal";
 export * from "./Modals/LoadingModal/LoadingModal";
 export * from "./Modals/RestriccionModal/RestriccionModal";
+export * from "./Modals/ModalHeaderButtons/ModalHeaderButtons";
 export * from "./Orden/FechaEntregaBadge";
 export * from "./Orden/OrdenServicioCard";
 export * from "./Orden/OrdenesSeccion";

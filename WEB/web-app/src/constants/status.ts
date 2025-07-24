@@ -38,6 +38,7 @@ export const STATUS_TBL = {
         PENDING: 8,
         COMPLETED: 9,
         DELETED: 10,
+        ARCHIVED: 22,
     },
     ITEMS_ORDER_SERVICE: {
         ACTIVE: 18,
