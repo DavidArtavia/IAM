@@ -343,7 +343,7 @@ export const ItemsOrdenDeServicioModal = ({
               <LoadingPanel msj="Cargando Items de la órden de servicio, por favor espere..." />
             ) : (
               <GenericDataTable
-                title="Ítems de la Orden de Servicio"
+                title={`Ítems de la Orden de Servicio #${rowData.iD_OrdenServicio}`}
                 columnKeys={columnKeysItemsOrdenServicio}
                 labelMap={labelMapItemsOrdenServicio}
                 // data={itemsOrdenes}

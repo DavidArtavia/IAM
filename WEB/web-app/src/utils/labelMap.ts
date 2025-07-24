@@ -432,7 +432,6 @@ export const cuentasFormEditFields: FieldConfig<DTO_Cuenta>[] = [
         key: "iD_Cuenta",
         label: labelMapCuenta["iD_Cuenta"] ?? "Cuenta #",
         type: "text",
-        required: true,
         readOnly: true,
         order: 2,
     },
@@ -440,16 +439,8 @@ export const cuentasFormEditFields: FieldConfig<DTO_Cuenta>[] = [
         key: "estado",
         label: labelMapCuenta["estado"] ?? "Estado",
         type: "text",
-        required: true,
         readOnly: true,
         order: 3,
-    },
-    {
-        key: "concepto",
-        label: labelMapCuenta["concepto"] ?? "Concepto",
-        type: "text",
-        required: true,
-        order: 5,
     },
     {
         key: "descripcion",
@@ -472,17 +463,7 @@ export const cuentasFormEditFields: FieldConfig<DTO_Cuenta>[] = [
         required: true,
         order: 8,
     },
-    {
-        key: "tipoCuenta",
-        label: labelMapCuenta["tipoCuenta"] ?? "Tipo de Cuenta",
-        type: "select",
-        required: true,
-        options: [
-            { label: "Cuenta Por Cobrar", value: "Cuentas Por Cobrar" },
-            { label: "Cuenta Por Pagar", value: "Cuenta Por Pagar" },
-        ],
-        order: 9,
-    },
+
 ];
 export const ordenservicioFormCrearCuenta: FieldConfig<DTO_Cuenta>[] = [
 
@@ -533,48 +514,38 @@ export const ItemsOrdenServicioFormEditFields: Array<FieldConfig<DTO_ItemOrdenSe
         type: key === "monto" ? "number" : "text",
     }));
 
-export const ordenServicioFormEditFields: Array<
-    FieldConfig<DTO_OrdenServicio>
-> = [
-        // Campo fechaInicio fijo
-        {
-            key: "fechaInicio",
-            label: labelMapOrdenDeServicio["fechaInicio"] ?? "Fecha de Inicio",
-            type: "date", // aquí TS sabe que es literal "date"
-        },
-        {
-            key: "fechaFinal",
-            label: labelMapOrdenDeServicio["fechaFinal"] ?? "Fecha Final",
-            type: "date", // aquí TS sabe que es literal "date"
-        },
-        {
-            key: "fechaEntrega",
-            label: labelMapOrdenDeServicio["fechaEntrega"] ?? "Fecha de Entrega",
-            type: "date", // aquí TS sabe que es literal "date"
-        },
-        // Resto de campos automáticos
-        ...columnKeysOrdenDeServicio
-            .filter(
-                (key) =>
-                    key !== "referenciaJSON" &&
-                    key !== "fechaOrdenServicio" &&
-                    key !== "iD_OrdenServicio" // Excluimos el ID de la orden de servicio
-            )
-            .map((key) => {
-                // convertimos el resultado a un literal
-                const fieldType = key.toString().includes("fecha")
-                    ? ("date" as const)
-                    : ("text" as const);
-
-                const config: FieldConfig<DTO_OrdenServicio> = {
-                    key,
-                    label: labelMapOrdenDeServicio[key as keyof typeof labelMapOrdenDeServicio] ?? String(key),
-                    type: fieldType, // TS ve aquí un "date" | "text" válido
-                };
-
-                return config;
-            }),
-    ];
+export const ordenServicioFormEditFields: Array<FieldConfig<DTO_OrdenServicio>> = [
+    {
+        key: "fechaInicio",
+        label: labelMapOrdenDeServicio["fechaInicio"] ?? "Fecha de Inicio",
+        type: "date",
+        required: true,
+        order: 1,
+        errorMessage: "La fecha de inicio es obligatoria",
+    },
+    {
+        key: "fechaFinal",
+        label: labelMapOrdenDeServicio["fechaFinal"] ?? "Fecha Final",
+        type: "date",
+        required: true,
+        order: 2,
+        errorMessage: "La fecha final es obligatoria",
+    },
+    {
+        key: "fechaEntrega",
+        label: labelMapOrdenDeServicio["fechaEntrega"] ?? "Fecha de Entrega",
+        type: "date",
+        required: false,
+        order: 3,
+    },
+    {
+        key: "fechaEstimadaEntrega",
+        label: labelMapOrdenDeServicio["fechaEstimadaEntrega"] ?? "Entrega Estimada",
+        type: "date",
+        required: false,
+        order: 6,
+    },
+];
 export const transaccionesFormEditFields: FieldConfig<DTO_Transacciones>[] = [
     { key: "concepto", label: "Concepto", type: "text", required: true },
     { key: "monto", label: "Monto", type: "number", required: true },

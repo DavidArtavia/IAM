@@ -51,9 +51,12 @@ function renderValue<T>(
     if (formatted) return <span>{formatted}</span>;
     if (value === "0001-01-01T00:00:00") {
       return (
-        <span className="badge bg-warning text-dark">
-          No se ha definido aún
-        </span>
+        <>
+            <span className="px-3 py-2 fs-7 d-inline-flex align-items-center">
+              <i className="bi bi-exclamation-circle me-2"></i>
+              Fecha pendiente de definición
+            </span>
+        </>
       );
     }
     return <span className="text-muted">[Fecha inválida]</span>;
@@ -151,7 +154,7 @@ export const InfoModal = <T,>({
           <div className="modal-body py-10 px-10 px-lg-17">
             <div className="row g-6">
               {sortedFields.map((field) => {
-                const value = data[field.key];
+                const value = data?.[field.key] ?? null;
                 return (
                   <div key={String(field.key)} className="col-12 col-md-6">
                     <div className="bg-light border rounded p-4 shadow-sm h-100">
