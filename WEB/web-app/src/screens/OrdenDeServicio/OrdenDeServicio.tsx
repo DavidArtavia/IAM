@@ -64,7 +64,9 @@ export const OrdenDeServicio = () => {
     }
   }, [state]);
 
-  const [selectedBusiness, setSelectedBusiness] = useState<DTO_Negocio | null>(null);
+  const [selectedBusiness, setSelectedBusiness] = useState<DTO_Negocio | null>(
+    null
+  );
   const [ordenes, setOrdenes] = useState<DTO_OrdenServicio[]>([]);
   const [disableButtonAdd, setDisableButtonAdd] = useState(true);
   //#endregion
@@ -102,7 +104,8 @@ export const OrdenDeServicio = () => {
     dto.fechaEstimadaEntrega = null;
     return dto;
   });
-  const [selectedClientOption, setSelectedClientOption] = useState<ClientOption | null>(null);
+  const [selectedClientOption, setSelectedClientOption] =
+    useState<ClientOption | null>(null);
 
   const handleAddNew = () => {
     if (!selectedBusiness) return;
@@ -345,10 +348,13 @@ export const OrdenDeServicio = () => {
   //#endregion
 
   // #region 🗑 Eliminar Orden
-  const [orderToDelete, setOrderToDelete] = useState<DTO_OrdenServicio | null>();
+  const [orderToDelete, setOrderToDelete] =
+    useState<DTO_OrdenServicio | null>();
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [confirmModalMessage, setConfirmModalMessage] = useState("");
-  const [confirmContext, setConfirmContext] = useState<"cancelAdd" | "delete" | null>(null);
+  const [confirmContext, setConfirmContext] = useState<
+    "cancelAdd" | "delete" | null
+  >(null);
 
   const handleDelete = (row: DTO_OrdenServicio) => {
     setConfirmModalMessage(
@@ -420,7 +426,8 @@ export const OrdenDeServicio = () => {
 
   // #region 🧩 Ítems de Orden
   const [showItemsOrdenFormModal, setShowItemsOrdenFormModal] = useState(false);
-  const [dataToItemsOrder, setDataToItemsOrder] = useState<DTO_OrdenServicio | null>(null);
+  const [dataToItemsOrder, setDataToItemsOrder] =
+    useState<DTO_OrdenServicio | null>(null);
   //#endregion
 
   // #region 🧱 Referencias y Renderers
@@ -515,7 +522,9 @@ export const OrdenDeServicio = () => {
   // #region 🏦 Crear Cuenta de Orden de Servicio
   const [account, setAccount] = useState<DTO_Cuenta>();
   const [showCreateAccount, setShowCreateAccount] = useState(false);
-  const [detalleHabilitado, setDetalleHabilitado] = useState<boolean>(!!account?.detalleJSON);
+  const [detalleHabilitado, setDetalleHabilitado] = useState<boolean>(
+    !!account?.detalleJSON
+  );
   const [montoInput, setMontoInput] = useState<string>(
     account?.monto && account?.monto !== 0 ? String(account?.monto) : ""
   );
@@ -700,14 +709,15 @@ export const OrdenDeServicio = () => {
         notificationHelpers.successAlert(res.mensaje);
         setShowCreateAccount(false);
 
-        const ordenToUpdate = {
-          ...editData,
-          estado: {
-            ...editData.estado,
-            iD_Estado: STATUS_TBL.ORDER_SERVICE.ARCHIVED,
-            nombre: "Archivado",
-          },
+          const ordenToUpdate = {
+            ...editData,
+            estado: {
+              ...editData.estado,
+              iD_Estado: STATUS_TBL.ORDER_SERVICE.ARCHIVED,
+              nombre: "Archivado",
+            },
         } as DTO_OrdenServicio;
+        
 
         ordenesService.actualizarOrdensDeServicio(ordenToUpdate).subscribe({
           next: (updateRes: DTO_Respuesta) => {
@@ -731,7 +741,7 @@ export const OrdenDeServicio = () => {
             } else {
               updatedOrden = ordenToUpdate;
             }
-            
+
             setOrdenes((prev) =>
               prev.map((o) =>
                 o.iD_OrdenServicio === updatedOrden.iD_OrdenServicio
@@ -742,7 +752,7 @@ export const OrdenDeServicio = () => {
                   : o
               )
             );
-            
+
             setEditData(updatedOrden);
           },
           error: errorHelpers.serverError,
@@ -778,9 +788,7 @@ export const OrdenDeServicio = () => {
         if (toast.parentNode) toast.parentNode.removeChild(toast);
       };
       setTimeout(removeToast, 6000);
-      toast
-        .querySelector(".btn-close")
-        ?.addEventListener("click", removeToast);
+      toast.querySelector(".btn-close")?.addEventListener("click", removeToast);
     } else if (orden) {
       getItemsToOrderServiceAccount(orden).then(() => {
         setShowCreateAccount(true);
@@ -813,11 +821,10 @@ export const OrdenDeServicio = () => {
   const headerButtonsToInfo = [
     {
       titulo: "Crear Cuenta",
-      onClick: () => handleCreateAccountButton(rowTableSelected),
+      onClick: () => handleCreateAccountButton(editData),
       className: "btn btn-bg-light btn-active-color-info",
-      icon: (rowTableSelected?.estado?.nombre === "Archivado" ||
-        rowTableSelected?.estado?.iD_Estado ===
-          STATUS_TBL.ORDER_SERVICE.ARCHIVED) && (
+      icon: (editData?.estado?.nombre === "Archivado" ||
+        editData?.estado?.iD_Estado === STATUS_TBL.ORDER_SERVICE.ARCHIVED) && (
         <span className="ms-2" style={{ cursor: "pointer", color: "#0d6efd" }}>
           <i className="bi bi-info-circle"></i>
         </span>
@@ -836,28 +843,28 @@ export const OrdenDeServicio = () => {
   // #region 🧩 Render
   return (
     <div className="row p-4 gx-0">
-     
-        <GenericDataTable<DTO_OrdenServicio & Record<string, string>>
-          title="Órdenes de Servicio"
-          columnKeys={columnKeysOrdenDeServicio}
-          labelMap={labelMap}
-          data={data}
-          onAdd={handleAddNew}
-          onEdit={handleEdit}
-          onDelete={handleDelete}
-          disableButtonAdd={disableButtonAdd}
-          includeEstadoColumn
-          showItemsButton
-          onOpenItemsModal={(rowData) => {
-            setShowItemsOrdenFormModal(true);
-            setDataToItemsOrder(rowData as DTO_OrdenServicio);
-          }}
-          onRowClick={(rowData) => {
-            setRowTableSelected(rowData as DTO_OrdenServicio);
-          }}
-          customColumns={[referenciaJSONColumn]}
-          customRenderers={customRenderers}
-        />
+      <GenericDataTable<DTO_OrdenServicio & Record<string, string>>
+        title="Órdenes de Servicio"
+        columnKeys={columnKeysOrdenDeServicio}
+        labelMap={labelMap}
+        data={data}
+        onAdd={handleAddNew}
+        onEdit={handleEdit}
+        onDelete={handleDelete}
+        disableButtonAdd={disableButtonAdd}
+        includeEstadoColumn
+        showItemsButton
+        onOpenItemsModal={(rowData) => {
+          setShowItemsOrdenFormModal(true);
+          setDataToItemsOrder(rowData as DTO_OrdenServicio);
+        }}
+        onRowClick={(rowData) => {
+          setEditData(rowData as DTO_OrdenServicio);
+          setRowTableSelected(rowData as DTO_OrdenServicio);
+        }}
+        customColumns={[referenciaJSONColumn]}
+        customRenderers={customRenderers}
+      />
 
       <InfoModal
         show={!!rowTableSelected}
