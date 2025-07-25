@@ -345,38 +345,15 @@ export const Monitor = () => {
 
   //#region crear cuenta
   const handleCreateAccountButton = (orden: DTO_OrdenServicio | undefined) => {
-    if (
-      orden?.estado?.nombre === "Archivado" ||
-      orden?.estado?.iD_Estado === STATUS_TBL.ORDER_SERVICE.ARCHIVED
-    ) {
-      const toast = document.createElement("div");
-      toast.className =
-        "toast align-items-center text-bg-info border-0 show position-fixed top-0 start-50 translate-middle-x";
-      toast.style.zIndex = "9999";
-      toast.style.minWidth = "300px";
-      toast.innerHTML = `
-        <div class="d-flex">
-          <div class="toast-body">
-          <strong>Cuenta ya registrada</strong><br/>
-          Esta orden de servicio ya tiene una cuenta asociada. No es posible crear una nueva cuenta para esta orden.
-          </div>
-          <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
-        </div>
-        `;
-      document.body.appendChild(toast);
 
-      const removeToast = () => {
-        if (toast.parentNode) toast.parentNode.removeChild(toast);
-      };
-      setTimeout(removeToast, 6000);
-      toast
-        .querySelector(".btn-close")
-        ?.addEventListener("click", removeToast);
-    } else if (orden) {
+    setEditData(orden || new DTO_OrdenServicio());
+    
+   if (orden) {
       getItemsToOrderServiceAccount(orden).then(() => {
         setShowCreateAccount(true);
       });
     }
+    
   };
 
 
@@ -548,8 +525,7 @@ export const Monitor = () => {
   ];
 
   const handleCreateAccount = (cuenta: DTO_Cuenta) => {
-    console.log('entró');
-
+    
     if (!cuenta.iD_Negocio || !cuenta.iD_OrdenServicio) {
       notificationHelpers.errorAlert("Negocio o Orden de Servicio no válidos");
       return;
@@ -559,14 +535,14 @@ export const Monitor = () => {
         notificationHelpers.successAlert(res.mensaje);
         setShowCreateAccount(false);
 
-        const ordenToUpdate = {
+        const ordenToUpdate: DTO_OrdenServicio = {
           ...editData,
           estado: {
             ...editData.estado,
             iD_Estado: STATUS_TBL.ORDER_SERVICE.ARCHIVED,
             nombre: "Archivado",
           },
-        } as DTO_OrdenServicio;
+        };
 
         ordenesService.actualizarOrdensDeServicio(ordenToUpdate).subscribe({
           next: (updateRes: DTO_Respuesta) => {
@@ -590,7 +566,7 @@ export const Monitor = () => {
             } else {
               updatedOrden = ordenToUpdate;
             }
-
+            
             setOrdenes((prev) =>
               prev.map((o) =>
                 o.iD_OrdenServicio === updatedOrden.iD_OrdenServicio
