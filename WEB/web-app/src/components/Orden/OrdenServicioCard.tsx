@@ -74,6 +74,9 @@ export const OrdenServicioCard = ({
     }
   };
 
+
+
+
   const showAvanzar =
     estadoActual === STATUS_TBL.ORDER_SERVICE.NEW ||
     estadoActual === STATUS_TBL.ORDER_SERVICE.IN_PROCESS;
