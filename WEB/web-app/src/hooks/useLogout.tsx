@@ -15,17 +15,16 @@ export const useLogout = () => {
       //await api.post("/auth/logout"); // Cambia esto según tu endpoint
 
       localStorage.removeItem("accesToken");
+      sessionStorage.removeItem("auth_user");
       // Limpia contexto
       setUser(null);
 
       // Redirige a login
       navigate(ROUTES.LOGIN, { replace: true });
       notificationHelpers.successAlert("Se cerró la sesión correctamente.");
-
     } catch (error) {
-      console.log(error)
+      console.log(error);
       notificationHelpers.errorAlert("Error al cerrar sesión.");
-
     }
   };
 

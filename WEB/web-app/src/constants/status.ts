@@ -1,6 +1,10 @@
 export const STATUS = {
     UNAUTHORIZED: 401,
-    FORBIDDEN: 403,
+    TOKEN_REFRESH_REQUIRED: 403,
+    OK: 200,
+    BAD_REQUEST: 400,
+    NOT_FOUND: 404,
+    INTERNAL_SERVER_ERROR: 500,
 } as const;
 
 export const STATUS_TBL = {
@@ -38,6 +42,7 @@ export const STATUS_TBL = {
         PENDING: 8,
         COMPLETED: 9,
         DELETED: 10,
+        ARCHIVED: 22,
     },
     ITEMS_ORDER_SERVICE: {
         ACTIVE: 18,

@@ -98,6 +98,12 @@ export const Negocio = () => {
     negocioService.registrarNegocio(formData).subscribe({
       next: (result: DTO_Respuesta) => {
         const nuevo = (result.resultado as DTO_Negocio[])[0];
+        if (result.codigo === "B002") {
+          notificationHelpers.infoAlert(result.mensaje);
+          setIsModalFormOpen(false);
+
+          return;
+        }
         if (nuevo) setBusiness((prev) => [...prev, nuevo]);
         {
           notificationHelpers.successAlert(result.mensaje);
@@ -284,11 +290,7 @@ export const Negocio = () => {
 
       return "";
     },
-    createdCell: (
-      cell: Node,
-      _data: unknown,
-      row: DTO_Negocio
-    ) => {
+    createdCell: (cell: Node, _data: unknown, row: DTO_Negocio) => {
       try {
         const container = document.createElement("div");
         const htmlCell = cell as HTMLElement;
@@ -303,12 +305,12 @@ export const Negocio = () => {
       }
     },
   };
-  
+
   //#endregion
 
   //#region 🔑 Claves de información para el modal
   const infoModalFields: FieldConfig<DTO_Negocio>[] = [
-  ...keysInfoModalNegocio,
+    ...keysInfoModalNegocio,
     {
       key: "referenciaJSON",
       label: "Referencias",
@@ -317,7 +319,7 @@ export const Negocio = () => {
       renderer: ({ value }) => <ReferenciaCards items={value ?? []} />,
     },
   ];
-  
+
   //#endregion
 
   //#region 🎨 Render

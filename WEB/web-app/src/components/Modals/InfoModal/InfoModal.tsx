@@ -6,6 +6,8 @@
 import React from "react";
 import { dateHelpers } from "@/utils";
 import { FieldConfig } from "../GenericFormModal/types";
+import { DynamicButtonConfig, ModalHeaderButtons } from "@/components";
+
 
 
 interface InfoModalProps<T> {
@@ -14,6 +16,7 @@ interface InfoModalProps<T> {
   data: T;
   fields: FieldConfig<T>[];
   title?: string;
+  headerButtons?: DynamicButtonConfig[];
 }
 
 /**
@@ -48,9 +51,12 @@ function renderValue<T>(
     if (formatted) return <span>{formatted}</span>;
     if (value === "0001-01-01T00:00:00") {
       return (
-        <span className="badge bg-warning text-dark">
-          No se ha definido aún
-        </span>
+        <>
+            <span className="px-3 py-2 fs-7 d-inline-flex align-items-center">
+              <i className="bi bi-exclamation-circle me-2"></i>
+              Fecha pendiente de definición
+            </span>
+        </>
       );
     }
     return <span className="text-muted">[Fecha inválida]</span>;
@@ -90,7 +96,11 @@ function renderValue<T>(
   }
 
   if (value === null || value === undefined || value === "") {
-    return <span className="text-muted">[No disponible]</span>;
+   return (
+     <span className="px-3 py-2 fs-7">
+       <i className="bi bi-info-circle me-1"></i>[No disponible]
+     </span>
+   );
   }
 
   return <span>{String(value)}</span>;
@@ -105,12 +115,15 @@ export const InfoModal = <T,>({
   data,
   fields,
   title = "Detalles",
+  headerButtons,
 }: InfoModalProps<T>) => {
   if (!show) return null;
 
   const sortedFields = [...fields].sort(
     (a, b) => (a.order ?? 0) - (b.order ?? 0)
   );
+
+  if (!data) return null;
 
   return (
     <div
@@ -125,6 +138,9 @@ export const InfoModal = <T,>({
           {/* Título */}
           <div className="modal-header border-bottom border-gray-300">
             <h2 className="fw-bold text-gray-800">{title}</h2>
+            {headerButtons && headerButtons.length > 0 && (
+              <ModalHeaderButtons buttons={headerButtons} />
+            )}
             <button
               type="button"
               className="btn btn-sm btn-icon btn-active-light-primary"
@@ -138,15 +154,15 @@ export const InfoModal = <T,>({
           <div className="modal-body py-10 px-10 px-lg-17">
             <div className="row g-6">
               {sortedFields.map((field) => {
-                const value = data[field.key];
+                const value = data?.[field.key] ?? null;
                 return (
                   <div key={String(field.key)} className="col-12 col-md-6">
                     <div className="bg-light border rounded p-4 shadow-sm h-100">
                       <div className="text-muted fw-semibold fs-7 mb-1">
-                      {field.label}
+                        {field.label}
                       </div>
                       <div className="fw-bold fs-6 text-gray-900">
-                      {renderValue(field, value)}
+                        {renderValue(field, value)}
                       </div>
                     </div>
                   </div>

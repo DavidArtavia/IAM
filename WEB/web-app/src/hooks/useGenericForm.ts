@@ -48,33 +48,61 @@ export function useGenericForm<T>(
 
             let msg = "";
 
-            // Si el campo tiene validación personalizada
+            // Validación personalizada si existe
             if (conf.validate) {
                 msg = conf.validate(value);
             } else if (conf.required) {
-                const strVal = String(value ?? "").trim();
-                const type = conf.type ?? "text";
+                const isEmpty =
+                    value === undefined ||
+                    value === null ||
+                    value === "" ||
+                    (typeof value === "string" && value.startsWith("error_force_"));
 
-                switch (type) {
-                    case "text":
-                    case "textarea":
-                        if (!strVal) msg = "Este campo es obligatorio";
-                        else if (emojiRegex.test(strVal)) msg = "No se permiten emoticones";
-                        break;
-
-                    case "number": {
-                        const num = parseFloat(strVal);
-                        if (isNaN(num)) msg = "Ingrese un número válido";
-                        else if (num <= 0) msg = "El valor debe ser mayor que cero";
-                        break;
+                // 🔥 Aplica mensaje personalizado si el campo está vacío
+                if (isEmpty) {
+                    if (typeof conf.errorMessage === "function") {
+                        msg = conf.errorMessage(value);
+                    } else if (typeof conf.errorMessage === "string") {
+                        msg = conf.errorMessage;
+                    } else {
+                        msg = "Este campo es obligatorio";
                     }
+                } else {
+                    const strVal = String(value ?? "").trim();
+                    const type = conf.type ?? "text";
 
-                    case "select":
-                    case "custom":
-                        if (!value || value === "0") msg = "Debe seleccionar una opción válida";
-                        break;
+                    switch (type) {
+                        case "text":
+                        case "textarea":
+                            if (!strVal) {
+                                msg =
+                                    typeof conf.errorMessage === "string"
+                                        ? conf.errorMessage
+                                        : "Este campo es obligatorio";
+                            } else if (emojiRegex.test(strVal)) {
+                                msg = "No se permiten emoticones";
+                            }
+                            break;
 
-                    // "date" no requiere validación según lógica previa
+                        case "number": {
+                            const num = parseFloat(strVal);
+                            if (isNaN(num)) {
+                                msg = "Ingrese un número válido";
+                            } else if (num <= 0) {
+                                msg = "El valor debe ser mayor que cero";
+                            }
+                            break;
+                        }
+
+                        case "date":
+                            if (!value || isNaN(new Date(String(value)).getTime())) {
+                                msg =
+                                    typeof conf.errorMessage === "string"
+                                        ? conf.errorMessage
+                                        : "Debe ingresar una fecha válida";
+                            }
+                            break;
+                    }
                 }
             }
 
@@ -83,6 +111,8 @@ export function useGenericForm<T>(
         },
         [fields, emojiRegex]
     );
+
+
 
     const handleChange = useCallback(
         (key: keyof T, raw: string, type: FieldType) => {

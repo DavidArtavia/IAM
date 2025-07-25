@@ -1,0 +1,358 @@
+import { useEffect, useState } from "react";
+import {
+  DTO_Transacciones,
+  DTO_Respuesta,
+  DTO_Cuenta,
+} from "@/models";
+import {
+  ConfirmModal,
+  FieldConfig,
+  GenericFormModal,
+  InfoModal,
+  GenericDataTable,
+  LoadingPanel,
+} from "@/components";
+import {
+  formatColones,
+  errorHelpers,
+  notificationHelpers,
+  columnKeysTransacciones,
+  labelMapTransacciones,
+  transaccionesFormEditFields,
+  keysInfoModalTransacciones,
+} from "@/utils";
+import { transaccionesService } from "@/services/transacciones.service";
+import { STATUS_TBL } from "@/constants";
+import { AutoAccountTransactionInfoField } from "@/screens";
+
+interface TransaccionesPorCuentaModalProps {
+  open: boolean;
+  onHide: () => void;
+  cuenta: DTO_Cuenta;
+  negocioId: number;
+  nombreCuenta?: string;
+}
+
+export const TransaccionesPorCuentaModal = ({
+  open,
+  onHide,
+  cuenta,
+  negocioId,
+  nombreCuenta = "Cuenta",
+}: TransaccionesPorCuentaModalProps) => {
+  //#region 🔄 Estados generales
+  const [loading, setLoading] = useState(false);
+  const [transacciones, setTransacciones] = useState<DTO_Transacciones[]>([]);
+  //#endregion
+
+  //#region ➕ Registro
+  const [isModalFormOpen, setIsModalFormOpen] = useState(false);
+  const [formData, setFormData] = useState<DTO_Transacciones>(
+    new DTO_Transacciones()
+  );
+  //#endregion
+
+  //#region ✏️ Edición
+  const [showEditForm, setShowEditForm] = useState(false);
+  const [editData, setEditData] = useState<DTO_Transacciones | null>(null);
+  const [rowEditSelected, setRowEditSelected] =
+    useState<DTO_Transacciones | null>(null);
+  //#endregion
+
+  //#region 🗑 Eliminación
+  const [transToDelete, setTransToDelete] = useState<DTO_Transacciones | null>(
+    null
+  );
+  //#endregion
+
+  //#region ✅ Confirmación
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+  const [confirmModalMessage, setConfirmModalMessage] = useState("");
+  const [confirmContext, setConfirmContext] = useState<
+    "cancelAdd" | "delete" | null
+  >(null);
+  //#endregion
+
+  //#region ℹ️ Info Modal
+  const [rowSelected, setRowSelected] = useState<DTO_Transacciones>();
+  //#endregion
+
+  //#region 📦 Cargar transacciones al abrir
+  useEffect(() => {
+    if (!open) return;
+    setLoading(true);
+
+    transaccionesService.obtenerTransaccionPorCuenta(cuenta).subscribe({
+      next: (result: DTO_Respuesta) => {
+        const listaRaw = Array.isArray(result.resultado)
+          ? (result.resultado[0] as DTO_Transacciones[])
+          : [];
+
+        const activas = listaRaw.filter(
+          (t) => t.estado?.iD_Estado !== STATUS_TBL.TRANSACTION.DELETED
+        );
+        setTransacciones(activas);
+      },
+      error: errorHelpers.serverError,
+      complete: () => setLoading(false),
+    });
+  }, [open, cuenta]);
+  //#endregion
+
+  
+  //#region 🛠 Funciones
+  const handleAddNew = () => {
+    setFormData(new DTO_Transacciones());
+    setIsModalFormOpen(true);
+  };
+
+  const handleSave = () => {
+    const payload: DTO_Transacciones = {
+      ...formData,
+      iD_Negocio: negocioId,
+      tipoNumReferencia: "Cuenta",
+      numReferencia: String(cuenta.iD_Cuenta),
+    };
+    
+    transaccionesService.registrarTransaccion(payload).subscribe({
+      next: (result: DTO_Respuesta) => {
+        const nueva = (result.resultado as DTO_Transacciones[])[0];
+        if (nueva) setTransacciones((prev) => [...prev, nueva]);
+        notificationHelpers.successAlert(result.mensaje);
+        setIsModalFormOpen(false);
+      },
+      error: errorHelpers.serverError,
+    });
+  };
+  
+  const handleEdit = (row: DTO_Transacciones) => {
+    setRowEditSelected(row);
+    setEditData({ ...row });
+    setShowEditForm(true);
+  };
+  
+  const handleSaveEdit = (updated: DTO_Transacciones) => {
+    if (!rowEditSelected) return;
+    
+    updated.iD_Transaccion = rowEditSelected.iD_Transaccion;
+    updated.iD_Negocio = negocioId;
+    
+    if (!updated.estado?.iD_Estado && rowEditSelected.estado?.iD_Estado) {
+      updated.estado = { ...rowEditSelected.estado };
+    }
+    
+    transaccionesService.actualizarTransaccion(updated).subscribe({
+      next: () => {
+        setTransacciones((prev) =>
+          updated.estado?.iD_Estado !== STATUS_TBL.TRANSACTION.DELETED
+            ? prev.map((t) =>
+              t.iD_Transaccion === updated.iD_Transaccion ? updated : t
+          )
+          : prev.filter((t) => t.iD_Transaccion !== updated.iD_Transaccion)
+        );
+        notificationHelpers.successAlert(
+          "Transacción actualizada correctamente"
+        );
+        setShowEditForm(false);
+      },
+      error: errorHelpers.serverError,
+    });
+  };
+
+  const handleDelete = (item: DTO_Transacciones) => {
+    setConfirmModalMessage(
+      `¿Estás seguro de eliminar la transacción ${item.concepto}?`
+    );
+    setTransToDelete(item);
+    setConfirmContext("delete");
+    setIsConfirmOpen(true);
+  };
+  
+  const handleConfirmDelete = (action: boolean | null) => {
+    if (action && transToDelete) {
+      const updated = {
+        ...transToDelete,
+        estado: {
+          ...transToDelete.estado!,
+          iD_Estado: STATUS_TBL.TRANSACTION.DELETED,
+        },
+      };
+      setTransacciones((prev) =>
+        prev.filter((t) => t.iD_Transaccion !== updated.iD_Transaccion)
+      );
+      transaccionesService.actualizarTransaccion(updated).subscribe({
+        next: () => {
+          notificationHelpers.infoAlert("Transacción eliminada");
+        },
+        error: errorHelpers.serverError,
+      });
+      setTransToDelete(null);
+    }
+    setIsConfirmOpen(false);
+    setConfirmContext(null);
+  };
+  
+  const handleCancelAdd = () => {
+    setConfirmModalMessage("¿Deseas cancelar el registro?");
+    setConfirmContext("cancelAdd");
+    setIsConfirmOpen(true);
+  };
+  
+  const confirmModalAction = (action: boolean | null) => {
+    if (action) {
+      if (confirmContext === "cancelAdd") {
+        setIsModalFormOpen(false);
+        notificationHelpers.infoAlert("Registro cancelado");
+      } else if (confirmContext === "delete") {
+        handleConfirmDelete(true);
+      }
+    }
+    setIsConfirmOpen(false);
+    setConfirmContext(null);
+  };
+  //#endregion
+
+  //#region 🔎 InfoModal
+  
+  const infoModalFields: FieldConfig<DTO_Transacciones>[] = [
+    ...keysInfoModalTransacciones,
+    {
+      key: "monto",
+      label: "Monto",
+      type: "custom",
+      order: 9,
+      renderer: ({ value }) => (
+        <div className="border border-gray-200 rounded px-4 py-3 d-flex align-items-center justify-content-between shadow-sm">
+            <i className="bi bi-cash-coin fs-4 text-gray-600 me-3"></i>
+            <span className="fw-semibold fs-5 text-gray-800"></span>
+            {formatColones(Number(value) || 0)}
+          </div>
+        ),
+      },
+    ];
+  //#endregion
+  
+  //#region 🧾 Formularios
+  const registerFields: FieldConfig<DTO_Transacciones>[] = [
+    { key: "concepto", label: "Concepto", type: "text", required: true },
+    { key: "monto", label: "Monto", type: "number", required: true },
+    { key: "fechaTransaccion", label: "Fecha", type: "date", required: true },
+  ];
+
+  const editFormFields: FieldConfig<DTO_Transacciones>[] =
+    transaccionesFormEditFields.map((field) => {
+      const esCuenta =
+        editData?.tipoNumReferencia?.trim().toLowerCase() === "cuenta";
+      if (
+        esCuenta &&
+        (field.key === "tipoNumReferencia" || field.key === "numReferencia")
+      ) {
+        return {
+          ...field,
+          type: "custom",
+          renderer: () => (
+            <AutoAccountTransactionInfoField field={field} editData={editData} />
+          ),
+        };
+      }
+      return field;
+    });
+  //#endregion
+  //#region 🔎 Custom renderers
+  const customRenderers = {
+    monto: (val: unknown) => formatColones(Number(val) || 0),
+    fechaTransaccion: (val: unknown) =>
+      val ? new Date(String(val)).toLocaleDateString() : "",
+  };
+  //#endregion
+  
+  if (!open) return null;
+
+  //#region 🎨 Render modal
+  return (
+    <div
+      className="modal fade show d-block shadowClearBackground"
+      onClick={onHide}
+    >
+      <div
+        className="modal-dialog modal-dialog-centered"
+        style={{ maxWidth: "95vw", width: "1200px" }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="modal-content resizable-metronic-modal">
+          <div className="modal-header cursor-move">
+            <h2 className="fw-bold">Transacciones de {nombreCuenta}</h2>
+            <button
+              type="button"
+              className="btn btn-sm btn-icon btn-active-color-primary"
+              onClick={onHide}
+            >
+              ✕
+            </button>
+          </div>
+          <div className="modal-body py-10 px-lg-17">
+            {loading ? (
+              <LoadingPanel msj="Cargando transacciones..." />
+            ) : (
+              <GenericDataTable<DTO_Transacciones>
+                title={`Transacciones asociadas a la cuenta #${cuenta.iD_Cuenta}`}
+                columnKeys={columnKeysTransacciones}
+                labelMap={labelMapTransacciones}
+                data={transacciones}
+                onAdd={handleAddNew}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
+                onRowClick={(row) => setRowSelected(row as DTO_Transacciones)}
+                customRenderers={customRenderers}
+                includeEstadoColumn
+              />
+            )}
+
+            <InfoModal
+              show={!!rowSelected}
+              onHide={() => setRowSelected(undefined)}
+              data={rowSelected!}
+              fields={infoModalFields}
+            />
+
+            <GenericFormModal
+              title="Registrar Transacción"
+              show={isModalFormOpen}
+              onHide={handleCancelAdd}
+              data={formData}
+              setData={setFormData}
+              onSubmit={handleSave}
+              fields={registerFields}
+            />
+
+            <GenericFormModal
+              title="Editar Transacción"
+              show={showEditForm}
+              onHide={() => setShowEditForm(false)}
+              data={editData!}
+              setData={(x) => setEditData(x as DTO_Transacciones)}
+              onSubmit={() => editData && handleSaveEdit(editData)}
+              fields={editFormFields}
+            />
+
+            <ConfirmModal
+              show={isConfirmOpen}
+              confirmMessage={confirmModalMessage}
+              onAction={confirmModalAction}
+            />
+          </div>
+          <div className="modal-footer flex-center">
+            <button
+              type="button"
+              className="btn btn-secondary"
+              onClick={onHide}
+            >
+              Cerrar
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+  //#endregion
+};

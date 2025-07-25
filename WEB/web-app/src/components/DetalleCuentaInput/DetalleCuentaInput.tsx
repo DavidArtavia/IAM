@@ -5,6 +5,7 @@ import { DTO_DetalleCuentaJSON, DTO_Param } from "@/models";
 interface Props {
   value?: DTO_DetalleCuentaJSON;
   onChange: (val?: DTO_DetalleCuentaJSON) => void;
+  onBlur?: () => void;
   monto: number;
   setMonto: (val: number) => void;
   onEnabledChange?: (enabled: boolean) => void;
@@ -16,6 +17,7 @@ export const DetalleCuentaInput = ({
   monto,
   setMonto,
   onEnabledChange,
+  onBlur,
 }: Props) => {
   const [enabled, setEnabled] = useState(false);
   const [filas, setFilas] = useState<DTO_Param[]>([]);
@@ -85,6 +87,26 @@ export const DetalleCuentaInput = ({
     });
   }, [filas, descuento, impuesto, enabled]);
 
+useEffect(() => {
+  const hayTexto = nombreFila.trim() !== "" || valorFila.trim() !== "";
+
+  const tienePendientes = enabled && hayTexto;
+
+ if (tienePendientes) {
+   // Forzar un valor que haga fallar validación, pero sea único para que se dispare el render
+   onChange(("error_force_" + Date.now()) as any);
+   onBlur?.();
+ } else {
+   onChange({
+     filas,
+     descuento,
+     impuesto,
+   });
+ }
+
+}, [nombreFila, valorFila, filas, descuento, impuesto, enabled]);
+
+
   const agregarFila = () => {
     if (nombreFila && valorFila && !isNaN(parseFloat(valorFila))) {
       setFilas([...filas, { nombre: nombreFila, valor: valorFila }]);
@@ -139,7 +161,6 @@ export const DetalleCuentaInput = ({
     setIsConfirmOpen(false);
     setPendingToggle(null);
   };
-
   return (
     <div className="mt-3">
       <div className="d-flex align-items-center mb-3">
@@ -165,7 +186,6 @@ export const DetalleCuentaInput = ({
         confirmMessage={confirmModalMessage}
         onAction={confirmModalAction}
       />
-
       {enabled && (
         <div className="border rounded-3 shadow-sm p-4 bg-white">
           <div className="mb-4">

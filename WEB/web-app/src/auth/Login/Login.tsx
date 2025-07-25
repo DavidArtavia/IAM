@@ -51,7 +51,7 @@ export const Login = () => {
        const accesToken = respuesta.resultado[1].accesToken;
        localStorage.setItem("accesToken", accesToken);
        setUsuario(user);
-       login(user, accesToken);
+       login(user);
       
       
       notificationHelpers.successAlert(`Hola ${user.nombreUsuario + " " + user.apellido}, bienvenido de nuevo 👋`)

@@ -4,6 +4,7 @@ using DTO;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
+using System.Text.Json;
 using UTL;
 
 namespace API.Controllers
@@ -45,6 +46,25 @@ namespace API.Controllers
             try
             {
                 respuesta = await bLL_Transacciones.obtenerTransaccion(negocio);
+            }
+            catch (Exception ex)
+            {
+                respuesta = manejoError.errorNoControlado(ex);
+            }
+            return respuesta;
+        }
+
+        [Authorize(Roles = "1")]
+        [Produces("application/json")]
+        [Route("obtenerTransaccionPorCuenta")]
+        [HttpPost]
+        public async Task<DTO_Respuesta> obtenerTransaccionPorCuenta([FromBody] DTO_Cuenta cuenta)
+        {
+
+            try
+            {
+
+                respuesta = await bLL_Transacciones.obtenerTransaccionPorCuenta(cuenta);
             }
             catch (Exception ex)
             {

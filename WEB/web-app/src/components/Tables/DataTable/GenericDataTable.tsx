@@ -20,6 +20,7 @@ declare global {
 
 window.JSZip = JsZip;
 
+
 export interface GenericDataTableProps<T> {
   title: string;
   columnKeys: (keyof T)[];
