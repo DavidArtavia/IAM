@@ -731,7 +731,7 @@ export const OrdenDeServicio = () => {
             } else {
               updatedOrden = ordenToUpdate;
             }
-
+            
             setOrdenes((prev) =>
               prev.map((o) =>
                 o.iD_OrdenServicio === updatedOrden.iD_OrdenServicio
