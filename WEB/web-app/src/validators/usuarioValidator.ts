@@ -32,7 +32,7 @@ export class usuarioValidator {
         } else if (usuario.pass.length < 6) {
             notificationHelpers.warningAlert("La contraseña debe ser superior a 6 caracteres");
         } else if (usuario.pass != confirmacionPass) {
-            notificationHelpers.warningAlert("Las contraseñas co coinciden");
+            notificationHelpers.warningAlert("Las contraseñas NO coinciden");
         }
         else {
             estadoValidacion = true;
