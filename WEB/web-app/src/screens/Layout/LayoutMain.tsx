@@ -131,6 +131,7 @@ export const LayoutMain = () => {
             data-kt-scroll-dependencies="#kt_aside_logo, #kt_aside_footer"
             data-kt-scroll-wrappers="#kt_aside, #kt_aside_menu"
             data-kt-scroll-offset="5px"
+            style={{ overflowY: 'auto', maxHeight: '100vh' }}
           >
             <div
               className="menu menu-column menu-title-gray-700 menu-state-title-primary menu-state-icon-primary menu-state-bullet-primary menu-arrow-gray-500 fw-bold"
@@ -140,9 +141,8 @@ export const LayoutMain = () => {
               <div className="menu-item py-2">
                 <Link
                   to={ROUTES.HOME}
-                  className={`menu-link menu-center${
-                    pathname === ROUTES.HOME ? " active" : ""
-                  }`}
+                  className={`menu-link menu-center${pathname === ROUTES.HOME ? " active" : ""
+                    }`}
                   data-bs-trigger="hover"
                   data-bs-dismiss="click"
                   data-bs-placement="right"
@@ -157,9 +157,8 @@ export const LayoutMain = () => {
               <div className="menu-item py-2">
                 <Link
                   to={ROUTES.CHAT_AI}
-                  className={`menu-link menu-center${
-                    pathname === ROUTES.CHAT_AI ? " active" : ""
-                  }`}
+                  className={`menu-link menu-center${pathname === ROUTES.CHAT_AI ? " active" : ""
+                    }`}
                   data-bs-trigger="hover"
                   data-bs-dismiss="click"
                   data-bs-placement="right"
@@ -174,9 +173,8 @@ export const LayoutMain = () => {
               <div className="menu-item py-2">
                 <Link
                   to={ROUTES.NEGOCIO}
-                  className={`menu-link menu-center${
-                    pathname === ROUTES.NEGOCIO ? " active" : ""
-                  }`}
+                  className={`menu-link menu-center${pathname === ROUTES.NEGOCIO ? " active" : ""
+                    }`}
                   data-bs-trigger="hover"
                   data-bs-dismiss="click"
                   data-bs-placement="right"
@@ -191,9 +189,8 @@ export const LayoutMain = () => {
               <div className="menu-item py-2">
                 <Link
                   to={ROUTES.CLIENTES}
-                  className={`menu-link menu-center${
-                    pathname === ROUTES.CLIENTES ? " active" : ""
-                  }`}
+                  className={`menu-link menu-center${pathname === ROUTES.CLIENTES ? " active" : ""
+                    }`}
                   data-bs-trigger="hover"
                   data-bs-dismiss="click"
                   data-bs-placement="right"
@@ -208,9 +205,8 @@ export const LayoutMain = () => {
               <div className="menu-item py-2">
                 <Link
                   to={ROUTES.CUENTAS}
-                  className={`menu-link menu-center${
-                    pathname === ROUTES.CUENTAS ? " active" : ""
-                  }`}
+                  className={`menu-link menu-center${pathname === ROUTES.CUENTAS ? " active" : ""
+                    }`}
                   data-bs-trigger="hover"
                   data-bs-dismiss="click"
                   data-bs-placement="right"
@@ -225,9 +221,8 @@ export const LayoutMain = () => {
               <div className="menu-item py-2">
                 <Link
                   to={ROUTES.SERVICE_ORDER}
-                  className={`menu-link menu-center${
-                    pathname === ROUTES.SERVICE_ORDER ? " active" : ""
-                  }`}
+                  className={`menu-link menu-center${pathname === ROUTES.SERVICE_ORDER ? " active" : ""
+                    }`}
                   data-bs-trigger="hover"
                   data-bs-dismiss="click"
                   data-bs-placement="right"
@@ -242,9 +237,8 @@ export const LayoutMain = () => {
               <div className="menu-item py-2">
                 <Link
                   to={ROUTES.MONITOR}
-                  className={`menu-link menu-center${
-                    pathname === ROUTES.MONITOR ? " active" : ""
-                  }`}
+                  className={`menu-link menu-center${pathname === ROUTES.MONITOR ? " active" : ""
+                    }`}
                   data-bs-trigger="hover"
                   data-bs-dismiss="click"
                   data-bs-placement="right"
@@ -259,9 +253,8 @@ export const LayoutMain = () => {
               <div className="menu-item py-2">
                 <Link
                   to={ROUTES.TRANSACTIONS}
-                  className={`menu-link menu-center${
-                    pathname === ROUTES.TRANSACTIONS ? " active" : ""
-                  }`}
+                  className={`menu-link menu-center${pathname === ROUTES.TRANSACTIONS ? " active" : ""
+                    }`}
                   data-bs-trigger="hover"
                   data-bs-dismiss="click"
                   data-bs-placement="right"
@@ -276,9 +269,8 @@ export const LayoutMain = () => {
               <div className="menu-item py-2">
                 <Link
                   to={ROUTES.METRICAS}
-                  className={`menu-link menu-center${
-                    pathname === ROUTES.METRICAS ? " active" : ""
-                  }`}
+                  className={`menu-link menu-center${pathname === ROUTES.METRICAS ? " active" : ""
+                    }`}
                   data-bs-trigger="hover"
                   data-bs-dismiss="click"
                   data-bs-placement="right"
@@ -335,13 +327,16 @@ export const LayoutMain = () => {
 
             {/* logo móvil */}
             <div className="d-flex align-items-center flex-grow-1 flex-lg-grow-0">
-              <a href="/" className="d-lg-none">
+
+              <Link to={ROUTES.HOME} className="d-lg-none">
                 <img
                   alt="Logo"
                   className="h-30px"
                   src="src/assets/media/logos/logo-2.svg"
                 />
-              </a>
+              </Link>
+
+
             </div>
 
             <div className="separator my-2" />
@@ -401,10 +396,10 @@ export const LayoutMain = () => {
                   </div>
 
                   <div className="separator my-2" />
-
-                  <div className="menu-item px-5">
+                  {/* Perfil en contrucción, cuando esté listo se habilita esta opción */}
+                  {/* <div className="menu-item px-5">
                     <a className="menu-link px-5">Mi perfil</a>
-                  </div>
+                  </div> */}
 
                   <div
                     className="menu-item px-5"
