@@ -43,5 +43,11 @@ export const FechaEntregaBadge = ({
   let texto = fEntrega.toLocaleDateString("es-ES", opts).replace(",", "");
   texto = texto.charAt(0).toUpperCase() + texto.slice(1);
 
-  return <div className={badgeClass}>{texto}</div>;
+  return <div  
+                tabIndex={0}
+                role="button"
+                data-bs-toggle="popover"
+                data-bs-trigger="focus"
+                data-bs-content={"Fecha de entrega"}
+                className={badgeClass + " lbl"}>{texto}</div>;
 };

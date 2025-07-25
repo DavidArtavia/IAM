@@ -395,7 +395,7 @@ export const LayoutMain = () => {
                     </div>
                   </div>
 
-                  <div className="separator my-2" />
+                  {/* <div className="separator my-2" /> */}
                   {/* Perfil en contrucción, cuando esté listo se habilita esta opción */}
                   {/* <div className="menu-item px-5">
                     <a className="menu-link px-5">Mi perfil</a>

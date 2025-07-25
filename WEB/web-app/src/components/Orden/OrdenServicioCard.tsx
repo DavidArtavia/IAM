@@ -92,7 +92,9 @@ export const OrdenServicioCard = ({
       <div className="card-body">
         <div className="d-flex flex-stack mb-3">
           <div className="text-active-inverse-white bg-active-white active">
-            Entrega:
+            <span className="fs-4 mb-1 text-gray-700">
+            Orden #{orden.iD_OrdenServicio}
+          </span>
           </div>
           <FechaEntregaBadge
             fechaEntrega={orden.fechaEstimadaEntrega}
@@ -101,12 +103,10 @@ export const OrdenServicioCard = ({
         </div>
 
         <div className="mb-2">
-          <span className="fs-4 fw-bolder mb-1 text-gray-900">
-            Orden #{orden.iD_OrdenServicio}
-          </span>
+          
         </div>
 
-        <div className="fs-6 fw-bold text-gray-600 mb-3">
+        <div className="fs-6 fw-bold text-gray-700 mb-3">
           {orden.referenciaJSON.map((r) => r.valor).join(", ")}
         </div>
 
@@ -121,12 +121,11 @@ export const OrdenServicioCard = ({
                 id={`flexCheckDefault-${item.iD_ItemOrdenServicio}`}
               />
               <span
-                className="form-check-label lbl"
+                className="form-check-label text-gray-700 lbl"
                 tabIndex={0}
                 role="button"
                 data-bs-toggle="popover"
                 data-bs-trigger="focus"
-                title="Descripción"
                 data-bs-content={item.descripcion || "Sin descripción"}
               >
                 {item.nombreItemOrdenServicio}

@@ -250,18 +250,11 @@ export const Monitor = () => {
             );
         });
 
-        notificationHelpers.infoAlert(
-          `Orden #${msg.iD_OrdenServicio} modificada`
-        );
+    
       } else {
         console.warn("Tipo desconocido", msg);
         notificationHelpers.infoAlert("📢 Nuevo mensaje");
       }
-
-      /* if (Notification.permission === "granted") {
-        new Notification("📢 Nuevo mensaje", { body: msg, silent: true });
-      }
-        */
       audio.current.play().catch(() => { });
     };
 
