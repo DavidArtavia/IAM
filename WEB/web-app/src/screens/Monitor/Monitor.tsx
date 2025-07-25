@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import * as signalR from "@microsoft/signalr";
 import sonidoMonitor from "../../assets/media/audios/Monitor.mp3";
-import { errorHelpers, notificationHelpers } from "@/utils";
-import { LoadingPanel, OrdenesSeccion } from "@/components";
+import { errorHelpers, notificationHelpers, ordenservicioFormCrearCuenta } from "@/utils";
+import { DetalleCuentaInput, FieldConfig, GenericFormModal, LoadingPanel, OrdenesSeccion } from "@/components";
 import {
+  DTO_Cuenta,
   DTO_ItemOrdenServicio,
   DTO_Negocio,
   DTO_OrdenServicio,
@@ -13,6 +14,7 @@ import {
   monitorService,
   itemsOrdenesService,
   ordenesService,
+  cuentasService,
 } from "@/services";
 import { STATUS_TBL } from "@/constants";
 import { useApp } from "@/hooks/useApp";
@@ -29,7 +31,7 @@ export const Monitor = () => {
   }, [state]);
 
   //#endregion
-  
+
   const [estadoConexion, setEstadoConexion] = useState("Desconectado");
   const connectionRef = useRef<signalR.HubConnection | null>(null);
   const audio = useRef(new Audio(sonidoMonitor));
@@ -39,6 +41,22 @@ export const Monitor = () => {
   const [items, setItems] = useState<DTO_ItemOrdenServicio[]>([]);
   const retryTimeoutRef = useRef<number | null>(null);
   const abortedRef = useRef(false);
+  const [account, setAccount] = useState<DTO_Cuenta>();
+  const [detalleHabilitado, setDetalleHabilitado] = useState<boolean>(!!account?.detalleJSON);
+  const [showCreateAccount, setShowCreateAccount] = useState(false);
+  const [editData, setEditData] = useState<DTO_OrdenServicio>(() => {
+    const dto = new DTO_OrdenServicio();
+    dto.fechaInicio = null;
+    dto.fechaFinal = null;
+    dto.fechaEntrega = null;
+    dto.fechaEstimadaEntrega = null;
+    return dto;
+  });
+
+  const [montoInput, setMontoInput] = useState<string>(
+    account?.monto && account?.monto !== 0 ? String(account?.monto) : ""
+  );
+
   const isItemOrdenServicio = (obj: any): obj is DTO_ItemOrdenServicio => {
     return obj && typeof obj === "object" && "iD_ItemOrdenServicio" in obj;
   };
@@ -87,7 +105,7 @@ export const Monitor = () => {
       item.avance = 0;
     }
 
-    
+
     itemsOrdenesService.actualizarItemsOrdensDeServicio(item).subscribe({
       next: (res) => {
         if (!(res as DTO_Respuesta).tipoRespuesta) {
@@ -325,6 +343,274 @@ export const Monitor = () => {
   }, []);
   //#endregion
 
+  //#region crear cuenta
+  const handleCreateAccountButton = (orden: DTO_OrdenServicio | undefined) => {
+    if (
+      orden?.estado?.nombre === "Archivado" ||
+      orden?.estado?.iD_Estado === STATUS_TBL.ORDER_SERVICE.ARCHIVED
+    ) {
+      const toast = document.createElement("div");
+      toast.className =
+        "toast align-items-center text-bg-info border-0 show position-fixed top-0 start-50 translate-middle-x";
+      toast.style.zIndex = "9999";
+      toast.style.minWidth = "300px";
+      toast.innerHTML = `
+        <div class="d-flex">
+          <div class="toast-body">
+          <strong>Cuenta ya registrada</strong><br/>
+          Esta orden de servicio ya tiene una cuenta asociada. No es posible crear una nueva cuenta para esta orden.
+          </div>
+          <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+        </div>
+        `;
+      document.body.appendChild(toast);
+
+      const removeToast = () => {
+        if (toast.parentNode) toast.parentNode.removeChild(toast);
+      };
+      setTimeout(removeToast, 6000);
+      toast
+        .querySelector(".btn-close")
+        ?.addEventListener("click", removeToast);
+    } else if (orden) {
+      getItemsToOrderServiceAccount(orden).then(() => {
+        setShowCreateAccount(true);
+      });
+    }
+  };
+
+
+  const getItemsToOrderServiceAccount = (
+    rowData: DTO_OrdenServicio
+  ): Promise<void> => {
+    return new Promise((resolve, reject) => {
+      if (!rowData) return resolve();
+
+      const request = {
+        iD_OrdenServicio: rowData.iD_OrdenServicio,
+      } as DTO_ItemOrdenServicio;
+
+      itemsOrdenesService.obtenerItemsOrdensDeServicio(request).subscribe({
+        next: (result: DTO_Respuesta) => {
+          if (!result.tipoRespuesta) {
+            notificationHelpers.errorAlert(
+              result.mensaje || "Error al cargar ítems"
+            );
+            return reject();
+          }
+
+          const raw = result.resultado?.[0];
+          const items = Array.isArray(raw)
+            ? (raw as DTO_ItemOrdenServicio[])
+            : [];
+
+          const cuenta: DTO_Cuenta = {
+            ...new DTO_Cuenta(),
+            iD_Negocio: rowData.iD_Negocio ?? 0,
+            iD_OrdenServicio: rowData.iD_OrdenServicio,
+            tipoCuenta: "Cuenta Por Cobrar",
+            concepto: `Cuenta por cobrar de la orden de servicio #${rowData.iD_OrdenServicio}`,
+            monto: items.reduce(
+              (acc, item) =>
+                acc +
+                (typeof item.monto === "number"
+                  ? item.monto
+                  : parseFloat(item.monto ?? "0")),
+              0
+            ),
+            detalleJSON: {
+              filas: items.map((item) => ({
+                nombre:
+                  item.nombreItemOrdenServicio ||
+                  `Item ${item.iD_ItemOrdenServicio}`,
+                valor:
+                  typeof item.monto === "string"
+                    ? item.monto
+                    : item.monto?.toString() || "0.00",
+              })),
+              descuento: { nombre: "Descuento", valor: "0" },
+              impuesto: { nombre: "Impuesto", valor: "0" },
+            },
+          };
+
+          setAccount(cuenta);
+          resolve();
+        },
+        error: (err) => {
+          errorHelpers.serverError(err);
+          reject(err);
+        },
+      });
+    });
+  };
+  const formCreateAccountFields: FieldConfig<any>[] = [
+    ...ordenservicioFormCrearCuenta,
+    ...(account?.iD_OrdenServicio
+      ? [
+        {
+          key: "iD_OrdenServicio",
+          label: "Orden De Servicio #",
+          type: "text",
+          readOnly: true,
+          order: 4,
+        } as FieldConfig<any>,
+      ]
+      : []),
+    {
+      key: "tipoCuenta",
+      label: "Tipo de Cuenta",
+      type: "custom",
+      required: false,
+      order: 4,
+      readOnly: true,
+      renderer: ({ value }) => (
+        <input
+          className="form-control"
+          value={value || "Cuenta Por Cobrar"}
+          readOnly
+          disabled
+        />
+      ),
+    },
+    {
+      key: "detalleJSON",
+      label: "Detalle",
+      type: "custom",
+      required: detalleHabilitado,
+      order: 10,
+      errorMessage:
+        "Tienes datos sin agregar. Presiona el botón ➕ antes de continuar.",
+      renderer: ({ value, onChange }) => (
+        <DetalleCuentaInput
+          value={value}
+          onChange={onChange}
+          monto={account?.monto ?? 0}
+          setMonto={(val) => {
+            setMontoInput(val !== 0 ? String(val) : "");
+            setAccount((prev) => (prev ? { ...prev, monto: val } : undefined));
+          }}
+          onEnabledChange={(enabled) => setDetalleHabilitado(enabled)}
+        />
+      ),
+    },
+    {
+      key: "monto",
+      label: "Monto",
+      type: "custom",
+      required: !detalleHabilitado,
+      order: 11,
+      renderer: () => {
+        return (
+          <div className="input-group">
+            <span className="input-group-text">₡</span>
+            <input
+              type="text"
+              className={`form-control fw-bold fs-5 text-start ${detalleHabilitado ? "bg-light" : ""
+                }`}
+              readOnly={detalleHabilitado}
+              value={
+                montoInput !== ""
+                  ? montoInput
+                  : account?.monto !== undefined && account?.monto !== 0
+                    ? String(account.monto)
+                    : ""
+              }
+              onFocus={() => {
+                if ((account?.monto || 0) === 0) {
+                  setMontoInput("");
+                }
+              }}
+              onChange={(e) => {
+                const val = e.target.value.replace(/[^0-9.]/g, "");
+                setMontoInput(val);
+                const num = parseFloat(val);
+                setAccount((prev) =>
+                  prev ? { ...prev, monto: isNaN(num) ? 0 : num } : undefined
+                );
+              }}
+              onBlur={(e) => {
+                const val = e.target.value;
+                if (val === "" || isNaN(Number(val))) {
+                  setMontoInput("");
+                  setAccount((prev) =>
+                    prev ? { ...prev, monto: 0 } : undefined
+                  );
+                }
+              }}
+              placeholder="₡0.00"
+              min={0}
+              step={0.01}
+            />
+          </div>
+        );
+      },
+    },
+  ];
+
+  const handleCreateAccount = (cuenta: DTO_Cuenta) => {
+    console.log('entró');
+
+    if (!cuenta.iD_Negocio || !cuenta.iD_OrdenServicio) {
+      notificationHelpers.errorAlert("Negocio o Orden de Servicio no válidos");
+      return;
+    }
+    cuentasService.registrarCuenta(cuenta).subscribe({
+      next: (res: DTO_Respuesta) => {
+        notificationHelpers.successAlert(res.mensaje);
+        setShowCreateAccount(false);
+
+        const ordenToUpdate = {
+          ...editData,
+          estado: {
+            ...editData.estado,
+            iD_Estado: STATUS_TBL.ORDER_SERVICE.ARCHIVED,
+            nombre: "Archivado",
+          },
+        } as DTO_OrdenServicio;
+
+        ordenesService.actualizarOrdensDeServicio(ordenToUpdate).subscribe({
+          next: (updateRes: DTO_Respuesta) => {
+            notificationHelpers.successAlert(
+              "la Orden fue archivada correctamente"
+            );
+
+            let updatedOrden: DTO_OrdenServicio;
+
+            if (
+              Array.isArray(updateRes.resultado) &&
+              updateRes.resultado.length > 0
+            ) {
+              updatedOrden = updateRes.resultado[0] as DTO_OrdenServicio;
+            } else if (
+              updateRes.resultado &&
+              typeof updateRes.resultado === "object" &&
+              !Array.isArray(updateRes.resultado)
+            ) {
+              updatedOrden = updateRes.resultado as DTO_OrdenServicio;
+            } else {
+              updatedOrden = ordenToUpdate;
+            }
+
+            setOrdenes((prev) =>
+              prev.map((o) =>
+                o.iD_OrdenServicio === updatedOrden.iD_OrdenServicio
+                  ? {
+                    ...o,
+                    ...updatedOrden,
+                  }
+                  : o
+              )
+            );
+
+            setEditData(updatedOrden);
+          },
+          error: errorHelpers.serverError,
+        });
+      },
+      error: errorHelpers.serverError,
+    });
+  };
+  //#endregion crear cuenta
   //#region cargar monitor
 
   // 4. Cargar órdenes al seleccionar un negocio
@@ -355,15 +641,26 @@ export const Monitor = () => {
 
   //#region para manejo de cuentas
 
-  const handleCreateCount = (countSelected: DTO_OrdenServicio) => {
-    // Aquí se maneja la logic para el modal de crear cuenta
-    console.log("Crear cuenta para:", countSelected);
-  };
 
   //#endregion
 
   return (
     <div>
+      {/* Modal Crear Cuenta */}
+      <GenericFormModal<DTO_Cuenta>
+        title="Crear Cuenta"
+        show={showCreateAccount}
+        onHide={() => setShowCreateAccount(false)}
+        data={account!}
+        setData={(x) => setAccount(x as DTO_Cuenta)}
+        onSubmit={() => {
+          if (account) {
+            handleCreateAccount(account);
+          }
+        }}
+        fields={formCreateAccountFields}
+      />
+
       <div className="row p-4 gx-0">
         {loading && <LoadingPanel msj="Cargando, por favor espere..." />}
       </div>
@@ -374,8 +671,8 @@ export const Monitor = () => {
             <span
               style={{ marginRight: "5px", marginBottom: "-5px" }}
               className={`badge badge-circle ${estadoConexion === "Conectado"
-                  ? " badge-success"
-                  : " badge-danger"
+                ? " badge-success"
+                : " badge-danger"
                 }`}
             ></span>
             {selectedBusiness?.nombreNegocio}
@@ -411,7 +708,7 @@ export const Monitor = () => {
             items={items}
             onAvanceChange={handleCheckboxChange}
             onEstadoChange={cambiarEstadoOrdenServicio}
-            onClickCreateCount={handleCreateCount}
+            onClickCreateCount={handleCreateAccountButton}
           />
           <OrdenesSeccion
             titulo="En espera"
@@ -421,6 +718,7 @@ export const Monitor = () => {
             items={items}
             onAvanceChange={handleCheckboxChange}
             onEstadoChange={cambiarEstadoOrdenServicio}
+
           />
         </div>
       </div>
