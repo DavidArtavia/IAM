@@ -16,13 +16,14 @@ import {
 } from "@/utils";
 import { itemsOrdenesService } from "@/services";
 import { STATUS_TBL } from "@/constants";
-import { DTO_ItemOrdenServicio, DTO_Respuesta } from "@/models";
+import { DTO_ItemOrdenServicio, DTO_Param, DTO_Respuesta } from "@/models";
 import {
   ConfirmModal,
   FieldConfig,
   GenericFormModal,
   InfoModal,
 } from "@/components";
+import { valida_DTO_ItemOrdenServicio } from "@/validators/valida_DTO_ItemOrdenServicio";
 
 interface ItemsOrdenDeServicioModalProps {
   open: boolean;
@@ -37,6 +38,15 @@ export const ItemsOrdenDeServicioModal = ({
   title = "Detalle del Ítem",
   rowData,
 }: ItemsOrdenDeServicioModalProps) => {
+
+  // #region Validaciones en los formularios
+  const [erroresValidacion, setErroresValidacion] = useState<DTO_Param[]>([]);
+  let validacion: Array<DTO_Param>;
+  const eliminarError = (campo: string) => {
+    setErroresValidacion(prev => prev.filter(e => e.nombre !== campo));
+  };
+  // #endregion
+
   //#region 🔄 Estados generales
   const [itemsOrdenes, setItemsOrdenes] = useState<DTO_ItemOrdenServicio[]>([]);
   const [loading, setLoading] = useState(false);
@@ -115,15 +125,22 @@ export const ItemsOrdenDeServicioModal = ({
       nombre: "activo",
       tabla: "",
     };
-    itemsOrdenesService.registrarItemsOrdensDeServicio(formData).subscribe({
-      next: (result: DTO_Respuesta) => {
-        const nuevo = (result.resultado as DTO_ItemOrdenServicio[])[0];
-        if (nuevo) setItemsOrdenes((prev) => [...prev, nuevo]); // Agregar el nuevo ítem
-        notificationHelpers.successAlert(result.mensaje);
-        setIsModalFormOpen(false);
-      },
-      error: errorHelpers.serverError,
-    });
+
+    validacion = valida_DTO_ItemOrdenServicio.validar(formData, "C");
+    setErroresValidacion(validacion)
+    if (validacion.length === 0) {
+      itemsOrdenesService.registrarItemsOrdensDeServicio(formData).subscribe({
+        next: (result: DTO_Respuesta) => {
+          const nuevo = (result.resultado as DTO_ItemOrdenServicio[])[0];
+          if (nuevo) setItemsOrdenes((prev) => [...prev, nuevo]); // Agregar el nuevo ítem
+          notificationHelpers.successAlert(result.mensaje);
+          setIsModalFormOpen(false);
+        },
+        error: errorHelpers.serverError,
+      });
+    } else {
+      notificationHelpers.warningAlert("Por favor valida los datos ingresados nuevamente");
+    }
   };
   //#endregion
 
@@ -135,16 +152,22 @@ export const ItemsOrdenDeServicioModal = ({
 
   const handleSaveEdit = () => {
     if (!editData) return;
-    itemsOrdenesService.actualizarItemsOrdensDeServicio(editData).subscribe({
-      next: (result: DTO_Respuesta) => {
-        setItemsOrdenes((prev) =>
-          updateItemById(prev, editData, "iD_ItemOrdenServicio")
-        );
-        notificationHelpers.successAlert(result.mensaje);
-        setShowEditForm(false);
-      },
-      error: errorHelpers.serverError,
-    });
+    validacion = valida_DTO_ItemOrdenServicio.validar(editData, "U");
+    setErroresValidacion(validacion)
+    if (validacion.length === 0) {
+      itemsOrdenesService.actualizarItemsOrdensDeServicio(editData).subscribe({
+        next: (result: DTO_Respuesta) => {
+          setItemsOrdenes((prev) =>
+            updateItemById(prev, editData, "iD_ItemOrdenServicio")
+          );
+          notificationHelpers.successAlert(result.mensaje);
+          setShowEditForm(false);
+        },
+        error: errorHelpers.serverError,
+      });
+    } else {
+      notificationHelpers.warningAlert("Por favor valida los datos ingresados nuevamente");
+    }
   };
   //#endregion
 
@@ -205,6 +228,7 @@ export const ItemsOrdenDeServicioModal = ({
       if (confirmContext === "cancelAdd") {
         setIsModalFormOpen(false);
         notificationHelpers.infoAlert("Nuevo ítem descartado correctamente");
+        setErroresValidacion([])
       } else if (confirmContext === "delete") {
         handleConfirmDelete(true);
       }
@@ -268,8 +292,8 @@ export const ItemsOrdenDeServicioModal = ({
           porcentaje >= 80
             ? "bg-success"
             : porcentaje >= 50
-            ? "bg-warning"
-            : "bg-danger";
+              ? "bg-warning"
+              : "bg-danger";
         return (
           <div
             className="d-flex flex-column w-100 me-2"
@@ -374,6 +398,8 @@ export const ItemsOrdenDeServicioModal = ({
               setData={setFormData}
               onSubmit={handleSave}
               fields={registerFormFields}
+              erroresValidacion={erroresValidacion}
+              onEliminarError={eliminarError}
             />
 
             <GenericFormModal
@@ -384,6 +410,8 @@ export const ItemsOrdenDeServicioModal = ({
               setData={setEditData}
               onSubmit={handleSaveEdit}
               fields={editFormFields}
+              erroresValidacion={erroresValidacion}
+              onEliminarError={eliminarError}
             />
 
             <ConfirmModal

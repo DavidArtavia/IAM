@@ -21,6 +21,7 @@ import {
   DTO_ItemOrdenServicio,
   DTO_Negocio,
   DTO_OrdenServicio,
+  DTO_Param,
   DTO_Respuesta,
 } from "@/models";
 import {
@@ -43,6 +44,11 @@ import { useApp } from "@/hooks/useApp";
 
 import { useEffect, useMemo, useState } from "react";
 import AsyncSelect from "react-select/async";
+import { valida_DTO_OrdenServicio } from "@/validators/valida_DTO_OrdenServicio";
+
+
+
+
 
 // #region 🔑 Helpers
 const generateSafeKey = (name: string) =>
@@ -54,6 +60,15 @@ const generateSafeKey = (name: string) =>
 // #endregion
 
 export const OrdenDeServicio = () => {
+  // #region Validaciones en los formularios
+  const [erroresValidacion, setErroresValidacion] = useState<DTO_Param[]>([]);
+  let validacion: Array<DTO_Param>;
+  const eliminarError = (campo: string) => {
+    setErroresValidacion(prev => prev.filter(e => e.nombre !== campo));
+  };
+  // #endregion
+
+
   // #region 🔄 Estado general
   const { state } = useApp();
 
@@ -125,6 +140,8 @@ export const OrdenDeServicio = () => {
   };
 
   const handleSave = () => {
+
+
     if (!selectedBusiness) return;
     const toSave: any = { ...formData };
     toSave.iD_Negocio = selectedBusiness.iD_Negocio;
@@ -145,17 +162,24 @@ export const OrdenDeServicio = () => {
       }
     });
 
-    ordenesService.registrarOrdensDeServicio(toSave).subscribe({
-      next: (res) => {
-        notificationHelpers.successAlert((res as DTO_Respuesta).mensaje);
-        setIsFormOpen(false);
-        setOrdenes((prev) => [
-          ...((res as DTO_Respuesta).resultado as DTO_OrdenServicio[]),
-          ...prev,
-        ]);
-      },
-      error: errorHelpers.serverError,
-    });
+
+    validacion = valida_DTO_OrdenServicio.validar(toSave, "C");
+    setErroresValidacion(validacion)
+    if (validacion.length === 0) {
+      ordenesService.registrarOrdensDeServicio(toSave).subscribe({
+        next: (res) => {
+          notificationHelpers.successAlert((res as DTO_Respuesta).mensaje);
+          setIsFormOpen(false);
+          setOrdenes((prev) => [
+            ...((res as DTO_Respuesta).resultado as DTO_OrdenServicio[]),
+            ...prev,
+          ]);
+        },
+        error: errorHelpers.serverError,
+      });
+    } else {
+      notificationHelpers.warningAlert("Por favor valida los datos ingresados nuevamente");
+    }
   };
 
   const handleCancelAdd = () => {
@@ -209,6 +233,7 @@ export const OrdenDeServicio = () => {
     ...buildRefFields(formData),
   ];
   //#endregion
+
 
   // #region ✏️ Editar Orden
   const [showEditForm, setShowEditForm] = useState(false);
@@ -337,13 +362,19 @@ export const OrdenDeServicio = () => {
       )
     );
 
-    ordenesService.actualizarOrdensDeServicio(sanitized).subscribe({
-      next: (res: DTO_Respuesta) => {
-        notificationHelpers.successAlert(res.mensaje);
-        setShowEditForm(false);
-      },
-      error: errorHelpers.serverError,
-    });
+    validacion = valida_DTO_OrdenServicio.validar(sanitized, "U");
+    setErroresValidacion(validacion)
+    if (validacion.length === 0) {
+      ordenesService.actualizarOrdensDeServicio(sanitized).subscribe({
+        next: (res: DTO_Respuesta) => {
+          notificationHelpers.successAlert(res.mensaje);
+          setShowEditForm(false);
+        },
+        error: errorHelpers.serverError,
+      });
+    } else {
+      notificationHelpers.warningAlert("Por favor valida los datos ingresados nuevamente");
+    }
   };
   //#endregion
 
@@ -415,6 +446,7 @@ export const OrdenDeServicio = () => {
       if (confirmContext === "cancelAdd") {
         setIsFormOpen(false);
         notificationHelpers.infoAlert("Nueva Orden descartada correctamente");
+        setErroresValidacion([])
       } else if (confirmContext === "delete") {
         handleConfirmDelete(true);
       }
@@ -597,14 +629,14 @@ export const OrdenDeServicio = () => {
     ...ordenservicioFormCrearCuenta,
     ...(account?.iD_OrdenServicio
       ? [
-          {
-            key: "iD_OrdenServicio",
-            label: "Orden De Servicio #",
-            type: "text",
-            readOnly: true,
-            order: 4,
-          } as FieldConfig<any>,
-        ]
+        {
+          key: "iD_OrdenServicio",
+          label: "Orden De Servicio #",
+          type: "text",
+          readOnly: true,
+          order: 4,
+        } as FieldConfig<any>,
+      ]
       : []),
     {
       key: "tipoCuenta",
@@ -655,16 +687,15 @@ export const OrdenDeServicio = () => {
             <span className="input-group-text">₡</span>
             <input
               type="text"
-              className={`form-control fw-bold fs-5 text-start ${
-                detalleHabilitado ? "bg-light" : ""
-              }`}
+              className={`form-control fw-bold fs-5 text-start ${detalleHabilitado ? "bg-light" : ""
+                }`}
               readOnly={detalleHabilitado}
               value={
                 montoInput !== ""
                   ? montoInput
                   : account?.monto !== undefined && account?.monto !== 0
-                  ? String(account.monto)
-                  : ""
+                    ? String(account.monto)
+                    : ""
               }
               onFocus={() => {
                 if ((account?.monto || 0) === 0) {
@@ -709,15 +740,15 @@ export const OrdenDeServicio = () => {
         notificationHelpers.successAlert(res.mensaje);
         setShowCreateAccount(false);
 
-          const ordenToUpdate = {
-            ...editData,
-            estado: {
-              ...editData.estado,
-              iD_Estado: STATUS_TBL.ORDER_SERVICE.ARCHIVED,
-              nombre: "Archivado",
-            },
+        const ordenToUpdate = {
+          ...editData,
+          estado: {
+            ...editData.estado,
+            iD_Estado: STATUS_TBL.ORDER_SERVICE.ARCHIVED,
+            nombre: "Archivado",
+          },
         } as DTO_OrdenServicio;
-        
+
 
         ordenesService.actualizarOrdensDeServicio(ordenToUpdate).subscribe({
           next: (updateRes: DTO_Respuesta) => {
@@ -746,9 +777,9 @@ export const OrdenDeServicio = () => {
               prev.map((o) =>
                 o.iD_OrdenServicio === updatedOrden.iD_OrdenServicio
                   ? {
-                      ...o,
-                      ...updatedOrden,
-                    }
+                    ...o,
+                    ...updatedOrden,
+                  }
                   : o
               )
             );
@@ -803,10 +834,10 @@ export const OrdenDeServicio = () => {
       className: "btn btn-bg-light btn-active-color-info",
       icon: (editData?.estado?.nombre === "Archivado" ||
         editData?.estado?.iD_Estado === STATUS_TBL.ORDER_SERVICE.ARCHIVED) && (
-        <span className="ms-2" style={{ cursor: "pointer", color: "#0d6efd" }}>
-          <i className="bi bi-info-circle"></i>
-        </span>
-      ),
+          <span className="ms-2" style={{ cursor: "pointer", color: "#0d6efd" }}>
+            <i className="bi bi-info-circle"></i>
+          </span>
+        ),
     },
     {
       titulo: "Eliminar",
@@ -825,10 +856,10 @@ export const OrdenDeServicio = () => {
       className: "btn btn-bg-light btn-active-color-info",
       icon: (editData?.estado?.nombre === "Archivado" ||
         editData?.estado?.iD_Estado === STATUS_TBL.ORDER_SERVICE.ARCHIVED) && (
-        <span className="ms-2" style={{ cursor: "pointer", color: "#0d6efd" }}>
-          <i className="bi bi-info-circle"></i>
-        </span>
-      ),
+          <span className="ms-2" style={{ cursor: "pointer", color: "#0d6efd" }}>
+            <i className="bi bi-info-circle"></i>
+          </span>
+        ),
     },
     {
       titulo: "Eliminar",
@@ -883,6 +914,8 @@ export const OrdenDeServicio = () => {
         setData={setFormData}
         onSubmit={handleSave}
         fields={newFormFields}
+        erroresValidacion={erroresValidacion}
+        onEliminarError={eliminarError}
       />
 
       {/* Modal Editar */}
@@ -895,6 +928,8 @@ export const OrdenDeServicio = () => {
         onSubmit={handleSaveEdit}
         fields={editFormFields}
         headerButtons={headerButtonsToEdit}
+        erroresValidacion={erroresValidacion}
+        onEliminarError={eliminarError}
       />
 
       {/* Modal Crear Cuenta */}
@@ -910,6 +945,7 @@ export const OrdenDeServicio = () => {
           }
         }}
         fields={formCreateAccountFields}
+        onEliminarError={eliminarError}
       />
 
       <ItemsOrdenDeServicioModal

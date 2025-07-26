@@ -506,20 +506,30 @@ export const clienteFormEditFields: Array<FieldConfig<DTO_Cliente>> = columnKeys
         label: labelMapCliente[key] ?? key,
         type: "text",
     }));
-export const ItemsOrdenServicioFormEditFields: Array<FieldConfig<DTO_ItemOrdenServicio>> = columnKeysItemsOrdenServicio
-    .filter(key => key !== "iD_ItemOrdenServicio" && key !== "iD_OrdenServicio" && key != "avance") // Excluye campos que no se editan
-    .map(key => ({
-        key,
-        label: labelMapItemsOrdenServicio[key] ?? key,
-        type: key === "monto" ? "number" : "text",
-    }));
+
+    export const ItemsOrdenServicioFormEditFields: Array<FieldConfig<DTO_ItemOrdenServicio>> = [
+    {
+
+        key: "nombreItemOrdenServicio",
+        label: labelMapOrdenDeServicio["nombreItemOrdenServicio"] ?? "Nombre",
+        type: "text",
+        required: true
+    },
+    ...columnKeysItemsOrdenServicio
+        .filter(key => key !== "iD_ItemOrdenServicio" && key !== "iD_OrdenServicio" && key !== "nombreItemOrdenServicio"  && key !== "avance")
+        .map(key => ({
+            key,
+            label: labelMapItemsOrdenServicio[key] ?? key,
+            type: (key === "monto" ? "number" : "text") as any 
+        }))
+];
 
 export const ordenServicioFormEditFields: Array<FieldConfig<DTO_OrdenServicio>> = [
     {
         key: "fechaInicio",
         label: labelMapOrdenDeServicio["fechaInicio"] ?? "Fecha de Inicio",
         type: "date",
-        required: true,
+        required: false,
         order: 1,
         errorMessage: "La fecha de inicio es obligatoria",
     },
@@ -527,7 +537,7 @@ export const ordenServicioFormEditFields: Array<FieldConfig<DTO_OrdenServicio>> 
         key: "fechaFinal",
         label: labelMapOrdenDeServicio["fechaFinal"] ?? "Fecha Final",
         type: "date",
-        required: true,
+        required: false,
         order: 2,
         errorMessage: "La fecha final es obligatoria",
     },
