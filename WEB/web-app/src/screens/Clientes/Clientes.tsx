@@ -19,6 +19,7 @@ import {
   updateItemById,
 } from "@/utils";
 import { STATUS_TBL } from "@/constants";
+import { valida_DTO_Cliente } from "@/validators/valida_DTO_Cliente";
 
 export const Clientes = () => {
   // #region Validaciones en los formularios
@@ -112,25 +113,25 @@ export const Clientes = () => {
       tabla: "",
     };
 
-    	validacion = valida_DTO_Cliente.validar(sanitized, "C");
+    validacion = valida_DTO_Cliente.validar(formData, "C");
     setErroresValidacion(validacion)
-    if(validacion.length === 0){
-	
-    clientesService.registrarClientes(formData).subscribe({
-      next: (res) => {
-        const nuevo = (
-          Array.isArray(res.resultado) ? res.resultado[0] : res.resultado
-        ) as DTO_Cliente;
-        setClientes((prev) => [...prev, nuevo]);
-        handleNotification(res, "succes");
-        setIsFormOpen(false);
-      },
-      error: errorHelpers.serverError,
-    });
-     } else {
+    if (validacion.length === 0) {
+
+      clientesService.registrarClientes(formData).subscribe({
+        next: (res) => {
+          const nuevo = (
+            Array.isArray(res.resultado) ? res.resultado[0] : res.resultado
+          ) as DTO_Cliente;
+          setClientes((prev) => [...prev, nuevo]);
+          handleNotification(res, "succes");
+          setIsFormOpen(false);
+        },
+        error: errorHelpers.serverError,
+      });
+    } else {
       notificationHelpers.warningAlert("Por favor valida los datos ingresados nuevamente");
     }
-	
+
   };
 
   const handleCancelAdd = () => {
@@ -149,14 +150,23 @@ export const Clientes = () => {
 
   const handleSaveEdit = () => {
     const updated = { ...editData };
-    clientesService.actualizarClientes(updated).subscribe({
-      next: (res) => {
-        setClientes((prev) => updateItemById(prev, updated, "iD_Cliente"));
-        handleNotification(res, "succes");
-        setShowEditForm(false);
-      },
-      error: errorHelpers.serverError,
-    });
+
+    validacion = valida_DTO_Cliente.validar(updated, "U");
+    setErroresValidacion(validacion)
+    if (validacion.length === 0) {
+
+      clientesService.actualizarClientes(updated).subscribe({
+        next: (res) => {
+          setClientes((prev) => updateItemById(prev, updated, "iD_Cliente"));
+          handleNotification(res, "succes");
+          setShowEditForm(false);
+        },
+        error: errorHelpers.serverError,
+      });
+    } else {
+      notificationHelpers.warningAlert("Por favor valida los datos ingresados nuevamente");
+    }
+
   };
   //#endregion
 

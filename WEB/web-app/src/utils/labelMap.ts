@@ -114,60 +114,60 @@ export const keysInfoModalOrdenDeServicio: FieldConfig<DTO_OrdenServicio>[] = [
         order: 8,
     },
 ];
-export const keysInfoModalNegocio: FieldConfig<DTO_Negocio>[]  = [
+export const keysInfoModalNegocio: FieldConfig<DTO_Negocio>[] = [
 
-  {
-      key: "iD_Negocio",
-      label: "Código",
-      type: "text",
-      order: 1,
+    {
+        key: "iD_Negocio",
+        label: "Código",
+        type: "text",
+        order: 1,
     },
     {
-      key: "nombreNegocio",
-      label: "Nombre",
-      type: "text",
-      order: 2,
+        key: "nombreNegocio",
+        label: "Nombre",
+        type: "text",
+        order: 2,
     },
     {
-      key: "descripcion",
-      label: "Descripción",
-      type: "text",
-      order: 3,
+        key: "descripcion",
+        label: "Descripción",
+        type: "text",
+        order: 3,
     },
     {
-      key: "direccion",
-      label: "Dirección",
-      type: "text",
-      order: 4,
+        key: "direccion",
+        label: "Dirección",
+        type: "text",
+        order: 4,
     },
     {
-      key: "telefonoNegocio",
-      label: "Teléfono",
-      type: "text",
-      order: 5,
+        key: "telefonoNegocio",
+        label: "Teléfono",
+        type: "text",
+        order: 5,
     },
     {
-      key: "correoNegocio",
-      label: "Correo",
-      type: "text",
-      order: 6,
+        key: "correoNegocio",
+        label: "Correo",
+        type: "text",
+        order: 6,
     },
     {
-      key: "fechaRegistro",
-      label: "Fecha",
-      type: "date",
-      order: 7,
+        key: "fechaRegistro",
+        label: "Fecha",
+        type: "date",
+        order: 7,
     },
     {
-      key: "estado",
-      label: "Estado",
-      type: "text",
-      order: 8,
+        key: "estado",
+        label: "Estado",
+        type: "text",
+        order: 8,
     },
 ];
 
 export const keysInfoModalCuenta: FieldConfig<DTO_Cuenta>[] = [
-  
+
     {
         key: "iD_Cuenta",
         label: "Código",
@@ -390,7 +390,7 @@ export const labelMapCliente: Record<string, string> = {
     telefonoCliente: "Teléfono",
     correoCliente: "Correo",
     estado: "Estado",
-    
+
 };
 
 export const labelMapItemsOrdenServicio: Record<string, string> = {
@@ -489,18 +489,33 @@ export const ordenservicioFormCrearCuenta: FieldConfig<DTO_Cuenta>[] = [
         required: true,
         order: 8,
     },
- 
+
 ];
 
-export const clienteFormEditFields: Array<FieldConfig<DTO_Cliente>> = columnKeysCliente
-    .filter(key => key !== "iD_Cliente" && key !== "iD_Usuario") // Excluye campos que no se editan
-    .map(key => ({
-        key,
-        label: labelMapCliente[key] ?? key,
-        type: "text",
-    }));
+export const clienteFormEditFields: Array<FieldConfig<DTO_Cliente>> = [
+    {
 
-    export const ItemsOrdenServicioFormEditFields: Array<FieldConfig<DTO_ItemOrdenServicio>> = [
+        key: "nombreCliente",
+        label: labelMapOrdenDeServicio["nombreCliente"] ?? "Nombre",
+        type: "text",
+        required: true
+    },
+    {
+
+        key: "apellidoCliente",
+        label: labelMapOrdenDeServicio["apellidoCliente"] ?? "Apellido",
+        type: "text",
+        required: true
+    },
+    ...columnKeysCliente
+        .filter(key => key !== "iD_Cliente" && key !== "iD_Usuario" && key !== "nombreCliente" && key !== "apellidoCliente") // Excluye campos que no se editan
+        .map(key => ({
+            key,
+            label: labelMapCliente[key] ?? key,
+            type: "text" as any
+        }))
+];
+export const ItemsOrdenServicioFormEditFields: Array<FieldConfig<DTO_ItemOrdenServicio>> = [
     {
 
         key: "nombreItemOrdenServicio",
@@ -509,11 +524,11 @@ export const clienteFormEditFields: Array<FieldConfig<DTO_Cliente>> = columnKeys
         required: true
     },
     ...columnKeysItemsOrdenServicio
-        .filter(key => key !== "iD_ItemOrdenServicio" && key !== "iD_OrdenServicio" && key !== "nombreItemOrdenServicio"  && key !== "avance")
+        .filter(key => key !== "iD_ItemOrdenServicio" && key !== "iD_OrdenServicio" && key !== "nombreItemOrdenServicio" && key !== "avance")
         .map(key => ({
             key,
             label: labelMapItemsOrdenServicio[key] ?? key,
-            type: (key === "monto" ? "number" : "text") as any 
+            type: (key === "monto" ? "number" : "text") as any
         }))
 ];
 
