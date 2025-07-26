@@ -1,6 +1,7 @@
 import { useGenericForm } from "@/hooks/useGenericForm";
 import { FieldConfig } from "./types";
 import { DynamicButtonConfig, ModalHeaderButtons } from "@/components";
+import { DTO_Param } from "@/models";
 
 //#region INTERFACES
 interface GenericFormModalProps<T> {
@@ -12,6 +13,7 @@ interface GenericFormModalProps<T> {
   onSubmit: () => void;
   fields: Array<FieldConfig<T>>;
   headerButtons?: DynamicButtonConfig[];
+  erroresValidacion?: Array<DTO_Param>
 }
 //#endregion
 
@@ -24,7 +26,8 @@ export const GenericFormModal = <T,>({
   setData,
   onSubmit,
   fields,
-  headerButtons,  
+  headerButtons,
+  erroresValidacion = []
 }: GenericFormModalProps<T>) => {
   //#region HOOKS
   const {
@@ -55,16 +58,16 @@ export const GenericFormModal = <T,>({
           ? "col-md-6 fv-row"
           : "d-flex flex-column mb-5 fv-row"
         : type === "date"
-        ? "d-flex flex-column mb-5 fv-row"
-        : idx < 2
-        ? "col-md-6 fv-row"
-        : "d-flex flex-column mb-5 fv-row";
+          ? "d-flex flex-column mb-5 fv-row"
+          : idx < 2
+            ? "col-md-6 fv-row"
+            : "d-flex flex-column mb-5 fv-row";
 
     const labelClass =
       (field.required ? "required " : "") +
       (idx < 2
-      ? "fs-5 fw-bold mb-2"
-      : "fs-5 fw-bold mb-2 mt-6");
+        ? "fs-5 fw-bold mb-2"
+        : "fs-5 fw-bold mb-2 mt-6");
 
     //#region READ-ONLY LABEL
     if (readOnly) {
@@ -128,6 +131,16 @@ export const GenericFormModal = <T,>({
                 : field.errorMessage || errorMsg}
             </div>
           )}
+        
+          {/* sección de errores personalizados */}
+          {erroresValidacion
+            .filter(error => error.nombre === String(key))
+            .map((error, idx) => (
+              <div key={idx} className="invalid-feedback d-block">
+                {error.valor}
+              </div>
+            ))}
+
         </div>
       );
     }
@@ -299,7 +312,7 @@ export const GenericFormModal = <T,>({
                 .map((field, idx) => (
                   <div key={String(field.key)} className="col-12 mb-4">
                     {renderField(field, idx)}
-                    <div className="separator separator-dashed my-5" />
+
                   </div>
                 ))}
             </div>
