@@ -6,7 +6,7 @@ import {
   InfoModal,
   LoadingPanel,
 } from "@/components";
-import { DTO_Cliente, DTO_Respuesta } from "@/models";
+import { DTO_Cliente, DTO_Param, DTO_Respuesta } from "@/models";
 import { clientesService } from "@/services";
 import {
   clienteFormEditFields,
@@ -19,8 +19,18 @@ import {
   updateItemById,
 } from "@/utils";
 import { STATUS_TBL } from "@/constants";
+import { valida_DTO_Cliente } from "@/validators/valida_DTO_Cliente";
 
 export const Clientes = () => {
+  // #region Validaciones en los formularios
+  const [erroresValidacion, setErroresValidacion] = useState<DTO_Param[]>([]);
+  let validacion: Array<DTO_Param>;
+  const eliminarError = (campo: string) => {
+    setErroresValidacion(prev => prev.filter(e => e.nombre !== campo));
+  };
+  // #endregion
+
+
   //#region 🔄 Estado general
   const [clientes, setClientes] = useState<DTO_Cliente[]>([]);
   const [loading, setLoading] = useState(false);
@@ -30,7 +40,7 @@ export const Clientes = () => {
   const [rowTableSelected, setRowTableSelected] = useState<DTO_Cliente>();
 
   //#endregio
-  
+
   //#region ➕ Registrar
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [formData, setFormData] = useState<DTO_Cliente>(new DTO_Cliente());
@@ -102,17 +112,26 @@ export const Clientes = () => {
       nombre: "activo",
       tabla: "",
     };
-    clientesService.registrarClientes(formData).subscribe({
-      next: (res) => {
-        const nuevo = (
-          Array.isArray(res.resultado) ? res.resultado[0] : res.resultado
-        ) as DTO_Cliente;
-        setClientes((prev) => [...prev, nuevo]);
-        handleNotification(res, "succes");
-        setIsFormOpen(false);
-      },
-      error: errorHelpers.serverError,
-    });
+
+    validacion = valida_DTO_Cliente.validar(formData, "C");
+    setErroresValidacion(validacion)
+    if (validacion.length === 0) {
+
+      clientesService.registrarClientes(formData).subscribe({
+        next: (res) => {
+          const nuevo = (
+            Array.isArray(res.resultado) ? res.resultado[0] : res.resultado
+          ) as DTO_Cliente;
+          setClientes((prev) => [...prev, nuevo]);
+          handleNotification(res, "succes");
+          setIsFormOpen(false);
+        },
+        error: errorHelpers.serverError,
+      });
+    } else {
+      notificationHelpers.warningAlert("Por favor valida los datos ingresados nuevamente");
+    }
+
   };
 
   const handleCancelAdd = () => {
@@ -120,7 +139,7 @@ export const Clientes = () => {
     setConfirmContext("cancelAdd");
     setIsConfirmOpen(true);
   };
-  
+
   //#endregion
 
   //#region ✏️ Guardar Edición
@@ -131,14 +150,23 @@ export const Clientes = () => {
 
   const handleSaveEdit = () => {
     const updated = { ...editData };
-    clientesService.actualizarClientes(updated).subscribe({
-      next: (res) => {
-        setClientes((prev) => updateItemById(prev, updated, "iD_Cliente"));
-        handleNotification(res, "succes");
-        setShowEditForm(false);
-      },
-      error: errorHelpers.serverError,
-    });
+
+    validacion = valida_DTO_Cliente.validar(updated, "U");
+    setErroresValidacion(validacion)
+    if (validacion.length === 0) {
+
+      clientesService.actualizarClientes(updated).subscribe({
+        next: (res) => {
+          setClientes((prev) => updateItemById(prev, updated, "iD_Cliente"));
+          handleNotification(res, "succes");
+          setShowEditForm(false);
+        },
+        error: errorHelpers.serverError,
+      });
+    } else {
+      notificationHelpers.warningAlert("Por favor valida los datos ingresados nuevamente");
+    }
+
   };
   //#endregion
 
@@ -185,6 +213,7 @@ export const Clientes = () => {
     }
     setIsConfirmOpen(false);
     setConfirmContext(null);
+    setErroresValidacion([])
   };
   //#endregion
 
@@ -208,8 +237,8 @@ export const Clientes = () => {
           onAdd={handleAddNew}
           onEdit={handleEdit}
           onDelete={handleDelete}
-            includeEstadoColumn
-            onRowClick={(row) => setRowTableSelected(row)}
+          includeEstadoColumn
+          onRowClick={(row) => setRowTableSelected(row)}
         />
       )}
 
@@ -228,6 +257,8 @@ export const Clientes = () => {
         setData={setFormData}
         onSubmit={handleSave}
         fields={clienteFormEditFields}
+        erroresValidacion={erroresValidacion}
+        onEliminarError={eliminarError}
       />
 
       <GenericFormModal
@@ -238,6 +269,8 @@ export const Clientes = () => {
         setData={setEditData}
         onSubmit={handleSaveEdit}
         fields={clienteFormEditFields}
+        erroresValidacion={erroresValidacion}
+        onEliminarError={eliminarError}
       />
 
       <ConfirmModal

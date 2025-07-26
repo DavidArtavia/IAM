@@ -87,24 +87,24 @@ export const DetalleCuentaInput = ({
     });
   }, [filas, descuento, impuesto, enabled]);
 
-useEffect(() => {
-  const hayTexto = nombreFila.trim() !== "" || valorFila.trim() !== "";
+  useEffect(() => {
+    const hayTexto = nombreFila.trim() !== "" || valorFila.trim() !== "";
 
-  const tienePendientes = enabled && hayTexto;
+    const tienePendientes = enabled && hayTexto;
 
- if (tienePendientes) {
-   // Forzar un valor que haga fallar validación, pero sea único para que se dispare el render
-   onChange(("error_force_" + Date.now()) as any);
-   onBlur?.();
- } else {
-   onChange({
-     filas,
-     descuento,
-     impuesto,
-   });
- }
+    if (tienePendientes) {
+      // Forzar un valor que haga fallar validación, pero sea único para que se dispare el render
+      onChange(("error_force_" + Date.now()) as any);
+      onBlur?.();
+    } else {
+      onChange({
+        filas,
+        descuento,
+        impuesto,
+      });
+    }
 
-}, [nombreFila, valorFila, filas, descuento, impuesto, enabled]);
+  }, [nombreFila, valorFila, filas, descuento, impuesto, enabled]);
 
 
   const agregarFila = () => {
@@ -114,6 +114,12 @@ useEffect(() => {
       setValorFila("");
     }
   };
+  const limpiarCampos = () => {
+      setNombreFila("");
+      setValorFila("");
+  };
+
+
 
   const eliminarFila = (index: number) => {
     const nuevas = [...filas];
@@ -249,7 +255,7 @@ useEffect(() => {
                   min="0"
                 />
               </div>
-              <div>
+              <div className="p-1">
                 <button
                   type="button"
                   className="btn btn-success btn-icon"
@@ -260,6 +266,17 @@ useEffect(() => {
                   }
                 >
                   <i className="bi bi-plus-lg" />
+                </button>
+
+              </div>
+              <div className="p-1">
+                                <button
+                  type="button"
+                  className="btn btn-secondary btn-icon"
+                  onClick={limpiarCampos}
+                  title="Limpiar"
+                >
+                  <i className="bi bi-arrow-counterclockwise" />
                 </button>
               </div>
             </div>
@@ -288,11 +305,10 @@ useEffect(() => {
                   />
                   <button
                     type="button"
-                    className={`btn ${
-                      descuento.nombre === "Porcentaje"
+                    className={`btn ${descuento.nombre === "Porcentaje"
                         ? "btn-primary"
                         : "btn-secondary"
-                    }`}
+                      }`}
                     onClick={() => {
                       setDescuento((prev) => ({
                         nombre:

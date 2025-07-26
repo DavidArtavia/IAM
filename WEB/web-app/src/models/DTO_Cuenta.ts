@@ -14,5 +14,5 @@ export class DTO_Cuenta {
     detalleJSON?: DTO_DetalleCuentaJSON;
     fechaInicial: Date = new Date();
     fechaModificacion: Date = new Date();
-    fechaLimite: Date = new Date();
+    fechaLimite?: Date;
 }

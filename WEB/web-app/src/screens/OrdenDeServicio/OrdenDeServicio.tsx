@@ -21,6 +21,7 @@ import {
   DTO_ItemOrdenServicio,
   DTO_Negocio,
   DTO_OrdenServicio,
+  DTO_Param,
   DTO_Respuesta,
 } from "@/models";
 import {
@@ -43,6 +44,12 @@ import { useApp } from "@/hooks/useApp";
 
 import { useEffect, useMemo, useState } from "react";
 import AsyncSelect from "react-select/async";
+import { valida_DTO_OrdenServicio } from "@/validators/valida_DTO_OrdenServicio";
+import { valida_DTO_Cuenta } from "@/validators/valida_DTO_Cuenta";
+
+
+
+
 
 // #region 🔑 Helpers
 const generateSafeKey = (name: string) =>
@@ -54,6 +61,15 @@ const generateSafeKey = (name: string) =>
 // #endregion
 
 export const OrdenDeServicio = () => {
+  // #region Validaciones en los formularios
+  const [erroresValidacion, setErroresValidacion] = useState<DTO_Param[]>([]);
+  let validacion: Array<DTO_Param>;
+  const eliminarError = (campo: string) => {
+    setErroresValidacion(prev => prev.filter(e => e.nombre !== campo));
+  };
+  // #endregion
+
+
   // #region 🔄 Estado general
   const { state } = useApp();
 
@@ -125,6 +141,8 @@ export const OrdenDeServicio = () => {
   };
 
   const handleSave = () => {
+
+
     if (!selectedBusiness) return;
     const toSave: any = { ...formData };
     toSave.iD_Negocio = selectedBusiness.iD_Negocio;
@@ -145,17 +163,24 @@ export const OrdenDeServicio = () => {
       }
     });
 
-    ordenesService.registrarOrdensDeServicio(toSave).subscribe({
-      next: (res) => {
-        notificationHelpers.successAlert((res as DTO_Respuesta).mensaje);
-        setIsFormOpen(false);
-        setOrdenes((prev) => [
-          ...((res as DTO_Respuesta).resultado as DTO_OrdenServicio[]),
-          ...prev,
-        ]);
-      },
-      error: errorHelpers.serverError,
-    });
+
+    validacion = valida_DTO_OrdenServicio.validar(toSave, "C");
+    setErroresValidacion(validacion)
+    if (validacion.length === 0) {
+      ordenesService.registrarOrdensDeServicio(toSave).subscribe({
+        next: (res) => {
+          notificationHelpers.successAlert((res as DTO_Respuesta).mensaje);
+          setIsFormOpen(false);
+          setOrdenes((prev) => [
+            ...((res as DTO_Respuesta).resultado as DTO_OrdenServicio[]),
+            ...prev,
+          ]);
+        },
+        error: errorHelpers.serverError,
+      });
+    } else {
+      notificationHelpers.warningAlert("Por favor valida los datos ingresados nuevamente");
+    }
   };
 
   const handleCancelAdd = () => {
@@ -209,6 +234,7 @@ export const OrdenDeServicio = () => {
     ...buildRefFields(formData),
   ];
   //#endregion
+
 
   // #region ✏️ Editar Orden
   const [showEditForm, setShowEditForm] = useState(false);
@@ -337,13 +363,19 @@ export const OrdenDeServicio = () => {
       )
     );
 
-    ordenesService.actualizarOrdensDeServicio(sanitized).subscribe({
-      next: (res: DTO_Respuesta) => {
-        notificationHelpers.successAlert(res.mensaje);
-        setShowEditForm(false);
-      },
-      error: errorHelpers.serverError,
-    });
+    validacion = valida_DTO_OrdenServicio.validar(sanitized, "U");
+    setErroresValidacion(validacion)
+    if (validacion.length === 0) {
+      ordenesService.actualizarOrdensDeServicio(sanitized).subscribe({
+        next: (res: DTO_Respuesta) => {
+          notificationHelpers.successAlert(res.mensaje);
+          setShowEditForm(false);
+        },
+        error: errorHelpers.serverError,
+      });
+    } else {
+      notificationHelpers.warningAlert("Por favor valida los datos ingresados nuevamente");
+    }
   };
   //#endregion
 
@@ -415,6 +447,7 @@ export const OrdenDeServicio = () => {
       if (confirmContext === "cancelAdd") {
         setIsFormOpen(false);
         notificationHelpers.infoAlert("Nueva Orden descartada correctamente");
+        setErroresValidacion([])
       } else if (confirmContext === "delete") {
         handleConfirmDelete(true);
       }
@@ -593,18 +626,19 @@ export const OrdenDeServicio = () => {
     });
   };
 
+
   const formCreateAccountFields: FieldConfig<any>[] = [
     ...ordenservicioFormCrearCuenta,
     ...(account?.iD_OrdenServicio
       ? [
-          {
-            key: "iD_OrdenServicio",
-            label: "Orden De Servicio #",
-            type: "text",
-            readOnly: true,
-            order: 4,
-          } as FieldConfig<any>,
-        ]
+        {
+          key: "iD_OrdenServicio",
+          label: "Orden De Servicio #",
+          type: "text",
+          readOnly: true,
+          order: 4,
+        } as FieldConfig<any>,
+      ]
       : []),
     {
       key: "tipoCuenta",
@@ -626,7 +660,8 @@ export const OrdenDeServicio = () => {
       key: "detalleJSON",
       label: "Detalle",
       type: "custom",
-      required: detalleHabilitado,
+      //required: detalleHabilitado,
+      required: false,
       order: 10,
       errorMessage:
         "Tienes datos sin agregar. Presiona el botón ➕ antes de continuar.",
@@ -647,7 +682,7 @@ export const OrdenDeServicio = () => {
       key: "monto",
       label: "Monto",
       type: "custom",
-      required: !detalleHabilitado,
+      required: false,
       order: 11,
       renderer: () => {
         return (
@@ -655,16 +690,15 @@ export const OrdenDeServicio = () => {
             <span className="input-group-text">₡</span>
             <input
               type="text"
-              className={`form-control fw-bold fs-5 text-start ${
-                detalleHabilitado ? "bg-light" : ""
-              }`}
+              className={`form-control fw-bold fs-5 text-start ${detalleHabilitado ? "bg-light" : ""
+                }`}
               readOnly={detalleHabilitado}
               value={
                 montoInput !== ""
                   ? montoInput
                   : account?.monto !== undefined && account?.monto !== 0
-                  ? String(account.monto)
-                  : ""
+                    ? String(account.monto)
+                    : ""
               }
               onFocus={() => {
                 if ((account?.monto || 0) === 0) {
@@ -700,14 +734,19 @@ export const OrdenDeServicio = () => {
 
   const handleCreateAccount = (cuenta: DTO_Cuenta) => {
     if (!cuenta.iD_Negocio || !cuenta.iD_OrdenServicio) {
-      notificationHelpers.errorAlert("Negocio o Orden de Servicio no válidos");
+      notificationHelpers.errorAlert("Negocio u Orden de Servicio no válidos");
       return;
     }
 
-    cuentasService.registrarCuenta(cuenta).subscribe({
-      next: (res: DTO_Respuesta) => {
-        notificationHelpers.successAlert(res.mensaje);
-        setShowCreateAccount(false);
+
+    validacion = valida_DTO_Cuenta.validar(cuenta, "C");
+    setErroresValidacion(validacion)
+    if (validacion.length === 0) {
+
+      cuentasService.registrarCuenta(cuenta).subscribe({
+        next: (res: DTO_Respuesta) => {
+          notificationHelpers.successAlert(res.mensaje);
+          setShowCreateAccount(false);
 
           const ordenToUpdate = {
             ...editData,
@@ -716,50 +755,54 @@ export const OrdenDeServicio = () => {
               iD_Estado: STATUS_TBL.ORDER_SERVICE.ARCHIVED,
               nombre: "Archivado",
             },
-        } as DTO_OrdenServicio;
-        
+          } as DTO_OrdenServicio;
 
-        ordenesService.actualizarOrdensDeServicio(ordenToUpdate).subscribe({
-          next: (updateRes: DTO_Respuesta) => {
-            notificationHelpers.successAlert(
-              "la Orden fue archivada correctamente"
-            );
 
-            let updatedOrden: DTO_OrdenServicio;
+          ordenesService.actualizarOrdensDeServicio(ordenToUpdate).subscribe({
+            next: (updateRes: DTO_Respuesta) => {
+              notificationHelpers.successAlert(
+                "la Orden fue archivada correctamente"
+              );
 
-            if (
-              Array.isArray(updateRes.resultado) &&
-              updateRes.resultado.length > 0
-            ) {
-              updatedOrden = updateRes.resultado[0] as DTO_OrdenServicio;
-            } else if (
-              updateRes.resultado &&
-              typeof updateRes.resultado === "object" &&
-              !Array.isArray(updateRes.resultado)
-            ) {
-              updatedOrden = updateRes.resultado as DTO_OrdenServicio;
-            } else {
-              updatedOrden = ordenToUpdate;
-            }
+              let updatedOrden: DTO_OrdenServicio;
 
-            setOrdenes((prev) =>
-              prev.map((o) =>
-                o.iD_OrdenServicio === updatedOrden.iD_OrdenServicio
-                  ? {
+              if (
+                Array.isArray(updateRes.resultado) &&
+                updateRes.resultado.length > 0
+              ) {
+                updatedOrden = updateRes.resultado[0] as DTO_OrdenServicio;
+              } else if (
+                updateRes.resultado &&
+                typeof updateRes.resultado === "object" &&
+                !Array.isArray(updateRes.resultado)
+              ) {
+                updatedOrden = updateRes.resultado as DTO_OrdenServicio;
+              } else {
+                updatedOrden = ordenToUpdate;
+              }
+
+              setOrdenes((prev) =>
+                prev.map((o) =>
+                  o.iD_OrdenServicio === updatedOrden.iD_OrdenServicio
+                    ? {
                       ...o,
                       ...updatedOrden,
                     }
-                  : o
-              )
-            );
+                    : o
+                )
+              );
 
-            setEditData(updatedOrden);
-          },
-          error: errorHelpers.serverError,
-        });
-      },
-      error: errorHelpers.serverError,
-    });
+              setEditData(updatedOrden);
+            },
+            error: errorHelpers.serverError,
+          });
+        },
+        error: errorHelpers.serverError,
+      });
+
+    } else {
+      notificationHelpers.warningAlert("Por favor valida los datos ingresados nuevamente");
+    }
   };
 
   // Método para manejar la acción de crear cuenta, reutilizable para editar y ver info
@@ -803,10 +846,10 @@ export const OrdenDeServicio = () => {
       className: "btn btn-bg-light btn-active-color-info",
       icon: (editData?.estado?.nombre === "Archivado" ||
         editData?.estado?.iD_Estado === STATUS_TBL.ORDER_SERVICE.ARCHIVED) && (
-        <span className="ms-2" style={{ cursor: "pointer", color: "#0d6efd" }}>
-          <i className="bi bi-info-circle"></i>
-        </span>
-      ),
+          <span className="ms-2" style={{ cursor: "pointer", color: "#0d6efd" }}>
+            <i className="bi bi-info-circle"></i>
+          </span>
+        ),
     },
     {
       titulo: "Eliminar",
@@ -825,10 +868,10 @@ export const OrdenDeServicio = () => {
       className: "btn btn-bg-light btn-active-color-info",
       icon: (editData?.estado?.nombre === "Archivado" ||
         editData?.estado?.iD_Estado === STATUS_TBL.ORDER_SERVICE.ARCHIVED) && (
-        <span className="ms-2" style={{ cursor: "pointer", color: "#0d6efd" }}>
-          <i className="bi bi-info-circle"></i>
-        </span>
-      ),
+          <span className="ms-2" style={{ cursor: "pointer", color: "#0d6efd" }}>
+            <i className="bi bi-info-circle"></i>
+          </span>
+        ),
     },
     {
       titulo: "Eliminar",
@@ -883,6 +926,8 @@ export const OrdenDeServicio = () => {
         setData={setFormData}
         onSubmit={handleSave}
         fields={newFormFields}
+        erroresValidacion={erroresValidacion}
+        onEliminarError={eliminarError}
       />
 
       {/* Modal Editar */}
@@ -895,6 +940,8 @@ export const OrdenDeServicio = () => {
         onSubmit={handleSaveEdit}
         fields={editFormFields}
         headerButtons={headerButtonsToEdit}
+        erroresValidacion={erroresValidacion}
+        onEliminarError={eliminarError}
       />
 
       {/* Modal Crear Cuenta */}
@@ -910,6 +957,8 @@ export const OrdenDeServicio = () => {
           }
         }}
         fields={formCreateAccountFields}
+        onEliminarError={eliminarError}
+        erroresValidacion={erroresValidacion}
       />
 
       <ItemsOrdenDeServicioModal

@@ -19,28 +19,41 @@ export const BusinessButtons = () => {
 
 
   useEffect(() => {
-    if (listaNegocios.length) return;  
+    if (state.negocio) {
+      localStorage.setItem("ID_Negocio", state.negocio.iD_Negocio.toString());
+    }
+  }, [state]);
+
+  useEffect(() => {
+    if (listaNegocios.length) return;
 
     const filtro: DTO_FiltroEstado = { filtroEstado: FILTER_STATUS.ACTIVO };
 
     const sub = negocioService.obtenerNegocios(filtro).subscribe({
+
       next: (result) => {
         const arr = procesarRespuesta(result as DTO_Respuesta) as DTO_Negocio[];
-        setListaNegocios(arr);        
+        setListaNegocios(arr);
         if (!negocio && arr.length) {
-          setNegocio(arr[0]);           
+          const negocioGuardado = arr.find(n => n.iD_Negocio.toString() === localStorage.getItem("ID_Negocio"))
+          if (negocioGuardado) {
+            setNegocio(negocioGuardado)
+          } else {
+            setNegocio(arr[0])
+          }
+
         }
       },
       error: (err) => errorHelpers.serverError(err),
     });
 
     return () => sub.unsubscribe();
-  }, [listaNegocios]);  
+  }, [listaNegocios]);
 
-const opcionesNegocios = listaNegocios.map((b) => ({
-  value: b.iD_Negocio,
-  label: b.nombreNegocio,
-}));
+  const opcionesNegocios = listaNegocios.map((b) => ({
+    value: b.iD_Negocio,
+    label: b.nombreNegocio,
+  }));
 
   return (
     <div className="container py-3" style={{ paddingLeft: 0 }}>
