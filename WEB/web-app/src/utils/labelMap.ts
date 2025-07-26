@@ -420,13 +420,24 @@ export const labelMapTransacciones: Record<string, string> = {
 //#region campos a mostrar para el form de editar
 
 // Exportación de los campos del formulario editar para los modelos
-export const negocioFormEditFields: Array<FieldConfig<DTO_Negocio>> = columnKeysNegocio
-    .filter(key => key !== "iD_Negocio" && key !== "iD_Usuario" && key !== "fechaRegistro") // Excluye campos que no se editan
-    .map(key => ({
-        key,
-        label: labelMapNegocio[key] ?? key,
-        type: "text",
-    }));
+export const negocioFormEditFields: Array<FieldConfig<DTO_Negocio>> =
+    [
+        {
+            key: "nombreNegocio",
+            label: labelMapCuenta["nombreNegocio"] ?? "Nombre del negocio",
+            type: "text",
+            required: true
+        },
+        ...columnKeysNegocio
+            .filter(key => key !== "iD_Negocio" && key !== "iD_Usuario" && key !== "fechaRegistro" && key !== "nombreNegocio") // Excluye campos que no se editan
+            .map(key => ({
+                key,
+                label: labelMapNegocio[key] ?? key,
+                type: "text" as any,
+            }))
+
+];
+
 export const cuentasFormEditFields: FieldConfig<DTO_Cuenta>[] = [
     {
         key: "iD_Cuenta",
