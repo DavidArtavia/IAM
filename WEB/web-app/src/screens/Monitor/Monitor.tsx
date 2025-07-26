@@ -8,6 +8,7 @@ import {
   DTO_ItemOrdenServicio,
   DTO_Negocio,
   DTO_OrdenServicio,
+  DTO_Param,
   DTO_Respuesta,
 } from "@/models";
 import {
@@ -18,8 +19,19 @@ import {
 } from "@/services";
 import { STATUS_TBL } from "@/constants";
 import { useApp } from "@/hooks/useApp";
+import { valida_DTO_Cuenta } from "@/validators/valida_DTO_Cuenta";
 
 export const Monitor = () => {
+
+  // #region Validaciones en los formularios
+  const [erroresValidacion, setErroresValidacion] = useState<DTO_Param[]>([]);
+  let validacion: Array<DTO_Param>;
+  const eliminarError = (campo: string) => {
+    setErroresValidacion(prev => prev.filter(e => e.nombre !== campo));
+  };
+  // #endregion
+
+
   //🔄 Estado general
   const { state } = useApp();
 
@@ -250,7 +262,7 @@ export const Monitor = () => {
             );
         });
 
-    
+
       } else {
         console.warn("Tipo desconocido", msg);
         notificationHelpers.infoAlert("📢 Nuevo mensaje");
@@ -340,13 +352,13 @@ export const Monitor = () => {
   const handleCreateAccountButton = (orden: DTO_OrdenServicio | undefined) => {
 
     setEditData(orden || new DTO_OrdenServicio());
-    
-   if (orden) {
+
+    if (orden) {
       getItemsToOrderServiceAccount(orden).then(() => {
         setShowCreateAccount(true);
       });
     }
-    
+
   };
 
 
@@ -446,7 +458,7 @@ export const Monitor = () => {
       key: "detalleJSON",
       label: "Detalle",
       type: "custom",
-      required: detalleHabilitado,
+      required: false,
       order: 10,
       errorMessage:
         "Tienes datos sin agregar. Presiona el botón ➕ antes de continuar.",
@@ -467,7 +479,7 @@ export const Monitor = () => {
       key: "monto",
       label: "Monto",
       type: "custom",
-      required: !detalleHabilitado,
+      required: false,
       order: 11,
       renderer: () => {
         return (
@@ -518,66 +530,74 @@ export const Monitor = () => {
   ];
 
   const handleCreateAccount = (cuenta: DTO_Cuenta) => {
-    
+
     if (!cuenta.iD_Negocio || !cuenta.iD_OrdenServicio) {
       notificationHelpers.errorAlert("Negocio o Orden de Servicio no válidos");
       return;
     }
-    cuentasService.registrarCuenta(cuenta).subscribe({
-      next: (res: DTO_Respuesta) => {
-        notificationHelpers.successAlert(res.mensaje);
-        setShowCreateAccount(false);
+    validacion = valida_DTO_Cuenta.validar(cuenta, "C");
+    setErroresValidacion(validacion)
+    if (validacion.length === 0) {
 
-        const ordenToUpdate: DTO_OrdenServicio = {
-          ...editData,
-          estado: {
-            ...editData.estado,
-            iD_Estado: STATUS_TBL.ORDER_SERVICE.ARCHIVED,
-            nombre: "Archivado",
-          },
-        };
+      cuentasService.registrarCuenta(cuenta).subscribe({
+        next: (res: DTO_Respuesta) => {
+          notificationHelpers.successAlert(res.mensaje);
+          setShowCreateAccount(false);
 
-        ordenesService.actualizarOrdensDeServicio(ordenToUpdate).subscribe({
-          next: (updateRes: DTO_Respuesta) => {
-            notificationHelpers.successAlert(
-              "la Orden fue archivada correctamente"
-            );
+          const ordenToUpdate: DTO_OrdenServicio = {
+            ...editData,
+            estado: {
+              ...editData.estado,
+              iD_Estado: STATUS_TBL.ORDER_SERVICE.ARCHIVED,
+              nombre: "Archivado",
+            },
+          };
 
-            let updatedOrden: DTO_OrdenServicio;
+          ordenesService.actualizarOrdensDeServicio(ordenToUpdate).subscribe({
+            next: (updateRes: DTO_Respuesta) => {
+              notificationHelpers.successAlert(
+                "la Orden fue archivada correctamente"
+              );
 
-            if (
-              Array.isArray(updateRes.resultado) &&
-              updateRes.resultado.length > 0
-            ) {
-              updatedOrden = updateRes.resultado[0] as DTO_OrdenServicio;
-            } else if (
-              updateRes.resultado &&
-              typeof updateRes.resultado === "object" &&
-              !Array.isArray(updateRes.resultado)
-            ) {
-              updatedOrden = updateRes.resultado as DTO_OrdenServicio;
-            } else {
-              updatedOrden = ordenToUpdate;
-            }
-            
-            setOrdenes((prev) =>
-              prev.map((o) =>
-                o.iD_OrdenServicio === updatedOrden.iD_OrdenServicio
-                  ? {
-                    ...o,
-                    ...updatedOrden,
-                  }
-                  : o
-              )
-            );
+              let updatedOrden: DTO_OrdenServicio;
 
-            setEditData(updatedOrden);
-          },
-          error: errorHelpers.serverError,
-        });
-      },
-      error: errorHelpers.serverError,
-    });
+              if (
+                Array.isArray(updateRes.resultado) &&
+                updateRes.resultado.length > 0
+              ) {
+                updatedOrden = updateRes.resultado[0] as DTO_OrdenServicio;
+              } else if (
+                updateRes.resultado &&
+                typeof updateRes.resultado === "object" &&
+                !Array.isArray(updateRes.resultado)
+              ) {
+                updatedOrden = updateRes.resultado as DTO_OrdenServicio;
+              } else {
+                updatedOrden = ordenToUpdate;
+              }
+
+              setOrdenes((prev) =>
+                prev.map((o) =>
+                  o.iD_OrdenServicio === updatedOrden.iD_OrdenServicio
+                    ? {
+                      ...o,
+                      ...updatedOrden,
+                    }
+                    : o
+                )
+              );
+
+              setEditData(updatedOrden);
+            },
+            error: errorHelpers.serverError,
+          });
+        },
+        error: errorHelpers.serverError,
+      });
+    } else {
+      notificationHelpers.warningAlert("Por favor valida los datos ingresados nuevamente");
+    }
+
   };
   //#endregion crear cuenta
   //#region cargar monitor
@@ -628,6 +648,8 @@ export const Monitor = () => {
           }
         }}
         fields={formCreateAccountFields}
+        erroresValidacion={erroresValidacion}
+        onEliminarError={eliminarError}
       />
 
       <div className="row p-4 gx-0">

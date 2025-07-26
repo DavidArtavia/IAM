@@ -3,6 +3,7 @@ import {
   DTO_Transacciones,
   DTO_Respuesta,
   DTO_Cuenta,
+  DTO_Param,
 } from "@/models";
 import {
   ConfirmModal,
@@ -24,6 +25,7 @@ import {
 import { transaccionesService } from "@/services/transacciones.service";
 import { STATUS_TBL } from "@/constants";
 import { AutoAccountTransactionInfoField } from "@/screens";
+import { valida_DTO_Transacciones } from "@/validators/valida_DTO_Transacciones";
 
 interface TransaccionesPorCuentaModalProps {
   open: boolean;
@@ -40,6 +42,15 @@ export const TransaccionesPorCuentaModal = ({
   negocioId,
   nombreCuenta = "Cuenta",
 }: TransaccionesPorCuentaModalProps) => {
+
+  // #region Validaciones en los formularios
+  const [erroresValidacion, setErroresValidacion] = useState<DTO_Param[]>([]);
+  let validacion: Array<DTO_Param>;
+  const eliminarError = (campo: string) => {
+    setErroresValidacion(prev => prev.filter(e => e.nombre !== campo));
+  };
+  // #endregion
+
   //#region 🔄 Estados generales
   const [loading, setLoading] = useState(false);
   const [transacciones, setTransacciones] = useState<DTO_Transacciones[]>([]);
@@ -99,7 +110,7 @@ export const TransaccionesPorCuentaModal = ({
   }, [open, cuenta]);
   //#endregion
 
-  
+
   //#region 🛠 Funciones
   const handleAddNew = () => {
     setFormData(new DTO_Transacciones());
@@ -113,50 +124,63 @@ export const TransaccionesPorCuentaModal = ({
       tipoNumReferencia: "Cuenta",
       numReferencia: String(cuenta.iD_Cuenta),
     };
-    
-    transaccionesService.registrarTransaccion(payload).subscribe({
-      next: (result: DTO_Respuesta) => {
-        const nueva = (result.resultado as DTO_Transacciones[])[0];
-        if (nueva) setTransacciones((prev) => [...prev, nueva]);
-        notificationHelpers.successAlert(result.mensaje);
-        setIsModalFormOpen(false);
-      },
-      error: errorHelpers.serverError,
-    });
+
+    validacion = valida_DTO_Transacciones.validar(payload, "C");
+    setErroresValidacion(validacion)
+    if (validacion.length === 0) {
+      transaccionesService.registrarTransaccion(payload).subscribe({
+        next: (result: DTO_Respuesta) => {
+          const nueva = (result.resultado as DTO_Transacciones[])[0];
+          if (nueva) setTransacciones((prev) => [...prev, nueva]);
+          notificationHelpers.successAlert(result.mensaje);
+          setIsModalFormOpen(false);
+        },
+        error: errorHelpers.serverError,
+      });
+    } else {
+      notificationHelpers.warningAlert("Por favor valida los datos ingresados nuevamente");
+    }
   };
-  
+
   const handleEdit = (row: DTO_Transacciones) => {
     setRowEditSelected(row);
     setEditData({ ...row });
     setShowEditForm(true);
   };
-  
+
   const handleSaveEdit = (updated: DTO_Transacciones) => {
     if (!rowEditSelected) return;
-    
+
     updated.iD_Transaccion = rowEditSelected.iD_Transaccion;
     updated.iD_Negocio = negocioId;
-    
+
     if (!updated.estado?.iD_Estado && rowEditSelected.estado?.iD_Estado) {
       updated.estado = { ...rowEditSelected.estado };
     }
-    
-    transaccionesService.actualizarTransaccion(updated).subscribe({
-      next: () => {
-        setTransacciones((prev) =>
-          updated.estado?.iD_Estado !== STATUS_TBL.TRANSACTION.DELETED
-            ? prev.map((t) =>
-              t.iD_Transaccion === updated.iD_Transaccion ? updated : t
-          )
-          : prev.filter((t) => t.iD_Transaccion !== updated.iD_Transaccion)
-        );
-        notificationHelpers.successAlert(
-          "Transacción actualizada correctamente"
-        );
-        setShowEditForm(false);
-      },
-      error: errorHelpers.serverError,
-    });
+
+    validacion = valida_DTO_Transacciones.validar(updated, "U");
+    setErroresValidacion(validacion)
+    if (validacion.length === 0) {
+      transaccionesService.actualizarTransaccion(updated).subscribe({
+        next: () => {
+          setTransacciones((prev) =>
+            updated.estado?.iD_Estado !== STATUS_TBL.TRANSACTION.DELETED
+              ? prev.map((t) =>
+                t.iD_Transaccion === updated.iD_Transaccion ? updated : t
+              )
+              : prev.filter((t) => t.iD_Transaccion !== updated.iD_Transaccion)
+          );
+          notificationHelpers.successAlert(
+            "Transacción actualizada correctamente"
+          );
+          setShowEditForm(false);
+        },
+        error: errorHelpers.serverError,
+      });
+    } else {
+      notificationHelpers.warningAlert("Por favor valida los datos ingresados nuevamente");
+    }
+
   };
 
   const handleDelete = (item: DTO_Transacciones) => {
@@ -167,7 +191,7 @@ export const TransaccionesPorCuentaModal = ({
     setConfirmContext("delete");
     setIsConfirmOpen(true);
   };
-  
+
   const handleConfirmDelete = (action: boolean | null) => {
     if (action && transToDelete) {
       const updated = {
@@ -191,13 +215,13 @@ export const TransaccionesPorCuentaModal = ({
     setIsConfirmOpen(false);
     setConfirmContext(null);
   };
-  
+
   const handleCancelAdd = () => {
     setConfirmModalMessage("¿Deseas cancelar el registro?");
     setConfirmContext("cancelAdd");
     setIsConfirmOpen(true);
   };
-  
+
   const confirmModalAction = (action: boolean | null) => {
     if (action) {
       if (confirmContext === "cancelAdd") {
@@ -213,7 +237,7 @@ export const TransaccionesPorCuentaModal = ({
   //#endregion
 
   //#region 🔎 InfoModal
-  
+
   const infoModalFields: FieldConfig<DTO_Transacciones>[] = [
     ...keysInfoModalTransacciones,
     {
@@ -223,20 +247,25 @@ export const TransaccionesPorCuentaModal = ({
       order: 9,
       renderer: ({ value }) => (
         <div className="border border-gray-200 rounded px-4 py-3 d-flex align-items-center justify-content-between shadow-sm">
-            <i className="bi bi-cash-coin fs-4 text-gray-600 me-3"></i>
-            <span className="fw-semibold fs-5 text-gray-800"></span>
-            {formatColones(Number(value) || 0)}
-          </div>
-        ),
-      },
-    ];
+          <i className="bi bi-cash-coin fs-4 text-gray-600 me-3"></i>
+          <span className="fw-semibold fs-5 text-gray-800"></span>
+          {formatColones(Number(value) || 0)}
+        </div>
+      ),
+    },
+  ];
   //#endregion
-  
+
   //#region 🧾 Formularios
   const registerFields: FieldConfig<DTO_Transacciones>[] = [
     { key: "concepto", label: "Concepto", type: "text", required: true },
     { key: "monto", label: "Monto", type: "number", required: true },
-    { key: "fechaTransaccion", label: "Fecha", type: "date", required: true },
+    {
+      key: "tipo", label: "Tipo de Transacción", type: "select", required: true, options: [
+        { label: "Ingreso", value: "Ingreso" },
+        { label: "Gasto", value: "Gasto" },
+      ]
+    },
   ];
 
   const editFormFields: FieldConfig<DTO_Transacciones>[] =
@@ -265,7 +294,7 @@ export const TransaccionesPorCuentaModal = ({
       val ? new Date(String(val)).toLocaleDateString() : "",
   };
   //#endregion
-  
+
   if (!open) return null;
 
   //#region 🎨 Render modal
@@ -316,13 +345,15 @@ export const TransaccionesPorCuentaModal = ({
             />
 
             <GenericFormModal
-              title="Registrar Transacción"
+              title={"Registrar Transacción para la Cuenta #" + rowEditSelected?.numReferencia}
               show={isModalFormOpen}
               onHide={handleCancelAdd}
               data={formData}
               setData={setFormData}
               onSubmit={handleSave}
               fields={registerFields}
+              erroresValidacion={erroresValidacion}
+              onEliminarError={eliminarError}
             />
 
             <GenericFormModal
@@ -333,6 +364,8 @@ export const TransaccionesPorCuentaModal = ({
               setData={(x) => setEditData(x as DTO_Transacciones)}
               onSubmit={() => editData && handleSaveEdit(editData)}
               fields={editFormFields}
+              erroresValidacion={erroresValidacion}
+              onEliminarError={eliminarError}
             />
 
             <ConfirmModal

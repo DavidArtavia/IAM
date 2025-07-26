@@ -1,7 +1,7 @@
 // ✅ RP-19: Pantalla Transacciones adaptada a estructura definitiva (estado local, sin refetch completo, edición con lógica de cuentas)
 
 import { useEffect, useState } from "react";
-import { DTO_Negocio, DTO_Transacciones, DTO_Respuesta } from "@/models";
+import { DTO_Negocio, DTO_Transacciones, DTO_Respuesta, DTO_Param } from "@/models";
 import {
   ConfirmModal,
   FieldConfig,
@@ -24,8 +24,17 @@ import { STATUS_TBL } from "@/constants";
 import { transaccionesService } from "@/services/transacciones.service";
 import { useApp } from "@/hooks/useApp";
 import { AutoAccountTransactionInfoField } from "./AutoAccountTransactionInfoField";
+import { valida_DTO_Transacciones } from "@/validators/valida_DTO_Transacciones";
 
 export const Transacciones = () => {
+  // #region Validaciones en los formularios
+  const [erroresValidacion, setErroresValidacion] = useState<DTO_Param[]>([]);
+  let validacion: Array<DTO_Param>;
+  const eliminarError = (campo: string) => {
+    setErroresValidacion(prev => prev.filter(e => e.nombre !== campo));
+  };
+  // #endregion
+
   //🔄 Estado general
   const { state } = useApp();
 
@@ -119,18 +128,26 @@ export const Transacciones = () => {
 
   const handleSave = () => {
     formData.iD_Negocio = selectedBusiness?.iD_Negocio || 0;
-    transaccionesService.registrarTransaccion(formData).subscribe({
-      next: (result) => {
-        const nueva = (result.resultado as DTO_Transacciones[])[0];
-        // ✅ Filtramos si no es eliminado antes de agregar
-        if (nueva.estado?.iD_Estado !== STATUS_TBL.TRANSACTION.DELETED) {
-          setTransacciones((prev) => [nueva, ...prev]);
-        }
-        notificationHelpers.successAlert(result.mensaje);
-        setIsModalFormOpen(false);
-      },
-      error: errorHelpers.serverError,
-    });
+
+    validacion = valida_DTO_Transacciones.validar(formData, "C");
+    setErroresValidacion(validacion)
+    if (validacion.length === 0) {
+
+      transaccionesService.registrarTransaccion(formData).subscribe({
+        next: (result) => {
+          const nueva = (result.resultado as DTO_Transacciones[])[0];
+          // ✅ Filtramos si no es eliminado antes de agregar
+          if (nueva.estado?.iD_Estado !== STATUS_TBL.TRANSACTION.DELETED) {
+            setTransacciones((prev) => [nueva, ...prev]);
+          }
+          notificationHelpers.successAlert(result.mensaje);
+          setIsModalFormOpen(false);
+        },
+        error: errorHelpers.serverError,
+      });
+    } else {
+      notificationHelpers.warningAlert("Por favor valida los datos ingresados nuevamente");
+    }
   };
 
   const handleCancelAdd = () => {
@@ -155,20 +172,22 @@ export const Transacciones = () => {
     if (!updatedData.estado?.iD_Estado && rowEditSelected.estado?.iD_Estado) {
       updatedData.estado = { ...rowEditSelected.estado };
     }
-
+    validacion = valida_DTO_Transacciones.validar(formData, "U");
+    setErroresValidacion(validacion)
+    if (validacion.length === 0) {
     transaccionesService.actualizarTransaccion(updatedData).subscribe({
       next: () => {
         // ✅ Si sigue activo, actualizar; si fue eliminado, eliminar de lista
         setTransacciones((prev) =>
           updatedData.estado?.iD_Estado !== STATUS_TBL.TRANSACTION.DELETED
             ? prev.map((t) =>
-                t.iD_Transaccion === updatedData.iD_Transaccion
-                  ? updatedData
-                  : t
-              )
+              t.iD_Transaccion === updatedData.iD_Transaccion
+                ? updatedData
+                : t
+            )
             : prev.filter(
-                (t) => t.iD_Transaccion !== updatedData.iD_Transaccion
-              )
+              (t) => t.iD_Transaccion !== updatedData.iD_Transaccion
+            )
         );
         notificationHelpers.successAlert(
           "Transacción actualizada correctamente"
@@ -177,6 +196,10 @@ export const Transacciones = () => {
       },
       error: errorHelpers.serverError,
     });
+      } else {
+      notificationHelpers.warningAlert("Por favor valida los datos ingresados nuevamente");
+    }
+	
   };
   //#endregion
 
@@ -220,6 +243,7 @@ export const Transacciones = () => {
       }
     }
     setIsConfirmOpen(false);
+    setErroresValidacion([])
   };
   //#endregion
 
@@ -317,6 +341,8 @@ export const Transacciones = () => {
         setData={setFormData}
         onSubmit={handleSave}
         fields={transaccionesFormEditFields}
+        erroresValidacion={erroresValidacion}
+        onEliminarError={eliminarError}
       />
 
       <GenericFormModal<DTO_Transacciones>
@@ -327,6 +353,8 @@ export const Transacciones = () => {
         setData={(x) => setEditData(x as DTO_Transacciones)}
         onSubmit={() => editData && handleSaveEdit(editData)}
         fields={editFormFields}
+        erroresValidacion={erroresValidacion}
+        onEliminarError={eliminarError}
       />
 
       <ConfirmModal

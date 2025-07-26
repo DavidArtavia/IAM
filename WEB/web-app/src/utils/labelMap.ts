@@ -483,13 +483,6 @@ export const ordenservicioFormCrearCuenta: FieldConfig<DTO_Cuenta>[] = [
         order: 6,
     },
     {
-        key: "fechaInicial",
-        label: labelMapCuenta["fechaInicial"] ?? "Fecha Inicial",
-        type: "date",
-        required: true,
-        order: 7,
-    },
-    {
         key: "fechaLimite",
         label: labelMapCuenta["fechaLimite"] ?? "Fecha Límite",
         type: "date",
@@ -560,21 +553,20 @@ export const transaccionesFormEditFields: FieldConfig<DTO_Transacciones>[] = [
     { key: "concepto", label: "Concepto", type: "text", required: true },
     { key: "monto", label: "Monto", type: "number", required: true },
     {
-        key: "tipo", label: "Tipo", type: "select", required: true, options: [
+        key: "tipo", label: "Tipo de Transacción", type: "select", required: true, options: [
             { label: "Ingreso", value: "Ingreso" },
             { label: "Gasto", value: "Gasto" },
         ]
     },
     {
-        key: "tipoNumReferencia", label: "Tipo Referencia", type: "select", required: true, options: [
+        key: "tipoNumReferencia", label: "Tipo Referencia", type: "select", required: false, options: [
             { label: "Luz", value: "Luz" },
             { label: "Internet", value: "Internet" },
             { label: "Planilla", value: "Planilla" },
             { label: "Otro", value: "Otro" },
         ]
     },
-    { key: "numReferencia", label: "N° Referencia", type: "text", required: false },
-    { key: "fechaTransaccion", label: "Fecha", type: "date", required: true },
+    { key: "numReferencia", label: "N° Referencia", type: "text", required: false }
 ];
 
 //#endregion
@@ -595,14 +587,6 @@ export const cuentasFormAddFields: FieldConfig<DTO_Cuenta>[] = [
         type: "textarea",
         required: false,
         order: 2,
-    },
-    {
-        key: "fechaInicial",
-        label: labelMapCuenta["fechaInicial"] ?? "Fecha Inicial",
-        type: "date",
-        required: true,
-        order: 3,
-        errorMessage: "La fecha inicial es obligatoria",
     },
     {
         key: "fechaLimite",
