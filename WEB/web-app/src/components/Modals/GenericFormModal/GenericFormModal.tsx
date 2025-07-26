@@ -13,7 +13,9 @@ interface GenericFormModalProps<T> {
   onSubmit: () => void;
   fields: Array<FieldConfig<T>>;
   headerButtons?: DynamicButtonConfig[];
-  erroresValidacion?: Array<DTO_Param>
+  erroresValidacion?: Array<DTO_Param>;
+  onEliminarError: (key: string) => void;
+
 }
 //#endregion
 
@@ -27,17 +29,14 @@ export const GenericFormModal = <T,>({
   onSubmit,
   fields,
   headerButtons,
-  erroresValidacion = []
+  erroresValidacion = [],
+  onEliminarError
 }: GenericFormModalProps<T>) => {
   //#region HOOKS
   const {
-    errors,
-    touched,
-    wasSubmitted,
     localDisplay,
     handleChange,
     handleBlur,
-    handleSubmit,
   } = useGenericForm(data, setData, fields, show, onSubmit);
   //#endregion
 
@@ -48,10 +47,13 @@ export const GenericFormModal = <T,>({
     const { key, label, type = "text", options, renderer, readOnly } = field;
     const rawVal = (data as any)[key];
     const localVal = localDisplay[key];
-    const shouldShowError = touched[key] || wasSubmitted;
-    const errorMsg = shouldShowError ? errors[key] : "";
 
-    const inputClass = `form-control  ${errorMsg ? "is-invalid" : ""}`;
+
+
+    const inputClass = 
+    type === "custom"  ?
+    (erroresValidacion.some(error => error.nombre === String(key)) ? " is-invalid-custom-select": "") :
+    (erroresValidacion.some(error => error.nombre === String(key)) ? `form-control ` + " is-invalid" : `form-control `);
     const wrapperClass =
       type === "custom"
         ? idx < 2
@@ -116,22 +118,18 @@ export const GenericFormModal = <T,>({
           <label htmlFor={String(key)} className={labelClass}>
             {label}
           </label>
-          {renderer({
-            value: rawVal,
-            onChange: (val) => {
-              setData((prev) => ({ ...prev, [key]: val }));
-            },
-            onBlur: () => handleBlur(key),
-          })}
+          <div className={inputClass}>
+            {renderer({
+              value: rawVal,
+              onChange: (val) => {
+                onEliminarError(key.toString())
+                setData((prev) => ({ ...prev, [key]: val }));
+              },
+              //onBlur: () => handleBlur(key),
+            })}
+          </div>
 
-          {errorMsg && (
-            <div className="invalid-feedback d-block">
-              {typeof field.errorMessage === "function"
-                ? field.errorMessage(rawVal)
-                : field.errorMessage || errorMsg}
-            </div>
-          )}
-        
+
           {/* sección de errores personalizados */}
           {erroresValidacion
             .filter(error => error.nombre === String(key))
@@ -157,16 +155,17 @@ export const GenericFormModal = <T,>({
             id={String(key)}
             className={inputClass}
             value={String(rawVal ?? "")}
-            onChange={(e) => handleChange(key, e.target.value, "text")}
+            onChange={(e) => { onEliminarError(key.toString()); handleChange(key, e.target.value, "text") }}
             onBlur={() => handleBlur(key)}
           />
-          {errorMsg && (
-            <div className="invalid-feedback d-block">
-              {typeof field.errorMessage === "function"
-                ? field.errorMessage(rawVal)
-                : field.errorMessage || errorMsg}
-            </div>
-          )}
+          {/* sección de errores personalizados */}
+          {erroresValidacion
+            .filter(error => error.nombre === String(key))
+            .map((error, idx) => (
+              <div key={idx} className="invalid-feedback d-block">
+                {error.valor}
+              </div>
+            ))}
         </div>
       );
     }
@@ -183,7 +182,7 @@ export const GenericFormModal = <T,>({
             id={String(key)}
             className={inputClass}
             value={String(rawVal ?? "")}
-            onChange={(e) => handleChange(key, e.target.value, "select")}
+            onChange={(e) => { onEliminarError(key.toString()); handleChange(key, e.target.value, "select") }}
             onBlur={() => handleBlur(key)}
             required
           >
@@ -194,13 +193,14 @@ export const GenericFormModal = <T,>({
               </option>
             ))}
           </select>
-          {errorMsg && (
-            <div className="invalid-feedback d-block">
-              {typeof field.errorMessage === "function"
-                ? field.errorMessage(rawVal)
-                : field.errorMessage || errorMsg}
-            </div>
-          )}
+          {/* sección de errores personalizados */}
+          {erroresValidacion
+            .filter(error => error.nombre === String(key))
+            .map((error, idx) => (
+              <div key={idx} className="invalid-feedback d-block">
+                {error.valor}
+              </div>
+            ))}
         </div>
       );
     }
@@ -226,16 +226,17 @@ export const GenericFormModal = <T,>({
             type="date"
             className={inputClass}
             value={dateVal}
-            onChange={(e) => handleChange(key, e.target.value, "date")}
+            onChange={(e) => { onEliminarError(key.toString()); handleChange(key, e.target.value, "date") }}
             onBlur={() => handleBlur(key)}
           />
-          {errorMsg && (
-            <div className="invalid-feedback d-block">
-              {typeof field.errorMessage === "function"
-                ? field.errorMessage(rawVal)
-                : field.errorMessage || errorMsg}
-            </div>
-          )}
+          {/* sección de errores personalizados */}
+          {erroresValidacion
+            .filter(error => error.nombre === String(key))
+            .map((error, idx) => (
+              <div key={idx} className="invalid-feedback d-block">
+                {error.valor}
+              </div>
+            ))}
         </div>
       );
     }
@@ -256,16 +257,17 @@ export const GenericFormModal = <T,>({
               ? String(localVal ?? rawVal ?? "")
               : String(rawVal ?? "")
           }
-          onChange={(e) => handleChange(key, e.target.value, type)}
+          onChange={(e) => { onEliminarError(key.toString()); handleChange(key, e.target.value, type) }}
           onBlur={() => handleBlur(key)}
         />
-        {errorMsg && (
-          <div className="invalid-feedback d-block">
-            {typeof field.errorMessage === "function"
-              ? field.errorMessage(rawVal)
-              : field.errorMessage || errorMsg}
-          </div>
-        )}
+        {/* sección de errores personalizados */}
+        {erroresValidacion
+          .filter(error => error.nombre === String(key))
+          .map((error, idx) => (
+            <div key={idx} className="invalid-feedback d-block">
+              {error.valor}
+            </div>
+          ))}
       </div>
     );
     //#endregion
@@ -302,7 +304,7 @@ export const GenericFormModal = <T,>({
           <form
             onSubmit={(e) => {
               e.preventDefault();
-              handleSubmit();
+              onSubmit();
             }}
             className="form"
           >
@@ -321,7 +323,6 @@ export const GenericFormModal = <T,>({
               <button
                 type="submit"
                 className="btn btn-primary me-3"
-                disabled={Object.values(errors).some((e) => !!e)}
               >
                 Guardar
               </button>

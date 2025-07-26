@@ -12,7 +12,7 @@ export class valida_DTO_OrdenServicio {
         } else if (!validadorGenerico.isNumeric(orden.iD_Cliente)) {
             errores.push({ nombre: "iD_Cliente", valor: "Número de cliente inválido." });
         } else if (validadorGenerico.isCero(orden.iD_Cliente)) {
-            errores.push({ nombre: "iD_Cliente", valor: "Seleccione un cliente por favor." });
+            errores.push({ nombre: "iD_Cliente", valor: "Seleccione un cliente." });
         }
 
         if (validadorGenerico.isEmpty(orden.iD_Negocio)) {
@@ -56,13 +56,6 @@ export class valida_DTO_OrdenServicio {
         }
 
 
-        if (tipoValidacion === "U") {
-            if (validadorGenerico.isEmpty(orden.fechaOrdenServicio)) {
-                errores.push({ nombre: "fechaOrdenServicio", valor: "Fecha de creación obligatoria." });
-            } else if (!validadorGenerico.isDate(orden.fechaOrdenServicio ? orden.fechaOrdenServicio.toString() : "")) {
-                errores.push({ nombre: "fechaOrdenServicio", valor: "Fecha de creación inválida." });
-            }
-        }
 
         if (tipoValidacion === "U" || tipoValidacion === "D") {
             if (validadorGenerico.isEmpty(orden.iD_OrdenServicio)) {

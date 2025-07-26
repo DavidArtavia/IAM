@@ -46,6 +46,10 @@ import { useEffect, useMemo, useState } from "react";
 import AsyncSelect from "react-select/async";
 import { valida_DTO_OrdenServicio } from "@/validators/valida_DTO_OrdenServicio";
 
+
+
+
+
 // #region 🔑 Helpers
 const generateSafeKey = (name: string) =>
   name
@@ -56,6 +60,15 @@ const generateSafeKey = (name: string) =>
 // #endregion
 
 export const OrdenDeServicio = () => {
+  // #region Validaciones en los formularios
+  const [erroresValidacion, setErroresValidacion] = useState<DTO_Param[]>([]);
+  let validacion: Array<DTO_Param>;
+  const eliminarError = (campo: string) => {
+    setErroresValidacion(prev => prev.filter(e => e.nombre !== campo));
+  };
+  // #endregion
+
+
   // #region 🔄 Estado general
   const { state } = useApp();
 
@@ -70,7 +83,6 @@ export const OrdenDeServicio = () => {
     null
   );
   const [ordenes, setOrdenes] = useState<DTO_OrdenServicio[]>([]);
-  const [erroresValidacion, setErroresValidacion] = useState<DTO_Param[]>([]);
   const [disableButtonAdd, setDisableButtonAdd] = useState(true);
   //#endregion
 
@@ -128,6 +140,8 @@ export const OrdenDeServicio = () => {
   };
 
   const handleSave = () => {
+
+
     if (!selectedBusiness) return;
     const toSave: any = { ...formData };
     toSave.iD_Negocio = selectedBusiness.iD_Negocio;
@@ -149,7 +163,7 @@ export const OrdenDeServicio = () => {
     });
 
 
-    const validacion: Array<DTO_Param> = valida_DTO_OrdenServicio.validar(toSave, "C");
+    validacion = valida_DTO_OrdenServicio.validar(toSave, "C");
     setErroresValidacion(validacion)
     if (validacion.length === 0) {
       ordenesService.registrarOrdensDeServicio(toSave).subscribe({
@@ -219,6 +233,7 @@ export const OrdenDeServicio = () => {
     ...buildRefFields(formData),
   ];
   //#endregion
+
 
   // #region ✏️ Editar Orden
   const [showEditForm, setShowEditForm] = useState(false);
@@ -347,7 +362,7 @@ export const OrdenDeServicio = () => {
       )
     );
 
-    const validacion: Array<DTO_Param> = valida_DTO_OrdenServicio.validar(sanitized, "U");
+    validacion = valida_DTO_OrdenServicio.validar(sanitized, "U");
     setErroresValidacion(validacion)
     if (validacion.length === 0) {
       ordenesService.actualizarOrdensDeServicio(sanitized).subscribe({
@@ -431,6 +446,7 @@ export const OrdenDeServicio = () => {
       if (confirmContext === "cancelAdd") {
         setIsFormOpen(false);
         notificationHelpers.infoAlert("Nueva Orden descartada correctamente");
+        setErroresValidacion([])
       } else if (confirmContext === "delete") {
         handleConfirmDelete(true);
       }
@@ -899,6 +915,7 @@ export const OrdenDeServicio = () => {
         onSubmit={handleSave}
         fields={newFormFields}
         erroresValidacion={erroresValidacion}
+        onEliminarError={eliminarError}
       />
 
       {/* Modal Editar */}
@@ -912,6 +929,7 @@ export const OrdenDeServicio = () => {
         fields={editFormFields}
         headerButtons={headerButtonsToEdit}
         erroresValidacion={erroresValidacion}
+        onEliminarError={eliminarError}
       />
 
       {/* Modal Crear Cuenta */}
@@ -927,6 +945,7 @@ export const OrdenDeServicio = () => {
           }
         }}
         fields={formCreateAccountFields}
+        onEliminarError={eliminarError}
       />
 
       <ItemsOrdenDeServicioModal
