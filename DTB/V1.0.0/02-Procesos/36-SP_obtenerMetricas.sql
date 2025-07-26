@@ -88,8 +88,7 @@ SELECT	@KPI_Sum_CXC	= SUM(CASE WHEN CUENTA.TipoCuenta = 'Cuenta Por Cobrar' THEN
 					FROM [CORE].[TBL_CUENTAS] CUENTA 
 					INNER JOIN [CORE].[TBL_NEGOCIOS] NEGOCIO ON CUENTA.ID_Negocio = NEGOCIO.ID_Negocio
 					INNER JOIN [SECU].[TBL_USUARIOS] USUARIO ON NEGOCIO.ID_Usuario = USUARIO.ID_Usuario
-					WHERE CUENTA.FechaInicial >= @FechaInicio
-						AND CUENTA.FechaInicial <= @FechaFin
+					WHERE CUENTA.FechaInicial BETWEEN CAST(@FechaInicio AS DATE)  AND DATEADD(DAY, 1, CAST(@FechaInicio AS DATE))
 						AND CUENTA.ID_Negocio = @ID_Negocio
 						AND USUARIO.ID_Usuario = @ID_Usuario
 
@@ -99,8 +98,7 @@ SELECT	@KPI_Sum_CXC_Prev	= SUM(CASE WHEN CUENTA.TipoCuenta = 'Cuenta Por Cobrar'
 					FROM [CORE].[TBL_CUENTAS] CUENTA 
 					INNER JOIN [CORE].[TBL_NEGOCIOS] NEGOCIO ON CUENTA.ID_Negocio = NEGOCIO.ID_Negocio
 					INNER JOIN [SECU].[TBL_USUARIOS] USUARIO ON NEGOCIO.ID_Usuario = USUARIO.ID_Usuario
-					WHERE CUENTA.FechaInicial >= @FechaInicioPrev
-						AND CUENTA.FechaInicial <= @FechaFinPrev
+					WHERE CUENTA.FechaInicial BETWEEN CAST(@FechaInicioPrev AS DATE)  AND DATEADD(DAY, 1, CAST(@FechaInicioPrev AS DATE))
 						AND CUENTA.ID_Negocio = @ID_Negocio
 						AND USUARIO.ID_Usuario = @ID_Usuario
 
@@ -113,7 +111,8 @@ SELECT
 	@TotMontoGastos = SUM(CASE WHEN T.TIPO = 'Gasto'   THEN T.Monto ELSE 0 END)
 FROM  CORE.TBL_TRANSACCIONES AS T
 JOIN  CORE.TBL_NEGOCIOS      AS N ON N.ID_Negocio = T.ID_Negocio
-WHERE T.FechaTransaccion BETWEEN @FechaInicio AND @FechaFin
+WHERE T.FechaTransaccion BETWEEN CAST(@FechaInicio AS DATE)  AND DATEADD(DAY, 1, CAST(@FechaFin AS DATE)) 
+
   AND T.ID_Negocio = @ID_Negocio
   AND N.ID_Usuario = @ID_Usuario;
 
@@ -124,7 +123,7 @@ SELECT
 	@TotMontoGastos_Prev = SUM(CASE WHEN T.TIPO = 'Gasto'   THEN T.Monto ELSE 0 END)
 FROM  CORE.TBL_TRANSACCIONES AS T
 JOIN  CORE.TBL_NEGOCIOS      AS N ON N.ID_Negocio = T.ID_Negocio
-WHERE T.FechaTransaccion BETWEEN @FechaInicioPrev AND @FechaFinPrev
+WHERE T.FechaTransaccion BETWEEN CAST(@FechaInicioPrev AS DATE)  AND DATEADD(DAY, 1, CAST(@FechaFinPrev AS DATE))
   AND T.ID_Negocio = @ID_Negocio
   AND N.ID_Usuario = @ID_Usuario;
 

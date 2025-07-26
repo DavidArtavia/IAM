@@ -41,4 +41,8 @@ export class validadorGenerico {
         return !emojiRegex.test(value);
     }
 
+    static startsWith(value: string, text: string): boolean {
+    return value.startsWith(text);
+}
+
 }

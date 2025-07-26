@@ -5,6 +5,7 @@ import {
   DTO_Respuesta,
   DTO_Cuenta,
   DTO_DetalleCuentaJSON,
+  DTO_Param,
 } from "@/models";
 import { cuentasService } from "@/services";
 import {
@@ -32,11 +33,20 @@ import { STATUS_TBL } from "@/constants";
 import { useApp } from "@/hooks/useApp";
 import { labelMapCuenta as labelMap } from "@/utils";
 import Select from "react-select";
+import { valida_DTO_Cuenta } from "@/validators/valida_DTO_Cuenta";
 
 //#region 🔁 Estado Global y Negocio
 //#region 🔁 Estado Global y Negocio
 export const Cuentas = () => {
   const { state } = useApp();
+
+  // #region Validaciones en los formularios
+  const [erroresValidacion, setErroresValidacion] = useState<DTO_Param[]>([]);
+  let validacion: Array<DTO_Param>;
+  const eliminarError = (campo: string) => {
+    setErroresValidacion(prev => prev.filter(e => e.nombre !== campo));
+  };
+  // #endregion
 
   //#region 🧮 Estados generales
   const [selectedBusiness, setSelectedBusiness] = useState<DTO_Negocio | null>(
@@ -151,23 +161,32 @@ export const Cuentas = () => {
     formData.iD_Negocio = selectedBusiness?.iD_Negocio || 0;
     const parsed = parseFloat(montoInput.replace(/[^0-9.]/g, ""));
     formData.monto = isNaN(parsed) ? 0 : parsed;
-    cuentasService.registrarCuenta(formData).subscribe({
-      next: (result: any) => {
-        const nueva = (result.resultado as DTO_Cuenta[])[0];
-        if (nueva.estado?.iD_Estado !== STATUS_TBL.ACCOUNT.DELETED) {
-          setAccountsPayable((prev) => [nueva, ...prev]);
-        }
-        notificationHelpers.successAlert(
-          result.mensaje || "Cuenta registrada correctamente"
-        );
-        setIsModalFormOpen(false);
-      },
-      error: (err) => errorHelpers.serverError(err),
-      complete: () => {
-        setDetalleHabilitado(false);
-        setMontoInput("");
-      },
-    });
+
+    validacion = valida_DTO_Cuenta.validar(formData, "U");
+    setErroresValidacion(validacion)
+    if (validacion.length === 0) {
+
+      cuentasService.registrarCuenta(formData).subscribe({
+        next: (result: any) => {
+          const nueva = (result.resultado as DTO_Cuenta[])[0];
+          if (nueva.estado?.iD_Estado !== STATUS_TBL.ACCOUNT.DELETED) {
+            setAccountsPayable((prev) => [nueva, ...prev]);
+          }
+          notificationHelpers.successAlert(
+            result.mensaje || "Cuenta registrada correctamente"
+          );
+          setIsModalFormOpen(false);
+        },
+        error: (err) => errorHelpers.serverError(err),
+        complete: () => {
+          setDetalleHabilitado(false);
+          setMontoInput("");
+        },
+      });
+
+    } else {
+      notificationHelpers.warningAlert("Por favor valida los datos ingresados nuevamente");
+    }
   };
 
   const handleCancelAdd = () => {
@@ -204,17 +223,25 @@ export const Cuentas = () => {
       updatedData.monto = parsed;
     }
 
-    cuentasService.actualizarCuenta(updatedData).subscribe({
-      next: (result: unknown) => {
-        const mensaje =
-          (result as DTO_Respuesta)?.mensaje ||
-          "Cuenta actualizada correctamente";
-        notificationHelpers.successAlert(mensaje);
-        refetchAccounts();
-        setShowEditModal(false);
-      },
-      error: (err) => errorHelpers.serverError(err),
-    });
+    validacion = valida_DTO_Cuenta.validar(updatedData, "U");
+    setErroresValidacion(validacion)
+    if (validacion.length === 0) {
+
+      cuentasService.actualizarCuenta(updatedData).subscribe({
+        next: (result: unknown) => {
+          const mensaje =
+            (result as DTO_Respuesta)?.mensaje ||
+            "Cuenta actualizada correctamente";
+          notificationHelpers.successAlert(mensaje);
+          refetchAccounts();
+          setShowEditModal(false);
+        },
+        error: (err) => errorHelpers.serverError(err),
+      });
+    } else {
+      notificationHelpers.warningAlert("Por favor valida los datos ingresados nuevamente");
+    }
+
   };
   //#endregion
 
@@ -281,6 +308,7 @@ export const Cuentas = () => {
     }
     setIsConfirmOpen(false);
     setConfirmContext(null);
+    setErroresValidacion([])
   };
   //#endregion
 
@@ -323,7 +351,7 @@ export const Cuentas = () => {
       key: "detalleJSON",
       label: "Detalle",
       type: "custom",
-      required: detalleHabilitado,
+      required: false,
       order: 6,
       errorMessage:
         "Tienes datos sin agregar. Presiona el botón ➕ antes de continuar.",
@@ -344,7 +372,8 @@ export const Cuentas = () => {
       key: "monto",
       label: "Monto",
       type: "custom",
-      required: !detalleHabilitado,
+      //required: !detalleHabilitado,
+      required: false,
       order: 7,
       renderer: () => {
         return (
@@ -396,12 +425,12 @@ export const Cuentas = () => {
           value={
             value
               ? {
-                  label:
-                    value === "Cuenta Por Pagar"
-                      ? "Cuenta Por Pagar"
-                      : "Cuenta Por Cobrar",
-                  value,
-                }
+                label:
+                  value === "Cuenta Por Pagar"
+                    ? "Cuenta Por Pagar"
+                    : "Cuenta Por Cobrar",
+                value,
+              }
               : null
           }
           onChange={(option) => {
@@ -432,19 +461,19 @@ export const Cuentas = () => {
     ...cuentasFormEditFields,
     ...(editData?.iD_OrdenServicio
       ? [
-          {
-            key: "iD_OrdenServicio",
-            label: "Orden De Servicio #",
-            type: "text",
-            order: 4,
-          } as FieldConfig<any>,
-        ]
+        {
+          key: "iD_OrdenServicio",
+          label: "Orden De Servicio #",
+          type: "text",
+          order: 4,
+        } as FieldConfig<any>,
+      ]
       : []),
     {
       key: "detalleJSON",
       label: "Detalle",
       type: "custom",
-      required: detalleHabilitado,
+      required: false,
       order: 10,
       errorMessage:
         "Tienes datos sin agregar. Presiona el botón ➕ antes de continuar.",
@@ -465,7 +494,7 @@ export const Cuentas = () => {
       key: "monto",
       label: "Monto",
       type: "custom",
-      required: !detalleHabilitado,
+      required: false,
       order: 11,
       renderer: () => {
         return (
@@ -473,16 +502,15 @@ export const Cuentas = () => {
             <span className="input-group-text">₡</span>
             <input
               type="text"
-              className={`form-control fw-bold fs-5 text-start ${
-                detalleHabilitado ? "bg-light" : ""
-              }`}
+              className={`form-control fw-bold fs-5 text-start ${detalleHabilitado ? "bg-light" : ""
+                }`}
               readOnly={detalleHabilitado}
               value={
                 montoInput !== ""
                   ? montoInput
                   : editData?.monto !== undefined && editData?.monto !== 0
-                  ? String(editData.monto)
-                  : ""
+                    ? String(editData.monto)
+                    : ""
               }
               onFocus={() => {
                 if ((editData?.monto || 0) === 0) {
@@ -532,12 +560,12 @@ export const Cuentas = () => {
           value={
             value
               ? {
-                  label:
-                    value === "Cuenta Por Pagar"
-                      ? "Cuenta Por Pagar"
-                      : "Cuenta Por Cobrar",
-                  value,
-                }
+                label:
+                  value === "Cuenta Por Pagar"
+                    ? "Cuenta Por Pagar"
+                    : "Cuenta Por Cobrar",
+                value,
+              }
               : null
           }
           onChange={(option) => {
@@ -562,13 +590,13 @@ export const Cuentas = () => {
   const infoModalFields: FieldConfig<any>[] = [
     ...(rowTableSelected?.iD_OrdenServicio
       ? [
-          {
-            key: "iD_OrdenServicio",
-            label: "Orden De Servicio #",
-            type: "text",
-            order: 0,
-          } as FieldConfig<any>,
-        ]
+        {
+          key: "iD_OrdenServicio",
+          label: "Orden De Servicio #",
+          type: "text",
+          order: 0,
+        } as FieldConfig<any>,
+      ]
       : []),
     ...keysInfoModalCuenta,
     {
@@ -597,14 +625,14 @@ export const Cuentas = () => {
                 <span className="fw-bold text-gray-800 fs-6">
                   {detalle.descuento?.nombre === "Monto"
                     ? `₡${Number(detalle.descuento?.valor ?? 0).toLocaleString(
-                        "es-CR",
-                        {
-                          minimumFractionDigits: 2,
-                        }
-                      )}`
+                      "es-CR",
+                      {
+                        minimumFractionDigits: 2,
+                      }
+                    )}`
                     : `${Number(detalle.descuento?.valor ?? 0).toLocaleString(
-                        "es-CR"
-                      )}%`}
+                      "es-CR"
+                    )}%`}
                 </span>
               </div>
               <div className="bg-light border rounded px-4 py-3 d-flex flex-column shadow-sm">
@@ -718,26 +746,26 @@ export const Cuentas = () => {
   return (
     <>
       <div className="row p-4 col-12 gx-0">
-        
-          <GenericDataTable<DTO_Cuenta>
-            title="Cuentas"
-            columnKeys={columnKeysCuenta}
-            labelMap={labelMapCuenta}
-            data={accountsPayable.filter(
-              (b) => b.estado?.iD_Estado !== STATUS_TBL.ACCOUNT.DELETED
-            )}
-            onAdd={handleAddNew}
-            onEdit={handleEdit}
-            onDelete={handleDelete}
-            disableButtonAdd={disableButtonAdd}
-            includeEstadoColumn
-            customRenderers={customRenderers}
-            customColumns={[detalleJSONColumn]}
-            onRowClick={(row) => {
-              setRowTableSelected(row);
-              setIsInfoModalOpen(true);
-            }}
-          />
+
+        <GenericDataTable<DTO_Cuenta>
+          title="Cuentas"
+          columnKeys={columnKeysCuenta}
+          labelMap={labelMapCuenta}
+          data={accountsPayable.filter(
+            (b) => b.estado?.iD_Estado !== STATUS_TBL.ACCOUNT.DELETED
+          )}
+          onAdd={handleAddNew}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+          disableButtonAdd={disableButtonAdd}
+          includeEstadoColumn
+          customRenderers={customRenderers}
+          customColumns={[detalleJSONColumn]}
+          onRowClick={(row) => {
+            setRowTableSelected(row);
+            setIsInfoModalOpen(true);
+          }}
+        />
 
         <InfoModal
           show={isInfoModalOpen}
@@ -755,6 +783,8 @@ export const Cuentas = () => {
           setData={setFormData}
           onSubmit={handleSave}
           fields={formAddFields}
+          erroresValidacion={erroresValidacion}
+          onEliminarError={eliminarError}
         />
 
         <GenericFormModal<DTO_Cuenta>
@@ -770,6 +800,8 @@ export const Cuentas = () => {
           }}
           fields={formEditFields}
           headerButtons={headerButtonsToEdit}
+          erroresValidacion={erroresValidacion}
+          onEliminarError={eliminarError}
         />
 
         <ConfirmModal

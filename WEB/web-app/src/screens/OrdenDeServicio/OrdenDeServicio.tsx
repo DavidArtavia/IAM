@@ -45,6 +45,7 @@ import { useApp } from "@/hooks/useApp";
 import { useEffect, useMemo, useState } from "react";
 import AsyncSelect from "react-select/async";
 import { valida_DTO_OrdenServicio } from "@/validators/valida_DTO_OrdenServicio";
+import { valida_DTO_Cuenta } from "@/validators/valida_DTO_Cuenta";
 
 
 
@@ -625,6 +626,7 @@ export const OrdenDeServicio = () => {
     });
   };
 
+
   const formCreateAccountFields: FieldConfig<any>[] = [
     ...ordenservicioFormCrearCuenta,
     ...(account?.iD_OrdenServicio
@@ -658,7 +660,8 @@ export const OrdenDeServicio = () => {
       key: "detalleJSON",
       label: "Detalle",
       type: "custom",
-      required: detalleHabilitado,
+      //required: detalleHabilitado,
+      required: false,
       order: 10,
       errorMessage:
         "Tienes datos sin agregar. Presiona el botón ➕ antes de continuar.",
@@ -679,7 +682,7 @@ export const OrdenDeServicio = () => {
       key: "monto",
       label: "Monto",
       type: "custom",
-      required: !detalleHabilitado,
+      required: false,
       order: 11,
       renderer: () => {
         return (
@@ -731,66 +734,75 @@ export const OrdenDeServicio = () => {
 
   const handleCreateAccount = (cuenta: DTO_Cuenta) => {
     if (!cuenta.iD_Negocio || !cuenta.iD_OrdenServicio) {
-      notificationHelpers.errorAlert("Negocio o Orden de Servicio no válidos");
+      notificationHelpers.errorAlert("Negocio u Orden de Servicio no válidos");
       return;
     }
 
-    cuentasService.registrarCuenta(cuenta).subscribe({
-      next: (res: DTO_Respuesta) => {
-        notificationHelpers.successAlert(res.mensaje);
-        setShowCreateAccount(false);
 
-        const ordenToUpdate = {
-          ...editData,
-          estado: {
-            ...editData.estado,
-            iD_Estado: STATUS_TBL.ORDER_SERVICE.ARCHIVED,
-            nombre: "Archivado",
-          },
-        } as DTO_OrdenServicio;
+    validacion = valida_DTO_Cuenta.validar(cuenta, "C");
+    setErroresValidacion(validacion)
+    if (validacion.length === 0) {
+
+      cuentasService.registrarCuenta(cuenta).subscribe({
+        next: (res: DTO_Respuesta) => {
+          notificationHelpers.successAlert(res.mensaje);
+          setShowCreateAccount(false);
+
+          const ordenToUpdate = {
+            ...editData,
+            estado: {
+              ...editData.estado,
+              iD_Estado: STATUS_TBL.ORDER_SERVICE.ARCHIVED,
+              nombre: "Archivado",
+            },
+          } as DTO_OrdenServicio;
 
 
-        ordenesService.actualizarOrdensDeServicio(ordenToUpdate).subscribe({
-          next: (updateRes: DTO_Respuesta) => {
-            notificationHelpers.successAlert(
-              "la Orden fue archivada correctamente"
-            );
+          ordenesService.actualizarOrdensDeServicio(ordenToUpdate).subscribe({
+            next: (updateRes: DTO_Respuesta) => {
+              notificationHelpers.successAlert(
+                "la Orden fue archivada correctamente"
+              );
 
-            let updatedOrden: DTO_OrdenServicio;
+              let updatedOrden: DTO_OrdenServicio;
 
-            if (
-              Array.isArray(updateRes.resultado) &&
-              updateRes.resultado.length > 0
-            ) {
-              updatedOrden = updateRes.resultado[0] as DTO_OrdenServicio;
-            } else if (
-              updateRes.resultado &&
-              typeof updateRes.resultado === "object" &&
-              !Array.isArray(updateRes.resultado)
-            ) {
-              updatedOrden = updateRes.resultado as DTO_OrdenServicio;
-            } else {
-              updatedOrden = ordenToUpdate;
-            }
+              if (
+                Array.isArray(updateRes.resultado) &&
+                updateRes.resultado.length > 0
+              ) {
+                updatedOrden = updateRes.resultado[0] as DTO_OrdenServicio;
+              } else if (
+                updateRes.resultado &&
+                typeof updateRes.resultado === "object" &&
+                !Array.isArray(updateRes.resultado)
+              ) {
+                updatedOrden = updateRes.resultado as DTO_OrdenServicio;
+              } else {
+                updatedOrden = ordenToUpdate;
+              }
 
-            setOrdenes((prev) =>
-              prev.map((o) =>
-                o.iD_OrdenServicio === updatedOrden.iD_OrdenServicio
-                  ? {
-                    ...o,
-                    ...updatedOrden,
-                  }
-                  : o
-              )
-            );
+              setOrdenes((prev) =>
+                prev.map((o) =>
+                  o.iD_OrdenServicio === updatedOrden.iD_OrdenServicio
+                    ? {
+                      ...o,
+                      ...updatedOrden,
+                    }
+                    : o
+                )
+              );
 
-            setEditData(updatedOrden);
-          },
-          error: errorHelpers.serverError,
-        });
-      },
-      error: errorHelpers.serverError,
-    });
+              setEditData(updatedOrden);
+            },
+            error: errorHelpers.serverError,
+          });
+        },
+        error: errorHelpers.serverError,
+      });
+
+    } else {
+      notificationHelpers.warningAlert("Por favor valida los datos ingresados nuevamente");
+    }
   };
 
   // Método para manejar la acción de crear cuenta, reutilizable para editar y ver info
@@ -946,6 +958,7 @@ export const OrdenDeServicio = () => {
         }}
         fields={formCreateAccountFields}
         onEliminarError={eliminarError}
+        erroresValidacion={erroresValidacion}
       />
 
       <ItemsOrdenDeServicioModal

@@ -114,60 +114,60 @@ export const keysInfoModalOrdenDeServicio: FieldConfig<DTO_OrdenServicio>[] = [
         order: 8,
     },
 ];
-export const keysInfoModalNegocio: FieldConfig<DTO_Negocio>[]  = [
+export const keysInfoModalNegocio: FieldConfig<DTO_Negocio>[] = [
 
-  {
-      key: "iD_Negocio",
-      label: "Código",
-      type: "text",
-      order: 1,
+    {
+        key: "iD_Negocio",
+        label: "Código",
+        type: "text",
+        order: 1,
     },
     {
-      key: "nombreNegocio",
-      label: "Nombre",
-      type: "text",
-      order: 2,
+        key: "nombreNegocio",
+        label: "Nombre",
+        type: "text",
+        order: 2,
     },
     {
-      key: "descripcion",
-      label: "Descripción",
-      type: "text",
-      order: 3,
+        key: "descripcion",
+        label: "Descripción",
+        type: "text",
+        order: 3,
     },
     {
-      key: "direccion",
-      label: "Dirección",
-      type: "text",
-      order: 4,
+        key: "direccion",
+        label: "Dirección",
+        type: "text",
+        order: 4,
     },
     {
-      key: "telefonoNegocio",
-      label: "Teléfono",
-      type: "text",
-      order: 5,
+        key: "telefonoNegocio",
+        label: "Teléfono",
+        type: "text",
+        order: 5,
     },
     {
-      key: "correoNegocio",
-      label: "Correo",
-      type: "text",
-      order: 6,
+        key: "correoNegocio",
+        label: "Correo",
+        type: "text",
+        order: 6,
     },
     {
-      key: "fechaRegistro",
-      label: "Fecha",
-      type: "date",
-      order: 7,
+        key: "fechaRegistro",
+        label: "Fecha",
+        type: "date",
+        order: 7,
     },
     {
-      key: "estado",
-      label: "Estado",
-      type: "text",
-      order: 8,
+        key: "estado",
+        label: "Estado",
+        type: "text",
+        order: 8,
     },
 ];
 
 export const keysInfoModalCuenta: FieldConfig<DTO_Cuenta>[] = [
-  
+
     {
         key: "iD_Cuenta",
         label: "Código",
@@ -390,7 +390,7 @@ export const labelMapCliente: Record<string, string> = {
     telefonoCliente: "Teléfono",
     correoCliente: "Correo",
     estado: "Estado",
-    
+
 };
 
 export const labelMapItemsOrdenServicio: Record<string, string> = {
@@ -483,31 +483,39 @@ export const ordenservicioFormCrearCuenta: FieldConfig<DTO_Cuenta>[] = [
         order: 6,
     },
     {
-        key: "fechaInicial",
-        label: labelMapCuenta["fechaInicial"] ?? "Fecha Inicial",
-        type: "date",
-        required: true,
-        order: 7,
-    },
-    {
         key: "fechaLimite",
         label: labelMapCuenta["fechaLimite"] ?? "Fecha Límite",
         type: "date",
         required: true,
         order: 8,
     },
- 
+
 ];
 
-export const clienteFormEditFields: Array<FieldConfig<DTO_Cliente>> = columnKeysCliente
-    .filter(key => key !== "iD_Cliente" && key !== "iD_Usuario") // Excluye campos que no se editan
-    .map(key => ({
-        key,
-        label: labelMapCliente[key] ?? key,
-        type: "text",
-    }));
+export const clienteFormEditFields: Array<FieldConfig<DTO_Cliente>> = [
+    {
 
-    export const ItemsOrdenServicioFormEditFields: Array<FieldConfig<DTO_ItemOrdenServicio>> = [
+        key: "nombreCliente",
+        label: labelMapOrdenDeServicio["nombreCliente"] ?? "Nombre",
+        type: "text",
+        required: true
+    },
+    {
+
+        key: "apellidoCliente",
+        label: labelMapOrdenDeServicio["apellidoCliente"] ?? "Apellido",
+        type: "text",
+        required: true
+    },
+    ...columnKeysCliente
+        .filter(key => key !== "iD_Cliente" && key !== "iD_Usuario" && key !== "nombreCliente" && key !== "apellidoCliente") // Excluye campos que no se editan
+        .map(key => ({
+            key,
+            label: labelMapCliente[key] ?? key,
+            type: "text" as any
+        }))
+];
+export const ItemsOrdenServicioFormEditFields: Array<FieldConfig<DTO_ItemOrdenServicio>> = [
     {
 
         key: "nombreItemOrdenServicio",
@@ -516,11 +524,11 @@ export const clienteFormEditFields: Array<FieldConfig<DTO_Cliente>> = columnKeys
         required: true
     },
     ...columnKeysItemsOrdenServicio
-        .filter(key => key !== "iD_ItemOrdenServicio" && key !== "iD_OrdenServicio" && key !== "nombreItemOrdenServicio"  && key !== "avance")
+        .filter(key => key !== "iD_ItemOrdenServicio" && key !== "iD_OrdenServicio" && key !== "nombreItemOrdenServicio" && key !== "avance")
         .map(key => ({
             key,
             label: labelMapItemsOrdenServicio[key] ?? key,
-            type: (key === "monto" ? "number" : "text") as any 
+            type: (key === "monto" ? "number" : "text") as any
         }))
 ];
 
@@ -560,21 +568,20 @@ export const transaccionesFormEditFields: FieldConfig<DTO_Transacciones>[] = [
     { key: "concepto", label: "Concepto", type: "text", required: true },
     { key: "monto", label: "Monto", type: "number", required: true },
     {
-        key: "tipo", label: "Tipo", type: "select", required: true, options: [
+        key: "tipo", label: "Tipo de Transacción", type: "select", required: true, options: [
             { label: "Ingreso", value: "Ingreso" },
             { label: "Gasto", value: "Gasto" },
         ]
     },
     {
-        key: "tipoNumReferencia", label: "Tipo Referencia", type: "select", required: true, options: [
+        key: "tipoNumReferencia", label: "Tipo Referencia", type: "select", required: false, options: [
             { label: "Luz", value: "Luz" },
             { label: "Internet", value: "Internet" },
             { label: "Planilla", value: "Planilla" },
             { label: "Otro", value: "Otro" },
         ]
     },
-    { key: "numReferencia", label: "N° Referencia", type: "text", required: false },
-    { key: "fechaTransaccion", label: "Fecha", type: "date", required: true },
+    { key: "numReferencia", label: "N° Referencia", type: "text", required: false }
 ];
 
 //#endregion
@@ -595,14 +602,6 @@ export const cuentasFormAddFields: FieldConfig<DTO_Cuenta>[] = [
         type: "textarea",
         required: false,
         order: 2,
-    },
-    {
-        key: "fechaInicial",
-        label: labelMapCuenta["fechaInicial"] ?? "Fecha Inicial",
-        type: "date",
-        required: true,
-        order: 3,
-        errorMessage: "La fecha inicial es obligatoria",
     },
     {
         key: "fechaLimite",

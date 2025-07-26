@@ -184,7 +184,7 @@ export const GenericFormModal = <T,>({
             value={String(rawVal ?? "")}
             onChange={(e) => { onEliminarError(key.toString()); handleChange(key, e.target.value, "select") }}
             onBlur={() => handleBlur(key)}
-            required
+            
           >
             <option value="">– Seleccione –</option>
             {options?.map((opt) => (
