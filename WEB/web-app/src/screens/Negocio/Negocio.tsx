@@ -13,7 +13,7 @@ import ReactDOM from "react-dom/client";
 import { FILTER_STATUS, STATUS_TBL } from "@/constants";
 import { AuthContext } from "@/context";
 import { useApp } from "@/hooks/useApp";
-import { DTO_Negocio, DTO_Respuesta, DTO_FiltroEstado } from "@/models";
+import { DTO_Negocio, DTO_Respuesta, DTO_FiltroEstado, DTO_Param } from "@/models";
 import { negocioService } from "@/services";
 import {
   keysInfoModalNegocio,
@@ -27,8 +27,18 @@ import {
   parametrosAString,
 } from "@/utils";
 import { useContext, useEffect, useState } from "react";
+import { valida_DTO_Negocio } from "@/validators/valida_DTO_Negocio";
 
 export const Negocio = () => {
+
+  // #region Validaciones en los formularios
+  const [erroresValidacion, setErroresValidacion] = useState<DTO_Param[]>([]);
+  let validacion: Array<DTO_Param>;
+  const eliminarError = (campo: string) => {
+    setErroresValidacion(prev => prev.filter(e => e.nombre !== campo));
+  };
+  // #endregion
+
   //#region 🔄 Estado y contexto
   const { state, setListaNegocios, setNegocio } = useApp();
   const { user } = useContext(AuthContext);
@@ -95,27 +105,36 @@ export const Negocio = () => {
       tabla: "",
     };
 
-    negocioService.registrarNegocio(formData).subscribe({
-      next: (result: DTO_Respuesta) => {
-        const nuevo = (result.resultado as DTO_Negocio[])[0];
-        if (result.codigo === "B002") {
-          notificationHelpers.infoAlert(result.mensaje);
+    validacion = valida_DTO_Negocio.validar(formData, "C");
+    setErroresValidacion(validacion)
+    if (validacion.length === 0) {
+
+      negocioService.registrarNegocio(formData).subscribe({
+        next: (result: DTO_Respuesta) => {
+          const nuevo = (result.resultado as DTO_Negocio[])[0];
+          if (result.codigo === "B002") {
+            notificationHelpers.infoAlert(result.mensaje);
+            setIsModalFormOpen(false);
+
+            return;
+          }
+          if (nuevo) setBusiness((prev) => [...prev, nuevo]);
+          {
+            notificationHelpers.successAlert(result.mensaje);
+            setListaNegocios([...state.listaNegocios, nuevo]);
+            //Seleccionarlo por defecto globalmente
+          }
+          setNegocio(nuevo);
+
           setIsModalFormOpen(false);
+        },
+        error: errorHelpers.serverError,
+      });
 
-          return;
-        }
-        if (nuevo) setBusiness((prev) => [...prev, nuevo]);
-        {
-          notificationHelpers.successAlert(result.mensaje);
-          setListaNegocios([...state.listaNegocios, nuevo]);
-          //Seleccionarlo por defecto globalmente
-        }
-        setNegocio(nuevo);
+    } else {
+      notificationHelpers.warningAlert("Por favor valida los datos ingresados nuevamente");
+    }
 
-        setIsModalFormOpen(false);
-      },
-      error: errorHelpers.serverError,
-    });
   };
   //#endregion
 
@@ -135,14 +154,27 @@ export const Negocio = () => {
       updatedData.estado = { ...rowBusinessSelected.estado };
     }
 
-    negocioService.actualizarNegocio(updatedData).subscribe({
-      next: (result: DTO_Respuesta) => {
-        setBusiness((prev) => updateItemById(prev, updatedData, "iD_Negocio"));
-        notificationHelpers.successAlert(result.mensaje);
-        setShowModalUpdateBusiness(false);
-      },
-      error: errorHelpers.serverError,
-    });
+    validacion = valida_DTO_Negocio.validar(updatedData, "U");
+    setErroresValidacion(validacion)
+    if (validacion.length === 0) {
+
+      negocioService.actualizarNegocio(updatedData).subscribe({
+        next: (result: DTO_Respuesta) => {
+          setBusiness((prev) => updateItemById(prev, updatedData, "iD_Negocio"));
+          notificationHelpers.successAlert(result.mensaje);
+          setShowModalUpdateBusiness(false);
+          //Actualizamos la lista de negocios con los nuevos datos
+          setListaNegocios(state.listaNegocios.map((n: DTO_Negocio) => n.iD_Negocio === updatedData.iD_Negocio ? updatedData : n));
+          if(state.negocio?.iD_Negocio === updatedData.iD_Negocio){
+            setNegocio(updatedData);
+          }
+        },
+
+        error: errorHelpers.serverError,
+      });
+    } else {
+      notificationHelpers.warningAlert("Por favor valida los datos ingresados nuevamente");
+    }
   };
   //#endregion
 
@@ -182,8 +214,8 @@ export const Negocio = () => {
               setNegocio(
                 state.listaNegocios.length > 1
                   ? state.listaNegocios.find(
-                      (n) => n.iD_Negocio !== businessToDelete.iD_Negocio
-                    ) ?? null
+                    (n) => n.iD_Negocio !== businessToDelete.iD_Negocio
+                  ) ?? null
                   : null
               );
             }
@@ -216,6 +248,7 @@ export const Negocio = () => {
     }
     setIsConfirmOpen(false);
     setConfirmContext(null);
+    setErroresValidacion([])
   };
   //#endregion
 
@@ -362,6 +395,8 @@ export const Negocio = () => {
         setData={setFormData}
         onSubmit={handleSave}
         fields={newFormFields}
+        erroresValidacion={erroresValidacion}
+        onEliminarError={eliminarError}
       />
 
       <GenericFormModal
@@ -372,6 +407,8 @@ export const Negocio = () => {
         setData={(x) => setEditData(x as DTO_Negocio)}
         onSubmit={() => editData && handleSaveBusiness(editData)}
         fields={editFormFields}
+        erroresValidacion={erroresValidacion}
+        onEliminarError={eliminarError}
       />
 
       <ConfirmModal
