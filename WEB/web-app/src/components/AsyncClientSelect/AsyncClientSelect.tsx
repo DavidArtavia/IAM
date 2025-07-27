@@ -20,7 +20,7 @@ interface Props {
 
 export const AsyncClientSelect = ({ value, onChange }: Props) => {
   const [clients, setClients] = useState<DTO_Cliente[]>([]);
-  // Al montar cargamos los más recientes
+  
   useEffect(() => {
     clientesService.obtenerClientes().subscribe({
       next: (result) =>
@@ -42,7 +42,6 @@ export const AsyncClientSelect = ({ value, onChange }: Props) => {
     [clients]
   );
 
-    // 1) Función que devuelve Promise<ClientOption[]>
   const loadPromise = async (input: string): Promise<ClientOption[]> => {
     if (input.length < 2) return [];
     const list = await clientesService.buscarClientes(input).toPromise();
@@ -52,7 +51,6 @@ export const AsyncClientSelect = ({ value, onChange }: Props) => {
     }));
   };
 
-  // Aplica debounce sobre la promesa
   const debouncedPromiseLoad = useDebouncedPromise(loadPromise, 300);
   return (
     <AsyncSelect<ClientOption, false>

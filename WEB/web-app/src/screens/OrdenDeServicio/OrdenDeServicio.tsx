@@ -87,6 +87,8 @@ export const OrdenDeServicio = () => {
   const [disableButtonAdd, setDisableButtonAdd] = useState(true);
   //#endregion
 
+  const [clienteNombreNota, setClienteNombreNota] = useState<string>("");
+
   // #region 🧩 Negocio seleccionado
   const handleSelectBusiness = (neg: DTO_Negocio) => {
     setSelectedBusiness(neg);
@@ -260,6 +262,7 @@ export const OrdenDeServicio = () => {
   };
 
   const handleEdit = (row: DTO_OrdenServicio) => {
+    setClienteNombreNota(row.notaOrdenServicio || "");
     const cleanedNote = row.notaOrdenServicio?.split("|").pop()?.trim() || "";
     const copy: any = {
       ...row,
@@ -344,6 +347,8 @@ export const OrdenDeServicio = () => {
     if (!selectedBusiness) return;
     const sanitized: any = { ...editData };
     sanitized.iD_Negocio = selectedBusiness.iD_Negocio;
+    console.log("Sanitized data for edit:", sanitized);
+    
 
     [
       "fechaInicio",
@@ -356,12 +361,6 @@ export const OrdenDeServicio = () => {
       sanitized[key] =
         d && d.getFullYear() >= RESTRICCIONES.MIN_ANNO_PERMITIDO ? d : null;
     });
-
-    setOrdenes((prev) =>
-      prev.map((o) =>
-        o.iD_OrdenServicio === sanitized.iD_OrdenServicio ? sanitized : o
-      )
-    );
 
     validacion = valida_DTO_OrdenServicio.validar(sanitized, "U");
     setErroresValidacion(validacion)
@@ -376,6 +375,26 @@ export const OrdenDeServicio = () => {
     } else {
       notificationHelpers.warningAlert("Por favor valida los datos ingresados nuevamente");
     }
+
+    let clienteNombre = "";
+    if (clienteNombreNota) {
+      const match = clienteNombreNota.match(/Cliente:\s*([^|]+)/);
+      if (match && match[1]) {
+      clienteNombre = match[1].trim();
+      }
+    }
+    sanitized.notaOrdenServicio = clienteNombre
+      ? `Cliente: ${clienteNombre} | ${editData.notaOrdenServicio}`
+      : editData.notaOrdenServicio;
+
+    console.log("Sanitized data for edit after note:", sanitized);
+    
+    setOrdenes((prev) =>
+      prev.map((o) =>
+      o.iD_OrdenServicio === sanitized.iD_OrdenServicio ? sanitized : o
+      )
+    );
+
   };
   //#endregion
 
