@@ -21,10 +21,10 @@ BEGIN
 -- DECLARE @Hoy DATE = CAST(DATEADD(DAY, -1, GETDATE()) AS DATE);  --Para pruebas
 DECLARE @Hoy DATE = GETDATE()  
 
-DECLARE @FechaInicio      DATE;			-- inicio período actual
-DECLARE @FechaFin         DATE = @Hoy;  -- fin período actual
-DECLARE @FechaInicioPrev  DATE;			-- inicio período anterior
-DECLARE @FechaFinPrev     DATE;			-- fin período anterior
+DECLARE @FechaInicio      DATETIME;			-- inicio período actual
+DECLARE @FechaFin         DATETIME = @Hoy;  -- fin período actual
+DECLARE @FechaInicioPrev  DATETIME;			-- inicio período anterior
+DECLARE @FechaFinPrev     DATETIME;			-- fin período anterior
 
 
 SET DATEFIRST 1;
@@ -34,18 +34,20 @@ SET DATEFIRST 1;
 SELECT @FechaInicio =
 CASE @Filtro
     WHEN 'Hoy'       THEN @FechaFin
+	
+	WHEN 'Semana' THEN CAST(DATEADD(DAY,  - (DATEPART(WEEKDAY, @FechaFin + @@DATEFIRST - 2) - 1),  CAST(@FechaFin AS DATE)) AS DATETIME)
 
-    WHEN 'Semana'    THEN DATEADD(DAY , 1 - DATEPART(WEEKDAY, @FechaFin), @FechaFin)
+    WHEN 'Mes' THEN  CAST(DATEFROMPARTS(YEAR(@FechaFin), MONTH(@FechaFin), 1) AS DATETIME)
 
-    WHEN 'Mes'       THEN DATEADD(DAY , 1 - DAY(@FechaFin),               @FechaFin)
+    WHEN 'Trimestre' THEN  CAST(DATEFROMPARTS(YEAR(@FechaFin), ((DATEPART(QUARTER, @FechaFin) - 1) * 3) + 1, 1) AS DATETIME)
 
-    WHEN 'Trimestre' THEN DATEADD(MONTH, -2, DATEFROMPARTS(YEAR(@FechaFin), MONTH(@FechaFin), 1))
+    WHEN 'Semestre' THEN CAST(DATEFROMPARTS(YEAR(@FechaFin), CASE WHEN MONTH(@FechaFin) <= 6 THEN 1 ELSE 7  END, 1) AS DATETIME)
 
-    WHEN 'Semestre'  THEN DATEADD(MONTH, -5, DATEFROMPARTS(YEAR(@FechaFin), MONTH(@FechaFin), 1))
+    WHEN 'Año' THEN CAST(DATEFROMPARTS(YEAR(@FechaFin), 1, 1) AS DATETIME)
 
-    WHEN 'Año'       THEN DATEADD(MONTH, -11, DATEFROMPARTS(YEAR(@FechaFin), MONTH(@FechaFin), 1))
 END;
 
+--SELECT @FechaInicio AS FechaInicio, @FechaFin AS FechaFin
 -- PERÍODO ANTERIOR 
 
 SET @FechaFinPrev = DATEADD(DAY, -1, @FechaInicio);  -- día anterior al inicio actual
@@ -88,7 +90,7 @@ SELECT	@KPI_Sum_CXC	= SUM(CASE WHEN CUENTA.TipoCuenta = 'Cuenta Por Cobrar' THEN
 					FROM [CORE].[TBL_CUENTAS] CUENTA 
 					INNER JOIN [CORE].[TBL_NEGOCIOS] NEGOCIO ON CUENTA.ID_Negocio = NEGOCIO.ID_Negocio
 					INNER JOIN [SECU].[TBL_USUARIOS] USUARIO ON NEGOCIO.ID_Usuario = USUARIO.ID_Usuario
-					WHERE CUENTA.FechaInicial BETWEEN CAST(@FechaInicio AS DATE)  AND DATEADD(DAY, 1, CAST(@FechaInicio AS DATE))
+					WHERE CUENTA.FechaInicial BETWEEN CAST(@FechaInicio AS DATETIME)  AND DATEADD(DAY, 1, CAST(@FechaFin AS DATETIME))
 						AND CUENTA.ID_Negocio = @ID_Negocio
 						AND USUARIO.ID_Usuario = @ID_Usuario
 
@@ -98,7 +100,7 @@ SELECT	@KPI_Sum_CXC_Prev	= SUM(CASE WHEN CUENTA.TipoCuenta = 'Cuenta Por Cobrar'
 					FROM [CORE].[TBL_CUENTAS] CUENTA 
 					INNER JOIN [CORE].[TBL_NEGOCIOS] NEGOCIO ON CUENTA.ID_Negocio = NEGOCIO.ID_Negocio
 					INNER JOIN [SECU].[TBL_USUARIOS] USUARIO ON NEGOCIO.ID_Usuario = USUARIO.ID_Usuario
-					WHERE CUENTA.FechaInicial BETWEEN CAST(@FechaInicioPrev AS DATE)  AND DATEADD(DAY, 1, CAST(@FechaInicioPrev AS DATE))
+					WHERE CUENTA.FechaInicial BETWEEN CAST(@FechaInicioPrev AS DATETIME)  AND DATEADD(DAY, 1, CAST(@FechaFinPrev AS DATETIME))
 						AND CUENTA.ID_Negocio = @ID_Negocio
 						AND USUARIO.ID_Usuario = @ID_Usuario
 
@@ -111,7 +113,7 @@ SELECT
 	@TotMontoGastos = SUM(CASE WHEN T.TIPO = 'Gasto'   THEN T.Monto ELSE 0 END)
 FROM  CORE.TBL_TRANSACCIONES AS T
 JOIN  CORE.TBL_NEGOCIOS      AS N ON N.ID_Negocio = T.ID_Negocio
-WHERE T.FechaTransaccion BETWEEN CAST(@FechaInicio AS DATE)  AND DATEADD(DAY, 1, CAST(@FechaFin AS DATE)) 
+WHERE T.FechaTransaccion BETWEEN CAST(@FechaInicio AS DATETIME)  AND DATEADD(DAY, 1, CAST(@FechaFin AS DATETIME)) 
 
   AND T.ID_Negocio = @ID_Negocio
   AND N.ID_Usuario = @ID_Usuario;
@@ -123,7 +125,7 @@ SELECT
 	@TotMontoGastos_Prev = SUM(CASE WHEN T.TIPO = 'Gasto'   THEN T.Monto ELSE 0 END)
 FROM  CORE.TBL_TRANSACCIONES AS T
 JOIN  CORE.TBL_NEGOCIOS      AS N ON N.ID_Negocio = T.ID_Negocio
-WHERE T.FechaTransaccion BETWEEN CAST(@FechaInicioPrev AS DATE)  AND DATEADD(DAY, 1, CAST(@FechaFinPrev AS DATE))
+WHERE T.FechaTransaccion BETWEEN CAST(@FechaInicioPrev AS DATETIME)  AND DATEADD(DAY, 1, CAST(@FechaFinPrev AS DATETIME))
   AND T.ID_Negocio = @ID_Negocio
   AND N.ID_Usuario = @ID_Usuario;
 
@@ -189,8 +191,7 @@ WHERE
 INSERT INTO #KPIs (TituloRegular, TituloNegrita, OrdenTitulos, TXTColor, BGColor, ValorRegular, ValorNegrita, OrdenValores, Icono, Info)
 SELECT 'Nuevos' AS TituloRegular, 'Clientes' AS TituloNegrita, 'NR' AS OrdenTitulos, 'text-gray-800' AS TXTColor, 'bg-secondary' AS BGColor, '' AS ValorRegular, CAST(COUNT(CLIENTES.ID_Cliente) AS VARCHAR) AS ValorNegrita, 'NR' AS OrdenValores, 'bi-people' AS Icono, 'Cantidad de clientes nuevos creados dentro del período' AS Info
 FROM [CORE].[TBL_CLIENTES] CLIENTES
-WHERE CLIENTES.[FechaCreacion] >= @FechaInicio
-	 AND CLIENTES.[FechaCreacion] >= @FechaFin
+WHERE CLIENTES.[FechaCreacion] BETWEEN CAST(@FechaInicio AS DATETIME)  AND DATEADD(DAY, 1, CAST(@FechaFin AS DATETIME))
 	 AND CLIENTES.ID_Usuario = @ID_Usuario
 --#END KPI Clientes Nuevos
 

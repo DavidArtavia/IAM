@@ -74,7 +74,6 @@ export const Clientes = () => {
           result as DTO_Respuesta
         ) as DTO_Cliente[];
         setClientes(data || []);
-        handleNotification(result, "info");
       },
       error: errorHelpers.serverError,
       complete: () => setLoading(false),
