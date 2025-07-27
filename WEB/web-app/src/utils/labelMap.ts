@@ -505,39 +505,6 @@ export const ordenservicioFormCrearCuenta: FieldConfig<DTO_Cuenta>[] = [
 
 export const clienteFormEditFields: Array<FieldConfig<DTO_Cliente>> = [
     {
-<<<<<<< HEAD
-        key: "nombreCliente",
-        label: labelMapCliente["nombreCliente"] ?? "Nombre",
-        type: "text",
-        required: true,
-    },
-    {
-        key: "apellidoCliente",
-        label: labelMapCliente["apellidoCliente"] ?? "Apellido(s)",
-        type: "text",
-        required: true,
-    },
-    {
-        key: "telefonoCliente",
-        label: labelMapCliente["telefonoCliente"] ?? "Teléfono",
-        type: "text",
-        required: true,
-    },
-    {
-        key: "correoCliente",
-        label: labelMapCliente["correoCliente"] ?? "Correo",
-        type: "text",
-        required: true,
-    },
-];
-export const ItemsOrdenServicioFormEditFields: Array<FieldConfig<DTO_ItemOrdenServicio>> = columnKeysItemsOrdenServicio
-    .filter(key => key !== "iD_ItemOrdenServicio" && key !== "iD_OrdenServicio" && key != "avance") // Excluye campos que no se editan
-    .map(key => ({
-        key,
-        label: labelMapItemsOrdenServicio[key] ?? key,
-        type: key === "monto" ? "number" : "text",
-    }));
-=======
 
         key: "nombreCliente",
         label: labelMapOrdenDeServicio["nombreCliente"] ?? "Nombre",
@@ -575,7 +542,6 @@ export const ItemsOrdenServicioFormEditFields: Array<FieldConfig<DTO_ItemOrdenSe
             type: (key === "monto" ? "number" : "text") as any
         }))
 ];
->>>>>>> desarrollo
 
 export const ordenServicioFormEditFields: Array<FieldConfig<DTO_OrdenServicio>> = [
     {
