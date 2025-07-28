@@ -268,17 +268,17 @@ export const LayoutMain = () => {
 
               <div className="menu-item py-2">
                 <Link
-                  to={ROUTES.METRICAS}
-                  className={`menu-link menu-center${pathname === ROUTES.METRICAS ? " active" : ""
+                  to={ROUTES.INFO}
+                  className={`menu-link menu-center${pathname === ROUTES.INFO ? " active" : ""
                     }`}
                   data-bs-trigger="hover"
                   data-bs-dismiss="click"
                   data-bs-placement="right"
                 >
-                  <span className="menu-icon me-0">
-                    <i className="bi bi-bar-chart-line-fill" />
-                  </span>
-                  <span className="menu-title">Métricas</span>
+                    <span className="menu-icon me-0">
+                    <i className="bi bi-info-circle-fill" />
+                    </span>
+                  <span className="menu-title">Informacion</span>
                 </Link>
               </div>
             </div>
