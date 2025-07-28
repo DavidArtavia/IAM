@@ -20,9 +20,9 @@ export const ROUTES = {
     CUENTAS: "/cuentas",
     CLIENTES: "/clientes",
     TRANSACTIONS: "/transactions",
-    SERVICE_ORDER: "/orden-servicio", // OrdenServicio en inglés
-    METRICAS: "/metricas", // OrdenServicio en inglés
-    NOT_FOUND: "*", // Ruta para manejar páginas no encontradas
+    SERVICE_ORDER: "/orden-servicio", 
+    INFO: "/info",
+    NOT_FOUND: "*", 
 } as const;
 
 // Tipo para las claves de las rutas

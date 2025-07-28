@@ -8,4 +8,4 @@ export * from "./Clientes/Clientes";
 export * from "./OrdenDeServicio/OrdenDeServicio";
 export * from "./Transacciones/Transacciones";
 export * from "./Transacciones/AutoAccountTransactionInfoField";
-export * from "./Metricas/Metricas";
+export * from "./Info/Info";
