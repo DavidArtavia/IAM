@@ -11,7 +11,7 @@ const AuthProvider = (props: Props) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
-    const storedUser = sessionStorage.getItem("auth_user");
+    const storedUser = localStorage.getItem("auth_user");
     if (storedUser) {
       try {
         const parsedUser = JSON.parse(storedUser) as DTO_Usuario;
@@ -27,7 +27,7 @@ const AuthProvider = (props: Props) => {
   const login = (user: DTO_Usuario) => {
     setUser(user);
     setIsAuthenticated(true);
-    sessionStorage.setItem("auth_user", JSON.stringify(user)); // Persistir en sesión
+    localStorage.setItem("auth_user", JSON.stringify(user)); // Persistir en localStorage
   };
 
   const contextValue = {

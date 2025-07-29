@@ -1,70 +1,82 @@
 import { usuarioValidator } from "@/validators/usuarioValidator";
 import { usuarioService } from "@/services/usuario.service";
-import { errorHelpers, notificationHelpers } from "@/utils"
+import { errorHelpers, notificationHelpers } from "@/utils";
 import { Link, useNavigate } from "react-router-dom";
-import { DTO_Respuesta, DTO_Usuario } from "@/models";
+import { DTO_Param, DTO_Respuesta, DTO_Usuario } from "@/models";
 import { ROUTES } from "@/constants";
 import { useContext, useState } from "react";
 import { AuthContext } from "@/context/AuthContext";
+import { valida_DTO_Usuario } from "@/validators/valida_DTO_Usuario";
 
 export const Login = () => {
+  // #region Validaciones en los formularios
+  const [erroresValidacion, setErroresValidacion] = useState<DTO_Param[]>([]);
+  let validacion: Array<DTO_Param>;
+  const eliminarError = (campo: string) => {
+    setErroresValidacion((prev) => prev.filter((e) => e.nombre !== campo));
+  };
+  // #endregion
   //useContext/useStates
-  const [usuario, setUsuario] =  useState<DTO_Usuario | null>(new DTO_Usuario());;
+  const [usuario, setUsuario] = useState<DTO_Usuario | null>(new DTO_Usuario());
   const [cargando, setCargando] = useState<boolean>(false);
+  const [showPass, setshowPass] = useState<boolean>(false);
   const navigate = useNavigate();
   const { login } = useContext(AuthContext);
 
   //Eventos
-    const handleOnClick = () => { validarDatosLogin() }
+  const handleOnClick = () => {
+    validarDatosLogin();
+  };
 
   //Métodos
   const validarDatosLogin = () => {
+    validacion = valida_DTO_Usuario.validar(usuario ?? new DTO_Usuario(), "L");
+    setErroresValidacion(validacion);
     if (usuarioValidator.validarDatosLogin(usuario)) {
-      autenticarUsuario()
+      autenticarUsuario();
     }
-  }
+  };
 
   const autenticarUsuario = () => {
     setCargando(true);
     usuarioService.autenticarUsuario(usuario).subscribe({
       next: (result) => procesarRespuesta(result as DTO_Respuesta),
       error: (err) => errorHelpers.serverError(err), //controlamos el error del servidor
-      complete: () => { setCargando(false); }
+      complete: () => {
+        setCargando(false);
+      },
     });
-
-  }
+  };
 
   // actualiza sólo el campo dinámicamente
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setUsuario((prev) =>
-      prev
-        ? { ...prev, [name]: value }         
-        : null
-    );
+    setUsuario((prev) => (prev ? { ...prev, [name]: value } : null));
   };
 
   const procesarRespuesta = (respuesta: DTO_Respuesta) => {
     if (respuesta.tipoRespuesta) {
-      const user = respuesta.resultado[0] as DTO_Usuario
-      //@ts-expect-error - Aqui se obtiene el token 
-       const accesToken = respuesta.resultado[1].accesToken;
-       localStorage.setItem("accesToken", accesToken);
-       setUsuario(user);
-       login(user);
-      
-      
-      notificationHelpers.successAlert(`Hola ${user.nombreUsuario + " " + user.apellido}, bienvenido de nuevo 👋`)
+      const user = respuesta.resultado[0] as DTO_Usuario;
+      //@ts-expect-error - Aqui se obtiene el token
+      const accesToken = respuesta.resultado[1].accesToken;
+      localStorage.setItem("accesToken", accesToken);
+      setUsuario(user);
+      login(user);
+
+      notificationHelpers.successAlert(
+        `Hola ${
+          user.nombreUsuario + " " + user.apellido
+        }, bienvenido de nuevo 👋`
+      );
       const lastPath = localStorage.getItem("lastPath") || ROUTES.HOME;
       setTimeout(() => {
         navigate(lastPath, { replace: true });
       }, 200);
-      
     } else {
       //Controlamos el error del sistema
       errorHelpers.systemError(respuesta);
     }
-  }
+  };
 
   return (
     <div className="d-flex flex-column flex-root">
@@ -89,13 +101,11 @@ export const Login = () => {
               className="form w-100 fv-plugins-bootstrap5 fv-plugins-framework"
               noValidate
               id="kt_sign_in_form"
-
             >
               <div className="text-center mb-10">
                 <h1 className="text-dark mb-3">Iniciar Sesión</h1>
 
                 <div className="text-gray-400 fw-bold fs-4">
-
                   <Link to={ROUTES.SIGNUP} className="link-primary fw-bolder">
                     Crear una cuenta
                   </Link>
@@ -108,13 +118,23 @@ export const Login = () => {
                 </label>
                 <input
                   value={usuario?.correoUsuario}
-                  onChange={handleChange}
+                  onChange={(e) => {
+                    eliminarError(e.target.name);
+                    handleChange(e);
+                  }}
                   className="form-control form-control-lg form-control-solid"
                   type="text"
                   name="correoUsuario"
                   autoComplete="off"
                   placeholder="ejemplo@gmail.com"
                 />
+                {erroresValidacion
+                  .filter((error) => error.nombre === "correoUsuario")
+                  .map((error, idx) => (
+                    <div key={idx} className="invalid-feedback d-block">
+                      {error.valor}
+                    </div>
+                  ))}
                 <div className="fv-plugins-message-container invalid-feedback" />
               </div>
 
@@ -124,20 +144,45 @@ export const Login = () => {
                     Password
                   </label>
                 </div>
-                <input
-                  value={usuario?.pass}
-                  onChange={handleChange}
-                  className="form-control form-control-lg form-control-solid"
-                  type="password"
-                  name="pass"
-                  autoComplete="off"
-                />
+                <div className="position-relative mb-3">
+                  <input
+                    value={usuario?.pass}
+                    onChange={(e) => {
+                      eliminarError(e.target.name);
+                      handleChange(e);
+                    }}
+                    className="form-control form-control-lg form-control-solid"
+                    type={showPass ? "text" : "password"}
+                    name="pass"
+                    autoComplete="off"
+                  />
+                  <span
+                    onClick={() => setshowPass(!showPass)}
+                    className="btn btn-sm btn-icon position-absolute translate-middle top-50 end-0 me-n2"
+                    data-kt-password-meter-control="visibility"
+                    style={{ cursor: "pointer" }}
+                  >
+                    <i
+                      className={`bi bi-eye-slash fs-2${
+                        showPass ? " d-none" : ""
+                      }`}
+                    />
+                    <i
+                      className={`bi bi-eye fs-2${!showPass ? " d-none" : ""}`}
+                    />
+                  </span>
+                </div>
+                {erroresValidacion
+                  .filter((error) => error.nombre === "pass")
+                  .map((error, idx) => (
+                    <div key={idx} className="invalid-feedback d-block">
+                      {error.valor}
+                    </div>
+                  ))}
                 <div className="fv-plugins-message-container invalid-feedback" />
               </div>
 
-              <div className="text-center">
-
-              </div>
+              <div className="text-center"></div>
             </form>
             <button
               id="kt_sign_in_submit"

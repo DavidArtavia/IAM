@@ -291,13 +291,7 @@ export const GenericFormModal = <T,>({
               {headerButtons && headerButtons.length > 0 && (
                 <ModalHeaderButtons buttons={headerButtons} />
               )}
-              <button
-                type="button"
-                className="btn btn-sm btn-icon btn-active-color-primary"
-                onClick={onHide}
-              >
-                <i className="bi bi-x-lg fs-2" />
-              </button>
+              <button type="button" className="btn-close" onClick={onHide} />
             </div>
           </div>
 
@@ -314,16 +308,12 @@ export const GenericFormModal = <T,>({
                 .map((field, idx) => (
                   <div key={String(field.key)} className="col-12 mb-4">
                     {renderField(field, idx)}
-
                   </div>
                 ))}
             </div>
 
             <div className="card-footer">
-              <button
-                type="submit"
-                className="btn btn-primary me-3"
-              >
+              <button type="submit" className="btn btn-primary me-3">
                 Guardar
               </button>
               <button

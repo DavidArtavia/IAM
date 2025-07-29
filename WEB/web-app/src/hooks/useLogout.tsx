@@ -15,7 +15,7 @@ export const useLogout = () => {
       //await api.post("/auth/logout"); // Cambia esto según tu endpoint
 
       localStorage.removeItem("accesToken");
-      sessionStorage.removeItem("auth_user");
+      localStorage.removeItem("auth_user");
       // Limpia contexto
       setUser(null);
 

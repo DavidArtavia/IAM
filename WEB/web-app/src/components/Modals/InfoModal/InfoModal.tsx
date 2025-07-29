@@ -134,20 +134,16 @@ export const InfoModal = <T,>({
         className="modal-dialog modal-dialog-centered mw-750px"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="modal-content border border-gray-200 shadow-sm">
+        <div className="modal-content card card-custom example example-compact">
           {/* Título */}
-          <div className="modal-header border-bottom border-gray-300">
-            <h2 className="fw-bold text-gray-800">{title}</h2>
-            {headerButtons && headerButtons.length > 0 && (
-              <ModalHeaderButtons buttons={headerButtons} />
-            )}
-            <button
-              type="button"
-              className="btn btn-sm btn-icon btn-active-light-primary"
-              onClick={onHide}
-            >
-              ✕
-            </button>
+          <div className="card-header">
+              <h3 className="card-title">{title}</h3>
+            <div className="card-toolbar">
+              {headerButtons && headerButtons.length > 0 && (
+                <ModalHeaderButtons buttons={headerButtons} />
+              )}
+              <button type="button" className="btn-close" onClick={onHide} />
+            </div>
           </div>
 
           {/* Cuerpo */}
