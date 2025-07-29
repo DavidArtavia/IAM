@@ -4,8 +4,8 @@ import {
   Clientes,
   Cuentas,
   Home,
+  Info,
   LayoutMain,
-  Metricas,
   Monitor,
   Negocio,
   OrdenDeServicio,
@@ -43,10 +43,10 @@ const { pathname } = useLocation(); //ruta actual
           <Route path={ROUTES.NEGOCIO} element={<Negocio />} />
           <Route path={ROUTES.MONITOR} element={<Monitor />} />
           <Route path={ROUTES.CUENTAS} element={<Cuentas />} />
-          <Route path={ROUTES.CLIENTES} element={<Clientes/>} />
-          <Route path={ROUTES.TRANSACTIONS} element={<Transacciones/>} />
+          <Route path={ROUTES.CLIENTES} element={<Clientes />} />
+          <Route path={ROUTES.TRANSACTIONS} element={<Transacciones />} />
           <Route path={ROUTES.SERVICE_ORDER} element={<OrdenDeServicio />} />
-          <Route path={ROUTES.METRICAS} element={<Metricas />} />
+          <Route path={ROUTES.INFO} element={<Info />} />
         </Route>
       </Route>
 

@@ -296,7 +296,7 @@ export const GenericFormModal = <T,>({
                 className="btn btn-sm btn-icon btn-active-color-primary"
                 onClick={onHide}
               >
-                ✕
+                <i className="bi bi-x-lg fs-2" />
               </button>
             </div>
           </div>
