@@ -1,3 +1,5 @@
+USE [IAMDB]
+GO
 UPDATE [UTIL].[TBL_ALERTAS]
 SET [Nombre] = N'Registro Cuenta',
     [Mensaje] = N'El negocio especificado no existe.',
@@ -15,7 +17,7 @@ SET [Nombre] = N'Registro Cuenta',
 WHERE [COD_ALERTA] = 'B010';
 UPDATE [UTIL].[TBL_ALERTAS]
 SET [Nombre] = N'Registro Cuenta',
-    [Mensaje] = N 'No se pudo registrar la cuenta.',
+    [Mensaje] = N'No se pudo registrar la cuenta.',
     [Tipo] = 'E'
 WHERE [COD_ALERTA] = 'B011';
 UPDATE [UTIL].[TBL_ALERTAS]
@@ -25,7 +27,7 @@ SET [Nombre] = N'Obtener Cuentas',
 WHERE [COD_ALERTA] = 'B012';
 UPDATE [UTIL].[TBL_ALERTAS]
 SET [Nombre] = N'Obtener Cuentas',
-    [Mensaje] = N 'No se encontraron cuentas para el negocio.',
+    [Mensaje] = N'No se encontraron cuentas para el negocio.',
     [Tipo] = 'I'
 WHERE [COD_ALERTA] = 'B013';
 UPDATE [UTIL].[TBL_ALERTAS]
@@ -45,6 +47,6 @@ SET [Nombre] = N'Actualizar Cuentas',
 WHERE [COD_ALERTA] = 'B016';
 UPDATE [UTIL].[TBL_ALERTAS]
 SET [Nombre] = N'Actualizar Cuentas',
-    [Mensaje] = N 'No se realizó ninguna modificación en la cuenta.',
+    [Mensaje] = N'No se realizó ninguna modificación en la cuenta.',
     [Tipo] = 'I'
 WHERE [COD_ALERTA] = 'B017';

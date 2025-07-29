@@ -574,6 +574,13 @@ export const ordenServicioFormEditFields: Array<FieldConfig<DTO_OrdenServicio>> 
         required: false,
         order: 6,
     },
+    {
+        key: "notaOrdenServicio",
+        label: labelMapOrdenDeServicio["notaOrdenServicio"] ?? "Nota",
+        type: "text",
+        required: false,
+        order: 7,
+    },
 ];
 export const transaccionesFormEditFields: FieldConfig<DTO_Transacciones>[] = [
     { key: "concepto", label: "Concepto", type: "text", required: true },

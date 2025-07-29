@@ -28,6 +28,11 @@ export class validadorGenerico {
         return !isNaN(new Date(String(value)).getTime());
     }
 
+    static isPhoneNumber(value: string): boolean {
+        const regex = /^\+?\d{1,4}?[-.\s]?(\d{1,3}?[-.\s]?){1,4}\d{1,4}$/;
+        return regex.test(value);
+    }
+
     static matches(value: string, compare: string): boolean {
         return value === compare;
     }
@@ -39,6 +44,15 @@ export class validadorGenerico {
     static isEmojiFree(value: string): boolean {
         const emojiRegex = /[\p{Extended_Pictographic}]/u;
         return !emojiRegex.test(value);
+    }
+
+    static hasEmojis(value: string): boolean {
+        const emojiRegex = /[\p{Extended_Pictographic}]/u;
+        return emojiRegex.test(value);
+    }
+
+    static onlyTextAllowed(value: string): boolean {
+        return !/^[A-Za-zÁÉÍÓÚáéíóúÑñÜü\s]+$/u.test(value);
     }
 
     static startsWith(value: string, text: string): boolean {

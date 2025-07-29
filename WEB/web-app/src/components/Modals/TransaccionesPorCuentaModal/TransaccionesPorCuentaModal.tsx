@@ -313,11 +313,9 @@ export const TransaccionesPorCuentaModal = ({
             <h2 className="fw-bold">Transacciones de {nombreCuenta}</h2>
             <button
               type="button"
-              className="btn btn-sm btn-icon btn-active-color-primary"
+              className="btn-close"
               onClick={onHide}
-            >
-              ✕
-            </button>
+           />
           </div>
           <div className="modal-body py-10 px-lg-17">
             {loading ? (
@@ -345,7 +343,10 @@ export const TransaccionesPorCuentaModal = ({
             />
 
             <GenericFormModal
-              title={"Registrar Transacción para la Cuenta #" + rowEditSelected?.numReferencia}
+              title={
+                "Registrar Transacción para la Cuenta #" +
+                rowEditSelected?.numReferencia
+              }
               show={isModalFormOpen}
               onHide={handleCancelAdd}
               data={formData}
