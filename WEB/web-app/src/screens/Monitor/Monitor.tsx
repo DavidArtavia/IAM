@@ -1,8 +1,19 @@
 import { useEffect, useRef, useState } from "react";
 import * as signalR from "@microsoft/signalr";
 import sonidoMonitor from "../../assets/media/audios/Monitor.mp3";
-import { errorHelpers, notificationHelpers, ordenservicioFormCrearCuenta } from "@/utils";
-import { DetalleCuentaInput, FieldConfig, GenericFormModal, LoadingPanel, OrdenesSeccion } from "@/components";
+import {
+  errorHelpers,
+  notificationHelpers,
+  ordenservicioFormCrearCuenta,
+} from "@/utils";
+import {
+  DetalleCuentaInput,
+  FieldConfig,
+  GenericFormModal,
+  InfoPanel,
+  LoadingPanel,
+  OrdenesSeccion,
+} from "@/components";
 import {
   DTO_Cuenta,
   DTO_ItemOrdenServicio,
@@ -22,22 +33,20 @@ import { useApp } from "@/hooks/useApp";
 import { valida_DTO_Cuenta } from "@/validators/valida_DTO_Cuenta";
 
 export const Monitor = () => {
-
   // #region Validaciones en los formularios
   const [erroresValidacion, setErroresValidacion] = useState<DTO_Param[]>([]);
   let validacion: Array<DTO_Param>;
   const eliminarError = (campo: string) => {
-    setErroresValidacion(prev => prev.filter(e => e.nombre !== campo));
+    setErroresValidacion((prev) => prev.filter((e) => e.nombre !== campo));
   };
   // #endregion
-
 
   //🔄 Estado general
   const { state } = useApp();
 
   useEffect(() => {
     if (state.negocio) {
-      setSelectedBusiness(state.negocio)
+      setSelectedBusiness(state.negocio);
       handleSelectBusiness(state.negocio);
     }
   }, [state]);
@@ -54,7 +63,9 @@ export const Monitor = () => {
   const retryTimeoutRef = useRef<number | null>(null);
   const abortedRef = useRef(false);
   const [account, setAccount] = useState<DTO_Cuenta>();
-  const [detalleHabilitado, setDetalleHabilitado] = useState<boolean>(!!account?.detalleJSON);
+  const [detalleHabilitado, setDetalleHabilitado] = useState<boolean>(
+    !!account?.detalleJSON
+  );
   const [showCreateAccount, setShowCreateAccount] = useState(false);
   const [editData, setEditData] = useState<DTO_OrdenServicio>(() => {
     const dto = new DTO_OrdenServicio();
@@ -116,7 +127,6 @@ export const Monitor = () => {
     } else {
       item.avance = 0;
     }
-
 
     itemsOrdenesService.actualizarItemsOrdensDeServicio(item).subscribe({
       next: (res) => {
@@ -223,13 +233,13 @@ export const Monitor = () => {
           return idx === -1
             ? [...prev, msg] // insertar
             : prev.map(
-              (
-                i // actualizar
-              ) =>
-                i.iD_ItemOrdenServicio === msg.iD_ItemOrdenServicio
-                  ? { ...i, ...msg }
-                  : i
-            );
+                (
+                  i // actualizar
+                ) =>
+                  i.iD_ItemOrdenServicio === msg.iD_ItemOrdenServicio
+                    ? { ...i, ...msg }
+                    : i
+              );
         });
 
         notificationHelpers.infoAlert(
@@ -253,21 +263,19 @@ export const Monitor = () => {
           return idx === -1
             ? [...prev, msg] // insertar
             : prev.map(
-              (
-                o // actualizar
-              ) =>
-                o.iD_OrdenServicio === msg.iD_OrdenServicio
-                  ? { ...o, ...msg }
-                  : o
-            );
+                (
+                  o // actualizar
+                ) =>
+                  o.iD_OrdenServicio === msg.iD_OrdenServicio
+                    ? { ...o, ...msg }
+                    : o
+              );
         });
-
-
       } else {
         console.warn("Tipo desconocido", msg);
         notificationHelpers.infoAlert("📢 Nuevo mensaje");
       }
-      audio.current.play().catch(() => { });
+      audio.current.play().catch(() => {});
     };
 
     const handleReconnecting = () => {
@@ -350,7 +358,6 @@ export const Monitor = () => {
 
   //#region crear cuenta
   const handleCreateAccountButton = (orden: DTO_OrdenServicio | undefined) => {
-
     setEditData(orden || new DTO_OrdenServicio());
 
     if (orden) {
@@ -358,9 +365,7 @@ export const Monitor = () => {
         setShowCreateAccount(true);
       });
     }
-
   };
-
 
   const getItemsToOrderServiceAccount = (
     rowData: DTO_OrdenServicio
@@ -429,14 +434,14 @@ export const Monitor = () => {
     ...ordenservicioFormCrearCuenta,
     ...(account?.iD_OrdenServicio
       ? [
-        {
-          key: "iD_OrdenServicio",
-          label: "Orden De Servicio #",
-          type: "text",
-          readOnly: true,
-          order: 4,
-        } as FieldConfig<any>,
-      ]
+          {
+            key: "iD_OrdenServicio",
+            label: "Orden De Servicio #",
+            type: "text",
+            readOnly: true,
+            order: 4,
+          } as FieldConfig<any>,
+        ]
       : []),
     {
       key: "tipoCuenta",
@@ -487,15 +492,16 @@ export const Monitor = () => {
             <span className="input-group-text">₡</span>
             <input
               type="text"
-              className={`form-control fw-bold fs-5 text-start ${detalleHabilitado ? "bg-light" : ""
-                }`}
+              className={`form-control fw-bold fs-5 text-start ${
+                detalleHabilitado ? "bg-light" : ""
+              }`}
               readOnly={detalleHabilitado}
               value={
                 montoInput !== ""
                   ? montoInput
                   : account?.monto !== undefined && account?.monto !== 0
-                    ? String(account.monto)
-                    : ""
+                  ? String(account.monto)
+                  : ""
               }
               onFocus={() => {
                 if ((account?.monto || 0) === 0) {
@@ -530,15 +536,13 @@ export const Monitor = () => {
   ];
 
   const handleCreateAccount = (cuenta: DTO_Cuenta) => {
-
     if (!cuenta.iD_Negocio || !cuenta.iD_OrdenServicio) {
       notificationHelpers.errorAlert("Negocio o Orden de Servicio no válidos");
       return;
     }
     validacion = valida_DTO_Cuenta.validar(cuenta, "C");
-    setErroresValidacion(validacion)
+    setErroresValidacion(validacion);
     if (validacion.length === 0) {
-
       cuentasService.registrarCuenta(cuenta).subscribe({
         next: (res: DTO_Respuesta) => {
           notificationHelpers.successAlert(res.mensaje);
@@ -580,9 +584,9 @@ export const Monitor = () => {
                 prev.map((o) =>
                   o.iD_OrdenServicio === updatedOrden.iD_OrdenServicio
                     ? {
-                      ...o,
-                      ...updatedOrden,
-                    }
+                        ...o,
+                        ...updatedOrden,
+                      }
                     : o
                 )
               );
@@ -595,9 +599,10 @@ export const Monitor = () => {
         error: errorHelpers.serverError,
       });
     } else {
-      notificationHelpers.warningAlert("Por favor valida los datos ingresados nuevamente");
+      notificationHelpers.warningAlert(
+        "Por favor valida los datos ingresados nuevamente"
+      );
     }
-
   };
   //#endregion crear cuenta
   //#region cargar monitor
@@ -616,7 +621,7 @@ export const Monitor = () => {
           );
           setItems(
             ((res as DTO_Respuesta).resultado[1] as DTO_ItemOrdenServicio[]) ||
-            []
+              []
           );
         },
         error: (err) => errorHelpers.serverError(err),
@@ -629,7 +634,6 @@ export const Monitor = () => {
   //#endregion
 
   //#region para manejo de cuentas
-
 
   //#endregion
 
@@ -652,66 +656,73 @@ export const Monitor = () => {
         onEliminarError={eliminarError}
       />
 
-      <div className="row p-4 gx-0">
-        {loading && <LoadingPanel msj="Cargando, por favor espere..." />}
-      </div>
-
       <div id="kt_content_container" className="container-xxl">
-        <div className="d-flex flex-wrap flex-stack pt-10 pb-8">
-          <h3 className="fw-bolder my-2">
-            <span
-              style={{ marginRight: "5px", marginBottom: "-5px" }}
-              className={`badge badge-circle ${estadoConexion === "Conectado"
-                ? " badge-success"
-                : " badge-danger"
-                }`}
-            ></span>
-            {selectedBusiness?.nombreNegocio}
-            <span className="fs-6 text-gray-400 fw-bold ms-1">
-              {estadoConexion}
-            </span>
-          </h3>
-        </div>
-        <div className="row g-9">
-          <OrdenesSeccion
-            titulo="Nuevo"
-            colorBarra="bg-secondary"
-            estado={STATUS_TBL.ORDER_SERVICE.NEW}
-            ordenes={ordenes}
-            items={items}
-            onAvanceChange={handleCheckboxChange}
-            onEstadoChange={cambiarEstadoOrdenServicio}
-          />
-          <OrdenesSeccion
-            titulo="En proceso"
-            colorBarra="bg-primary"
-            estado={STATUS_TBL.ORDER_SERVICE.IN_PROCESS}
-            ordenes={ordenes}
-            items={items}
-            onAvanceChange={handleCheckboxChange}
-            onEstadoChange={cambiarEstadoOrdenServicio}
-          />
-          <OrdenesSeccion
-            titulo="Completado"
-            colorBarra="bg-success"
-            estado={STATUS_TBL.ORDER_SERVICE.COMPLETED}
-            ordenes={ordenes}
-            items={items}
-            onAvanceChange={handleCheckboxChange}
-            onEstadoChange={cambiarEstadoOrdenServicio}
-            onClickCreateCount={handleCreateAccountButton}
-          />
-          <OrdenesSeccion
-            titulo="En espera"
-            colorBarra="bg-warning"
-            estado={STATUS_TBL.ORDER_SERVICE.PENDING}
-            ordenes={ordenes}
-            items={items}
-            onAvanceChange={handleCheckboxChange}
-            onEstadoChange={cambiarEstadoOrdenServicio}
-
-          />
-        </div>
+        {loading && <LoadingPanel msj="Cargando, por favor espere..." />}
+        {state.negocio == null ? (
+          <InfoPanel msj="Selecciona un negocio para ver el monitor." />
+        ) : loading ? (
+          <LoadingPanel msj="Cargando, por favor espere..." />
+        ) : (
+          selectedBusiness && (
+            <>
+              <div className="d-flex flex-wrap flex-stack pt-10 pb-8">
+                <h3 className="fw-bolder my-2">
+                  <span
+                    style={{ marginRight: "5px", marginBottom: "-5px" }}
+                    className={`badge badge-circle ${
+                      estadoConexion === "Conectado"
+                        ? " badge-success"
+                        : " badge-danger"
+                    }`}
+                  ></span>
+                  {selectedBusiness?.nombreNegocio}
+                  <span className="fs-6 text-gray-400 fw-bold ms-1">
+                    {estadoConexion}
+                  </span>
+                </h3>
+              </div>
+              <div className="row g-9">
+                <OrdenesSeccion
+                  titulo="Nuevo"
+                  colorBarra="bg-secondary"
+                  estado={STATUS_TBL.ORDER_SERVICE.NEW}
+                  ordenes={ordenes}
+                  items={items}
+                  onAvanceChange={handleCheckboxChange}
+                  onEstadoChange={cambiarEstadoOrdenServicio}
+                />
+                <OrdenesSeccion
+                  titulo="En proceso"
+                  colorBarra="bg-primary"
+                  estado={STATUS_TBL.ORDER_SERVICE.IN_PROCESS}
+                  ordenes={ordenes}
+                  items={items}
+                  onAvanceChange={handleCheckboxChange}
+                  onEstadoChange={cambiarEstadoOrdenServicio}
+                />
+                <OrdenesSeccion
+                  titulo="Completado"
+                  colorBarra="bg-success"
+                  estado={STATUS_TBL.ORDER_SERVICE.COMPLETED}
+                  ordenes={ordenes}
+                  items={items}
+                  onAvanceChange={handleCheckboxChange}
+                  onEstadoChange={cambiarEstadoOrdenServicio}
+                  onClickCreateCount={handleCreateAccountButton}
+                />
+                <OrdenesSeccion
+                  titulo="En espera"
+                  colorBarra="bg-warning"
+                  estado={STATUS_TBL.ORDER_SERVICE.PENDING}
+                  ordenes={ordenes}
+                  items={items}
+                  onAvanceChange={handleCheckboxChange}
+                  onEstadoChange={cambiarEstadoOrdenServicio}
+                />
+              </div>
+            </>
+          )
+        )}
       </div>
     </div>
   );

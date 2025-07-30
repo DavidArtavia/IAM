@@ -7,6 +7,7 @@ import {
   GenericDataTable,
   GenericFormModal,
   InfoModal,
+  InfoPanel,
   ItemsOrdenDeServicioModal,
   ReferenciaCards,
 } from "@/components";
@@ -905,7 +906,11 @@ export const OrdenDeServicio = () => {
   // #region 🧩 Render
   return (
     <div className="row p-4 gx-0">
-      <GenericDataTable<DTO_OrdenServicio & Record<string, string>>
+      {state.negocio == null ? (
+      <InfoPanel msj="Selecciona un negocio para ver sus órdenes de servicio." />
+      ) : (
+      <>
+        <GenericDataTable<DTO_OrdenServicio & Record<string, string>>
         title="Órdenes de Servicio"
         columnKeys={columnKeysOrdenDeServicio}
         labelMap={labelMap}
@@ -926,18 +931,18 @@ export const OrdenDeServicio = () => {
         }}
         customColumns={[referenciaJSONColumn]}
         customRenderers={customRenderers}
-      />
+        />
 
-      <InfoModal
+        <InfoModal
         show={!!rowTableSelected}
         onHide={() => setRowTableSelected(undefined)}
         data={rowTableSelected!}
         fields={infoModalFields}
         headerButtons={headerButtonsToInfo}
-      />
+        />
 
-      {/* Modal Registrar */}
-      <GenericFormModal<DTO_OrdenServicio>
+        {/* Modal Registrar */}
+        <GenericFormModal<DTO_OrdenServicio>
         title="Registrar Orden"
         show={isFormOpen}
         onHide={handleCancelAdd}
@@ -947,10 +952,10 @@ export const OrdenDeServicio = () => {
         fields={newFormFields}
         erroresValidacion={erroresValidacion}
         onEliminarError={eliminarError}
-      />
+        />
 
-      {/* Modal Editar */}
-      <GenericFormModal<DTO_OrdenServicio>
+        {/* Modal Editar */}
+        <GenericFormModal<DTO_OrdenServicio>
         title="Editar Orden de Servicio"
         show={showEditForm}
         onHide={() => setShowEditForm(false)}
@@ -961,10 +966,10 @@ export const OrdenDeServicio = () => {
         headerButtons={headerButtonsToEdit}
         erroresValidacion={erroresValidacion}
         onEliminarError={eliminarError}
-      />
+        />
 
-      {/* Modal Crear Cuenta */}
-      <GenericFormModal<DTO_Cuenta>
+        {/* Modal Crear Cuenta */}
+        <GenericFormModal<DTO_Cuenta>
         title="Crear Cuenta"
         show={showCreateAccount}
         onHide={() => setShowCreateAccount(false)}
@@ -972,26 +977,28 @@ export const OrdenDeServicio = () => {
         setData={(x) => setAccount(x as DTO_Cuenta)}
         onSubmit={() => {
           if (account) {
-            handleCreateAccount(account);
+          handleCreateAccount(account);
           }
         }}
         fields={formCreateAccountFields}
         onEliminarError={eliminarError}
         erroresValidacion={erroresValidacion}
-      />
+        />
 
-      <ItemsOrdenDeServicioModal
+        <ItemsOrdenDeServicioModal
         open={showItemsOrdenFormModal}
         onHide={() => setShowItemsOrdenFormModal(false)}
         rowData={dataToItemsOrder || new DTO_OrdenServicio()}
-      />
+        />
 
-      {/* === Modal Genérico: Confirmación === */}
-      <ConfirmModal
+        {/* === Modal Genérico: Confirmación === */}
+        <ConfirmModal
         show={isConfirmOpen}
         confirmMessage={confirmModalMessage}
         onAction={(action) => confirmModalAcion(action)}
-      />
+        />
+      </>
+      )}
     </div>
   );
   // #endregion

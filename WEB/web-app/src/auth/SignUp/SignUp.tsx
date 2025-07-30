@@ -29,12 +29,13 @@ export const SignUp = () => {
 
   //Métodos
   const validarDatosRegistroUsuario = () => {
-        validacion = valida_DTO_Usuario.validar(usuario ?? new DTO_Usuario(), "C");
-        setErroresValidacion(validacion);
+    validacion = valida_DTO_Usuario.validar(usuario ?? new DTO_Usuario(), "C");
+    setErroresValidacion(validacion);
     if (
       usuarioValidator.validarDatosRegistroUsuario(usuario, confirmacionPass)
     ) {
-      navigate(ROUTES.LOGIN);
+      console.log("Datos de registro válidos");
+
       registrarUsuario();
     }
   };
@@ -51,8 +52,11 @@ export const SignUp = () => {
   };
 
   const procesarRespuesta = (respuesta: DTO_Respuesta) => {
-    if (respuesta.tipoRespuesta) {
+    if (respuesta.codigo === "A001") {
       notificationHelpers.successAlert(respuesta.mensaje);
+      navigate(ROUTES.LOGIN);
+    } else if (respuesta.codigo === "A002") {
+      notificationHelpers.errorAlert(respuesta.mensaje);
     } else {
       //Controlamos el error del sistema
       errorHelpers.systemError(respuesta);

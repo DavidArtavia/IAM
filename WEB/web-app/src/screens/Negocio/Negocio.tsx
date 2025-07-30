@@ -202,7 +202,9 @@ export const Negocio = () => {
 
       negocioService.actualizarNegocio(updatedData).subscribe({
         next: (result) => {
-          notificationHelpers.infoAlert(result?.mensaje);
+          if (result.codigo === "B003") {
+            notificationHelpers.infoAlert("Negocio Eliminado correctamente");
+          }
 
           if (result.tipoRespuesta && businessToDelete) {
             const nuevaLista = state.listaNegocios.filter(

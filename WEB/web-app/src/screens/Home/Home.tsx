@@ -3,7 +3,7 @@ import { useApp } from "@/hooks/useApp";
 import { DTO_MetricaKPI, DTO_Negocio, DTO_Respuesta } from "@/models";
 import { metricaService } from "@/services";
 import { errorHelpers, notificationHelpers } from "@/utils";
-import { KPI, LoadingPanel } from "@/components";
+import { InfoPanel, KPI, LoadingPanel } from "@/components";
 const OPCIONES = [
   { texto: "Hoy" },
   { texto: "Semana" },
@@ -109,21 +109,27 @@ export const Home = () => {
       </div>
 
       <div className="row p-4 gx-0">
-        {loading && <LoadingPanel msj="Cargando, por favor espere..." />}
-      </div>
-
-      <div className="col-xl-12" style={{ marginTop: "30px" }}>
+        {loading ? (
+          <LoadingPanel msj="Cargando transacciones..." />
+        ) : selectedBusiness ? (
+          <div className="col-xl-12" style={{ marginTop: "30px" }}>
         <div className="card card-xl-stretch mb-xl-8">
           <div className="card-body p-4">
             <div className="card position-relative">
-              <div className="row">
-                {kpis.map((kpi, i) => (
-                  <KPI metrica={kpi} key={i} />
-                ))}
-              </div>
+          <div className="row">
+            {kpis.map((kpi, i) => (
+              <KPI metrica={kpi} key={i} />
+            ))}
+          </div>
             </div>
           </div>
         </div>
+          </div>
+          ) : (
+              <div className="col-xl-12" style={{ marginTop: "50px" }}>
+                  <InfoPanel msj="Seleccione un negocio para ver las metricas." />
+              </div>
+            )}
       </div>
     </div>
   );

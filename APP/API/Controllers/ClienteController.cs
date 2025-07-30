@@ -37,9 +37,14 @@ namespace API.Controllers
         [HttpPost]
         public async Task<DTO_Respuesta> obtenerClientes() // Change method to async
         {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            DTO_Usuario usuario = new();
+
             try
             {
-                respuesta = await bLL_Cliente.obtenerClientes(); // Await the Task<DTO_Respuesta>
+                if (userIdClaim == null) throw new UnauthorizedAccessException("API ERROR: User ID claim is missing.");
+                usuario.ID_Usuario = Convert.ToInt32(userIdClaim.Value);
+                respuesta = await bLL_Cliente.obtenerClientes(usuario); // Await the Task<DTO_Respuesta>
             }
             catch (Exception ex)
             {

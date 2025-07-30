@@ -8,7 +8,7 @@ INSERT INTO [UTIL].[TBL_ALERTAS]
            ,[Tipo])
      VALUES
            ('A030'
-           ,'Obtener Métricas'
+           ,'Obtener Metricas'
            ,'Metricas obtenidas correctamente'
            ,'I')
 GO
