@@ -23,6 +23,7 @@ import {
 import {
   ConfirmModal,
   DetalleCuentaInput,
+  DynamicButtonConfig,
   FieldConfig,
   GenericDataTable,
   GenericFormModal,
@@ -725,7 +726,7 @@ export const Cuentas = () => {
       className: "btn btn-bg-light btn-active-color-danger",
     },
   ];
-  const headerButtonsToEdit = [
+  const headerButtonsToEdit: DynamicButtonConfig[] = [
     {
       titulo: "Ver Transacciones",
       onClick: () => {
@@ -742,6 +743,19 @@ export const Cuentas = () => {
     },
   ];
   //#endregion
+  
+  //#region 🧩 Botones de la tabla
+  const dataTableButtons: DynamicButtonConfig[] = [
+    {
+      titulo: "Ver Transacciones",
+      icon: <i className="bi bi-arrow-left-right fs-5 me-1" />,
+      onClick: (row) => {
+        handleTransaction(row);
+      },
+    },
+  ];
+  //#endregion
+
 
   //#region 🧩 Renderizado
   return (
@@ -764,7 +778,8 @@ export const Cuentas = () => {
               disableButtonAdd={disableButtonAdd}
               includeEstadoColumn
               customRenderers={customRenderers}
-              customColumns={[detalleJSONColumn]}
+                customColumns={[detalleJSONColumn]}
+                dataTableButtons={dataTableButtons}
               onRowClick={(row) => {
                 setRowTableSelected(row);
                 setIsInfoModalOpen(true);

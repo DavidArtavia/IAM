@@ -1,6 +1,9 @@
+import { DynamicButtonConfig } from "@/components";
+
 interface ActionButtonsProps<T = unknown> {
   rowData: T;
   showItemsButton?: boolean;
+  dataTableButtons?: DynamicButtonConfig[];
   onEdit: (row: T) => void;
   onDelete: (row: T) => void;
   onOpenModal?: (row: T) => void;
@@ -11,6 +14,7 @@ export const ActionButtons = ({
   onEdit,
   onDelete,
   onOpenModal,
+  dataTableButtons,
   showItemsButton = false,
 }: ActionButtonsProps) => {
   return (
@@ -84,11 +88,29 @@ export const ActionButtons = ({
         </span>
       </button>
 
+      {dataTableButtons &&
+        dataTableButtons.map((btn, index) => (
+            <button
+            key={`data-table-btn-${index}`}
+            title={btn.titulo}
+            className={`btn btn-icon btn-bg-light btn-active-color-primary btn-sm me-1 ${
+              btn.className ? btn.className : ""
+            }`}
+            disabled={btn.disabled}
+            onClick={(e) => {
+              e.stopPropagation();
+              btn.onClick(rowData);
+            }}
+            >
+            {btn.icon}
+            </button>
+        ))}
+
       {showItemsButton && (
         <button
           type="button"
           title="Ver Items"
-          className="btn btn-icon btn-bg-light btn-active-color-primary btn-sm"
+          className="btn btn-icon btn-bg-light btn-active-color-primary btn-sm "
           onClick={(e) => {
             e.stopPropagation();
             if (onOpenModal) {

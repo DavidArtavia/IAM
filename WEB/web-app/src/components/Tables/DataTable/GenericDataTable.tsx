@@ -8,7 +8,7 @@ import "datatables.net-buttons/js/buttons.html5.js";
 
 import ReactDOM from "react-dom/client";
 import { useApp } from "@/hooks/useApp";
-import { ActionButtons } from "@/components";
+import { ActionButtons, DynamicButtonConfig } from "@/components";
 
 type ColumnSettings = DataTables.ColumnSettings;
 
@@ -19,7 +19,6 @@ declare global {
 }
 
 window.JSZip = JsZip;
-
 
 export interface GenericDataTableProps<T> {
   title: string;
@@ -37,6 +36,7 @@ export interface GenericDataTableProps<T> {
   includeEstadoColumn?: boolean;
   showItemsButton?: boolean;
   customColumns?: ColumnSettings[];
+  dataTableButtons?: DynamicButtonConfig[];
   onRowClick?: (rowData: T) => void;
 }
 
@@ -54,6 +54,7 @@ export function GenericDataTable<T>({
   includeEstadoColumn = false,
   showItemsButton = false,
   customColumns = [],
+  dataTableButtons,
   onRowClick,
 }: GenericDataTableProps<T>) {
   //🔄 Estado general
@@ -253,6 +254,7 @@ export function GenericDataTable<T>({
               onEdit={() => onEdit(row as T)}
               onDelete={() => onDelete(row as T)}
               showItemsButton={showItemsButton}
+              dataTableButtons={dataTableButtons}
               onOpenModal={() => onOpenItemsModal?.(row as T)}
             />
           );
