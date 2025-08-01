@@ -1,6 +1,6 @@
 import axios, { AxiosResponse } from "axios";
 import { STATUS } from "@/constants/status";
-import { logoutUser } from "@/utils/authHelpers";
+import { useLogoutUser } from "@/utils/authHelpers";
 
 export const api = axios.create({
   baseURL: window.__APP_CONFIG__!.BASE_URL + "/api",
@@ -43,7 +43,7 @@ api.interceptors.response.use(
 
     // 401 → cerrar sesión
     if (error.response.status === STATUS.UNAUTHORIZED) {
-      logoutUser();
+      useLogoutUser()();
       return Promise.reject(error);
     }
 

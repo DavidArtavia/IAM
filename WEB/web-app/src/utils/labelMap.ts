@@ -572,7 +572,7 @@ export const ordenServicioFormEditFields: Array<FieldConfig<DTO_OrdenServicio>> 
         label: labelMapOrdenDeServicio["fechaEstimadaEntrega"] ?? "Entrega Estimada",
         type: "date",
         required: false,
-        order: 6,
+        order: 4,
     },
     {
         key: "notaOrdenServicio",

@@ -13,10 +13,10 @@ namespace BLL
         DAL_Cliente dAL_Cliente = new DAL_Cliente();
         DTO_Respuesta respuesta = new();
 
-        public async Task<DTO_Respuesta> obtenerClientes()
+        public async Task<DTO_Respuesta> obtenerClientes(DTO_Usuario usuario)
         {
 
-            return await dAL_Cliente.obtenerClientes();
+            return await dAL_Cliente.obtenerClientes(usuario);
         }
         public async Task<DTO_Respuesta> buscarCliente(DTO_Cliente cliente)
         {

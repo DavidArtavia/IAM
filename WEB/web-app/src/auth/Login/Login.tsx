@@ -68,7 +68,7 @@ export const Login = () => {
           user.nombreUsuario + " " + user.apellido
         }, bienvenido de nuevo 👋`
       );
-      const lastPath = localStorage.getItem("lastPath") || ROUTES.HOME;
+      const lastPath = localStorage.getItem(`lastPath:${user?.correoUsuario}`) || ROUTES.HOME;
       setTimeout(() => {
         navigate(lastPath, { replace: true });
       }, 200);

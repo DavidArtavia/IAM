@@ -76,28 +76,37 @@ builder.Services.AddScoped<BLL_ChatIA>();
 builder.Services.AddScoped<BLL_ItemOrdenServicio>();
 builder.Services.AddScoped<BLL_OrdenServicio>();
 
-// 1) Leer la cadena del web.config
+// Cambiar la referencia explícita para evitar la ambigüedad  
 var raw = System.Configuration.ConfigurationManager.AppSettings["ClientURLs"];
 
 
 // 3) Separar, limpiar y normalizar
-var clientUrls = raw
-    .Split(new[] { ';', ',' }, StringSplitOptions.RemoveEmptyEntries) // admite ; o ,
-    .Select(u => u.Trim())            // quita espacios
-    .Select(u => u.TrimEnd('/'))      // quita / final si existe
-    .ToArray();
+var clientUrls = raw?
+    .Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
+    .Select(u => u.Trim())
+    .Where(u => !string.IsNullOrEmpty(u))
+    .Distinct()
+    .ToArray() ?? Array.Empty<string>();
 
 // ✅ CORS configuration => CORS significa Cross-Origin Resource Sharing ("compartición de recursos entre orígenes cruzados").
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontendDev", policy =>
-
-       policy.WithOrigins(clientUrls)
-
-             .AllowAnyHeader()
-             .AllowAnyMethod()
-             .AllowCredentials()
-             .WithExposedHeaders("Content-Type", "Authorization", "Set-Cookie", "accesToken")); // <- clave);
+    {
+        if (clientUrls != null && clientUrls.Length > 0)
+        {
+            policy.WithOrigins(clientUrls)
+                  .AllowAnyHeader()
+                  .AllowAnyMethod()
+                  .AllowCredentials()
+                  .WithExposedHeaders("Content-Type", "Authorization", "Set-Cookie", "accesToken");
+        }
+        else
+        {
+            // Manejar el caso donde `clientUrls` es nulo o vacío
+            throw new InvalidOperationException("La configuración de ClientURLs no puede ser nula o vacía.");
+        }
+    });
 });
 
 builder.Services.AddSignalR();

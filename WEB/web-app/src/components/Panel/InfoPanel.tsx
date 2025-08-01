@@ -1,5 +1,9 @@
+import { ROUTES } from "@/constants";
+import { Link } from "react-router-dom";
+
 interface InfoPanelProps {
   msj?: string;
+  
 }
 
 export const InfoPanel = ({ msj }: InfoPanelProps) => {
@@ -7,10 +11,22 @@ export const InfoPanel = ({ msj }: InfoPanelProps) => {
     <>
       <div className="card shadow-sm mt-5">
         <div className="card-header">
-          <span className="card-title text-gray-600">Información</span>
+          <div className="d-flex align-items-center gap-2">
+            <i className="bi bi-info-circle-fill text-primary fs-2"></i>
+            <span className="card-title text-gray-600">Información</span>
+          </div>
         </div>
         <div className="card-body d-flex flex-column align-items-center">
-          <p className="text-muted">{msj}</p>
+          <p className="text-muted fs-4 mb-3 text-center">
+            {msj ??
+              "Seleccione un negocio para ver su información. Si no tiene uno, puede crearlo fácilmente."}
+          </p>
+          <div className="text-gray-400 fw-bold fs-5">
+            ¿Aún no tiene un negocio registrado?{" "}
+            <Link to={ROUTES.NEGOCIO} className="link-primary fw-bolder">
+              Registrar un Negocio
+            </Link>
+          </div>
         </div>
       </div>
     </>

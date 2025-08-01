@@ -1,8 +1,10 @@
 
 export type DynamicButtonConfig = {
-  titulo: string;
+  titulo?: string;
   className?: string;
-  onClick: () => void;
+  icon?: React.ReactNode;
+  disabled?: boolean;
+  onClick: (data?: any) => void;
 };
 
 interface Props {
@@ -23,10 +25,10 @@ export const ModalHeaderButtons = ({
           className={`btn btn-sm ms-2 me-2 ${
             btn.className ? btn.className : "btn-primary"
           }`}
-          disabled={(btn as any).disabled}
+          disabled={btn.disabled}
         >
           {btn.titulo}
-          {(btn as any).icon}
+          {btn.icon}
         </button>
       ))}
     </div>

@@ -36,14 +36,12 @@ export class valida_DTO_Usuario {
           nombre: "nombreUsuario",
           valor: "El nombre no puede estar vacío."
         });
-      }
-      if (validadorGenerico.hasEmojis(usuario.nombreUsuario)) {
+      }else if (validadorGenerico.hasEmojis(usuario.nombreUsuario)) {
         errores.push({
           nombre: "nombreUsuario",
           valor: "El nombre no puede contener emojis."
         });
-      }
-      if (validadorGenerico.onlyTextAllowed(usuario.nombreUsuario)) {
+      }else if (validadorGenerico.onlyTextAllowed(usuario.nombreUsuario)) {
         errores.push({
           nombre: "nombreUsuario",
           valor: "El nombre solo puede contener texto."
@@ -55,14 +53,12 @@ export class valida_DTO_Usuario {
           nombre: "apellido",
           valor: "El apellido no puede estar vacío."
         });
-      }
-      if (validadorGenerico.hasEmojis(usuario.apellido)) {
+      }else if (validadorGenerico.hasEmojis(usuario.apellido)) {
         errores.push({
           nombre: "apellido",
           valor: "El apellido no puede contener emojis."
         });
-      }
-      if (validadorGenerico.onlyTextAllowed(usuario.apellido)) {
+      }else if (validadorGenerico.onlyTextAllowed(usuario.apellido)) {
         errores.push({
           nombre: "apellido",
           valor: "El apellido solo puede contener texto."
@@ -84,12 +80,12 @@ export class valida_DTO_Usuario {
       if (validadorGenerico.isEmpty(usuario.telefonoUsuario)) {
         errores.push({
           nombre: "telefonoUsuario",
-          valor: "El teléfono no puede estar vacío."
+          valor: "El campo teléfono no puede estar vacío."
         });
       } else if (!validadorGenerico.isPhoneNumber(usuario.telefonoUsuario)) {
         errores.push({
           nombre: "telefonoUsuario",
-          valor: "El teléfono no es válido."
+          valor: "El campo teléfono no es válido."
         });
       }
 
