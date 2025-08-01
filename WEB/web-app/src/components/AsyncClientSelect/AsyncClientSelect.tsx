@@ -5,6 +5,7 @@ import { clientesService } from "@/services";
 import { DTO_Cliente, DTO_Respuesta } from "@/models";
 import { errorHelpers, procesarRespuesta } from "@/utils";
 import { useDebouncedPromise } from "@/hooks";
+import { STATUS_TBL } from "@/constants";
 
 export interface ClientOption {
   value: number;
@@ -32,14 +33,18 @@ export const AsyncClientSelect = ({ value, onChange }: Props) => {
       error: (err) => errorHelpers.serverError(err),
     });
   }, []);
+
+  const activeClients = clients.filter(
+    (c) => c.estado?.iD_Estado !== STATUS_TBL.CLIENT.DELETED
+  );
   
   const recentOptions: ClientOption[] = useMemo(
     () =>
-      clients.map((c) => ({
+      activeClients.map((c) => ({
         value: c.iD_Cliente,
         label: `${c.nombreCliente} ${c.apellidoCliente}`,
       })),
-    [clients]
+    [activeClients]
   );
 
   const loadPromise = async (input: string): Promise<ClientOption[]> => {

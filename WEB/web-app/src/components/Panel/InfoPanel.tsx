@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 
 interface InfoPanelProps {
   msj?: string;
+  
 }
 
 export const InfoPanel = ({ msj }: InfoPanelProps) => {

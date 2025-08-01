@@ -106,68 +106,70 @@ export function GenericDataTable<T>({
     //#endregion
 
     //#region 📊 Columna Avance (barra de progreso)
-    if (labelMap["avance"]) {
-      cols.push({
-        title: labelMap["avance"],
-        data: null,
-        orderable: false,
-        searchable: false,
-        defaultContent: "",
-        render: function (_data, type, row) {
-          // ——— Para la exportación (Excel, CSV, Copiar, PDF) ———
-          if (type === "export") {
-            const nombre = row["avance"] ?? 0;
-            // Capitaliza igual que en la badge
-            return nombre ?? "";
-          }
+ if (labelMap["avance"]) {
+   cols.push({
+     title: labelMap["avance"],
+     data: null,
+     orderable: true,
+     searchable: true,
+     defaultContent: "",
+     render: function (_data, type, row) {
+       const porcentaje = row["avance"] ?? 0;
 
-          // ——— Para los demás usos (“display”, “filter”, “sort”) ———
-          if (type === "filter" || type === "sort") {
-            return row["avance"] ?? 0;
-          }
-          // Dejamos vacío porque la celda la pintará `createdCell`
-          return "";
-        },
-        createdCell: (cell, _, row) => {
-          try {
-            const container = document.createElement("div");
-            (cell as HTMLElement).innerHTML = "";
-            cell.appendChild(container);
-            const porcentaje = row["avance"] ?? 0;
-            const barColor =
-              porcentaje >= 80
-                ? "bg-success"
-                : porcentaje >= 50
-                ? "bg-warning"
-                : "bg-danger";
+       // Exportaciones (Excel, PDF, etc.)
+       if (type === "export") {
+         return `${porcentaje}%`;
+       }
 
-            const content = (
-              <div className="d-flex flex-column w-100 me-2">
-                <div className="d-flex flex-stack mb-2">
-                  <span className="text-muted me-2 fs-7 fw-bold">
-                    {porcentaje}%
-                  </span>
-                </div>
-                <div className="progress h-6px w-100">
-                  <div
-                    className={`progress-bar ${barColor}`}
-                    role="progressbar"
-                    style={{ width: `${porcentaje}%` }}
-                    aria-valuenow={porcentaje}
-                    aria-valuemin={0}
-                    aria-valuemax={100}
-                  ></div>
-                </div>
-              </div>
-            );
+       // Filtros y ordenamientos
+       if (type === "filter" || type === "sort") {
+         return porcentaje;
+       }
+       // Display: se renderiza manualmente en `createdCell`
+       return "";
+     },
+     createdCell: (cell, _cellData, row) => {
+       try {
+         const porcentaje = row["avance"] ?? 0;
+         const barColor =
+           porcentaje >= 80
+             ? "bg-success"
+             : porcentaje >= 50
+             ? "bg-warning"
+             : "bg-danger";
 
-            ReactDOM.createRoot(container).render(content);
-          } catch (error) {
-            console.warn("Error render Avance", error);
-          }
-        },
-      });
-    }
+         const container = document.createElement("div");
+         (cell as HTMLElement).innerHTML = "";
+         cell.appendChild(container);
+
+         const content = (
+           <div className="d-flex flex-column w-100 me-2">
+             <div className="d-flex flex-stack mb-2">
+               <span className="text-muted me-2 fs-7 fw-bold">
+                 {porcentaje}%
+               </span>
+             </div>
+             <div className="progress h-6px w-100">
+               <div
+                 className={`progress-bar ${barColor}`}
+                 role="progressbar"
+                 style={{ width: `${porcentaje}%` }}
+                 aria-valuenow={porcentaje}
+                 aria-valuemin={0}
+                 aria-valuemax={100}
+               />
+             </div>
+           </div>
+         );
+
+         ReactDOM.createRoot(container).render(content);
+       } catch (error) {
+         console.warn("Error renderizando columna 'avance'", error);
+       }
+     },
+   });
+ }
+
     //#endregion
 
     //#region 🟢 Columna Estado
