@@ -1,7 +1,9 @@
 {
   "ExpandedNodes": [
-    ""
+    "",
+    "\\APP",
+    "\\APP\\API"
   ],
-  "SelectedNode": "\\C:\\Desarrollo\\IAM",
+  "SelectedNode": "\\APP\\API\\API.sln",
   "PreviewInSolutionExplorer": false
 }
