@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { ChatSidebar, ChatMessages, ChatInputBar } from "@/components";
+import { ChatSidebar, ChatMessages, ChatInputBar, InfoPanel, LoadingPanel } from "@/components";
 import { chatService } from "@/services";
 import { DTO_Negocio, DTO_ChatIA, DTO_Mensaje, DTO_Respuesta } from "@/models";
 import { errorHelpers, procesarRespuesta, processResponse } from "@/utils";
@@ -92,30 +92,35 @@ export const ChatAi = () => {
 
   return (
     <div className="row p-4 col-12 gx-0">
-      {state.negocio == null}
+      {state.negocio == null ? (
+      <InfoPanel msj="Selecciona un negocio para ver el chat." />
+      ) : businesses.length === 0 ? (
+      <LoadingPanel msj="Cargando negocios..." />
+      ) : selectedBusiness && (
       <div
         className={`d-flex flex-column flex-lg-row mt-10${businesses.length ? "" : " d-none"
-          }`}
+        }`}
       >
         <div className="flex-column flex-lg-row-auto w-100 w-lg-300px w-xl-400px mb-10 mb-lg-0 p-2">
-          <ChatSidebar
-            chats={chats}
-            selectedChat={selectedChat}
-            onSelectChat={handleSelectChat}
-            negocio={selectedBusiness}
-          />
+        <ChatSidebar
+          chats={chats}
+          selectedChat={selectedChat}
+          onSelectChat={handleSelectChat}
+          negocio={selectedBusiness}
+        />
         </div>
         <div className="flex-lg-row-fluid ms-lg-7 ms-xl-10 p-2">
-          <div className="card" id="kt_chat_messenger">
-            <ChatMessages messages={messages} />
-            <ChatInputBar
-              disabled={!selectedChat}
-              onSendText={handleSendText}
-              onSendAudio={handleSendAudio}
-            />
-          </div>
+        <div className="card" id="kt_chat_messenger">
+          <ChatMessages messages={messages} />
+          <ChatInputBar
+          disabled={!selectedChat}
+          onSendText={handleSendText}
+          onSendAudio={handleSendAudio}
+          />
+        </div>
         </div>
       </div>
+      )}
     </div>
   );
 };

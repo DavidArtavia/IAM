@@ -15,7 +15,7 @@ namespace DAL
         DTO_Respuesta respuesta = new();
         DTO_Cliente cliente = new();
 
-        public async Task<DTO_Respuesta> obtenerClientes()
+        public async Task<DTO_Respuesta> obtenerClientes(DTO_Usuario usuario)
         {
             List<DTO_Cliente> listaClientes = [];
             try
@@ -27,6 +27,7 @@ namespace DAL
                 using (SqlCommand sqlcmd = new SqlCommand(query, this.GetObjConexion()))
                 {
                     sqlcmd.CommandType = CommandType.StoredProcedure;
+                    sqlcmd.Parameters.Add("@ID_Usuario", SqlDbType.Int).Value = usuario.ID_Usuario;
 
                     // Establecer la dirección de los parámetros
                     foreach (SqlParameter param in sqlcmd.Parameters)

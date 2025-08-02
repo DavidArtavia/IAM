@@ -4,9 +4,12 @@ import { useNavigate } from "react-router-dom";
 import { AuthContext } from "@/context";
 import { ROUTES } from "@/constants";
 import { notificationHelpers } from "@/utils";
+import { useApp } from "./useApp";
 
 export const useLogout = () => {
   const { setUser } = useContext(AuthContext);
+    const { setNegocio, setListaNegocios } = useApp();
+  
   const navigate = useNavigate();
 
   const logout = async () => {
@@ -15,9 +18,11 @@ export const useLogout = () => {
       //await api.post("/auth/logout"); // Cambia esto según tu endpoint
 
       localStorage.removeItem("accesToken");
-      sessionStorage.removeItem("auth_user");
+      localStorage.removeItem("auth_user");
       // Limpia contexto
       setUser(null);
+      setNegocio(null);
+      setListaNegocios([]);
 
       // Redirige a login
       navigate(ROUTES.LOGIN, { replace: true });

@@ -48,7 +48,7 @@ export const BusinessButtons = () => {
     });
 
     return () => sub.unsubscribe();
-  }, [listaNegocios]);
+  }, []);
 
   const opcionesNegocios = listaNegocios.map((b) => ({
     value: b.iD_Negocio,

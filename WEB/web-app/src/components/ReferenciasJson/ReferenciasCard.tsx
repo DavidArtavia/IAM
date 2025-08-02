@@ -10,7 +10,15 @@ interface Props {
 
 export const ReferenciaCards = ({ items }: Props) => {
   if (items.length === 0) {
-    return <span className="badge badge-light-muted">Sin referencias</span>;
+    return (
+      <span
+        key="sin-referencias"
+        className="badge text-dark d-flex align-items-center"
+      >
+        <i className="bi bi-exclamation-circle me-2"></i>
+        [Sin referencias]
+      </span>
+    );
   }
 
   return (

@@ -1,3 +1,5 @@
+USE [IAMDB]
+GO
 INSERT INTO [UTIL].[TBL_ESTADOS] ([ID_Estado], [Nombre], [Tabla])
 VALUES (
         22,
