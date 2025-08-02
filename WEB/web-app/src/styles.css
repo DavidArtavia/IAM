@@ -233,5 +233,5 @@ table.dataTable thead th {
 
 /* Cambia color de texto a negro en todas las notificaciones */
 .toast {
-  color: rgb(0, 0, 0) !important;
+  opacity: 1 !important;
 }

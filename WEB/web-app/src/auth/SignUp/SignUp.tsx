@@ -170,7 +170,7 @@ export const SignUp = () => {
                   name="telefonoUsuario"
                   autoComplete="tel"
                   pattern="[0-9]{8,15}"
-                  placeholder="Ej: 81234567"
+                  placeholder="81234567"
                 />
                 {erroresValidacion
                   .filter((error) => error.nombre === "telefonoUsuario")

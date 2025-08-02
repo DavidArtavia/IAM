@@ -41,7 +41,7 @@ export const Home = () => {
       obtenerMetrica();
   }, [selectedBusiness]);
 
-  const [filtro, setFiltro] = useState(OPCIONES[0].texto); // “Hoy” por defecto
+  const [filtro, setFiltro] = useState(OPCIONES[1].texto); // “Hoy” por defecto
 
   const obtenerMetrica = () => {
     kpi.iD_Negocio = selectedBusiness?.iD_Negocio;
@@ -127,7 +127,7 @@ export const Home = () => {
           </div>
           ) : (
               <div className="col-xl-12" style={{ marginTop: "50px" }}>
-                  <InfoPanel msj="Seleccione un negocio para ver las metricas." />
+                  <InfoPanel msj="Seleccione un negocio para ver las métricas." />
               </div>
             )}
       </div>
