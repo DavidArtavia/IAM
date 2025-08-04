@@ -180,7 +180,7 @@ export const Monitor = () => {
         const nt = json?.resultado?.[0]?.accesToken;
         if (nt) {
           localStorage.setItem("accesToken", nt);
-          console.info("🆕 Token renovado desde negociación SignalR");
+          //console.info("🆕 Token renovado desde negociación SignalR");
           return true;
         }
       } catch {
@@ -317,6 +317,7 @@ export const Monitor = () => {
       connection.onreconnected(handleReconnected);
       connection.onclose(handleDisconnect);
 
+      if(state.negocio != null ){
       try {
         await connection.start();
         if (abortedRef.current) {
@@ -340,10 +341,11 @@ export const Monitor = () => {
         intentoRef.current = false;
       }
     };
-
+  }
     iniciarConexion();
 
     return () => {
+      if(state.negocio != null ){
       abortedRef.current = true;
       if (retryTimeoutRef.current) {
         clearTimeout(retryTimeoutRef.current); // Limpiar usando retryTimeoutRef.current
@@ -352,6 +354,7 @@ export const Monitor = () => {
         setEstadoConexion("Desconectado");
         notificationHelpers.infoAlert("Monitor cerrado al salir de la vista");
       });
+    }
     };
   }, []);
   //#endregion
