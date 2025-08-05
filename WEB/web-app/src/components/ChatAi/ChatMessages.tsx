@@ -16,7 +16,18 @@ export const ChatMessages = ({ messages }: Props) => {
   // auto-scroll
   useEffect(() => {
     const el = scrollRef.current;
-    if (el) el.scrollTop = el.scrollHeight;
+    if (el) {
+      // Usamos smooth scroll solo si no estamos al final
+      const isNearBottom =
+        el.scrollHeight - el.clientHeight - el.scrollTop < 100;
+
+      if (isNearBottom || messages.length <= 1) {
+        el.scrollTo({
+          top: el.scrollHeight,
+          behavior: "smooth",
+        });
+      }
+    }
   }, [messages]);
 
   return (
@@ -39,12 +50,12 @@ export const ChatMessages = ({ messages }: Props) => {
         </div>
       </div>
 
-      {/* — Cuerpo con scroll y padding — */}
+      {/* — Cuerpo con scroll — */}
       <div className="card-body" id="kt_chat_messenger_body">
         <div
           ref={scrollRef}
           className="overflow-auto"
-          style={{ maxHeight: "75vh", padding: "1rem" }}
+          style={{ maxHeight: "75vh", padding: "1rem", scrollBehavior: "smooth" }}
         >
           {messages.map((msg, idx) => {
             const isBot = msg.envia === "IAM";

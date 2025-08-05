@@ -27,17 +27,20 @@ export const ChatSidebar = ({
   useEffect(() => {
     setNewChat(chats);
   }, [chats]);
-  useEffect(() => {
-    if (selectedChat && chatsEndRef.current) {
-      // Espera un breve momento para que el DOM se actualice
-      setTimeout(() => {
-        chatsEndRef.current?.scrollIntoView({
-          behavior: "smooth",
-          block: "nearest",
-        });
-      }, 100);
+
+useEffect(() => {
+  const timer = setTimeout(() => {
+    if (chatsEndRef.current) {
+      chatsEndRef.current.scrollIntoView({
+        behavior: "smooth",
+        block: "nearest",
+      });
     }
-  }, [selectedChat]);
+  }, 150); 
+
+  return () => clearTimeout(timer);
+}, [selectedChat, newChat]);
+
   const handleNewChat = () => {
     if (!negocio) return;
     chatService.crearChat(negocio).subscribe({

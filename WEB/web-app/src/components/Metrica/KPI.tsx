@@ -38,19 +38,19 @@ export const KPI = ({ metrica }: KPIpropTypes) => {
         <a className={"text-nowrap " + metrica.txtColor}>
           {metrica.ordenTitulos === "NR" ? (
             <div style={{ wordBreak: "break-word", overflowWrap: "break-word", whiteSpace: "normal" }}>
-              <span className="form-check-label fw-bolder fs-4 fs-md-2 lbl d-block text-truncate" style={{ maxWidth: "100%" }}>
+              <span className="form-check-label fw-bolder fs-4 fs-md-2 lbl text-truncate" style={{ maxWidth: "100%" }}>
               {metrica.tituloNegrita}{" "}
               </span>
-              <span className="form-check-label fw-bold fs-6 fs-md-5 lbl d-block text-truncate" style={{ maxWidth: "100%" }}>
+              <span className="form-check-label fw-bold fs-6 fs-md-5 lbl text-truncate" style={{ maxWidth: "100%" }}>
               {metrica.tituloRegular}{" "}
               </span>
             </div>
           ) : (
             <>
-              <span className="form-check-label fw-bold fs-6 lbl">
+              <span className="form-check-label fw-bold fs-6 lbl text-truncate">
                 {metrica.tituloRegular}{" "}
               </span>
-              <span className="form-check-label fw-bolder fs-2 lbl">
+              <span className="form-check-label fw-bolder fs-2 lbl text-truncate">
                 {metrica.tituloNegrita}{" "}
               </span>
             </>

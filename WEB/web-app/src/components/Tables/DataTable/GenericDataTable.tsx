@@ -28,13 +28,11 @@ export interface GenericDataTableProps<T> {
   onAdd: () => void;
   onEdit: (rowData: T) => void;
   onDelete: (rowData: T) => void;
-  onOpenItemsModal?: (rowData: T) => void;
   disableButtonAdd?: boolean;
   customRenderers?: Partial<{
     [K in keyof T]: (value: unknown, rowData: T) => React.ReactNode;
   }>;
   includeEstadoColumn?: boolean;
-  showItemsButton?: boolean;
   customColumns?: ColumnSettings[];
   dataTableButtons?: DynamicButtonConfig[];
   onRowClick?: (rowData: T) => void;
@@ -48,11 +46,9 @@ export function GenericDataTable<T>({
   onAdd,
   onEdit,
   onDelete,
-  onOpenItemsModal,
   disableButtonAdd = false,
   customRenderers = {},
   includeEstadoColumn = false,
-  showItemsButton = false,
   customColumns = [],
   dataTableButtons,
   onRowClick,
@@ -255,9 +251,7 @@ export function GenericDataTable<T>({
               rowData={row as T}
               onEdit={() => onEdit(row as T)}
               onDelete={() => onDelete(row as T)}
-              showItemsButton={showItemsButton}
               dataTableButtons={dataTableButtons}
-              onOpenModal={() => onOpenItemsModal?.(row as T)}
             />
           );
         } catch (err) {

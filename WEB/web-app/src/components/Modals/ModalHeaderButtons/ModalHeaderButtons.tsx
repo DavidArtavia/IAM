@@ -22,7 +22,7 @@ export const ModalHeaderButtons = ({
         <button
           key={`dynamic-btn-${index}`}
           onClick={btn.onClick}
-          className={`btn btn-sm ms-2 me-2 ${
+          className={`btn btn-sm me-2 ${
             btn.className ? btn.className : "btn-primary"
           }`}
           disabled={btn.disabled}

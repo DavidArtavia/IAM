@@ -2,23 +2,19 @@ import { DynamicButtonConfig } from "@/components";
 
 interface ActionButtonsProps<T = unknown> {
   rowData: T;
-  showItemsButton?: boolean;
   dataTableButtons?: DynamicButtonConfig[];
   onEdit: (row: T) => void;
   onDelete: (row: T) => void;
-  onOpenModal?: (row: T) => void;
 }
 
 export const ActionButtons = ({
   rowData,
   onEdit,
   onDelete,
-  onOpenModal,
   dataTableButtons,
-  showItemsButton = false,
 }: ActionButtonsProps) => {
   return (
-    <div className="d-flex align-items-center justify-content-center">
+    <div className="d-flex align-items-center justify-content-center pe-2">
       <button
         type="button"
         className="btn btn-icon btn-bg-light btn-active-color-primary btn-sm me-1"
@@ -90,10 +86,10 @@ export const ActionButtons = ({
 
       {dataTableButtons &&
         dataTableButtons.map((btn, index) => (
-            <button
+          <button
             key={`data-table-btn-${index}`}
             title={btn.titulo}
-            className={`btn btn-icon btn-bg-light btn-active-color-primary btn-sm me-1 ${
+            className={`btn btn-icon btn-bg-light btn-active-color-primary btn-sm ${
               btn.className ? btn.className : ""
             }`}
             disabled={btn.disabled}
@@ -101,31 +97,10 @@ export const ActionButtons = ({
               e.stopPropagation();
               btn.onClick(rowData);
             }}
-            >
+          >
             {btn.icon}
-            </button>
+          </button>
         ))}
-
-      {showItemsButton && (
-        <button
-          type="button"
-          title="Ver Items"
-          className="btn btn-icon btn-bg-light btn-active-color-primary btn-sm "
-          onClick={(e) => {
-            e.stopPropagation();
-            if (onOpenModal) {
-              onOpenModal(rowData);
-            }
-          }}
-        >
-          {/* Icon check */}
-          <i
-            className="bi bi-check2-square fs-1x"
-            style={{ fontSize: "1.2rem" }}
-          ></i>
-          {/* end icon check */}
-        </button>
-      )}
     </div>
   );
 };
