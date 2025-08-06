@@ -12,7 +12,7 @@ import {
   Transacciones,
 } from "@/screens";
 import { Login, SignUp } from "@/auth";
-import { ChatAi} from "@/components";
+// import { ChatAi} from "@/components";
 import { RedirectIfAuth, RequireAuth } from "@/utils";
 import { useEffect } from "react";
 export const AppRouter = () => {
@@ -39,7 +39,7 @@ const { pathname } = useLocation(); //ruta actual
       <Route element={<RequireAuth />}>
         <Route element={<LayoutMain />}>
           <Route path={ROUTES.HOME} element={<Home />} />
-          <Route path={ROUTES.CHAT_AI} element={<ChatAi />} />
+          {/* <Route path={ROUTES.CHAT_AI} element={<ChatAi />} /> */}
           <Route path={ROUTES.NEGOCIO} element={<Negocio />} />
           <Route path={ROUTES.MONITOR} element={<Monitor />} />
           <Route path={ROUTES.CUENTAS} element={<Cuentas />} />
