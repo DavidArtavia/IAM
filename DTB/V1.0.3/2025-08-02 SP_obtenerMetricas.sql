@@ -151,6 +151,30 @@ CREATE TABLE #KPIs (
 --###################### KPIs ##########################
 
 
+--#START KPI Ingreso
+INSERT INTO #KPIs (TituloRegular, TituloNegrita, OrdenTitulos, TXTColor, BGColor, ValorRegular, ValorNegrita, OrdenValores, Icono, Info)
+SELECT 'Transacciones de ' AS TituloRegular, 'Ingreso' AS TituloNegrita, 'RN' AS OrdenTitulos, 'text-light-info' AS TXTColor, 'bg-info' AS BGColor, '' AS ValorRegular, '₡' + FORMAT(@TotMontoIngresos, 'N2', 'fr-FR') AS ValorNegrita, 'NR' AS OrdenValores, 'bi-graph-up' AS Icono, 'Este valor representa la sumatoria de los montos transacciones que representan un ingreso para el negocio' AS Info
+--#END KPI Ingreso
+
+--#START KPI Gasto
+INSERT INTO #KPIs (TituloRegular, TituloNegrita, OrdenTitulos, TXTColor, BGColor, ValorRegular, ValorNegrita, OrdenValores, Icono, Info)
+SELECT 'Transacciones de ' AS TituloRegular, 'Gasto' AS TituloNegrita, 'RN' AS OrdenTitulos, 'text-light-warning' AS TXTColor, 'bg-warning' AS BGColor, '' AS ValorRegular, '₡' + FORMAT(@TotMontoGastos, 'N2', 'fr-FR') AS ValorNegrita, 'NR' AS OrdenValores, 'bi-graph-down' AS Icono, 'Este valor representa la sumatoria de los montos transacciones que representan un gasto para el negocio' AS Info
+--#END KPI Gasto
+
+--#START KPI Balance Transacciones
+INSERT INTO #KPIs (TituloRegular, TituloNegrita, OrdenTitulos, TXTColor, BGColor, ValorRegular, ValorNegrita, OrdenValores, Icono, Info)
+SELECT 'de Transacciones (Ingresos - Gastos)' AS TituloRegular, 'Balance ' AS TituloNegrita, 'NR' AS OrdenTitulos, 'text-light-primary' AS TXTColor, 'bg-primary' AS BGColor, '' AS ValorRegular, '₡' + FORMAT(@TotMontoIngresos - @TotMontoGastos, 'N2', 'fr-FR') AS ValorNegrita, 'NR' AS OrdenValores, 'bi-calculator' AS Icono, 'Este valor representa la diferencia entre los gastos y los ingresos del negocio' AS Info
+--#END KPI Balance Transacciones
+
+
+--#START KPI Crecimiento de transacciones
+INSERT INTO #KPIs (TituloRegular, TituloNegrita, OrdenTitulos, TXTColor, BGColor, ValorRegular, ValorNegrita, OrdenValores, Icono, Info)
+SELECT ' de Transacciones (Ingresos vs Gastos)' AS TituloRegular, 'Crecimiento ' AS TituloNegrita, 'NR' AS OrdenTitulos, 'text-light-success' AS TXTColor, 'bg-success' AS BGColor, '' AS ValorRegular, ValorNegrita = CASE WHEN (@TotMontoIngresos_Prev) = 0 THEN '---'
+  ELSE CAST(FORMAT((@TotMontoIngresos - @TotMontoIngresos_Prev) * 100 / @TotMontoIngresos_Prev, 'N2') AS VARCHAR) + '%' END, 'NR' AS OrdenValores, 'bi-clipboard-data' AS Icono, 'Este es el porsentaje de crecimiento entre el balance de transacciones del período actual el balance de transacciones de un período igual previo' AS Info
+--#END KPI Crecimiento de transacciones
+
+
+
 --#START KPI Cuentas Por Cobrar
 INSERT INTO #KPIs (TituloRegular, TituloNegrita, OrdenTitulos, TXTColor, BGColor, ValorRegular, ValorNegrita, OrdenValores, Icono, Info)
 SELECT 'Cuentas Por' AS TituloRegular, 'Cobrar' AS TituloNegrita, 'RN' AS OrdenTitulos, 'text-info' AS TXTColor, 'bg-light-info' AS BGColor, '' AS ValorRegular, '₡' + FORMAT(@KPI_Sum_CXC, 'N2', 'fr-FR') AS ValorNegrita, 'NR' AS OrdenValores, 'bi-file-earmark-plus' AS Icono, 'Este valor representa la sumatoria de los montos para las cuentas por cobrar creadas dentro del período seleccionado (no toma en cuenta si ya se cobraron o siguen pendientes)' AS Info
@@ -232,29 +256,6 @@ SELECT
 
 --#END KPI Cuentas
 
-
-
---#START KPI Ingreso
-INSERT INTO #KPIs (TituloRegular, TituloNegrita, OrdenTitulos, TXTColor, BGColor, ValorRegular, ValorNegrita, OrdenValores, Icono, Info)
-SELECT 'Transacciones de ' AS TituloRegular, 'Ingreso' AS TituloNegrita, 'RN' AS OrdenTitulos, 'text-light-info' AS TXTColor, 'bg-info' AS BGColor, '' AS ValorRegular, '₡' + FORMAT(@TotMontoIngresos, 'N2', 'fr-FR') AS ValorNegrita, 'NR' AS OrdenValores, 'bi-graph-up' AS Icono, 'Este valor representa la sumatoria de los montos transacciones que representan un ingreso para el negocio' AS Info
---#END KPI Ingreso
-
---#START KPI Gasto
-INSERT INTO #KPIs (TituloRegular, TituloNegrita, OrdenTitulos, TXTColor, BGColor, ValorRegular, ValorNegrita, OrdenValores, Icono, Info)
-SELECT 'Transacciones de ' AS TituloRegular, 'Gasto' AS TituloNegrita, 'RN' AS OrdenTitulos, 'text-light-warning' AS TXTColor, 'bg-warning' AS BGColor, '' AS ValorRegular, '₡' + FORMAT(@TotMontoGastos, 'N2', 'fr-FR') AS ValorNegrita, 'NR' AS OrdenValores, 'bi-graph-down' AS Icono, 'Este valor representa la sumatoria de los montos transacciones que representan un gasto para el negocio' AS Info
---#END KPI Gasto
-
---#START KPI Balance Transacciones
-INSERT INTO #KPIs (TituloRegular, TituloNegrita, OrdenTitulos, TXTColor, BGColor, ValorRegular, ValorNegrita, OrdenValores, Icono, Info)
-SELECT 'de Transacciones (Ingresos - Gastos)' AS TituloRegular, 'Balance ' AS TituloNegrita, 'NR' AS OrdenTitulos, 'text-light-primary' AS TXTColor, 'bg-primary' AS BGColor, '' AS ValorRegular, '₡' + FORMAT(@TotMontoIngresos - @TotMontoGastos, 'N2', 'fr-FR') AS ValorNegrita, 'NR' AS OrdenValores, 'bi-calculator' AS Icono, 'Este valor representa la diferencia entre los gastos y los ingresos del negocio' AS Info
---#END KPI Balance Transacciones
-
-
---#START KPI Crecimiento de transacciones
-INSERT INTO #KPIs (TituloRegular, TituloNegrita, OrdenTitulos, TXTColor, BGColor, ValorRegular, ValorNegrita, OrdenValores, Icono, Info)
-SELECT ' de Transacciones (Ingresos vs Gastos)' AS TituloRegular, 'Crecimiento ' AS TituloNegrita, 'NR' AS OrdenTitulos, 'text-light-success' AS TXTColor, 'bg-success' AS BGColor, '' AS ValorRegular, ValorNegrita = CASE WHEN (@TotMontoIngresos_Prev) = 0 THEN '---'
-  ELSE CAST(FORMAT((@TotMontoIngresos - @TotMontoIngresos_Prev) * 100 / @TotMontoIngresos_Prev, 'N2') AS VARCHAR) + '%' END, 'NR' AS OrdenValores, 'bi-clipboard-data' AS Icono, 'Este es el porsentaje de crecimiento entre el balance de transacciones del período actual el balance de transacciones de un período igual previo' AS Info
---#END KPI Crecimiento de transacciones
 
 
 --Select final, que parida
