@@ -346,7 +346,7 @@ export const keysInfoModalTransacciones: FieldConfig<DTO_Transacciones>[] = [
 
 // Este archivo define mapas de etiquetas (label maps) para mostrar nombres legibles en los titulos del DataTable de los modelos.
 export const labelMapCuenta: Record<string, string> = {
-    iD_Cuenta: "Cuenta #",
+    iD_Cuenta: "ID",
     estado: "Estado",
     concepto: "Concepto",
     monto: "Monto",
@@ -360,7 +360,7 @@ export const labelMapCuenta: Record<string, string> = {
 };
 
 export const labelMapNegocio: Record<string, string> = {
-    iD_Negocio: "Negocio #",
+    iD_Negocio: "ID",
     estado: "Estado",
     nombreNegocio: "Nombre",
     descripcion: "Descripción",
@@ -372,9 +372,9 @@ export const labelMapNegocio: Record<string, string> = {
 };
 
 export const labelMapOrdenDeServicio: Record<string, string> = {
-    iD_OrdenServicio: "Orden Servicio #",
+    iD_OrdenServicio: "ID",
     estado: "Estado",
-    fechaOrdenServicio: "Fecha de servicio",
+    fechaOrdenServicio: "Fecha",
     fechaEstimadaEntrega: "Entrega Estimada",
     fechaInicio: "Fecha de Inicio",
     fechaFinal: "Fecha Final",
@@ -384,18 +384,17 @@ export const labelMapOrdenDeServicio: Record<string, string> = {
 };
 
 export const labelMapCliente: Record<string, string> = {
-    iD_Cliente: "Cliente #",
+    iD_Cliente: "ID",
     nombreCliente: "Nombre",
     apellidoCliente: "Apellido(s)",
     telefonoCliente: "Teléfono",
     correoCliente: "Correo",
     estado: "Estado",
-
 };
 
 export const labelMapItemsOrdenServicio: Record<string, string> = {
-    iD_ItemOrdenServicio: "Item #",
-    iD_OrdenServicio: "Orden Servicio #",
+    iD_ItemOrdenServicio: "ID",
+    iD_OrdenServicio: "ID Orden Servicio",
     nombreItemOrdenServicio: "Nombre del Item",
     descripcion: "Descripción",
     monto: "Monto",
@@ -404,8 +403,8 @@ export const labelMapItemsOrdenServicio: Record<string, string> = {
 };
 
 export const labelMapTransacciones: Record<string, string> = {
-    iD_Transaccion: "Transacción #",
-    iD_Negocio: "Negocio #",
+    iD_Transaccion: "ID",
+    iD_Negocio: "ID Negocio",
     fechaTransaccion: "Fecha",
     concepto: "Concepto",
     monto: "Monto",

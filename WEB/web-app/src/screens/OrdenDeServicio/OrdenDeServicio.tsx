@@ -3,6 +3,7 @@ import {
   ClientOption,
   ConfirmModal,
   DetalleCuentaInput,
+  DynamicButtonConfig,
   FieldConfig,
   GenericDataTable,
   GenericFormModal,
@@ -517,10 +518,19 @@ export const OrdenDeServicio = () => {
 
   // #region 🧱 Referencias y Renderers
   const customRenderers = {
-    fechaOrdenServicio: (val: unknown) =>
-      val ? new Date(String(val)).toLocaleDateString() : "",
-    fechaEstimadaEntrega: (val: unknown) =>
-      val ? new Date(String(val)).toLocaleDateString() : "",
+    fechaOrdenServicio: (val: unknown) => {
+      if (!val) return "";
+      const date = new Date(String(val));
+      // Si la fecha es inválida o es 1/1/1 (año 1), mostrar vacío
+      if (isNaN(date.getTime()) || date.getFullYear() <= 1) return "";
+      return date.toLocaleDateString();
+    },
+    fechaEstimadaEntrega: (val: unknown) => {
+      if (!val) return "";
+      const date = new Date(String(val));
+      if (isNaN(date.getTime()) || date.getFullYear() <= 1) return "";
+      return date.toLocaleDateString();
+    },
   };
 
   const referenciaJSONColumn = {
@@ -891,27 +901,12 @@ export const OrdenDeServicio = () => {
 
   const headerButtonsToEdit = [
     {
-      titulo: "Crear Cuenta",
-      onClick: () => handleCreateAccountButton(editData),
-      className: "btn btn-bg-light btn-active-color-info",
-      icon: (editData?.estado?.nombre === "Archivado" ||
-        editData?.estado?.iD_Estado === STATUS_TBL.ORDER_SERVICE.ARCHIVED) && (
-        <span className="ms-2" style={{ cursor: "pointer", color: "#0d6efd" }}>
-          <i className="bi bi-info-circle"></i>
-        </span>
-      ),
-    },
-    {
       titulo: "Eliminar",
       onClick: () => {
         handleDelete(editData!);
       },
       className: "btn btn-bg-light btn-active-color-danger",
     },
-  ];
-
-  // Botones para InfoModal usando rowTableSelected
-  const headerButtonsToInfo = [
     {
       titulo: "Crear Cuenta",
       onClick: () => handleCreateAccountButton(editData),
@@ -923,6 +918,10 @@ export const OrdenDeServicio = () => {
         </span>
       ),
     },
+  ];
+
+  // Botones para InfoModal usando rowTableSelected
+  const headerButtonsToInfo = [
     {
       titulo: "Eliminar",
       onClick: () => {
@@ -930,14 +929,38 @@ export const OrdenDeServicio = () => {
       },
       className: "btn btn-bg-light btn-active-color-danger",
     },
+    {
+      titulo: "Crear Cuenta",
+      onClick: () => handleCreateAccountButton(editData),
+      className: "btn btn-bg-light btn-active-color-info",
+      icon: (editData?.estado?.nombre === "Archivado" ||
+        editData?.estado?.iD_Estado === STATUS_TBL.ORDER_SERVICE.ARCHIVED) && (
+        <span className="ms-2" style={{ cursor: "pointer", color: "#0d6efd" }}>
+          <i className="bi bi-info-circle"></i>
+        </span>
+      ),
+    },
   ];
   //#endregion
+
+    //#region 🧩 Botones de la tabla
+    const dataTableButtons: DynamicButtonConfig[] = [
+      {
+        titulo: "Ver Items",
+        icon: <i className="bi bi-check2-square fs-5"></i>,
+        onClick: (row) => {
+           setShowItemsOrdenFormModal(true);
+           setDataToItemsOrder(row as DTO_OrdenServicio);
+        },
+      },
+    ];
+    //#endregion
 
   // #region 🧩 Render
   return (
     <div className="row p-4 gx-0">
       {state.negocio == null ? (
-        <InfoPanel msj="Selecciona un negocio para ver sus órdenes de servicio." />
+        <InfoPanel msj="Seleccione un negocio para ver sus órdenes de servicio." />
       ) : (
         <>
           <GenericDataTable<DTO_OrdenServicio & Record<string, string>>
@@ -950,11 +973,7 @@ export const OrdenDeServicio = () => {
             onDelete={handleDelete}
             disableButtonAdd={disableButtonAdd}
             includeEstadoColumn
-            showItemsButton
-            onOpenItemsModal={(rowData) => {
-              setShowItemsOrdenFormModal(true);
-              setDataToItemsOrder(rowData as DTO_OrdenServicio);
-            }}
+            dataTableButtons={dataTableButtons}
             onRowClick={(rowData) => {
               setEditData(rowData as DTO_OrdenServicio);
               setRowTableSelected(rowData as DTO_OrdenServicio);

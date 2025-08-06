@@ -138,12 +138,17 @@ export const Cuentas = () => {
   const refetchAccounts = () => {
     if (!selectedBusiness) return;
     cuentasService.obtenerCuentas(selectedBusiness).subscribe({
-      next: (result) =>
-        setAccountsPayable(
-          (procesarRespuesta(
-            result as unknown as DTO_Respuesta
-          ) as DTO_Cuenta[]) || []
-        ),
+      next: (result) => {
+        const res = (procesarRespuesta(
+          result as unknown as DTO_Respuesta
+        ) as DTO_Cuenta[]) || [];
+
+        const filterAccounts = res.filter(
+          (b) => b.estado?.iD_Estado !== STATUS_TBL.ACCOUNT.DELETED
+        );
+
+        setAccountsPayable(filterAccounts);
+      },
       error: (err) => errorHelpers.serverError(err),
       complete: () => {},
     });
@@ -711,6 +716,13 @@ export const Cuentas = () => {
   //#region ℹ️ Info Modal - Botones header
   const headerButtonsToInfo = [
     {
+      titulo: "Eliminar",
+      onClick: () => {
+        handleDelete(rowTableSelected!);
+      },
+      className: "btn btn-bg-light btn-active-color-danger",
+    },
+    {
       titulo: "Ver Transacciones",
       onClick: () => {
         handleTransaction(rowTableSelected!);
@@ -718,28 +730,21 @@ export const Cuentas = () => {
       },
       className: "btn btn-bg-light btn-active-color-primary",
     },
-    {
-      titulo: "Eliminar",
-      onClick: () => {
-        handleDelete(rowTableSelected!);
-      },
-      className: "btn btn-bg-light btn-active-color-danger",
-    },
   ];
   const headerButtonsToEdit: DynamicButtonConfig[] = [
-    {
-      titulo: "Ver Transacciones",
-      onClick: () => {
-        handleTransaction(editData!);
-      },
-      className: "btn btn-bg-light btn-active-color-primary",
-    },
     {
       titulo: "Eliminar",
       onClick: () => {
         handleDelete(editData!);
       },
       className: "btn btn-bg-light btn-active-color-danger",
+    },
+    {
+      titulo: "Ver Transacciones",
+      onClick: () => {
+        handleTransaction(editData!);
+      },
+      className: "btn btn-bg-light btn-active-color-primary",
     },
   ];
   //#endregion
@@ -769,9 +774,7 @@ export const Cuentas = () => {
               title="Cuentas"
               columnKeys={columnKeysCuenta}
               labelMap={labelMapCuenta}
-              data={accountsPayable.filter(
-                (b) => b.estado?.iD_Estado !== STATUS_TBL.ACCOUNT.DELETED
-              )}
+              data={accountsPayable}
               onAdd={handleAddNew}
               onEdit={handleEdit}
               onDelete={handleDelete}

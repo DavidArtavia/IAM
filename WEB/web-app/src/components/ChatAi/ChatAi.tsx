@@ -1,30 +1,53 @@
-import { useEffect, useState } from "react";
-import { ChatSidebar, ChatMessages, ChatInputBar, InfoPanel, LoadingPanel } from "@/components";
+import { useEffect, useRef, useState } from "react";
+import {
+  ChatSidebar,
+  ChatMessages,
+  ChatInputBar,
+  InfoPanel,
+  LoadingPanel,
+} from "@/components";
 import { chatService } from "@/services";
 import { DTO_Negocio, DTO_ChatIA, DTO_Mensaje, DTO_Respuesta } from "@/models";
 import { errorHelpers, procesarRespuesta, processResponse } from "@/utils";
 import { useApp } from "@/hooks/useApp";
 
 export const ChatAi = () => {
-
   //🔄 Estado general
   const { state } = useApp();
-
-  useEffect(() => {
-    if (state.negocio) {
-      setSelectedBusiness(state.negocio)
-      handleSelectBusiness(state.negocio);
-      setBusinesses(state.listaNegocios)
-    }
-  }, [state]);
-
-  //#endregion
+  const chatMessengerRef = useRef<HTMLDivElement>(null);
 
   const [businesses, setBusinesses] = useState<DTO_Negocio[]>([]);
   const [chats, setChats] = useState<DTO_ChatIA[]>([]);
   const [messages, setMessages] = useState<DTO_Mensaje[]>([]);
-  const [selectedBusiness, setSelectedBusiness] = useState<DTO_Negocio>(new DTO_Negocio());
+  const [selectedBusiness, setSelectedBusiness] = useState<DTO_Negocio>(
+    new DTO_Negocio()
+  );
   const [selectedChat, setChat] = useState<DTO_ChatIA | null>(null);
+
+  useEffect(() => {
+    if (state.negocio) {
+      setSelectedBusiness(state.negocio);
+      handleSelectBusiness(state.negocio);
+      setBusinesses(state.listaNegocios);
+    }
+  }, [state]);
+
+  const scrollToChatArea = () => {
+    setTimeout(() => {
+      chatMessengerRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "nearest",
+      });
+    }, 100);
+  };
+
+  useEffect(() => {
+    if (selectedChat) {
+      scrollToChatArea();
+    }
+  }, [selectedChat]);
+
+  //#endregion
 
   const handleSelectBusiness = (negocio: DTO_Negocio) => {
     setSelectedBusiness(negocio);
@@ -49,6 +72,7 @@ export const ChatAi = () => {
           ? (raw as DTO_Mensaje[][]).flat()
           : (raw as DTO_Mensaje[]);
         setMessages(flat);
+        scrollToChatArea();
       },
       error: (err) => errorHelpers.serverError(err),
     });
@@ -93,33 +117,51 @@ export const ChatAi = () => {
   return (
     <div className="row p-4 col-12 gx-0">
       {state.negocio == null ? (
-      <InfoPanel msj="Selecciona un negocio para ver el chat." />
+        <InfoPanel msj="Seleccione un negocio para ver el chat." />
       ) : businesses.length === 0 ? (
-      <LoadingPanel msj="Cargando negocios..." />
-      ) : selectedBusiness && (
-      <div
-        className={`d-flex flex-column flex-lg-row mt-10${businesses.length ? "" : " d-none"
-        }`}
-      >
-        <div className="flex-column flex-lg-row-auto w-100 w-lg-300px w-xl-400px mb-10 mb-lg-0 p-2">
-        <ChatSidebar
-          chats={chats}
-          selectedChat={selectedChat}
-          onSelectChat={handleSelectChat}
-          negocio={selectedBusiness}
-        />
-        </div>
-        <div className="flex-lg-row-fluid ms-lg-7 ms-xl-10 p-2">
-        <div className="card" id="kt_chat_messenger">
-          <ChatMessages messages={messages} />
-          <ChatInputBar
-          disabled={!selectedChat}
-          onSendText={handleSendText}
-          onSendAudio={handleSendAudio}
-          />
-        </div>
-        </div>
-      </div>
+        <LoadingPanel msj="Cargando negocios..." />
+      ) : (
+        selectedBusiness && (
+          <div
+            className={`d-flex flex-column flex-lg-row mt-10${
+              businesses.length ? "" : " d-none"
+            }`}
+          >
+            <div className="flex-column flex-lg-row-auto w-100 w-lg-300px w-xl-400px mb-10 mb-lg-0 p-2">
+              <ChatSidebar
+                chats={chats}
+                selectedChat={selectedChat}
+                onSelectChat={handleSelectChat}
+                negocio={selectedBusiness}
+              />
+            </div>
+            {/* Chat area */}
+            <div
+              className="flex-lg-row-fluid ms-lg-7 ms-xl-10 p-2 d-flex flex-column"
+              style={{ minHeight: "calc(100vh - 200px)" }}
+            >
+              <div
+                ref={chatMessengerRef}
+                className="card flex-grow-1 d-flex flex-column"
+                id="kt_chat_messenger"
+              >
+                {/* Messages area - debe tener scroll interno */}
+                <div className="flex-grow-1 overflow-hidden">
+                  <ChatMessages messages={messages} />
+                </div>
+
+                {/* Input bar - siempre visible en la parte inferior */}
+                <div className="border-top">
+                  <ChatInputBar
+                    disabled={!selectedChat}
+                    onSendText={handleSendText}
+                    onSendAudio={handleSendAudio}
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        )
       )}
     </div>
   );

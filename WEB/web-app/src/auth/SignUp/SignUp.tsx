@@ -20,6 +20,7 @@ export const SignUp = () => {
   const [usuario, setUsuario] = useState<DTO_Usuario | null>(new DTO_Usuario());
   const [cargando, setCargando] = useState<boolean>(false);
   const [showPass, setshowPass] = useState<boolean>(false);
+  const [showPassConfirm, setShowPassConfirm] = useState<boolean>(false);
   const [confirmacionPass, setconfirmacionPass] = useState<string>("");
   const navigate = useNavigate(); // <-- Move useNavigate here
   //Eventos
@@ -106,7 +107,7 @@ export const SignUp = () => {
 
               <div className="row fv-row mb-7 fv-plugins-icon-container">
                 <div className="col-xl-6">
-                  <label className="form-label fw-bolder text-dark fs-6">
+                  <label className="form-label fw-bolder text-dark fs-6 required">
                     Nombre
                   </label>
                   <input
@@ -115,7 +116,7 @@ export const SignUp = () => {
                       eliminarError(e.target.name);
                       handleChange(e);
                     }}
-                    className="form-control form-control-lg form-control-solid"
+                    className="form-control form-control-lg form-control-solid "
                     type="text"
                     name="nombreUsuario"
                     autoComplete="off"
@@ -131,7 +132,7 @@ export const SignUp = () => {
                 </div>
 
                 <div className="col-xl-6">
-                  <label className="form-label fw-bolder text-dark fs-6">
+                  <label className="form-label fw-bolder text-dark fs-6 required">
                     Apellido
                   </label>
                   <input
@@ -156,7 +157,7 @@ export const SignUp = () => {
                 </div>
               </div>
               <div className="fv-row mb-7 fv-plugins-icon-container">
-                <label className="form-label fw-bolder text-dark fs-6">
+                <label className="form-label fw-bolder text-dark fs-6 required">
                   Teléfono
                 </label>
                 <input
@@ -183,7 +184,7 @@ export const SignUp = () => {
               </div>
 
               <div className="fv-row mb-10 fv-plugins-icon-container">
-                <label className="form-label fs-6 fw-bolder text-dark">
+                <label className="form-label fs-6 fw-bolder text-dark required">
                   Email
                 </label>
                 <input
@@ -213,7 +214,7 @@ export const SignUp = () => {
                 data-kt-password-meter="true"
               >
                 <div className="mb-1">
-                  <label className="form-label fw-bolder text-dark fs-6">
+                  <label className="form-label fw-bolder text-dark fs-6 required">
                     Contraseña
                   </label>
 
@@ -229,13 +230,6 @@ export const SignUp = () => {
                       name="pass"
                       autoComplete="off"
                     />
-                    {erroresValidacion
-                      .filter((error) => error.nombre === "pass")
-                      .map((error, idx) => (
-                        <div key={idx} className="invalid-feedback d-block">
-                          {error.valor}
-                        </div>
-                      ))}
                     <span
                       onClick={() => {
                         setshowPass(!showPass);
@@ -255,23 +249,50 @@ export const SignUp = () => {
                       />
                     </span>
                   </div>
+                  {erroresValidacion
+                    .filter((error) => error.nombre === "pass")
+                    .map((error, idx) => (
+                      <div key={idx} className="invalid-feedback d-block">
+                        {error.valor}
+                      </div>
+                    ))}
                 </div>
               </div>
 
               <div className="fv-row mb-5 fv-plugins-icon-container">
-                <label className="form-label fw-bolder text-dark fs-6">
+                <label className="form-label fw-bolder text-dark fs-6 required">
                   Confirmar contraseña
                 </label>
-                <input
-                  value={confirmacionPass}
-                  onChange={(e) => {
-                    setconfirmacionPass(e.target.value);
-                  }}
-                  className="form-control form-control-lg form-control-solid"
-                  type={showPass ? "text" : "password"}
-                  name="confirm-password"
-                  autoComplete="off"
-                />
+                <div className="position-relative">
+                  <input
+                    value={confirmacionPass}
+                    onChange={(e) => {
+                      setconfirmacionPass(e.target.value);
+                    }}
+                    className="form-control form-control-lg form-control-solid"
+                    type={showPassConfirm ? "text" : "password"}
+                    name="confirm-password"
+                    autoComplete="off"
+                  />
+                  <span
+                    onClick={() => setShowPassConfirm((prev) => !prev)}
+                    className="btn btn-sm btn-icon position-absolute translate-middle top-50 end-0 me-n2"
+                    tabIndex={0}
+                    role="button"
+                    aria-label="Mostrar/Ocultar contraseña"
+                  >
+                    <i
+                      className={`bi bi-eye-slash fs-2${
+                        showPassConfirm ? " d-none" : ""
+                      }`}
+                    />
+                    <i
+                      className={`bi bi-eye fs-2${
+                        !showPassConfirm ? " d-none" : ""
+                      }`}
+                    />
+                  </span>
+                </div>
                 <div className="fv-plugins-message-container invalid-feedback" />
               </div>
 

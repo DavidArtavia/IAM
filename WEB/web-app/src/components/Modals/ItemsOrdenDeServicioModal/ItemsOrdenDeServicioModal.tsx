@@ -347,8 +347,7 @@ export const ItemsOrdenDeServicioModal = ({
       onClick={onHide}
     >
       <div
-        className="modal-dialog modal-dialog-centered"
-        style={{ maxWidth: "95vw", width: "1200px" }}
+        className="modal-dialog modal-dialog-centered modal-lg"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="modal-content resizable-metronic-modal">
