@@ -446,7 +446,7 @@ export const Cuentas = () => {
             );
           }}
           options={[
-            { label: "Cuenta Por Cobrar", value: "Cuentas Por Cobrar" },
+            { label: "Cuenta Por Cobrar", value: "Cuenta Por Cobrar" },
             { label: "Cuenta Por Pagar", value: "Cuenta Por Pagar" },
           ]}
           placeholder="Seleccione tipo de cuenta"
