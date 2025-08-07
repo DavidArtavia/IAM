@@ -170,7 +170,7 @@ SELECT 'de Transacciones (Ingresos - Gastos)' AS TituloRegular, 'Balance ' AS Ti
 --#START KPI Crecimiento de transacciones
 INSERT INTO #KPIs (TituloRegular, TituloNegrita, OrdenTitulos, TXTColor, BGColor, ValorRegular, ValorNegrita, OrdenValores, Icono, Info)
 SELECT ' de Transacciones (Ingresos vs Gastos)' AS TituloRegular, 'Crecimiento ' AS TituloNegrita, 'NR' AS OrdenTitulos, 'text-light-success' AS TXTColor, 'bg-success' AS BGColor, '' AS ValorRegular, ValorNegrita = CASE WHEN (@TotMontoIngresos_Prev) = 0 THEN '---'
-  ELSE CAST(FORMAT((@TotMontoIngresos - @TotMontoIngresos_Prev) * 100 / @TotMontoIngresos_Prev, 'N2') AS VARCHAR) + '%' END, 'NR' AS OrdenValores, 'bi-clipboard-data' AS Icono, 'Este es el porsentaje de crecimiento entre el balance de transacciones del período actual el balance de transacciones de un período igual previo' AS Info
+  ELSE CAST(FORMAT((@TotMontoIngresos - @TotMontoIngresos_Prev) * 100 / @TotMontoIngresos_Prev, 'N2') AS VARCHAR) + '%' END, 'NR' AS OrdenValores, 'bi-clipboard-data' AS Icono, 'Este es el porsentaje de crecimiento entre el balance de transacciones del período actual el balance de transacciones de un período igual previo. Si el dato se muestra como --- es porque no hay datos del período anterior todavía y no se puede realizar la comparación.' AS Info
 --#END KPI Crecimiento de transacciones
 
 
@@ -196,12 +196,12 @@ SELECT 'de Cuentas (CxC vs CxP)' AS TituloRegular, 'Crecimiento' AS TituloNegrit
   ValorNegrita = CASE WHEN (@KPI_Sum_CXC_Prev - @KPI_Sum_CXP_Prev) = 0 THEN '---'
   ELSE CAST(FORMAT(((@KPI_Sum_CXC - @KPI_Sum_CXP) - (@KPI_Sum_CXC_Prev - @KPI_Sum_CXP_Prev)) * 100 / (@KPI_Sum_CXC_Prev - @KPI_Sum_CXP_Prev), 'N2') AS VARCHAR) + '%'
   END, 
-  'NR' AS OrdenValores, 'bi-clipboard-data' AS Icono, 'Este es el porsentaje de crecimiento entre el balance de cuentas del período actual el balance de cuentas de un período igual previo' AS Info
+  'NR' AS OrdenValores, 'bi-clipboard-data' AS Icono, 'Este es el porsentaje de crecimiento entre el balance de cuentas del período actual el balance de cuentas de un período igual previo. Si el dato se muestra como --- es porque no hay datos del período anterior todavía y no se puede realizar la comparación.' AS Info
 --#END KPI Balance de Cuentas (CxC-CxP)
 
 --#START KPI Ordenes de Servicio
 INSERT INTO #KPIs (TituloRegular, TituloNegrita, OrdenTitulos, TXTColor, BGColor, ValorRegular, ValorNegrita, OrdenValores, Icono, Info)
-SELECT '' AS TituloRegular, 'Ordenes de Servicio' AS TituloNegrita, 'NR' AS OrdenTitulos, 'text-gray-800' AS TXTColor, 'bg-secondary' AS BGColor, '(' + CAST(SUM(CASE WHEN ORDEN.ID_Estado = 9   THEN 1 ELSE 0 END) AS VARCHAR) + ' Finalizadas)' AS ValorRegular, CAST(COUNT(ORDEN.[ID_OrdenServicio]) AS VARCHAR) AS ValorNegrita, 'NR' AS OrdenValores, 'bi-clipboard-check' AS Icono, 'Este valor representa la cantidad de ordenes de servicio creadas durante el período seleccionado y la cantdad de ordenes de esas que fueron completadas dentro del mismo período' AS Info
+SELECT '' AS TituloRegular, 'Ordenes de Servicio' AS TituloNegrita, 'NR' AS OrdenTitulos, 'text-gray-800' AS TXTColor, 'bg-secondary' AS BGColor, '(' + CAST(SUM(CASE WHEN ORDEN.ID_Estado = 9 OR ORDEN.ID_Estado = 22   THEN 1 ELSE 0 END) AS VARCHAR) + ' Finalizadas/Archivadas)' AS ValorRegular, CAST(COUNT(ORDEN.[ID_OrdenServicio]) AS VARCHAR) AS ValorNegrita, 'NR' AS OrdenValores, 'bi-clipboard-check' AS Icono, 'Este valor representa la cantidad de ordenes de servicio creadas durante el período seleccionado y la cantdad de ordenes de esas que fueron finalizadas y archivadas dentro del mismo período. Las ordenes archivadas son ordenes finalizadas que se les creó su respectiva cuenta por cobrar' AS Info
 FROM [CORE].[TBL_ORDENES_SERVICIO] ORDEN  
 INNER JOIN [CORE].[TBL_NEGOCIOS] NEGOCIO ON ORDEN.ID_Negocio = NEGOCIO.ID_Negocio
 WHERE
