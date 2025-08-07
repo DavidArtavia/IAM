@@ -116,7 +116,6 @@ export const LayoutMain = () => {
     popover.style.minWidth = "220px";
     popover.innerHTML = `
                     <div style="display:flex;align-items:center;">
-                    <div style="width:0;height:0;border-top:8px solid transparent;border-bottom:8px solid transparent;border-right:10px solid #fff;box-shadow:-1px 0 2px #ddd;margin-right:-2px;"></div>
                     <div>
                       <span style="font-weight:500;">Próximamente</span><br/>
                       <span style="font-size:13px;">Esta opción estará disponible en <span style="font-weight:600; color:#0a1">próximas actualizaciones</span>.</span>
