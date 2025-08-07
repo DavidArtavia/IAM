@@ -317,44 +317,44 @@ export const Monitor = () => {
       connection.onreconnected(handleReconnected);
       connection.onclose(handleDisconnect);
 
-      if(state.negocio != null ){
-      try {
-        await connection.start();
-        if (abortedRef.current) {
+      if (state.negocio != null) {
+        try {
+          await connection.start();
+          if (abortedRef.current) {
+            intentoRef.current = false;
+            return;
+          }
+          setEstadoConexion("Conectado");
+          notificationHelpers.successAlert("Monitor conectado");
+        } catch (err: unknown) {
+          // Primero, intentamos renovar token si aplica
+          const texto = err instanceof Error ? err.message : String(err);
+          const renovado = await extraerYRenovarToken(texto);
+          if (renovado && !abortedRef.current) {
+            await new Promise((r) => setTimeout(r, 500));
+            intentoRef.current = false;
+            return iniciarConexion();
+          }
+          // Si no era token, o no pudimos renovar, manejamos desconexión
+          await handleDisconnect(err instanceof Error ? err : undefined);
+        } finally {
           intentoRef.current = false;
-          return;
         }
-        setEstadoConexion("Conectado");
-        notificationHelpers.successAlert("Monitor conectado");
-      } catch (err: unknown) {
-        // Primero, intentamos renovar token si aplica
-        const texto = err instanceof Error ? err.message : String(err);
-        const renovado = await extraerYRenovarToken(texto);
-        if (renovado && !abortedRef.current) {
-          await new Promise((r) => setTimeout(r, 500));
-          intentoRef.current = false;
-          return iniciarConexion();
-        }
-        // Si no era token, o no pudimos renovar, manejamos desconexión
-        await handleDisconnect(err instanceof Error ? err : undefined);
-      } finally {
-        intentoRef.current = false;
       }
     };
-  }
     iniciarConexion();
 
     return () => {
-      if(state.negocio != null ){
-      abortedRef.current = true;
-      if (retryTimeoutRef.current) {
-        clearTimeout(retryTimeoutRef.current); // Limpiar usando retryTimeoutRef.current
+      if (state.negocio != null) {
+        abortedRef.current = true;
+        if (retryTimeoutRef.current) {
+          clearTimeout(retryTimeoutRef.current); // Limpiar usando retryTimeoutRef.current
+        }
+        limpiarConexion().then(() => {
+          setEstadoConexion("Desconectado");
+          notificationHelpers.infoAlert("Monitor cerrado al salir de la vista");
+        });
       }
-      limpiarConexion().then(() => {
-        setEstadoConexion("Desconectado");
-        notificationHelpers.infoAlert("Monitor cerrado al salir de la vista");
-      });
-    }
     };
   }, []);
   //#endregion
@@ -658,16 +658,20 @@ export const Monitor = () => {
         erroresValidacion={erroresValidacion}
         onEliminarError={eliminarError}
       />
-
-      <div id="kt_content_container" className="container-xxl">
-        {loading && <LoadingPanel msj="Cargando, por favor espere..." />}
-        {state.negocio == null ? (
-          <InfoPanel msj="Selecciona un negocio para ver el monitor." />
-        ) : loading ? (
-          <LoadingPanel msj="Cargando, por favor espere..." />
-        ) : (
-          selectedBusiness && (
-            <>
+      
+      {loading && <LoadingPanel msj="Cargando, por favor espere..." />}
+      {state.negocio == null ? (
+        <>
+          <div className="row p-4 col-12 gx-0">
+            <InfoPanel msj="Selecciona un negocio para ver el monitor." />
+          </div>
+        </>
+      ) : loading ? (
+        <LoadingPanel msj="Cargando, por favor espere..." />
+      ) : (
+        selectedBusiness && (
+          <>
+            <div id="kt_content_container" className="container-xxl">
               <div className="d-flex flex-wrap flex-stack pt-10 pb-8">
                 <h3 className="fw-bolder my-2">
                   <span
@@ -723,10 +727,10 @@ export const Monitor = () => {
                   onEstadoChange={cambiarEstadoOrdenServicio}
                 />
               </div>
-            </>
-          )
-        )}
-      </div>
+            </div>
+          </>
+        )
+      )}
     </div>
   );
 };

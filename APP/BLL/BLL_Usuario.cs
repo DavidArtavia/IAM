@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 using UTL;
 
@@ -16,21 +17,33 @@ namespace BLL
         DAL_Alerta dAL_Alerta = new DAL_Alerta();
         public DTO_Respuesta registrarUsuario(DTO_Usuario usuario)
         {
+            if (usuario != null)
+            {
+                usuario.CorreoUsuario = usuario.CorreoUsuario.Trim().ToLower();
+                usuario.Pass = usuario.Pass.Trim();
+            }
+
             usuario.Pass = uTL_Cipher.encriptar(usuario.Pass);
             return dal_Usuario.registrarUsuario(usuario);
         }
 
         public DTO_Respuesta autenticarUsuario(DTO_Usuario usuarioEnviado)
         {
-            
             DTO_Respuesta respuesta = new DTO_Respuesta();
             DTO_Usuario usuarioObtenido = new DTO_Usuario();
+
+            if (usuarioEnviado != null)
+            {
+                usuarioEnviado.CorreoUsuario = usuarioEnviado.CorreoUsuario.Trim().ToLower();
+                usuarioEnviado.Pass = usuarioEnviado.Pass.Trim();
+            }
+
 
             //usamos el metodo para obtener el usuario con intención de autenticar (Ya trae un mensaje listo en caso de que pase la validación)
             respuesta = dal_Usuario.obtenerUsuario(usuarioEnviado);
 
             //verificamos si hasta el momento ha cido satisfactoria el proceso de autenticación
-            if (respuesta.TipoRespuesta) 
+            if (respuesta.TipoRespuesta)
             {
                 //Guardamos el usuario obtenido en una variable nueva para mayor entendimiento
                 usuarioObtenido = (DTO_Usuario)respuesta.Resultado[0];

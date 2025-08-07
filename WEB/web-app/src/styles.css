@@ -231,7 +231,15 @@ table.dataTable thead th {
   background-size: calc(0.75em + 0.75rem) calc(0.75em + 0.75rem);
 }
 
-/* Cambia color de texto a negro en todas las notificaciones */
+/* Cambia el style de todas las notificaciones */
 .toast {
   opacity: 1 !important;
 }
+
+/* Para mejorar la experiencia en móviles, para no quedar pegado al borde superior */
+/* @media (max-width: 992px) {
+  #kt_chat_messenger {
+    scroll-margin-top: 20px;
+
+  }
+} */

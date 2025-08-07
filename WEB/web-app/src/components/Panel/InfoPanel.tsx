@@ -3,7 +3,6 @@ import { Link } from "react-router-dom";
 
 interface InfoPanelProps {
   msj?: string;
-  
 }
 
 export const InfoPanel = ({ msj }: InfoPanelProps) => {
@@ -16,12 +15,11 @@ export const InfoPanel = ({ msj }: InfoPanelProps) => {
             <span className="card-title text-gray-600">Información</span>
           </div>
         </div>
-        <div className="card-body d-flex flex-column align-items-center">
-          <p className="text-muted fs-4 mb-3 text-center">
-            {msj ??
-              "Seleccione un negocio para ver su información. Si no tiene uno, puede crearlo fácilmente."}
-          </p>
-          <div className="text-gray-400 fw-bold fs-5">
+        <div className="card-body d-flex flex-column align-items-center justify-content-center text-center text-gray-400 fs-5" style={{ width: "100%" }}>
+          {msj ??
+            "Seleccione un negocio para ver su información. Si no tiene uno, puede crearlo fácilmente."}
+
+          <div className="text-gray-400 fw-bold fs-7">
             ¿Aún no tiene un negocio registrado?{" "}
             <Link to={ROUTES.NEGOCIO} className="link-primary fw-bolder">
               Registrar un Negocio
