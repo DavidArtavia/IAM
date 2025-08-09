@@ -311,11 +311,7 @@ export const TransaccionesPorCuentaModal = ({
         <div className="modal-content resizable-metronic-modal">
           <div className="modal-header cursor-move">
             <h2 className="fw-bold">Transacciones de {nombreCuenta}</h2>
-            <button
-              type="button"
-              className="btn-close"
-              onClick={onHide}
-           />
+            <button type="button" className="btn-close" onClick={onHide} />
           </div>
           <div className="modal-body py-10 px-lg-17">
             {loading ? (
@@ -344,8 +340,7 @@ export const TransaccionesPorCuentaModal = ({
 
             <GenericFormModal
               title={
-                "Registrar Transacción para la Cuenta #" +
-                rowEditSelected?.numReferencia
+                "Registrar Transacción para la Cuenta #" + cuenta.iD_Cuenta
               }
               show={isModalFormOpen}
               onHide={handleCancelAdd}
