@@ -15,13 +15,14 @@ export interface ClientOption {
 interface Props {
   value: ClientOption | null;
   onChange: (opt: ClientOption | null) => void;
+  reloadKey?: number;
 }
 
 
 
-export const AsyncClientSelect = ({ value, onChange }: Props) => {
+export const AsyncClientSelect = ({ value, onChange, reloadKey = 0 }: Props) => {
   const [clients, setClients] = useState<DTO_Cliente[]>([]);
-  
+
   useEffect(() => {
     clientesService.obtenerClientes().subscribe({
       next: (result) =>
@@ -32,12 +33,12 @@ export const AsyncClientSelect = ({ value, onChange }: Props) => {
         ),
       error: (err) => errorHelpers.serverError(err),
     });
-  }, []);
+  }, [reloadKey]);
 
   const activeClients = clients.filter(
     (c) => c.estado?.iD_Estado !== STATUS_TBL.CLIENT.DELETED
   );
-  
+
   const recentOptions: ClientOption[] = useMemo(
     () =>
       activeClients.map((c) => ({
@@ -48,15 +49,18 @@ export const AsyncClientSelect = ({ value, onChange }: Props) => {
   );
 
   const loadPromise = async (input: string): Promise<ClientOption[]> => {
-    if (input.length < 2) return [];
+    if (input.length < 3) return [];
     const list = await clientesService.buscarClientes(input).toPromise();
-    return (list ?? []).map((c) => ({
-      value: c.iD_Cliente,
-      label: `${c.nombreCliente} ${c.apellidoCliente}`,
-    }));
+    return (list ?? [])
+      .filter((c) => c.estado?.iD_Estado !== STATUS_TBL.CLIENT.DELETED)
+      .map((c) => ({
+        value: c.iD_Cliente,
+        label: `${c.nombreCliente} ${c.apellidoCliente}`,
+      }));
   };
 
   const debouncedPromiseLoad = useDebouncedPromise(loadPromise, 300);
+
   return (
     <AsyncSelect<ClientOption, false>
       cacheOptions
