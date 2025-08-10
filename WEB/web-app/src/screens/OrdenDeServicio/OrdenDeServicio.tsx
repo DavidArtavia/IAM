@@ -45,6 +45,7 @@ import {
   parametrosAString,
   ordenservicioFormCrearCuenta,
   procesarRespuesta,
+  clienteFormEditFields,
 } from "@/utils";
 import { useApp } from "@/hooks/useApp";
 
@@ -53,6 +54,7 @@ import AsyncSelect from "react-select/async";
 import { valida_DTO_OrdenServicio } from "@/validators/valida_DTO_OrdenServicio";
 import { valida_DTO_Cuenta } from "@/validators/valida_DTO_Cuenta";
 import { Link, useNavigate } from "react-router-dom";
+import { valida_DTO_Cliente } from "@/validators/valida_DTO_Cliente";
 
 // #region 🔑 Helpers
 const generateSafeKey = (name: string) =>
@@ -91,6 +93,9 @@ export const OrdenDeServicio = () => {
   //#endregion
 
   const [clienteNombreNota, setClienteNombreNota] = useState<string>("");
+  const [isModalRegisterClientOpen, setIsModalRegisterClientOpen] = useState(false);
+  const [newClientData, setNewClientData] = useState<DTO_Cliente>(new DTO_Cliente());
+  const [clientReloadKey, setClientReloadKey] = useState(0);
 
   const [hasRegisteredClients, setHasRegisteredClients] =
     useState<boolean>(false);
@@ -107,7 +112,8 @@ export const OrdenDeServicio = () => {
   };
   //#endregion
 
-  // #region 🚀 Obtener órdenes
+  // #region 🚀 Obtener órdenes de servicio.
+  // 0s
   useEffect(() => {
     if (!selectedBusiness) return;
     const sub = ordenesService
@@ -234,8 +240,66 @@ export const OrdenDeServicio = () => {
     setIsConfirmOpen(true);
   };
 
+  //#region crear cliente
+  const handleRegisterClient = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    setIsModalRegisterClientOpen(true);
+  };
+
+const handleSaveNewClient = () => {
+  if (!newClientData) return;
+
+  validacion = valida_DTO_Cliente.validar(newClientData, "C");
+  setErroresValidacion(validacion);
+
+  if (validacion.length === 0) {
+    clientesService.registrarClientes(newClientData).subscribe({
+      next: (res: DTO_Respuesta) => {
+        notificationHelpers.successAlert(res.mensaje);
+        setIsModalRegisterClientOpen(false);
+
+        setClientReloadKey((k) => k + 1);
+
+        const creado = Array.isArray(res.resultado)
+          ? (res.resultado[0] as DTO_Cliente)
+          : (res.resultado as DTO_Cliente);
+
+        if (creado?.iD_Cliente) {
+          const opt: ClientOption = {
+            value: creado.iD_Cliente,
+            label: `${creado.nombreCliente ?? ""} ${
+              creado.apellidoCliente ?? ""
+            }`.trim(),
+          };
+
+          setSelectedClientOption(opt);
+
+          setFormData((prev) => ({ ...prev, iD_Cliente: creado.iD_Cliente }));
+
+          setEditData((prev) =>
+            prev ? { ...prev, iD_Cliente: creado.iD_Cliente } : prev
+          );
+
+          setHasRegisteredClients(true);
+        }
+      },
+      complete: () => {
+        setNewClientData(new DTO_Cliente());
+      },
+      error: errorHelpers.serverError,
+    });
+  } else {
+    notificationHelpers.warningAlert(
+      "Por favor valida los datos ingresados nuevamente"
+    );
+  }
+};
+
+
+  //#endregion
+
   // Campos personalizados para crear
-  const buildRefFields = (item: DTO_OrdenServicio) =>
+  const buildReferencesfFields = (item: DTO_OrdenServicio) =>
     item.referenciaJSON?.map((r, idx) => ({
       key: generateSafeKey(r.nombre) as keyof DTO_OrdenServicio,
       label: r.nombre,
@@ -257,7 +321,7 @@ export const OrdenDeServicio = () => {
       ),
     })) || [];
 
-  const newFormFields: FieldConfig<DTO_OrdenServicio>[] = [
+  const newFormFields: FieldConfig<any>[] = [
     ...ordenServicioFormEditFields,
     {
       key: "iD_Cliente",
@@ -265,16 +329,35 @@ export const OrdenDeServicio = () => {
       type: "custom",
       required: true,
       renderer: ({ onChange }) => (
-        <AsyncClientSelect
-          value={selectedClientOption}
-          onChange={(opt) => {
-            setSelectedClientOption(opt);
-            onChange(opt?.value || 0);
-          }}
-        />
+        <div>
+          <AsyncClientSelect
+            value={selectedClientOption}
+            reloadKey={clientReloadKey}
+            onChange={(opt) => {
+              setSelectedClientOption(opt);
+              onChange(opt?.value || 0);
+            }}
+          />
+          <div
+            className="mt-1 d-flex align-items-center small"
+            style={{ fontSize: "0.95em" }}
+          >
+            <span className="me-2 text-muted">
+              ¿No tienes un cliente registrado?
+            </span>
+            <button
+              type="button"
+              className="btn btn-link btn-sm p-0 d-inline-flex align-items-center gap-1 middle"
+              onClick={handleRegisterClient}
+            >
+              <i className="bi bi-person-plus-fill"></i>
+              <span>Registrar Cliente</span>
+            </button>
+          </div>
+        </div>
       ),
     },
-    ...buildRefFields(formData),
+    ...buildReferencesfFields(formData),
   ];
   //#endregion
 
@@ -374,7 +457,7 @@ export const OrdenDeServicio = () => {
         );
       },
     },
-    ...buildRefFields(editData),
+    ...buildReferencesfFields(editData),
   ];
 
   const handleSaveEdit = () => {
@@ -999,6 +1082,19 @@ export const OrdenDeServicio = () => {
             setData={setFormData}
             onSubmit={handleSave}
             fields={newFormFields}
+            erroresValidacion={erroresValidacion}
+            onEliminarError={eliminarError}
+          />
+
+          {/* Modal Registrar Cliente */}
+          <GenericFormModal
+            title="Registrar Cliente"
+            show={isModalRegisterClientOpen}
+            onHide={() => setIsModalRegisterClientOpen(false)}
+            data={newClientData}
+            setData={setNewClientData}
+            onSubmit={handleSaveNewClient}
+            fields={clienteFormEditFields}
             erroresValidacion={erroresValidacion}
             onEliminarError={eliminarError}
           />
