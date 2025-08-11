@@ -781,8 +781,8 @@ export const Cuentas = () => {
               disableButtonAdd={disableButtonAdd}
               includeEstadoColumn
               customRenderers={customRenderers}
-                customColumns={[detalleJSONColumn]}
-                dataTableButtons={dataTableButtons}
+              customColumns={[detalleJSONColumn]}
+              dataTableButtons={dataTableButtons}
               onRowClick={(row) => {
                 setRowTableSelected(row);
                 setIsInfoModalOpen(true);
