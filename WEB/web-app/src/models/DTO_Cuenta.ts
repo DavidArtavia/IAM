@@ -15,4 +15,9 @@ export class DTO_Cuenta {
     fechaInicial: Date = new Date();
     fechaModificacion: Date = new Date();
     fechaLimite?: Date;
+
+    //Campos Calculados
+    montoAbonado: number = 0;
+    saldoPendiente: number = 0;
+    estadoPago?: string;
 }

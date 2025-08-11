@@ -150,7 +150,7 @@ export const Cuentas = () => {
         setAccountsPayable(filterAccounts);
       },
       error: (err) => errorHelpers.serverError(err),
-      complete: () => {},
+      complete: () => { },
     });
   };
   //#endregion
@@ -330,6 +330,18 @@ export const Cuentas = () => {
       val ? new Date(String(val)).toLocaleDateString() : "",
     fechaLimite: (val: unknown) =>
       val ? new Date(String(val)).toLocaleDateString() : "",
+    montoAbonado: (val: unknown) =>
+      new Intl.NumberFormat("es-CR", {
+        style: "currency",
+        currency: "CRC",
+        minimumFractionDigits: 2,
+      }).format(Number(val) || 0),
+    saldoPendiente: (val: unknown) =>
+      new Intl.NumberFormat("es-CR", {
+        style: "currency",
+        currency: "CRC",
+        minimumFractionDigits: 2,
+      }).format(Number(val) || 0),
   };
 
   //#region custom column DetallesJson
@@ -431,12 +443,12 @@ export const Cuentas = () => {
           value={
             value
               ? {
-                  label:
-                    value === "Cuenta Por Pagar"
-                      ? "Cuenta Por Pagar"
-                      : "Cuenta Por Cobrar",
-                  value,
-                }
+                label:
+                  value === "Cuenta Por Pagar"
+                    ? "Cuenta Por Pagar"
+                    : "Cuenta Por Cobrar",
+                value,
+              }
               : null
           }
           onChange={(option) => {
@@ -467,13 +479,13 @@ export const Cuentas = () => {
     ...cuentasFormEditFields,
     ...(editData?.iD_OrdenServicio
       ? [
-          {
-            key: "iD_OrdenServicio",
-            label: "Orden De Servicio #",
-            type: "text",
-            order: 4,
-          } as FieldConfig<any>,
-        ]
+        {
+          key: "iD_OrdenServicio",
+          label: "Orden De Servicio #",
+          type: "text",
+          order: 4,
+        } as FieldConfig<any>,
+      ]
       : []),
     {
       key: "detalleJSON",
@@ -508,16 +520,15 @@ export const Cuentas = () => {
             <span className="input-group-text">₡</span>
             <input
               type="text"
-              className={`form-control fw-bold fs-5 text-start ${
-                detalleHabilitado ? "bg-light" : ""
-              }`}
+              className={`form-control fw-bold fs-5 text-start ${detalleHabilitado ? "bg-light" : ""
+                }`}
               readOnly={detalleHabilitado}
               value={
                 montoInput !== ""
                   ? montoInput
                   : editData?.monto !== undefined && editData?.monto !== 0
-                  ? String(editData.monto)
-                  : ""
+                    ? String(editData.monto)
+                    : ""
               }
               onFocus={() => {
                 if ((editData?.monto || 0) === 0) {
@@ -567,12 +578,12 @@ export const Cuentas = () => {
           value={
             value
               ? {
-                  label:
-                    value === "Cuenta Por Pagar"
-                      ? "Cuenta Por Pagar"
-                      : "Cuenta Por Cobrar",
-                  value,
-                }
+                label:
+                  value === "Cuenta Por Pagar"
+                    ? "Cuenta Por Pagar"
+                    : "Cuenta Por Cobrar",
+                value,
+              }
               : null
           }
           onChange={(option) => {
@@ -597,13 +608,13 @@ export const Cuentas = () => {
   const infoModalFields: FieldConfig<any>[] = [
     ...(rowTableSelected?.iD_OrdenServicio
       ? [
-          {
-            key: "iD_OrdenServicio",
-            label: "Orden De Servicio #",
-            type: "text",
-            order: 0,
-          } as FieldConfig<any>,
-        ]
+        {
+          key: "iD_OrdenServicio",
+          label: "Orden De Servicio #",
+          type: "text",
+          order: 0,
+        } as FieldConfig<any>,
+      ]
       : []),
     ...keysInfoModalCuenta,
     {
@@ -632,14 +643,14 @@ export const Cuentas = () => {
                 <span className="fw-bold text-gray-800 fs-6">
                   {detalle.descuento?.nombre === "Monto"
                     ? `₡${Number(detalle.descuento?.valor ?? 0).toLocaleString(
-                        "es-CR",
-                        {
-                          minimumFractionDigits: 2,
-                        }
-                      )}`
+                      "es-CR",
+                      {
+                        minimumFractionDigits: 2,
+                      }
+                    )}`
                     : `${Number(detalle.descuento?.valor ?? 0).toLocaleString(
-                        "es-CR"
-                      )}%`}
+                      "es-CR"
+                    )}%`}
                 </span>
               </div>
               <div className="bg-light border rounded px-4 py-3 d-flex flex-column shadow-sm">
@@ -748,7 +759,7 @@ export const Cuentas = () => {
     },
   ];
   //#endregion
-  
+
   //#region 🧩 Botones de la tabla
   const dataTableButtons: DynamicButtonConfig[] = [
     {
@@ -779,7 +790,7 @@ export const Cuentas = () => {
               onEdit={handleEdit}
               onDelete={handleDelete}
               disableButtonAdd={disableButtonAdd}
-              includeEstadoColumn
+              includeEstadoColumn={false}
               customRenderers={customRenderers}
               customColumns={[detalleJSONColumn]}
               dataTableButtons={dataTableButtons}
@@ -834,7 +845,7 @@ export const Cuentas = () => {
 
             <TransaccionesPorCuentaModal
               open={isTransaccionesModalOpen}
-              onHide={() => setIsTransaccionesModalOpen(false)}
+              onHide={() => {refetchAccounts(); setIsTransaccionesModalOpen(false);}}
               cuenta={accountTransactions || new DTO_Cuenta()}
               negocioId={selectedBusiness?.iD_Negocio || 0}
             />
