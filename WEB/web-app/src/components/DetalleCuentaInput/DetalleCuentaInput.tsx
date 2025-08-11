@@ -31,7 +31,7 @@ export const DetalleCuentaInput = ({
     nombre: "Porcentaje",
     valor: "",
   });
-
+  
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [confirmModalMessage, setConfirmModalMessage] = useState("");
   const [pendingToggle, setPendingToggle] = useState<boolean | null>(null);

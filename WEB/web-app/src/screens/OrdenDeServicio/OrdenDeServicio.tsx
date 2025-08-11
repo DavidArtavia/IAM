@@ -143,7 +143,6 @@ export const OrdenDeServicio = () => {
         );
         if (activeClients.length > 0) {
           setHasRegisteredClients(true);
-          console.log("Clientes registrados:", activeClients);
         } else {
           setHasRegisteredClients(false);
         }
@@ -464,7 +463,6 @@ const handleSaveNewClient = () => {
     if (!selectedBusiness) return;
     const sanitized: any = { ...editData };
     sanitized.iD_Negocio = selectedBusiness.iD_Negocio;
-    console.log("Sanitized data for edit:", sanitized);
 
     [
       "fechaInicio",
@@ -504,8 +502,6 @@ const handleSaveNewClient = () => {
     sanitized.notaOrdenServicio = clienteNombre
       ? `Cliente: ${clienteNombre} | ${editData.notaOrdenServicio}`
       : editData.notaOrdenServicio;
-
-    console.log("Sanitized data for edit after note:", sanitized);
 
     setOrdenes((prev) =>
       prev.map((o) =>
@@ -755,7 +751,7 @@ const handleSaveNewClient = () => {
                     ? item.monto
                     : item.monto?.toString() || "0.00",
               })),
-              descuento: { nombre: "Descuento", valor: "0" },
+              descuento: { nombre: "Monto", valor: "0" },
               impuesto: { nombre: "Impuesto", valor: "0" },
             },
           };

@@ -35,7 +35,6 @@ export const SignUp = () => {
     if (
       usuarioValidator.validarDatosRegistroUsuario(usuario, confirmacionPass)
     ) {
-      console.log("Datos de registro válidos");
 
       registrarUsuario();
     }

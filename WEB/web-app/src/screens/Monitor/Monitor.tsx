@@ -418,7 +418,7 @@ export const Monitor = () => {
                     ? item.monto
                     : item.monto?.toString() || "0.00",
               })),
-              descuento: { nombre: "Descuento", valor: "0" },
+              descuento: { nombre: "Monto", valor: "0" },
               impuesto: { nombre: "Impuesto", valor: "0" },
             },
           };
