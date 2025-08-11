@@ -7,12 +7,16 @@ import { DTO_Cliente, DTO_Cuenta, DTO_ItemOrdenServicio, DTO_Negocio, DTO_OrdenS
 // Los label maps permiten mostrar nombres amigables en la UI, y los arreglos de campos de formulario se usan para generar formularios de manera flexible.
 export const columnKeysCuenta: (keyof DTO_Cuenta)[] = [
     "iD_Cuenta",
+    "iD_OrdenServicio",
     "concepto",
     "monto",
     "fechaInicial",
     "fechaLimite",
     "tipoCuenta",
-    "iD_OrdenServicio",
+    "montoAbonado",
+    "saldoPendiente",
+    "estadoPago"
+
 
 ];
 export const columnKeysNegocio: (keyof DTO_Negocio)[] = [
@@ -347,15 +351,19 @@ export const keysInfoModalTransacciones: FieldConfig<DTO_Transacciones>[] = [
 // Este archivo define mapas de etiquetas (label maps) para mostrar nombres legibles en los titulos del DataTable de los modelos.
 export const labelMapCuenta: Record<string, string> = {
     iD_Cuenta: "ID",
+    iD_OrdenServicio: "Orden De Servicio #",
     estado: "Estado",
     concepto: "Concepto",
     monto: "Monto",
     fechaInicial: "Fecha Inicial",
     fechaLimite: "Fecha Límite",
     tipoCuenta: "Tipo De Cuenta",
-    iD_OrdenServicio: "Orden De Servicio #",
+    
     fechaModificacion: "Fecha de Modificación",
     detalleJSON: "Detalles",
+    montoAbonado: "Monto Abonado",
+    saldoPendiente: "Saldo Pendiente",
+    estadoPago: "Estado Pago"
 
 };
 

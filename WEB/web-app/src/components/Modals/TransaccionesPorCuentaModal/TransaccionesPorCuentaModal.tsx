@@ -118,12 +118,20 @@ export const TransaccionesPorCuentaModal = ({
   };
 
   const handleSave = () => {
+
     const payload: DTO_Transacciones = {
       ...formData,
       iD_Negocio: negocioId,
       tipoNumReferencia: "Cuenta",
       numReferencia: String(cuenta.iD_Cuenta),
     };
+
+    if (cuenta.tipoCuenta == "Cuenta Por Cobrar") {
+      payload.tipo = "Ingreso"
+
+    } else if (cuenta.tipoCuenta == "Cuenta Por Pagar") {
+      payload.tipo = "Gasto"
+    }
 
     validacion = valida_DTO_Transacciones.validar(payload, "C");
     setErroresValidacion(validacion)
@@ -156,6 +164,13 @@ export const TransaccionesPorCuentaModal = ({
 
     if (!updated.estado?.iD_Estado && rowEditSelected.estado?.iD_Estado) {
       updated.estado = { ...rowEditSelected.estado };
+    }
+
+        if (cuenta.tipoCuenta == "Cuenta Por Cobrar") {
+      updated.tipo = "Ingreso"
+
+    } else if (cuenta.tipoCuenta == "Cuenta Por Pagar") {
+      updated.tipo = "Gasto"
     }
 
     validacion = valida_DTO_Transacciones.validar(updated, "U");
@@ -259,17 +274,11 @@ export const TransaccionesPorCuentaModal = ({
   //#region 🧾 Formularios
   const registerFields: FieldConfig<DTO_Transacciones>[] = [
     { key: "concepto", label: "Concepto", type: "text", required: true },
-    { key: "monto", label: "Monto", type: "number", required: true },
-    {
-      key: "tipo", label: "Tipo de Transacción", type: "select", required: true, options: [
-        { label: "Ingreso", value: "Ingreso" },
-        { label: "Gasto", value: "Gasto" },
-      ]
-    },
+    { key: "monto", label: "Monto", type: "number", required: true }
   ];
 
   const editFormFields: FieldConfig<DTO_Transacciones>[] =
-    transaccionesFormEditFields.map((field) => {
+    transaccionesFormEditFields.filter(f => f.key !== "tipo").map((field) => {
       const esCuenta =
         editData?.tipoNumReferencia?.trim().toLowerCase() === "cuenta";
       if (
@@ -318,7 +327,7 @@ export const TransaccionesPorCuentaModal = ({
               <LoadingPanel msj="Cargando transacciones..." />
             ) : (
               <GenericDataTable<DTO_Transacciones>
-                title={`Transacciones asociadas a la cuenta #${cuenta.iD_Cuenta}`}
+                title={"Transacciones asociadas a la  " + cuenta.tipoCuenta + " #" + cuenta.iD_Cuenta}
                 columnKeys={columnKeysTransacciones}
                 labelMap={labelMapTransacciones}
                 data={transacciones}
@@ -340,7 +349,7 @@ export const TransaccionesPorCuentaModal = ({
 
             <GenericFormModal
               title={
-                "Registrar Transacción para la Cuenta #" + cuenta.iD_Cuenta
+                "Registrar Transacción (Abono/Pago) para la " + cuenta.tipoCuenta + " #" + cuenta.iD_Cuenta
               }
               show={isModalFormOpen}
               onHide={handleCancelAdd}
