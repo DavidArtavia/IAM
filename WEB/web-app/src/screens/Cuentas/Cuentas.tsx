@@ -213,8 +213,7 @@ export const Cuentas = () => {
   };
 
   const handleSaveEdit = (updatedData: DTO_Cuenta) => {
-    const parsed = parseFloat(montoInput.replace(/[^0-9.]/g, ""));
-    updatedData.monto = isNaN(parsed) ? 0 : parsed;
+
 
     if (!rowEditSelected) return;
     updatedData.iD_Cuenta = rowEditSelected.iD_Cuenta;
@@ -224,9 +223,9 @@ export const Cuentas = () => {
       updatedData.estado = { ...rowEditSelected.estado };
     }
 
-    if (!detalleHabilitado) {
+    if (detalleHabilitado) {
       const parsed = parseFloat(montoInput.replace(/[^0-9.]/g, ""));
-      updatedData.monto = parsed;
+      updatedData.monto = isNaN(parsed) ? 0 : parsed;
     }
 
     validacion = valida_DTO_Cuenta.validar(updatedData, "U");
@@ -398,7 +397,7 @@ export const Cuentas = () => {
           <div className="input-group">
             <span className="input-group-text">₡</span>
             <input
-              type="text"
+              type="number"
               className="form-control fw-bold fs-5 text-start"
               readOnly={detalleHabilitado}
               value={montoInput}
@@ -412,9 +411,6 @@ export const Cuentas = () => {
                 setMontoInput(val);
                 if (val === "") {
                   setFormData({ ...formData, monto: 0 });
-                } else {
-                  const num = parseFloat(val);
-                  setFormData({ ...formData, monto: isNaN(num) ? 0 : num });
                 }
               }}
               onBlur={(e) => {
@@ -845,7 +841,7 @@ export const Cuentas = () => {
 
             <TransaccionesPorCuentaModal
               open={isTransaccionesModalOpen}
-              onHide={() => {refetchAccounts(); setIsTransaccionesModalOpen(false);}}
+              onHide={() => { refetchAccounts(); setIsTransaccionesModalOpen(false); }}
               cuenta={accountTransactions || new DTO_Cuenta()}
               negocioId={selectedBusiness?.iD_Negocio || 0}
             />
