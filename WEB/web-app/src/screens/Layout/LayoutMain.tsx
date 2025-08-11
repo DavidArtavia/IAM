@@ -203,55 +203,7 @@ export const LayoutMain = () => {
                 </Link>
               </div>
 
-              <div className="menu-item py-2">
-                {/* <Link
-                  to={ROUTES.CHAT_AI}
-                  className={`menu-link menu-center${
-                    pathname === ROUTES.CHAT_AI ? " active" : ""
-                  }`}
-                  data-bs-trigger="hover"
-                  data-bs-dismiss="click"
-                  data-bs-placement="right"
-                >
-                  <span className="menu-icon me-0">
-                    <i className="bi bi-chat-left fs-2" />
-                  </span>
-                  <span className="menu-title">Chat</span>
-                </Link> */}
-                <div
-                  className="menu-link menu-center disabled"
-                  style={{
-                    cursor: "not-allowed",
-                    opacity: 0.6,
-                    position: "relative",
-                  }}
-                  tabIndex={0}
-                  title="Próximamente"
-                  onClick={handlePopoverToChat}
-                >
-                  <span className="menu-icon me-0">
-                    <i className="bi bi-chat-left fs-2" />
-                  </span>
-                  <span className="menu-title">Chat</span>
-                </div>
-              </div>
-
-              <div className="menu-item py-2">
-                <Link
-                  to={ROUTES.NEGOCIO}
-                  className={`menu-link menu-center${
-                    pathname === ROUTES.NEGOCIO ? " active" : ""
-                  }`}
-                  data-bs-trigger="hover"
-                  data-bs-dismiss="click"
-                  data-bs-placement="right"
-                >
-                  <span className="menu-icon me-0">
-                    <i className="bi bi-briefcase fs-2" />
-                  </span>
-                  <span className="menu-title">Negocio</span>
-                </Link>
-              </div>
+      
 
               <div className="menu-item py-2">
                 <Link
@@ -336,6 +288,58 @@ export const LayoutMain = () => {
                   </span>
                   <span className="menu-title">Transacciones</span>
                 </Link>
+              </div>
+
+                     
+
+              <div className="menu-item py-2">
+                <Link
+                  to={ROUTES.NEGOCIO}
+                  className={`menu-link menu-center${
+                    pathname === ROUTES.NEGOCIO ? " active" : ""
+                  }`}
+                  data-bs-trigger="hover"
+                  data-bs-dismiss="click"
+                  data-bs-placement="right"
+                >
+                  <span className="menu-icon me-0">
+                    <i className="bi bi-briefcase fs-2" />
+                  </span>
+                  <span className="menu-title">Negocio</span>
+                </Link>
+              </div>
+
+               <div className="menu-item py-2">
+                {/* <Link
+                  to={ROUTES.CHAT_AI}
+                  className={`menu-link menu-center${
+                    pathname === ROUTES.CHAT_AI ? " active" : ""
+                  }`}
+                  data-bs-trigger="hover"
+                  data-bs-dismiss="click"
+                  data-bs-placement="right"
+                >
+                  <span className="menu-icon me-0">
+                    <i className="bi bi-chat-left fs-2" />
+                  </span>
+                  <span className="menu-title">Chat</span>
+                </Link> */}
+                <div
+                  className="menu-link menu-center disabled"
+                  style={{
+                    cursor: "not-allowed",
+                    opacity: 0.6,
+                    position: "relative",
+                  }}
+                  tabIndex={0}
+                  title="Próximamente"
+                  onClick={handlePopoverToChat}
+                >
+                  <span className="menu-icon me-0">
+                    <i className="bi bi-chat-left fs-2" />
+                  </span>
+                  <span className="menu-title">IA</span>
+                </div>
               </div>
 
               <div className="menu-item py-2">
@@ -516,7 +520,7 @@ export const LayoutMain = () => {
                 rel="noreferrer"
                 className="text-gray-800 text-hover-primary"
               >
-                V1.0.2
+                V1.0.5
               </a>
             </div>
           </div>

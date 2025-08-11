@@ -14,8 +14,7 @@ export const Info = () => {
               ></i>
               <h2 className="mb-2 fw-bold">¡Bienvenido!</h2>
               <p className="text-muted mb-4">
-                Explora y administra toda la información relevante de la
-                aplicación desde este espacio centralizado.
+            
               </p>
               {/* Alerta de versión beta */}
               <div
@@ -25,10 +24,9 @@ export const Info = () => {
                 <div className="d-flex align-items-center">
                   <i className="bi bi-info-circle-fill me-2 fs-4"></i>
                   <div>
-                    <strong className="d-block mb-1">Nota importante</strong>
-                    Este sistema se encuentra en <b>versión Beta</b> y está en
-                    constante evolución. Agradecemos su comprensión mientras
-                    mejoramos la plataforma.
+                   
+                    Este sistema se encuentra en una versión <b>Beta</b> y está en
+                    constante evolución.
                   </div>
                 </div>
               </div>
@@ -57,7 +55,9 @@ export const Info = () => {
                         <li>Reportes personalizados</li>
                         <li>Optimización de rendimiento</li>
                         <li>Integración con nuevos módulos</li>
+                        <li>Integración con el chat de inteligencia artificial</li>
                       </ul>
+                      
                     </div>
                   </div>
                 </div>
