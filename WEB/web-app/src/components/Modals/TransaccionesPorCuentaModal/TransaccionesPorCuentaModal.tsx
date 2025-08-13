@@ -314,7 +314,7 @@ export const TransaccionesPorCuentaModal = ({
     >
       <div
         className="modal-dialog modal-dialog-centered"
-        style={{ maxWidth: "95vw", width: "1200px" }}
+        style={{ maxWidth: "1200px" }}
         onClick={(e) => e.stopPropagation()}
       >
         <div className="modal-content resizable-metronic-modal">

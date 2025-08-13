@@ -1,6 +1,8 @@
 import React, { useEffect, useRef, useMemo } from "react";
 import $ from "jquery";
 import "datatables.net-bs5";
+import 'datatables.net-responsive-bs5';
+import 'datatables.net-responsive-bs5/css/responsive.bootstrap5.min.css';
 import DataTable from "datatables.net-dt";
 import JsZip from "jszip";
 import Buttons from "datatables.net-buttons";
@@ -261,6 +263,25 @@ export function GenericDataTable<T>({
     });
     //#endregion
 
+    if (cols.length > 0) {
+  const lastIdx = cols.length - 1;
+
+  // Primera columna: máxima prioridad (se queda visible)
+  // @ts-expect-error  — por el uso de la librerí a con react
+  cols[0] = { ...cols[0], responsivePriority: 1 };
+
+  // Última columna: segunda prioridad (se queda visible si hay espacio)
+  // @ts-expect-error  — por el uso de la librerí a con react
+  cols[lastIdx] = { ...cols[lastIdx], responsivePriority: 2 };
+
+  // Asignar prioridades crecientes al resto (preserva orden)
+  for (let i = 1; i < lastIdx; i++) {
+    // prioridad más alta numérica = se oculta antes
+    // @ts-expect-error  — por el uso de la librerí a con react
+    cols[i] = { ...cols[i], responsivePriority: 3 + i };
+  }
+}
+
     return cols;
   }, [data]);
   //#endregion
@@ -279,6 +300,7 @@ export function GenericDataTable<T>({
       $(table).DataTable({
         data,
         columns: dtColumns,
+        responsive: true,
         columnDefs: [
           { targets: "_all", className: "text-center", defaultContent: "" },
         ],
@@ -379,7 +401,7 @@ export function GenericDataTable<T>({
   //#region 🎨 Render
   return (
     <>
-      <div className="card shadow-sm mt-5">
+      <div className="card mt-5">
         <div className="card-header d-flex justify-content-between align-items-center py-10 px-lg-17">
           <h3 className="card-title text-gray-600">{title}</h3>
           <button

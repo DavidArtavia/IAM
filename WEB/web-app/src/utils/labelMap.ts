@@ -351,7 +351,7 @@ export const keysInfoModalTransacciones: FieldConfig<DTO_Transacciones>[] = [
 // Este archivo define mapas de etiquetas (label maps) para mostrar nombres legibles en los titulos del DataTable de los modelos.
 export const labelMapCuenta: Record<string, string> = {
     iD_Cuenta: "ID",
-    iD_OrdenServicio: "Orden De Servicio #",
+    iD_OrdenServicio: "Orden",
     estado: "Estado",
     concepto: "Concepto",
     monto: "Monto",
