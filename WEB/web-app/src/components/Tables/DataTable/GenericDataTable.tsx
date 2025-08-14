@@ -387,6 +387,7 @@ export function GenericDataTable<T>({
                 .split("/")
                 .join("-"),
             sheetName: "Datos",
+            stripeClasses: ['zebra-odd', 'zebra-even']
           },
         ],
       });
@@ -545,20 +546,165 @@ export function GenericDataTable<T>({
 })();
 
 
-// 🧹 Quitar zebra personalizada (volver al tema por defecto)
-$(table).removeAttr('data-zebra');
-document.getElementById('dt-striped-custom')?.remove();
+// 🎯 FixedHeader: mantener flechas ocultas salvo hover y visibles en la columna ordenada
+(() => {
+  const styleId = 'dt-header-hover-sort-style-fh';
+  if (!document.getElementById(styleId)) {
+    const style = document.createElement('style');
+    style.id = styleId;
+    style.textContent = `
+/* ===== DataTables v2 (FixedHeader): el flotante vive en .dtfh-floatingparent ===== */
+.dtfh-floatingparent thead th .dt-column-order {
+  opacity: 0;
+  transition: opacity .15s ease;
+}
+.dtfh-floatingparent thead th:hover .dt-column-order,
+.dtfh-floatingparent thead th.dt-ordering .dt-column-order,
+.dtfh-floatingparent thead th.dt-ordering-asc .dt-column-order,
+.dtfh-floatingparent thead th.dt-ordering-desc .dt-column-order {
+  opacity: 1;
+}
+
+/* ===== DataTables v1 (FixedHeader): pseudo-elementos en .fixedHeader-floating ===== */
+.fixedHeader-floating thead th.sorting:before,
+.fixedHeader-floating thead th.sorting:after {
+  opacity: 0;
+  transition: opacity .15s ease;
+}
+.fixedHeader-floating thead th.sorting:hover:before,
+.fixedHeader-floating thead th.sorting:hover:after {
+  opacity: 1;
+}
+.fixedHeader-floating thead th.sorting_asc:before,
+.fixedHeader-floating thead th.sorting_asc:after,
+.fixedHeader-floating thead th.sorting_desc:before,
+.fixedHeader-floating thead th.sorting_desc:after {
+  opacity: 1;
+}
+`;
+    document.head.appendChild(style);
+  }
+})();
+
+
+
+// 📱 Desactivar hover gris del header SOLO en móvil / pantallas táctiles
+(() => {
+  const id = 'dt-header-hover-mobile-off';
+  if (!document.getElementById(id)) {
+    const s = document.createElement('style');
+    s.id = id;
+    s.textContent = `
+/* Teléfono (xs) o dispositivos sin hover (táctiles) */
+@media (max-width: 575.98px), (hover: none) and (pointer: coarse) {
+  /* DT v2 — header normal */
+  .dt-container table.dataTable thead>tr>th.dt-orderable-asc:hover,
+  .dt-container table.dataTable thead>tr>th.dt-orderable-desc:hover,
+  .dt-container table.dataTable thead>tr>td.dt-orderable-asc:hover,
+  .dt-container table.dataTable thead>tr>td.dt-orderable-desc:hover {
+    background-color: transparent !important;
+    outline: none !important;
+    outline-offset: 0 !important;
+    box-shadow: none !important;
+  }
+  /* DT v2 — FixedHeader (header flotante) */
+  .dtfh-floatingparent table.dataTable thead>tr>th.dt-orderable-asc:hover,
+  .dtfh-floatingparent table.dataTable thead>tr>th.dt-orderable-desc:hover,
+  .dtfh-floatingparent table.dataTable thead>tr>td.dt-orderable-asc:hover,
+  .dtfh-floatingparent table.dataTable thead>tr>td.dt-orderable-desc:hover {
+    background-color: transparent !important;
+    outline: none !important;
+    outline-offset: 0 !important;
+    box-shadow: none !important;
+  }
+  /* DT v1 (por compatibilidad) */
+  .dataTables_wrapper table.dataTable thead>tr>th.sorting:hover,
+  .dataTables_wrapper table.dataTable thead>tr>th.sorting_asc:hover,
+  .dataTables_wrapper table.dataTable thead>tr>th.sorting_desc:hover,
+  .fixedHeader-floating table.dataTable thead>tr>th.sorting:hover,
+  .fixedHeader-floating table.dataTable thead>tr>th.sorting_asc:hover,
+  .fixedHeader-floating table.dataTable thead>tr>th.sorting_desc:hover {
+    background-color: transparent !important;
+    outline: none !important;
+    outline-offset: 0 !important;
+    box-shadow: none !important;
+  }
+
+  /* Extra: quita highlight gris en tap (iOS/Android) */
+  .dtfh-floatingparent *, .dt-container * {
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+`;
+    document.head.appendChild(s);
+  }
+})();
+
+
+// 🎨 Zebra personalizado sutil (#398bc2) SOLO para esta tabla
+(() => {
+  // Limpia estilos previos anti-zebra o zebra antiguos (si existieran)
+  document.getElementById('dt-no-zebra')?.remove();
+  document.getElementById('dt-striped-custom')?.remove();
+
+  // Marca esta tabla para scopear la regla
+  $(table).attr('data-zebra-custom', '398bc2');
+
+  const id = 'dt-zebra-custom-398bc2';
+  if (!document.getElementById(id)) {
+    const s = document.createElement('style');
+    s.id = id;
+
+    // 🎛️ Ajusta la intensidad: 0.02 (muy tenue) – 0.08 (más visible)
+    const subtle = 'rgba(57, 139, 194, 0.02)';
+
+    s.textContent = `
+      /* Usar clases .odd de DataTables (más robusto con filas child/responsive) */
+      table[data-zebra-custom="398bc2"].dataTable tbody tr.odd > * {
+        background-color: ${subtle} !important;
+      }
+      /* Fallback por si algún tema no aplica .odd: alternar por posición */
+      table[data-zebra-custom="398bc2"].dataTable tbody tr:nth-of-type(odd) > * {
+        background-color: ${subtle} !important;
+      }
+    `;
+    document.head.appendChild(s);
+  }
+})();
 
 
       // Click fila
-      $(table)
-        .off("click", "tbody tr")
-        .on("click", "tbody tr", function () {
-          const row = dtInstance.row(this);
-          if (!row.any()) return;
-          const rawData = row.data() as T;
-          onRowClick?.(rawData); // ✅ envia al componente padre
-        });
+// Click por celda, ignorando primera y última columna visibles
+$(table)
+  .off("click.dtcell", "tbody td")
+  .on("click.dtcell", "tbody td", function (e) {
+    const $td = $(this);
+    const $tr = $td.closest("tr");
+
+    // Ignorar filas de detalle (Responsive)
+    if ($tr.hasClass("child")) return;
+
+    const cell = dtInstance.cell(this);
+    if (!cell.any()) return;
+
+    // Índices de columnas VISIBLES (respeta responsive/hide)
+    const visibleCols = dtInstance.columns({ visible: true }).indexes().toArray();
+    const colIdx = cell.index().column;
+    const visiblePos = visibleCols.indexOf(colIdx);
+
+    // ⛔️ Si es la primera o la última columna visible, no hacer nada
+    if (visiblePos === 0 || visiblePos === visibleCols.length - 1) return;
+
+    // (Opcional) Si usas una columna control responsive:
+    if ($td.hasClass("dtr-control")) return;
+
+    // Disparar acción con los datos de la fila
+    const row = dtInstance.row($tr);
+    if (!row.any()) return;
+    const rawData = row.data() as T;
+    onRowClick?.(rawData);
+  });
+
 
       // ✅ Nunca ocultar 1.ª y última columna en casos extremos
       $(table)
@@ -620,7 +766,7 @@ document.getElementById('dt-striped-custom')?.remove();
   return (
     <>
       <div className="card mt-5">
-        <div className="card-header d-flex justify-content-between align-items-center py-10 px-lg-17">
+        <div className="card-header d-flex justify-content-between align-items-center py-1 px-lg-17">
           <h3 className="card-title text-gray-600">{title}</h3>
           <button
             onClick={onAdd}
@@ -633,7 +779,7 @@ document.getElementById('dt-striped-custom')?.remove();
         <div className="card-body table-responsive p-2 py-10 px-lg-17">
           <table
             ref={tableRef}
-            className="table table-sm table-striped table-hover align-middle text-center w-auto"
+            className="table table-sm table-hover align-middle text-center w-auto"
           />
         </div>
       </div>
