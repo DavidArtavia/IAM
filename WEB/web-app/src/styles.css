@@ -51,7 +51,7 @@ table.dataTable thead th {
   background-color: rgba(0, 0, 0, 0.3);
   /* Más claro */
   backdrop-filter: blur(5px);
-  padding: 20px;
+  /*padding: 20px;*/
 }
 
 .shadowDarkBackground {

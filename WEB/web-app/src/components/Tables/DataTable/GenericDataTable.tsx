@@ -672,12 +672,61 @@ export function GenericDataTable<T>({
   }
 })();
 
+// 🎨 En hover de la fila, forzar texto blanco SOLO dentro de .dt-hover-invert
+(() => {
+  const id = 'dt-hover-invert-inner-style';
+  if (!document.getElementById(id)) {
+    const s = document.createElement('style');
+    s.id = id;
+    s.textContent = `
+/* Sólo donde existe hover real (desktop/touchpad) */
+@media (hover: hover) and (pointer: fine) {
+  /* DataTables v2 y v1 con .table-hover */
+  .dt-container table.dataTable.table-hover tbody tr:hover td .dt-hover-invert,
+  .dataTables_wrapper table.dataTable.table-hover tbody tr:hover td .dt-hover-invert {
+    color: #ffffff !important;
+    filter: brightness(1) !important;
+  }
+  .dt-container table.dataTable.table-hover tbody tr:hover td .dt-hover-invert *,
+  .dataTables_wrapper table.dataTable.table-hover tbody tr:hover td .dt-hover-invert * {
+    color: #ffffff !important;
+    fill: #ffffff !important;              /* para SVGs/íconos */
+    border-color: #ffffff !important; /* bordes sutiles si los hay */
+  }
+
+  /* Opcional: bajar un poco fondos sutiles para mejor contraste */
+  .dt-container table.dataTable.table-hover tbody tr:hover td .dt-hover-invert [class*="bg-"],
+  .dataTables_wrapper table.dataTable.table-hover tbody tr:hover td .dt-hover-invert [class*="bg-"] {
+    filter: brightness(0.85);
+  }
+}
+`;
+    document.head.appendChild(s);
+  }
+})();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
       // Click fila
 // Click por celda, ignorando primera y última columna visibles
 $(table)
   .off("click.dtcell", "tbody td")
-  .on("click.dtcell", "tbody td", function (e) {
+  .on("click.dtcell", "tbody td", function () {
     const $td = $(this);
     const $tr = $td.closest("tr");
 
@@ -766,17 +815,17 @@ $(table)
   return (
     <>
       <div className="card mt-5">
-        <div className="card-header d-flex justify-content-between align-items-center py-1 px-lg-17">
+        <div className="card-header d-flex justify-content-between align-items-center px-5 px-sm-19 d-flex">
           <h3 className="card-title text-gray-600">{title}</h3>
           <button
             onClick={onAdd}
-            className="btn btn-primary"
+            className="btn dt-button buttons-html5 btn btn-primary btn-sm mb-0 d-flex align-items-center justify-content-center gap-2 ms-auto"
             disabled={disableButtonAdd}
           >
             Agregar
           </button>
         </div>
-        <div className="card-body table-responsive p-2 py-10 px-lg-17">
+        <div className="card-body table-responsive p-2 py-10 px-lg-17 pt-5">
           <table
             ref={tableRef}
             className="table table-sm table-hover align-middle text-center w-auto"

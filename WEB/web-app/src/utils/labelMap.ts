@@ -6,18 +6,17 @@ import { DTO_Cliente, DTO_Cuenta, DTO_ItemOrdenServicio, DTO_Negocio, DTO_OrdenS
 //  Define configuraciones de campos de formulario (FieldConfig) para construir formularios dinámicos relacionados con estos modelos.
 // Los label maps permiten mostrar nombres amigables en la UI, y los arreglos de campos de formulario se usan para generar formularios de manera flexible.
 export const columnKeysCuenta: (keyof DTO_Cuenta)[] = [
+    
     "iD_Cuenta",
-    "iD_OrdenServicio",
-    "concepto",
     "monto",
-    "fechaInicial",
-    "fechaLimite",
-    "tipoCuenta",
     "montoAbonado",
     "saldoPendiente",
-    "estadoPago"
-
-
+    "estadoPago",
+    "tipoCuenta",
+    "fechaLimite",
+    "fechaInicial",
+    "concepto",
+  
 ];
 export const columnKeysNegocio: (keyof DTO_Negocio)[] = [
     "iD_Negocio",
@@ -53,11 +52,10 @@ export const columnKeysItemsOrdenServicio: (keyof DTO_ItemOrdenServicio)[] = [
 
 export const columnKeysTransacciones: (keyof DTO_Transacciones)[] = [
     "iD_Transaccion",
-    "iD_Negocio",
     "fechaTransaccion",
-    "concepto",
     "monto",
     "tipo",
+    "concepto",
     "tipoNumReferencia",
     "numReferencia",
 
@@ -361,9 +359,9 @@ export const labelMapCuenta: Record<string, string> = {
     
     fechaModificacion: "Fecha de Modificación",
     detalleJSON: "Detalles",
-    montoAbonado: "Monto Abonado",
-    saldoPendiente: "Saldo Pendiente",
-    estadoPago: "Estado Pago"
+    montoAbonado: "Abonado",
+    saldoPendiente: "Saldo",
+    estadoPago: "Estado"
 
 };
 

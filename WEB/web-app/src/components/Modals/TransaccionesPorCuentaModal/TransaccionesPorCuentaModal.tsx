@@ -318,16 +318,16 @@ export const TransaccionesPorCuentaModal = ({
         onClick={(e) => e.stopPropagation()}
       >
         <div className="modal-content resizable-metronic-modal">
-          <div className="modal-header cursor-move">
-            <h2 className="fw-bold">Transacciones de {nombreCuenta}</h2>
+          <div className="modal-header cursor-move pt-4 pb-0 border-0 p-5 py-10 px-lg-17 pt-5 mb-n3">
+            <h2 className="fw-light text-gray-400 fs-5">{ cuenta.tipoCuenta.charAt(0).toUpperCase() + cuenta.tipoCuenta.slice(1).toLowerCase()  + " #" + cuenta.iD_Cuenta}</h2>
             <button type="button" className="btn-close" onClick={onHide} />
           </div>
-          <div className="modal-body py-10 px-lg-17">
+          <div className="modal-body p-0">
             {loading ? (
               <LoadingPanel msj="Cargando transacciones..." />
             ) : (
               <GenericDataTable<DTO_Transacciones>
-                title={"Transacciones asociadas a la  " + cuenta.tipoCuenta + " #" + cuenta.iD_Cuenta}
+                title={"Transacciones"}
                 columnKeys={columnKeysTransacciones}
                 labelMap={labelMapTransacciones}
                 data={transacciones}
