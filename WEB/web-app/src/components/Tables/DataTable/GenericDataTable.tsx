@@ -430,13 +430,124 @@ export function GenericDataTable<T>({
       // 🎨 Separación del panel superior (toolbar) respecto a la tabla (15px)
       const styleToolbar = () => {
         const $wrapper = $(table).closest('.dt-container, .dataTables_wrapper');
-        $wrapper.find('.dt-toolbar').css({ marginBottom: '15px' });
+        $wrapper.find('.dt-toolbar').css({ marginBottom: '10px' });
       };
       styleToolbar();
       // Reaplicar en redraw / cambio de página / cambio de longitud
       $(table)
         .off('draw.dt._styleToolbar page.dt._styleToolbar length.dt._styleToolbar')
         .on('draw.dt._styleToolbar page.dt._styleToolbar length.dt._styleToolbar', styleToolbar);
+
+      // 🎨 Quitar negrita en títulos de columna (thead) — original y FixedHeader
+      const styleHeader = () => {
+        const $wrapper = $(table).closest('.dt-container, .dataTables_wrapper');
+        // Header original
+        $wrapper.find('table thead th').css({ fontWeight: '400' });
+        // Header flotante de FixedHeader (DT2 y DT1)
+        $('.dtfh-floatingparent thead th, .fixedHeader-floating thead th').css({ fontWeight: '400' });
+      };
+      styleHeader();
+      // Reaplicar en redraw / cambios responsivos / re-cálculo
+      $(table)
+        .off('draw.dt._styleHeader responsive-resize.dt._styleHeader column-sizing.dt._styleHeader')
+        .on('draw.dt._styleHeader responsive-resize.dt._styleHeader column-sizing.dt._styleHeader', styleHeader);
+
+
+      // 🎨 Header: flechas sólo en hover y hover sutil (DT v2 y v1)
+      (() => {
+        const styleId = 'dt-header-hover-sort-style';
+        if (!document.getElementById(styleId)) {
+          const style = document.createElement('style');
+          style.id = styleId;
+          style.textContent = `
+/* ===== DataTables v2: el icono suele ser un span .dt-column-order ===== */
+.dt-container table.dataTable thead th .dt-column-order {
+  opacity: 0;
+  transition: opacity .15s ease;
+}
+.dt-container table.dataTable thead th:hover .dt-column-order,
+.dt-container table.dataTable thead th.dt-ordering .dt-column-order {
+  opacity: 1;
+}
+
+/* ===== DataTables v1: las flechas son pseudo-elementos :before/:after ===== */
+.dataTables_wrapper table.dataTable thead th.sorting:before,
+.dataTables_wrapper table.dataTable thead th.sorting:after {
+  opacity: 0;
+  transition: opacity .15s ease;
+}
+.dataTables_wrapper table.dataTable thead th.sorting:hover:before,
+.dataTables_wrapper table.dataTable thead th.sorting:hover:after {
+  opacity: 1;
+}
+/* Mantener visibles cuando la columna está ordenada */
+.dataTables_wrapper table.dataTable thead th.sorting_asc:before,
+.dataTables_wrapper table.dataTable thead th.sorting_asc:after,
+.dataTables_wrapper table.dataTable thead th.sorting_desc:before,
+.dataTables_wrapper table.dataTable thead th.sorting_desc:after {
+  opacity: 1;
+}
+
+/* ===== Hover del título: sin borde/caja, solo un fill MUY tenue ===== */
+.dt-container table.dataTable thead th:hover,
+.dataTables_wrapper table.dataTable thead th:hover {
+  background-color: rgba(0,0,0,0.03) !important;
+  box-shadow: none !important;
+  outline: none !important;
+  border-color: transparent !important;
+}
+`;
+          document.head.appendChild(style);
+        }
+      })();
+
+      // 🎯 Asegurar que la flechita quede visible en la columna ordenada (DT v2)
+      // (complementa el style previo; no lo reemplaza)
+      (() => {
+        const styleId = 'dt-header-hover-sort-style-extra';
+        if (!document.getElementById(styleId)) {
+          const style = document.createElement('style');
+          style.id = styleId;
+          style.textContent = `
+/* Si el TH tiene orden asc/desc, mostrar el icono aunque no haya hover */
+.dt-container table.dataTable thead th.dt-ordering-asc .dt-column-order,
+.dt-container table.dataTable thead th.dt-ordering-desc .dt-column-order {
+  opacity: 1;
+}
+`;
+          document.head.appendChild(style);
+        }
+      })();
+
+      // 🎨 Aumentar suavemente la altura del header (thead) — original y FixedHeader
+(() => {
+  const styleId = 'dt-header-height-style';
+  if (!document.getElementById(styleId)) {
+    const style = document.createElement('style');
+    style.id = styleId;
+    style.textContent = `
+/* Header normal (DT2 y DT1) */
+.dt-container table.dataTable thead th,
+.dataTables_wrapper table.dataTable thead th {
+  padding-top: 1.5rem;
+  padding-bottom: 1.5rem;
+}
+
+/* Header flotante de FixedHeader (DT2 y DT1) */
+.dtfh-floatingparent thead th,
+.fixedHeader-floating thead th {
+  padding-top: 1.5rem;
+  padding-bottom: 1.5rem;
+}
+`;
+    document.head.appendChild(style);
+  }
+})();
+
+
+// 🧹 Quitar zebra personalizada (volver al tema por defecto)
+$(table).removeAttr('data-zebra');
+document.getElementById('dt-striped-custom')?.remove();
 
 
       // Click fila

@@ -2233,7 +2233,7 @@ progress {
   --bs-table-bg: transparent;
   --bs-table-accent-bg: transparent;
   --bs-table-striped-color: #181C32;
-  --bs-table-striped-bg: rgba(245, 248, 250, 0.75);
+/*cebratabla*/
   --bs-table-active-color: #181C32;
   --bs-table-active-bg: #F5F8FA;
   --bs-table-hover-color: #181C32;
@@ -2296,7 +2296,7 @@ progress {
 
 .table-primary {
   --bs-table-bg: #ccecfd;
-  --bs-table-striped-bg: #c2e0f0;
+/*cebratabla*/
   --bs-table-striped-color: #000000;
   --bs-table-active-bg: #b8d4e4;
   --bs-table-active-color: #000000;
@@ -2308,7 +2308,7 @@ progress {
 
 .table-secondary {
   --bs-table-bg: #fafafc;
-  --bs-table-striped-bg: #eeeeef;
+/*cebratabla*/
   --bs-table-striped-color: #000000;
   --bs-table-active-bg: #e1e1e3;
   --bs-table-active-color: #000000;
@@ -2320,7 +2320,7 @@ progress {
 
 .table-success {
   --bs-table-bg: #dcf5e7;
-  --bs-table-striped-bg: #d1e9db;
+/*cebratabla*/
   --bs-table-striped-color: #000000;
   --bs-table-active-bg: #c6ddd0;
   --bs-table-active-color: #000000;
@@ -2332,7 +2332,7 @@ progress {
 
 .table-info {
   --bs-table-bg: #e3d7fb;
-  --bs-table-striped-bg: #d8ccee;
+/*cebratabla*/
   --bs-table-striped-color: #000000;
   --bs-table-active-bg: #ccc2e2;
   --bs-table-active-color: #000000;
@@ -2344,7 +2344,7 @@ progress {
 
 .table-warning {
   --bs-table-bg: #fff4cc;
-  --bs-table-striped-bg: #f2e8c2;
+/*cebratabla*/
   --bs-table-striped-color: #000000;
   --bs-table-active-bg: #e6dcb8;
   --bs-table-active-color: #000000;
@@ -2356,7 +2356,7 @@ progress {
 
 .table-danger {
   --bs-table-bg: #fcd9e2;
-  --bs-table-striped-bg: #efced7;
+ /*cebratabla*/
   --bs-table-striped-color: #000000;
   --bs-table-active-bg: #e3c3cb;
   --bs-table-active-color: #000000;
@@ -2368,7 +2368,7 @@ progress {
 
 .table-light {
   --bs-table-bg: #F5F8FA;
-  --bs-table-striped-bg: #e9ecee;
+/*cebratabla*/
   --bs-table-striped-color: #000000;
   --bs-table-active-bg: #dddfe1;
   --bs-table-active-color: #000000;
@@ -2380,7 +2380,7 @@ progress {
 
 .table-dark {
   --bs-table-bg: #181C32;
-  --bs-table-striped-bg: #24273c;
+ /*cebratabla*/
   --bs-table-striped-color: #ffffff;
   --bs-table-active-bg: #2f3347;
   --bs-table-active-color: #ffffff;
