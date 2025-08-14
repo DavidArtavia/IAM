@@ -1,10 +1,14 @@
 import React, { useEffect, useRef, useMemo } from "react";
 import $ from "jquery";
 import "datatables.net-bs5";
+import 'datatables.net-responsive-bs5';
+import 'datatables.net-responsive-bs5/css/responsive.bootstrap5.min.css';
 import DataTable from "datatables.net-dt";
 import JsZip from "jszip";
 import Buttons from "datatables.net-buttons";
 import "datatables.net-buttons/js/buttons.html5.js";
+import 'datatables.net-fixedheader-bs5';
+import 'datatables.net-fixedheader-bs5/css/fixedHeader.bootstrap5.min.css';
 
 import ReactDOM from "react-dom/client";
 import { useApp } from "@/hooks/useApp";
@@ -35,6 +39,7 @@ export interface GenericDataTableProps<T> {
   includeEstadoColumn?: boolean;
   customColumns?: ColumnSettings[];
   dataTableButtons?: DynamicButtonConfig[];
+  nowrapColumns?: (keyof T | string)[];
   onRowClick?: (rowData: T) => void;
 }
 
@@ -51,6 +56,7 @@ export function GenericDataTable<T>({
   includeEstadoColumn = false,
   customColumns = [],
   dataTableButtons,
+  nowrapColumns = [],
   onRowClick,
 }: GenericDataTableProps<T>) {
   //🔄 Estado general
@@ -61,7 +67,25 @@ export function GenericDataTable<T>({
   const tableRef = useRef<HTMLTableElement>(null);
 
   //#region 🔧 Columnas dinámicas DataTable
+
+  // 🔧 Helpers — detección por key o por título (case-insensitive)
+  const _normalize = (v: unknown) => String(v ?? '').trim().toLowerCase();
+  const _joinClass = (base?: string, add?: string) =>
+    [base, add].filter(Boolean).join(' ').trim();
+
+  const _wantsNowrap = (key: string, title: string, list: (keyof T | string)[]) => {
+    const k = _normalize(key);
+    const t = _normalize(title);
+    return (list || []).some(x => {
+      const v = _normalize(x);
+      return v === k || v === t;
+    });
+  };
+
+
   const dtColumns = useMemo<ColumnSettings[]>(() => {
+
+
     const cols: ColumnSettings[] = [];
 
     const availableKeys = data.reduce<Set<string>>((set, row) => {
@@ -76,7 +100,15 @@ export function GenericDataTable<T>({
           title: labelMap[keyStr] || keyStr,
           data: keyStr,
           defaultContent: "",
+
         };
+
+        const titleTxt = labelMap[keyStr] || keyStr;
+
+        // 👇 Si la columna está listada por key o por título → nowrap
+        if (_wantsNowrap(keyStr, titleTxt, nowrapColumns)) {
+          col.className = _joinClass(col.className as string | undefined, 'text-nowrap');
+        }
 
         if (customRenderers[key]) {
           col.render = (val, _, row) => {
@@ -95,76 +127,80 @@ export function GenericDataTable<T>({
 
     //#region 🧩 Custom columns (user-defined)
 
-    if (customColumns) {
-      cols.push(...customColumns);
-    }
+  if (customColumns) {
+  customColumns.forEach((c) => {
+    const cTitle = String((c as any).title ?? '');
+    const needs = _wantsNowrap('', cTitle, nowrapColumns);
+    cols.push(needs ? { ...c, className: _joinClass((c as any).className, 'text-nowrap') } : c);
+  });
+}
     //#endregion
     //#endregion
 
     //#region 📊 Columna Avance (barra de progreso)
- if (labelMap["avance"]) {
-   cols.push({
-     title: labelMap["avance"],
-     data: null,
-     orderable: true,
-     searchable: true,
-     defaultContent: "",
-     render: function (_data, type, row) {
-       const porcentaje = row["avance"] ?? 0;
+    if (labelMap["avance"]) {
+      cols.push({
+        title: labelMap["avance"],
+        data: null,
+        orderable: true,
+        searchable: true,
+        defaultContent: "",
+        render: function (_data, type, row) {
+          const porcentaje = row["avance"] ?? 0;
 
-       // Exportaciones (Excel, PDF, etc.)
-       if (type === "export") {
-         return `${porcentaje}%`;
-       }
+          // Exportaciones (Excel, PDF, etc.)
+          if (type === "export") {
+            return `${porcentaje}%`;
+          }
 
-       // Filtros y ordenamientos
-       if (type === "filter" || type === "sort") {
-         return porcentaje;
-       }
-       // Display: se renderiza manualmente en `createdCell`
-       return "";
-     },
-     createdCell: (cell, _cellData, row) => {
-       try {
-         const porcentaje = row["avance"] ?? 0;
-         const barColor =
-           porcentaje >= 80
-             ? "bg-success"
-             : porcentaje >= 50
-             ? "bg-warning"
-             : "bg-danger";
+          // Filtros y ordenamientos
+          if (type === "filter" || type === "sort") {
+            return porcentaje;
+          }
+          // Display: se renderiza manualmente en `createdCell`
+          return "";
+        },
+        createdCell: (cell, _cellData, row) => {
+          try {
+            const porcentaje = row["avance"] ?? 0;
+            const barColor =
+              porcentaje >= 80
+                ? "bg-success"
+                : porcentaje >= 50
+                  ? "bg-warning"
+                  : "bg-danger";
 
-         const container = document.createElement("div");
-         (cell as HTMLElement).innerHTML = "";
-         cell.appendChild(container);
+            const container = document.createElement("div");
+            (cell as HTMLElement).innerHTML = "";
+            cell.appendChild(container);
 
-         const content = (
-           <div className="d-flex flex-column w-100 me-2">
-             <div className="d-flex flex-stack mb-2">
-               <span className="text-muted me-2 fs-7 fw-bold">
-                 {porcentaje}%
-               </span>
-             </div>
-             <div className="progress h-6px w-100">
-               <div
-                 className={`progress-bar ${barColor}`}
-                 role="progressbar"
-                 style={{ width: `${porcentaje}%` }}
-                 aria-valuenow={porcentaje}
-                 aria-valuemin={0}
-                 aria-valuemax={100}
-               />
-             </div>
-           </div>
-         );
+            const content = (
+              <div className="d-flex flex-column w-100 me-2">
+                <div className="d-flex flex-stack mb-2">
+                  <span className="text-muted me-2 fs-7 fw-bold">
+                    {porcentaje}%
+                  </span>
+                </div>
+                <div className="progress h-6px w-100">
+                  <div
+                    className={`progress-bar ${barColor}`}
+                    role="progressbar"
+                    style={{ width: `${porcentaje}%` }}
+                    aria-valuenow={porcentaje}
+                    aria-valuemin={0}
+                    aria-valuemax={100}
+                  />
+                </div>
+              </div>
+            );
 
-         ReactDOM.createRoot(container).render(content);
-       } catch (error) {
-         console.warn("Error renderizando columna 'avance'", error);
-       }
-     },
-   });
- }
+            ReactDOM.createRoot(container).render(content);
+          } catch (error) {
+            console.warn("Error renderizando columna 'avance'", error);
+          }
+        },
+      });
+    }
 
     //#endregion
 
@@ -261,6 +297,25 @@ export function GenericDataTable<T>({
     });
     //#endregion
 
+    if (cols.length > 0) {
+      const lastIdx = cols.length - 1;
+
+      // Primera columna: máxima prioridad (se queda visible)
+      // @ts-expect-error  — por el uso de la librerí a con react
+      cols[0] = { ...cols[0], responsivePriority: 1 };
+
+      // Última columna: segunda prioridad (se queda visible si hay espacio)
+      // @ts-expect-error  — por el uso de la librerí a con react
+      cols[lastIdx] = { ...cols[lastIdx], responsivePriority: 2 };
+
+      // Asignar prioridades crecientes al resto (preserva orden)
+      for (let i = 1; i < lastIdx; i++) {
+        // prioridad más alta numérica = se oculta antes
+        // @ts-expect-error  — por el uso de la librerí a con react
+        cols[i] = { ...cols[i], responsivePriority: 3 + i };
+      }
+    }
+
     return cols;
   }, [data]);
   //#endregion
@@ -275,42 +330,118 @@ export function GenericDataTable<T>({
       $(table).empty();
     }
 
+    const headerOffset = document.querySelector<HTMLElement>('.navbar, .app-navbar, .header')?.offsetHeight ?? 0;
+
     try {
-      $(table).DataTable({
+      const dtInstance = $(table).DataTable({
         data,
+        // @ts-expect-error  — «title» aún no está en las typings
+        fixedHeader: {
+          header: true,
+          headerOffset, // pon 0 si no tienes barra fija
+        },
         columns: dtColumns,
+
+        responsive: {
+          details: {
+            type: "inline",  // ✅ mantiene el control en la primera columna
+            target: 0,       // ✅ primera columna visible
+            // 👇 usa el HTML real del <td> para que se vea tu contenido personalizado
+            // @ts-expect-error — compat v1/v2
+            renderer: function (api, rowIdx, columns) {
+              try {
+                const rowsHtml = columns
+                  // @ts-expect-error — compat v1/v2
+                  .map(function (col) {
+                    if (!col.hidden) return "";
+
+                    // Índice de columna (v2: columnIndex, v1: column)
+
+                    const cIdx = col.columnIndex ?? col.column;
+
+                    // HTML actual del <td>
+                    let cellHtml = "";
+                    try {
+                      const node = api.cell(rowIdx, cIdx).node() as HTMLTableCellElement | null;
+                      cellHtml = node ? node.innerHTML : (col.data ?? "");
+                    } catch {
+                      cellHtml = col.data ?? "";
+                    }
+
+                    if (!cellHtml || String(cellHtml).trim() === "") {
+                      cellHtml = '<span aria-hidden="true" class="text-muted">—</span>';
+                    }
+
+                    return `
+              <tr data-dt-row="${rowIdx}" data-dt-column="${cIdx}">
+                <td class="fw-semibold text-muted pe-3">${col.title}</td>
+                <td class="text-wrap">${cellHtml}</td>
+              </tr>
+            `;
+                  })
+                  .join("");
+
+                if (!rowsHtml) return false; // si no hay ocultas, no mostrar el detalle
+                // 👇 ahora con .dtr-details para poder estilizarla sin afectar la tabla principal
+                return $('<table class="dtr-details table table-sm mb-0 w-100"/>').append(rowsHtml);
+
+                // eslint-disable-next-line @typescript-eslint/no-unused-vars
+              } catch (e) {
+                // Fallback al renderer por defecto si hiciera falta
+                // @ts-expect-error — acceso a renderer built-in
+                return $.fn.dataTable.Responsive.renderer.tableDisplay()(api, rowIdx, columns);
+              }
+            },
+          },
+        },
+
+        autoWidth: false, // ✅ evita cálculos innecesarios
         columnDefs: [
           { targets: "_all", className: "text-center", defaultContent: "" },
+          { targets: 0, className: "dtr-control text-nowrap" },
+
         ],
         order: [[0, "desc"]],
+        searchDelay: 200,
+        processing: true,
         language: {
-          search: "Buscar:",
+          search: "",
+          searchPlaceholder: "Buscar…",    // <- placeholder en el input
           emptyTable: "No hay datos disponibles",
-          lengthMenu: "Mostrar _MENU_ registros",
+          lengthMenu: '<span class="d-none d-sm-inline">Mostrar</span> _MENU_ <span class="d-none d-sm-inline">registros</span>',
           zeroRecords: "No se encontraron resultados",
           info: "Mostrando página _PAGE_ de _PAGES_",
           infoEmpty: "Sin registros",
+          infoFiltered: " (filtrado de _MAX_ registros totales)",
           paginate: {
             first: "Primero",
             last: "Último",
             previous: "Anterior",
             next: "Siguiente",
-          },
+          }
         },
         deferRender: true,
         destroy: true,
-        dom: "Bfrtip",
-        // @ts-expect-error  — «title» aún no está en las typings
+        dom:
+          "<'dt-toolbar d-flex flex-wrap align-items-center gap-2 px-2'<'me-auto'l><'ms-auto d-flex align-items-center flex-wrap gap-2'Bf>>" +
+          "rt" +
+          "<'dt-footer row gy-2 gx-2 align-items-center justify-content-center justify-content-md-between px-2'" +
+          "<'col-12 col-md-auto order-2 order-md-1 text-center text-md-start'i>" +
+          "<'col-12 col-md-auto order-1 order-md-2 text-center text-md-end ms-md-auto'p>" +
+          ">",
+
+        pageLength: 50,                // ✅ 50 por defecto
+        lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Todos"]],
         buttons: [
           {
             extend: "excelHtml5",
             text: `
-          <i class="bi bi-file-earmark-excel-fill fs-4 me-1"></i>
-          <span class="d-none d-sm-inline">Exportar Excel</span>
-          <i class="bi bi-download fs-5 ms-1"></i>
-        `,
+  <i class="bi bi-download fs-5 d-inline d-sm-none" aria-hidden="true"></i>
+  <span class="visually-hidden d-inline d-sm-none">Exportar Excel</span>
+  <span class="d-none d-sm-inline">Exportar Excel</span>
+`,
             className:
-              "btn btn-success btn-sm mb-3 d-flex align-items-center justify-content-center gap-2",
+              "btn btn-success btn-sm mb-0 d-flex align-items-center justify-content-center gap-2",
             filename:
               "Reporte " +
               title +
@@ -343,19 +474,603 @@ export function GenericDataTable<T>({
                 .split("/")
                 .join("-"),
             sheetName: "Datos",
+            stripeClasses: ['zebra-odd', 'zebra-even']
           },
         ],
       });
-
-      const dtInstance = $(table).DataTable();
+      // 🎨 Estilos para el bloque "info" (DT2: .dt-info / DT1: .dataTables_info)
+      const styleInfo = () => {
+        const $wrapper = $(table).closest('.dt-container, .dataTables_wrapper');
+        const $info = $wrapper.find('.dt-info, .dataTables_info');
+        $info.css({ color: '#b5b5c3', padding: '5px' });
+      };
+      styleInfo();
+      // Reaplicar en redraw / cambio de página / longitud
       $(table)
-        .off("click", "tbody tr")
-        .on("click", "tbody tr", function () {
-          const row = dtInstance.row(this);
+        .off('draw.dt._styleInfo page.dt._styleInfo length.dt._styleInfo')
+        .on('draw.dt._styleInfo page.dt._styleInfo length.dt._styleInfo', styleInfo);
+
+      // 🎨 Estilo para el footer (margen superior de 10px)
+      const styleFooter = () => {
+        const $wrapper = $(table).closest('.dt-container, .dataTables_wrapper');
+        $wrapper.find('.dt-footer').css({ marginTop: '15px' });
+      };
+      styleFooter();
+      // Reaplicar en redraw / cambio de página / cambio de longitud
+      $(table)
+        .off('draw.dt._styleFooter page.dt._styleFooter length.dt._styleFooter')
+        .on('draw.dt._styleFooter page.dt._styleFooter length.dt._styleFooter', styleFooter);
+
+      // 🔤 Forzar etiqueta "Todos" en la opción -1 del selector de longitud
+      const fixAllLabel = () => {
+        const $wrapper = $(table).closest('.dt-container, .dataTables_wrapper');
+        // Soporta DT v2 (.dt-length) y v1 (.dataTables_length)
+        const $select = $wrapper.find('.dt-length select, .dataTables_length select');
+        $select.find('option[value="-1"]').text('Todos');
+      };
+      fixAllLabel();
+
+      // Reaplicar por si el DOM se re-renderiza o cambia la longitud/página
+      $(table)
+        .off('init.dt._fixAll length.dt._fixAll draw.dt._fixAll')
+        .on('init.dt._fixAll length.dt._fixAll draw.dt._fixAll', fixAllLabel);
+
+      // 🎨 Separación del panel superior (toolbar) respecto a la tabla (15px)
+      const styleToolbar = () => {
+        const $wrapper = $(table).closest('.dt-container, .dataTables_wrapper');
+        $wrapper.find('.dt-toolbar').css({ marginBottom: '10px' });
+      };
+      styleToolbar();
+      // Reaplicar en redraw / cambio de página / cambio de longitud
+      $(table)
+        .off('draw.dt._styleToolbar page.dt._styleToolbar length.dt._styleToolbar')
+        .on('draw.dt._styleToolbar page.dt._styleToolbar length.dt._styleToolbar', styleToolbar);
+
+      // 🎨 Quitar negrita en títulos de columna (thead) — original y FixedHeader
+      const styleHeader = () => {
+        const $wrapper = $(table).closest('.dt-container, .dataTables_wrapper');
+        // Header original
+        $wrapper.find('table thead th').css({ fontWeight: '400' });
+        // Header flotante de FixedHeader (DT2 y DT1)
+        $('.dtfh-floatingparent thead th, .fixedHeader-floating thead th').css({ fontWeight: '400' });
+      };
+      styleHeader();
+      // Reaplicar en redraw / cambios responsivos / re-cálculo
+      $(table)
+        .off('draw.dt._styleHeader responsive-resize.dt._styleHeader column-sizing.dt._styleHeader')
+        .on('draw.dt._styleHeader responsive-resize.dt._styleHeader column-sizing.dt._styleHeader', styleHeader);
+
+
+      // 🎨 Header: flechas sólo en hover y hover sutil (DT v2 y v1)
+      (() => {
+        const styleId = 'dt-header-hover-sort-style';
+        if (!document.getElementById(styleId)) {
+          const style = document.createElement('style');
+          style.id = styleId;
+          style.textContent = `
+/* ===== DataTables v2: el icono suele ser un span .dt-column-order ===== */
+.dt-container table.dataTable thead th .dt-column-order {
+  opacity: 0;
+  transition: opacity .15s ease;
+}
+.dt-container table.dataTable thead th:hover .dt-column-order,
+.dt-container table.dataTable thead th.dt-ordering .dt-column-order {
+  opacity: 1;
+}
+
+/* ===== DataTables v1: las flechas son pseudo-elementos :before/:after ===== */
+.dataTables_wrapper table.dataTable thead th.sorting:before,
+.dataTables_wrapper table.dataTable thead th.sorting:after {
+  opacity: 0;
+  transition: opacity .15s ease;
+}
+.dataTables_wrapper table.dataTable thead th.sorting:hover:before,
+.dataTables_wrapper table.dataTable thead th.sorting:hover:after {
+  opacity: 1;
+}
+/* Mantener visibles cuando la columna está ordenada */
+.dataTables_wrapper table.dataTable thead th.sorting_asc:before,
+.dataTables_wrapper table.dataTable thead th.sorting_asc:after,
+.dataTables_wrapper table.dataTable thead th.sorting_desc:before,
+.dataTables_wrapper table.dataTable thead th.sorting_desc:after {
+  opacity: 1;
+}
+
+/* ===== Hover del título: sin borde/caja, solo un fill MUY tenue ===== */
+.dt-container table.dataTable thead th:hover,
+.dataTables_wrapper table.dataTable thead th:hover {
+  background-color: rgba(0,0,0,0.03) !important;
+  box-shadow: none !important;
+  outline: none !important;
+  border-color: transparent !important;
+}
+`;
+          document.head.appendChild(style);
+        }
+      })();
+
+      // 🎯 Asegurar que la flechita quede visible en la columna ordenada (DT v2)
+      // (complementa el style previo; no lo reemplaza)
+      (() => {
+        const styleId = 'dt-header-hover-sort-style-extra';
+        if (!document.getElementById(styleId)) {
+          const style = document.createElement('style');
+          style.id = styleId;
+          style.textContent = `
+/* Si el TH tiene orden asc/desc, mostrar el icono aunque no haya hover */
+.dt-container table.dataTable thead th.dt-ordering-asc .dt-column-order,
+.dt-container table.dataTable thead th.dt-ordering-desc .dt-column-order {
+  opacity: 1;
+}
+`;
+          document.head.appendChild(style);
+        }
+      })();
+
+      // 🎨 Aumentar suavemente la altura del header (thead) — original y FixedHeader
+      (() => {
+        const styleId = 'dt-header-height-style';
+        if (!document.getElementById(styleId)) {
+          const style = document.createElement('style');
+          style.id = styleId;
+          style.textContent = `
+/* Header normal (DT2 y DT1) */
+.dt-container table.dataTable thead th,
+.dataTables_wrapper table.dataTable thead th {
+  padding-top: 1.5rem;
+  padding-bottom: 1.5rem;
+}
+
+/* Header flotante de FixedHeader (DT2 y DT1) */
+.dtfh-floatingparent thead th,
+.fixedHeader-floating thead th {
+  padding-top: 1.5rem;
+  padding-bottom: 1.5rem;
+}
+`;
+          document.head.appendChild(style);
+        }
+      })();
+
+
+      // 🎯 FixedHeader: mantener flechas ocultas salvo hover y visibles en la columna ordenada
+      (() => {
+        const styleId = 'dt-header-hover-sort-style-fh';
+        if (!document.getElementById(styleId)) {
+          const style = document.createElement('style');
+          style.id = styleId;
+          style.textContent = `
+/* ===== DataTables v2 (FixedHeader): el flotante vive en .dtfh-floatingparent ===== */
+.dtfh-floatingparent thead th .dt-column-order {
+  opacity: 0;
+  transition: opacity .15s ease;
+}
+.dtfh-floatingparent thead th:hover .dt-column-order,
+.dtfh-floatingparent thead th.dt-ordering .dt-column-order,
+.dtfh-floatingparent thead th.dt-ordering-asc .dt-column-order,
+.dtfh-floatingparent thead th.dt-ordering-desc .dt-column-order {
+  opacity: 1;
+}
+
+/* ===== DataTables v1 (FixedHeader): pseudo-elementos en .fixedHeader-floating ===== */
+.fixedHeader-floating thead th.sorting:before,
+.fixedHeader-floating thead th.sorting:after {
+  opacity: 0;
+  transition: opacity .15s ease;
+}
+.fixedHeader-floating thead th.sorting:hover:before,
+.fixedHeader-floating thead th.sorting:hover:after {
+  opacity: 1;
+}
+.fixedHeader-floating thead th.sorting_asc:before,
+.fixedHeader-floating thead th.sorting_asc:after,
+.fixedHeader-floating thead th.sorting_desc:before,
+.fixedHeader-floating thead th.sorting_desc:after {
+  opacity: 1;
+}
+`;
+          document.head.appendChild(style);
+        }
+      })();
+
+
+
+      // 📱 Desactivar hover gris del header SOLO en móvil / pantallas táctiles
+      (() => {
+        const id = 'dt-header-hover-mobile-off';
+        if (!document.getElementById(id)) {
+          const s = document.createElement('style');
+          s.id = id;
+          s.textContent = `
+/* Teléfono (xs) o dispositivos sin hover (táctiles) */
+@media (max-width: 575.98px), (hover: none) and (pointer: coarse) {
+  /* DT v2 — header normal */
+  .dt-container table.dataTable thead>tr>th.dt-orderable-asc:hover,
+  .dt-container table.dataTable thead>tr>th.dt-orderable-desc:hover,
+  .dt-container table.dataTable thead>tr>td.dt-orderable-asc:hover,
+  .dt-container table.dataTable thead>tr>td.dt-orderable-desc:hover {
+    background-color: transparent !important;
+    outline: none !important;
+    outline-offset: 0 !important;
+    box-shadow: none !important;
+  }
+  /* DT v2 — FixedHeader (header flotante) */
+  .dtfh-floatingparent table.dataTable thead>tr>th.dt-orderable-asc:hover,
+  .dtfh-floatingparent table.dataTable thead>tr>th.dt-orderable-desc:hover,
+  .dtfh-floatingparent table.dataTable thead>tr>td.dt-orderable-asc:hover,
+  .dtfh-floatingparent table.dataTable thead>tr>td.dt-orderable-desc:hover {
+    background-color: transparent !important;
+    outline: none !important;
+    outline-offset: 0 !important;
+    box-shadow: none !important;
+  }
+  /* DT v1 (por compatibilidad) */
+  .dataTables_wrapper table.dataTable thead>tr>th.sorting:hover,
+  .dataTables_wrapper table.dataTable thead>tr>th.sorting_asc:hover,
+  .dataTables_wrapper table.dataTable thead>tr>th.sorting_desc:hover,
+  .fixedHeader-floating table.dataTable thead>tr>th.sorting:hover,
+  .fixedHeader-floating table.dataTable thead>tr>th.sorting_asc:hover,
+  .fixedHeader-floating table.dataTable thead>tr>th.sorting_desc:hover {
+    background-color: transparent !important;
+    outline: none !important;
+    outline-offset: 0 !important;
+    box-shadow: none !important;
+  }
+
+  /* Extra: quita highlight gris en tap (iOS/Android) */
+  .dtfh-floatingparent *, .dt-container * {
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+`;
+          document.head.appendChild(s);
+        }
+      })();
+
+
+      // 🎨 Zebra personalizado sutil (#398bc2) SOLO para esta tabla
+      (() => {
+        // Limpia estilos previos anti-zebra o zebra antiguos (si existieran)
+        document.getElementById('dt-no-zebra')?.remove();
+        document.getElementById('dt-striped-custom')?.remove();
+
+        // Marca esta tabla para scopear la regla
+        $(table).attr('data-zebra-custom', '398bc2');
+
+        const id = 'dt-zebra-custom-398bc2';
+        if (!document.getElementById(id)) {
+          const s = document.createElement('style');
+          s.id = id;
+
+          // 🎛️ Ajusta la intensidad: 0.02 (muy tenue) – 0.08 (más visible)
+          const subtle = 'rgba(57, 139, 194, 0.02)';
+
+          s.textContent = `
+      /* Usar clases .odd de DataTables (más robusto con filas child/responsive) */
+      table[data-zebra-custom="398bc2"].dataTable tbody tr.odd > * {
+        background-color: ${subtle} !important;
+      }
+      /* Fallback por si algún tema no aplica .odd: alternar por posición */
+      table[data-zebra-custom="398bc2"].dataTable tbody tr:nth-of-type(odd) > * {
+        background-color: ${subtle} !important;
+      }
+    `;
+          document.head.appendChild(s);
+        }
+      })();
+
+      // 🎨 En hover de la fila, forzar texto blanco SOLO dentro de .dt-hover-invert
+      (() => {
+        const id = 'dt-hover-invert-inner-style';
+        if (!document.getElementById(id)) {
+          const s = document.createElement('style');
+          s.id = id;
+          s.textContent = `
+/* Sólo donde existe hover real (desktop/touchpad) */
+@media (hover: hover) and (pointer: fine) {
+  /* DataTables v2 y v1 con .table-hover */
+  .dt-container table.dataTable.table-hover tbody tr:hover td .dt-hover-invert,
+  .dataTables_wrapper table.dataTable.table-hover tbody tr:hover td .dt-hover-invert {
+    color: #ffffff !important;
+    filter: brightness(1) !important;
+  }
+  .dt-container table.dataTable.table-hover tbody tr:hover td .dt-hover-invert *,
+  .dataTables_wrapper table.dataTable.table-hover tbody tr:hover td .dt-hover-invert * {
+    color: #ffffff !important;
+    fill: #ffffff !important;              /* para SVGs/íconos */
+    border-color: #ffffff !important; /* bordes sutiles si los hay */
+  }
+
+  /* Opcional: bajar un poco fondos sutiles para mejor contraste */
+  .dt-container table.dataTable.table-hover tbody tr:hover td .dt-hover-invert [class*="bg-"],
+  .dataTables_wrapper table.dataTable.table-hover tbody tr:hover td .dt-hover-invert [class*="bg-"] {
+    filter: brightness(0.85);
+  }
+}
+`;
+          document.head.appendChild(s);
+        }
+      })();
+
+      // ➖ Rellenar celdas vacías con un guion em (solo en display)
+      (() => {
+        const DASH_HTML = '<span aria-hidden="true" class="text-muted">—</span>';
+
+        const fillEmptyCells = () => {
+          // Busca sólo en el cuerpo (tbody)
+          $(table).find('tbody td').each(function () {
+            const td = this as HTMLTableCellElement;
+
+            // Si la celda ya tiene contenido renderizado (React/HTML), no tocar
+            if (td.childElementCount > 0) return;
+
+            // Si tiene texto “real”, mantenerlo (p. ej. 0, ₡0, etc.)
+            const txt = (td.textContent || '').trim();
+            if (txt !== '') return;
+
+            // En vacío → muestra el dash sutil
+            td.innerHTML = DASH_HTML;
+          });
+        };
+
+        // Aplicar ahora y re-aplicar en cada redraw / cambio de página / responsive
+        fillEmptyCells();
+        $(table)
+          .off('draw.dt._dash page.dt._dash length.dt._dash search.dt._dash responsive-display.dt._dash')
+          .on('draw.dt._dash page.dt._dash length.dt._dash search.dt._dash responsive-display.dt._dash', fillEmptyCells);
+      })();
+
+
+
+
+      // 📄 Subtabla responsive: alinear a la IZQUIERDA el contenido de la 2.ª columna
+      (() => {
+        // elimina el estilo de centrado si estaba cargado
+        document.getElementById('dt-responsive-center-flexwrap')?.remove();
+
+        const id = 'dt-responsive-left-flexwrap';
+        if (!document.getElementById(id)) {
+          const s = document.createElement('style');
+          s.id = id;
+          s.textContent = `
+/* En el detalle responsive, 2.ª columna (valor) a la izquierda */
+.dtr-details tr > td:nth-child(2) {
+  text-align: left !important;
+  vertical-align: middle;
+}
+
+/* Si el valor usa un contenedor flex (como "referencias"), alinear a la izquierda */
+.dtr-details tr > td:nth-child(2) .d-flex.flex-wrap {
+  justify-content: flex-start !important;
+}
+
+/* Opcional: anulamos el margen negativo para no “empujar” afuera */
+.dtr-details tr > td:nth-child(2) .ms-n1 {
+  margin-left: 0 !important;
+}
+
+/* Asegura buen alineado vertical de badges/iconos */
+.dtr-details tr > td:nth-child(2) .badge {
+  display: inline-flex;
+  align-items: center;
+}
+`;
+          document.head.appendChild(s);
+        }
+      })();
+
+
+
+
+      (() => {
+        const id = 'dt-main-center-flexwrap';
+        if (!document.getElementById(id)) {
+          const s = document.createElement('style');
+          s.id = id;
+          s.textContent = `
+.dt-container table.dataTable tbody td .d-flex.flex-wrap.ms-n1,
+.dataTables_wrapper table.dataTable tbody td .d-flex.flex-wrap.ms-n1 {
+  justify-content: center !important;
+  margin-left: 0 !important;
+}
+`;
+          document.head.appendChild(s);
+        }
+      })();
+
+
+
+      // ✅ Centrar SOLO en la tabla principal (no aplica a filas .child ni a la subtabla)
+      (() => {
+        // borra el viejo si existe
+        document.getElementById('dt-main-center-flexwrap')?.remove();
+
+        const id = 'dt-main-center-flexwrap';
+        const s = document.createElement('style');
+        s.id = id;
+        s.textContent = `
+/* Solo filas normales, NO .child (que alojan la dtr-details) */
+.dt-container table.dataTable tbody tr:not(.child) td .d-flex.flex-wrap.ms-n1,
+.dataTables_wrapper table.dataTable tbody tr:not(.child) td .d-flex.flex-wrap.ms-n1 {
+  justify-content: center !important;
+  margin-left: 0 !important;
+}
+`;
+        document.head.appendChild(s);
+      })();
+
+
+
+
+
+      // 📄 Subtabla (dtr-details): alinear A LA IZQUIERDA la 2ª columna y tu contenedor flex
+      (() => {
+        const id = 'dt-responsive-left-flexwrap-exact';
+        if (!document.getElementById(id)) {
+          const s = document.createElement('style');
+          s.id = id;
+          s.textContent = `
+/* Texto de la 2ª columna del detalle: izquierda */
+.dtr-details tr > td:nth-child(2) {
+  text-align: left !important;
+  vertical-align: middle;
+}
+
+/* Tu patrón exacto: td > .w-100 > .d-flex.flex-wrap.ms-n1 … */
+.dtr-details tr > td:nth-child(2) > .w-100 > .d-flex.flex-wrap.ms-n1 {
+  justify-content: flex-start !important;
+  margin-left: 0 !important; /* anula ms-n1 */
+}
+
+/* Por si en algún caso no viene .ms-n1 */
+.dtr-details tr > td:nth-child(2) > .w-100 > .d-flex.flex-wrap {
+  justify-content: flex-start !important;
+}
+
+/* Alineado vertical decente para las badges */
+.dtr-details tr > td:nth-child(2) .badge {
+  display: inline-flex;
+  align-items: center;
+}
+`;
+          document.head.appendChild(s);
+        }
+      })();
+
+
+      // 📄 Subtabla responsive (detalle): 2.ª columna a la IZQUIERDA + soporte para tu contenedor flex
+      (() => {
+        const id = 'dt-responsive-left-force';
+        if (!document.getElementById(id)) {
+          const s = document.createElement('style');
+          s.id = id;
+          s.textContent = `
+/* 2.ª columna (valor) de la tabla de detalle */
+tr.child td > table.dtr-details tbody tr > td:nth-child(2) {
+  text-align: left !important;
+  vertical-align: middle;
+}
+
+/* Tu patrón exacto: td > .w-100 > .d-flex.flex-wrap(.ms-n1) … */
+tr.child td > table.dtr-details tbody tr > td:nth-child(2) > .w-100 > .d-flex.flex-wrap {
+  justify-content: flex-start !important;
+}
+tr.child td > table.dtr-details tbody tr > td:nth-child(2) > .w-100 > .d-flex.flex-wrap.ms-n1 {
+  margin-left: 0 !important; /* anula ms-n1 que empuja a la izquierda */
+}
+
+/* Alineado vertical decente para las badges */
+tr.child td > table.dtr-details tbody tr > td:nth-child(2) .badge {
+  display: inline-flex;
+  align-items: center;
+}
+`;
+          document.head.appendChild(s);
+        }
+      })();
+
+      // 🔧 Helper para aplicar estilos con !important a un set de elementos
+      const setImportant = (els: JQuery<HTMLElement>, prop: string, value: string) => {
+        els.each(function () {
+          (this as HTMLElement).style.setProperty(prop, value, 'important');
+        });
+      };
+
+      // Reaplica por si el panel se vuelve a dibujar
+      $(table)
+        .off('responsive-display.dt._leftForce')
+        .on('responsive-display.dt._leftForce', function (_e, _dt, row, show) {
+          if (!show) return;
+          const $child = $(row.node()).next('tr.child');
+
+          // ✅ 2.ª columna del detalle: alineación a la izquierda con !important
+          setImportant($child.find('td > table.dtr-details td:nth-child(2)'), 'text-align', 'left');
+          setImportant($child.find('td > table.dtr-details td:nth-child(2)'), 'vertical-align', 'middle');
+
+          // ✅ Tu contenedor flex “referencias” con !important
+          setImportant(
+            $child.find('td > table.dtr-details td:nth-child(2) > .w-100 > .d-flex.flex-wrap'),
+            'justify-content',
+            'flex-start'
+          );
+          setImportant(
+            $child.find('td > table.dtr-details td:nth-child(2) > .w-100 > .d-flex.flex-wrap.ms-n1'),
+            'margin-left',
+            '0'
+          );
+        });
+
+
+
+
+
+
+
+
+
+
+
+      // Click fila
+      // Click por celda, ignorando primera y última columna visibles
+      $(table)
+        .off("click.dtcell", "tbody td")
+        .on("click.dtcell", "tbody td", function () {
+          const $td = $(this);
+          const $tr = $td.closest("tr");
+
+          // Ignorar filas de detalle (Responsive)
+          if ($tr.hasClass("child")) return;
+
+          const cell = dtInstance.cell(this);
+          if (!cell.any()) return;
+
+          // Índices de columnas VISIBLES (respeta responsive/hide)
+          const visibleCols = dtInstance.columns({ visible: true }).indexes().toArray();
+          const colIdx = cell.index().column;
+          const visiblePos = visibleCols.indexOf(colIdx);
+
+          // ⛔️ Si es la primera o la última columna visible, no hacer nada
+          if (visiblePos === 0 || visiblePos === visibleCols.length - 1) return;
+
+          // (Opcional) Si usas una columna control responsive:
+          if ($td.hasClass("dtr-control")) return;
+
+          // Disparar acción con los datos de la fila
+          const row = dtInstance.row($tr);
           if (!row.any()) return;
           const rawData = row.data() as T;
-          onRowClick?.(rawData); // ✅ envia al componente padre
+          onRowClick?.(rawData);
         });
+
+
+      // ✅ Nunca ocultar 1.ª y última columna en casos extremos
+      $(table)
+        .off('responsive-resize.dt._keepEnds')
+        .on('responsive-resize.dt._keepEnds', function () {
+          const n = dtInstance.columns().count();
+          if (n > 1) {
+            dtInstance.column(0).visible(true);
+            dtInstance.column(n - 1).visible(true);
+          }
+        });
+
+      // ✅ Auto-ajuste al mostrar tabs / modals (BS5)
+      const adjust = () => {
+        dtInstance.columns.adjust();
+        // @ts-expect-error  — por el uso de la librerí a con react
+        dtInstance.fixedHeader?.adjust?.();
+        // @ts-expect-error  — por el uso de la librerí a con react
+        dtInstance.responsive.recalc();
+      };
+      $(document)
+        .off('shown.bs.tab.dtfix shown.bs.modal.dtfix')
+        .on('shown.bs.tab.dtfix shown.bs.modal.dtfix', adjust);
+
+      // Ajuste inicial por si el contenedor aparece luego (tabs, accordions)
+      setTimeout(adjust, 0);
+
+
+
     } catch (err) {
       console.error("DataTable error", err);
     }
@@ -369,7 +1084,15 @@ export function GenericDataTable<T>({
 
     try {
       const dtInstance = $(table).DataTable();
+
       dtInstance.clear().rows.add(data).draw();
+      // Ajustes tras redibujar (por si cambia ancho)
+      dtInstance.columns.adjust();
+      // @ts-expect-error  — por el uso de la librerí a con react
+      dtInstance.fixedHeader?.adjust?.();
+      // @ts-expect-error  — por el uso de la librerí a con react
+      dtInstance.responsive.recalc();
+
     } catch (err) {
       console.warn("Data update error", err);
     }
@@ -379,21 +1102,21 @@ export function GenericDataTable<T>({
   //#region 🎨 Render
   return (
     <>
-      <div className="card shadow-sm mt-5">
-        <div className="card-header d-flex justify-content-between align-items-center py-10 px-lg-17">
+      <div className="card mt-5">
+        <div className="card-header d-flex justify-content-between align-items-center px-5 px-sm-19 d-flex">
           <h3 className="card-title text-gray-600">{title}</h3>
           <button
             onClick={onAdd}
-            className="btn btn-primary"
+            className="btn dt-button buttons-html5 btn btn-primary btn-sm mb-0 d-flex align-items-center justify-content-center gap-2 ms-auto"
             disabled={disableButtonAdd}
           >
             Agregar
           </button>
         </div>
-        <div className="card-body table-responsive p-2 py-10 px-lg-17">
+        <div className="card-body table-responsive p-2 py-10 px-lg-17 pt-5">
           <table
             ref={tableRef}
-            className="table table-sm table-striped table-hover align-middle text-center w-auto"
+            className="table table-sm table-hover align-middle text-center w-auto"
           />
         </div>
       </div>

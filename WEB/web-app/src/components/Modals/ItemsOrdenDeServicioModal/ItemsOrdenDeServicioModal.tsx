@@ -35,7 +35,7 @@ interface ItemsOrdenDeServicioModalProps {
 export const ItemsOrdenDeServicioModal = ({
   open,
   onHide,
-  title = "Detalle del Ítem",
+  title = "Lista de ítems",
   rowData,
 }: ItemsOrdenDeServicioModalProps) => {
 
@@ -347,38 +347,38 @@ export const ItemsOrdenDeServicioModal = ({
       onClick={onHide}
     >
       <div
-        className="modal-dialog modal-dialog-centered modal-lg"
+        className="modal-dialog modal-dialog-centered"
+        style={{ maxWidth: "1200px" }}
         onClick={(e) => e.stopPropagation()}
       >
         <div className="modal-content resizable-metronic-modal">
-          <div className="modal-header cursor-move">
-            <h2 className="fw-bold">{title}</h2>
+          <div className="modal-header cursor-move pt-4 pb-0 border-0 p-5 py-10 px-lg-17 pt-5 mb-n3">
+            <h2 className="fw-light text-gray-400 fs-5">{ title.charAt(0).toUpperCase() + title.slice(1).toLowerCase() }</h2>
             <button
               type="button"
-              className="btn btn-sm btn-icon btn-active-color-primary"
+              className="btn-close"
               onClick={onHide}
             >
-              ✕
             </button>
           </div>
-          <div className="modal-body py-10 px-lg-17">
+          <div className="modal-body p-0">
             {loading ? (
               <LoadingPanel msj="Cargando Items de la órden de servicio, por favor espere..." />
             ) : (
               <GenericDataTable
-                title={`Ítems de la Orden de Servicio #${rowData.iD_OrdenServicio}`}
+                title={`Orden de servicio #${rowData.iD_OrdenServicio}`}
                 columnKeys={columnKeysItemsOrdenServicio}
                 labelMap={labelMapItemsOrdenServicio}
-                // data={itemsOrdenes}
                 data={getActiveItemsOrdenes()}
                 onAdd={handleAddNew}
                 onEdit={handleEdit}
                 onDelete={handleDelete}
                 customRenderers={customRenderers}
-                includeEstadoColumn
+                includeEstadoColumn={false}
                 onRowClick={(row) =>
                   setRowTableSelected(row as DTO_ItemOrdenServicio)
                 }
+                nowrapColumns={['Monto', 'ID']}
               />
             )}
 

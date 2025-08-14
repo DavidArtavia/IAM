@@ -34,7 +34,7 @@ table.dataTable thead th {
 }
 
 .table-hover tbody tr:hover {
-  background-color: #009EF7 !important;
+  background-color: #3e96d2 !important;
   color: #fff !important;
 }
 
@@ -51,7 +51,7 @@ table.dataTable thead th {
   background-color: rgba(0, 0, 0, 0.3);
   /* Más claro */
   backdrop-filter: blur(5px);
-  padding: 20px;
+  /*padding: 20px;*/
 }
 
 .shadowDarkBackground {
@@ -243,3 +243,5 @@ table.dataTable thead th {
 
   }
 } */
+
+

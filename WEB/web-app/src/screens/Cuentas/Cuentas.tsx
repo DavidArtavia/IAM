@@ -468,7 +468,7 @@ export const Cuentas = () => {
   //#region ✏️ Editar cuenta - Campos formulario
   const isCuentaPorCobrarOS = !!(
     editData?.concepto &&
-    /^Cuenta por cobrar de la orden de servicio #\d+$/i.test(editData.concepto)
+    /^Cobro de Orden de Servicio #\d+$/i.test(editData.concepto)
   );
 
   const formEditFields: FieldConfig<any>[] = [

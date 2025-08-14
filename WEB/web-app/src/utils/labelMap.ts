@@ -6,18 +6,17 @@ import { DTO_Cliente, DTO_Cuenta, DTO_ItemOrdenServicio, DTO_Negocio, DTO_OrdenS
 //  Define configuraciones de campos de formulario (FieldConfig) para construir formularios dinámicos relacionados con estos modelos.
 // Los label maps permiten mostrar nombres amigables en la UI, y los arreglos de campos de formulario se usan para generar formularios de manera flexible.
 export const columnKeysCuenta: (keyof DTO_Cuenta)[] = [
+    
     "iD_Cuenta",
-    "iD_OrdenServicio",
-    "concepto",
     "monto",
-    "fechaInicial",
-    "fechaLimite",
-    "tipoCuenta",
     "montoAbonado",
     "saldoPendiente",
-    "estadoPago"
-
-
+    "estadoPago",
+    "tipoCuenta",
+    "fechaLimite",
+    "fechaInicial",
+    "concepto",
+  
 ];
 export const columnKeysNegocio: (keyof DTO_Negocio)[] = [
     "iD_Negocio",
@@ -46,20 +45,29 @@ export const columnKeysCliente: (keyof DTO_Cliente)[] = [
 export const columnKeysItemsOrdenServicio: (keyof DTO_ItemOrdenServicio)[] = [
     "iD_ItemOrdenServicio",
     "iD_OrdenServicio",
+    "monto",
     "nombreItemOrdenServicio",
     "descripcion",
-    "monto",
+    
 ];
 
 export const columnKeysTransacciones: (keyof DTO_Transacciones)[] = [
     "iD_Transaccion",
-    "iD_Negocio",
     "fechaTransaccion",
-    "concepto",
     "monto",
     "tipo",
+    "concepto",
     "tipoNumReferencia",
     "numReferencia",
+
+];
+
+export const columnKeysTransaccionesPorCuenta: (keyof DTO_Transacciones)[] = [
+    "iD_Transaccion",
+    "fechaTransaccion",
+    "monto",
+    "tipo",
+    "concepto",
 
 ];
 
@@ -351,7 +359,7 @@ export const keysInfoModalTransacciones: FieldConfig<DTO_Transacciones>[] = [
 // Este archivo define mapas de etiquetas (label maps) para mostrar nombres legibles en los titulos del DataTable de los modelos.
 export const labelMapCuenta: Record<string, string> = {
     iD_Cuenta: "ID",
-    iD_OrdenServicio: "Orden De Servicio #",
+    iD_OrdenServicio: "Orden",
     estado: "Estado",
     concepto: "Concepto",
     monto: "Monto",
@@ -361,11 +369,13 @@ export const labelMapCuenta: Record<string, string> = {
     
     fechaModificacion: "Fecha de Modificación",
     detalleJSON: "Detalles",
-    montoAbonado: "Monto Abonado",
-    saldoPendiente: "Saldo Pendiente",
-    estadoPago: "Estado Pago"
+    montoAbonado: "Abonado",
+    saldoPendiente: "Saldo",
+    estadoPago: "Estado"
 
 };
+
+
 
 export const labelMapNegocio: Record<string, string> = {
     iD_Negocio: "ID",
@@ -382,8 +392,8 @@ export const labelMapNegocio: Record<string, string> = {
 export const labelMapOrdenDeServicio: Record<string, string> = {
     iD_OrdenServicio: "ID",
     estado: "Estado",
-    fechaOrdenServicio: "Fecha",
-    fechaEstimadaEntrega: "Entrega Estimada",
+    fechaOrdenServicio: "Creación",
+    fechaEstimadaEntrega: "Estimación",
     fechaInicio: "Fecha de Inicio",
     fechaFinal: "Fecha Final",
     fechaEntrega: "Fecha de Entrega",
@@ -402,8 +412,8 @@ export const labelMapCliente: Record<string, string> = {
 
 export const labelMapItemsOrdenServicio: Record<string, string> = {
     iD_ItemOrdenServicio: "ID",
-    iD_OrdenServicio: "ID Orden Servicio",
-    nombreItemOrdenServicio: "Nombre del Item",
+    iD_OrdenServicio: "Orden",
+    nombreItemOrdenServicio: "Nombre",
     descripcion: "Descripción",
     monto: "Monto",
     avance: "Avance",
