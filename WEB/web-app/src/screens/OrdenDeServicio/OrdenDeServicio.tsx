@@ -646,7 +646,7 @@ const handleSaveNewClient = () => {
   //#endregion
 
   // #region 🧠 Memo tabla
-  const { data, labelMap } = useMemo(() => {
+  const { data } = useMemo(() => {
     const referenceMap = new Map<string, string>();
     ordenes.forEach((o) => {
       o.referenciaJSON?.forEach((r) => {
@@ -1043,9 +1043,9 @@ const handleSaveNewClient = () => {
       ) : (
         <>
           <GenericDataTable<DTO_OrdenServicio & Record<string, string>>
-            title="Órdenes de Servicio"
+            title="Órdenes de servicio"
             columnKeys={columnKeysOrdenDeServicio}
-            labelMap={labelMap}
+            labelMap={labelMapOrdenDeServicio}
             data={data}
             onAdd={handleAddNew}
             onEdit={handleEdit}
@@ -1071,7 +1071,7 @@ const handleSaveNewClient = () => {
 
           {/* Modal Registrar */}
           <GenericFormModal<DTO_OrdenServicio>
-            title="Registrar Orden"
+            title="Registrar orden"
             show={isFormOpen}
             onHide={handleCancelAdd}
             data={formData}
@@ -1084,7 +1084,7 @@ const handleSaveNewClient = () => {
 
           {/* Modal Registrar Cliente */}
           <GenericFormModal
-            title="Registrar Cliente"
+            title="Registrar cliente"
             show={isModalRegisterClientOpen}
             onHide={() => setIsModalRegisterClientOpen(false)}
             data={newClientData}
@@ -1097,7 +1097,7 @@ const handleSaveNewClient = () => {
 
           {/* Modal Editar */}
           <GenericFormModal<DTO_OrdenServicio>
-            title="Editar Orden de Servicio"
+            title="Editar orden de servicio"
             show={showEditForm}
             onHide={() => setShowEditForm(false)}
             data={editData}
@@ -1111,7 +1111,7 @@ const handleSaveNewClient = () => {
 
           {/* Modal Crear Cuenta */}
           <GenericFormModal<DTO_Cuenta>
-            title="Crear Cuenta"
+            title="Crear cuenta"
             show={showCreateAccount}
             onHide={() => setShowCreateAccount(false)}
             data={account!}

@@ -309,10 +309,61 @@ export function GenericDataTable<T>({
           headerOffset, // pon 0 si no tienes barra fija
         },
         columns: dtColumns,
-        responsive: true,
+       
+responsive: {
+  details: {
+    type: "inline",  // ✅ mantiene el control en la primera columna
+    target: 0,       // ✅ primera columna visible
+    // 👇 usa el HTML real del <td> para que se vea tu contenido personalizado
+                // @ts-expect-error — compat v1/v2
+    renderer: function (api, rowIdx, columns) {
+      try {
+        const rowsHtml = columns
+                    // @ts-expect-error — compat v1/v2
+          .map(function (col) {
+            if (!col.hidden) return "";
+
+            // Índice de columna (v2: columnIndex, v1: column)
+
+            const cIdx = col.columnIndex ?? col.column;
+
+            // HTML actual del <td>
+            let cellHtml = "";
+            try {
+              const node = api.cell(rowIdx, cIdx).node() as HTMLTableCellElement | null;
+              cellHtml = node ? node.innerHTML : (col.data ?? "");
+            } catch {
+              cellHtml = col.data ?? "";
+            }
+
+            if (!cellHtml || String(cellHtml).trim() === "") {
+              cellHtml = '<span aria-hidden="true" class="text-muted">—</span>';
+            }
+
+            return `
+              <tr data-dt-row="${rowIdx}" data-dt-column="${cIdx}">
+                <td class="fw-semibold text-muted pe-3">${col.title}</td>
+                <td class="text-wrap">${cellHtml}</td>
+              </tr>
+            `;
+          })
+          .join("");
+
+        if (!rowsHtml) return false; // si no hay ocultas, no mostrar el detalle
+        return $('<table class="table table-sm mb-0 w-100"/>').append(rowsHtml);
+      } catch (e) {
+        // Fallback al renderer por defecto si hiciera falta
+        // @ts-expect-error — acceso a renderer built-in
+        return $.fn.dataTable.Responsive.renderer.tableDisplay()(api, rowIdx, columns);
+      }
+    },
+  },
+},
+
         autoWidth: false, // ✅ evita cálculos innecesarios
         columnDefs: [
           { targets: "_all", className: "text-center", defaultContent: "" },
+          { targets: 0, className: "dtr-control" },
         ],
         order: [[0, "desc"]],
         searchDelay: 200,
@@ -521,12 +572,12 @@ export function GenericDataTable<T>({
       })();
 
       // 🎨 Aumentar suavemente la altura del header (thead) — original y FixedHeader
-(() => {
-  const styleId = 'dt-header-height-style';
-  if (!document.getElementById(styleId)) {
-    const style = document.createElement('style');
-    style.id = styleId;
-    style.textContent = `
+      (() => {
+        const styleId = 'dt-header-height-style';
+        if (!document.getElementById(styleId)) {
+          const style = document.createElement('style');
+          style.id = styleId;
+          style.textContent = `
 /* Header normal (DT2 y DT1) */
 .dt-container table.dataTable thead th,
 .dataTables_wrapper table.dataTable thead th {
@@ -541,18 +592,18 @@ export function GenericDataTable<T>({
   padding-bottom: 1.5rem;
 }
 `;
-    document.head.appendChild(style);
-  }
-})();
+          document.head.appendChild(style);
+        }
+      })();
 
 
-// 🎯 FixedHeader: mantener flechas ocultas salvo hover y visibles en la columna ordenada
-(() => {
-  const styleId = 'dt-header-hover-sort-style-fh';
-  if (!document.getElementById(styleId)) {
-    const style = document.createElement('style');
-    style.id = styleId;
-    style.textContent = `
+      // 🎯 FixedHeader: mantener flechas ocultas salvo hover y visibles en la columna ordenada
+      (() => {
+        const styleId = 'dt-header-hover-sort-style-fh';
+        if (!document.getElementById(styleId)) {
+          const style = document.createElement('style');
+          style.id = styleId;
+          style.textContent = `
 /* ===== DataTables v2 (FixedHeader): el flotante vive en .dtfh-floatingparent ===== */
 .dtfh-floatingparent thead th .dt-column-order {
   opacity: 0;
@@ -582,19 +633,19 @@ export function GenericDataTable<T>({
   opacity: 1;
 }
 `;
-    document.head.appendChild(style);
-  }
-})();
+          document.head.appendChild(style);
+        }
+      })();
 
 
 
-// 📱 Desactivar hover gris del header SOLO en móvil / pantallas táctiles
-(() => {
-  const id = 'dt-header-hover-mobile-off';
-  if (!document.getElementById(id)) {
-    const s = document.createElement('style');
-    s.id = id;
-    s.textContent = `
+      // 📱 Desactivar hover gris del header SOLO en móvil / pantallas táctiles
+      (() => {
+        const id = 'dt-header-hover-mobile-off';
+        if (!document.getElementById(id)) {
+          const s = document.createElement('style');
+          s.id = id;
+          s.textContent = `
 /* Teléfono (xs) o dispositivos sin hover (táctiles) */
 @media (max-width: 575.98px), (hover: none) and (pointer: coarse) {
   /* DT v2 — header normal */
@@ -636,29 +687,29 @@ export function GenericDataTable<T>({
   }
 }
 `;
-    document.head.appendChild(s);
-  }
-})();
+          document.head.appendChild(s);
+        }
+      })();
 
 
-// 🎨 Zebra personalizado sutil (#398bc2) SOLO para esta tabla
-(() => {
-  // Limpia estilos previos anti-zebra o zebra antiguos (si existieran)
-  document.getElementById('dt-no-zebra')?.remove();
-  document.getElementById('dt-striped-custom')?.remove();
+      // 🎨 Zebra personalizado sutil (#398bc2) SOLO para esta tabla
+      (() => {
+        // Limpia estilos previos anti-zebra o zebra antiguos (si existieran)
+        document.getElementById('dt-no-zebra')?.remove();
+        document.getElementById('dt-striped-custom')?.remove();
 
-  // Marca esta tabla para scopear la regla
-  $(table).attr('data-zebra-custom', '398bc2');
+        // Marca esta tabla para scopear la regla
+        $(table).attr('data-zebra-custom', '398bc2');
 
-  const id = 'dt-zebra-custom-398bc2';
-  if (!document.getElementById(id)) {
-    const s = document.createElement('style');
-    s.id = id;
+        const id = 'dt-zebra-custom-398bc2';
+        if (!document.getElementById(id)) {
+          const s = document.createElement('style');
+          s.id = id;
 
-    // 🎛️ Ajusta la intensidad: 0.02 (muy tenue) – 0.08 (más visible)
-    const subtle = 'rgba(57, 139, 194, 0.02)';
+          // 🎛️ Ajusta la intensidad: 0.02 (muy tenue) – 0.08 (más visible)
+          const subtle = 'rgba(57, 139, 194, 0.02)';
 
-    s.textContent = `
+          s.textContent = `
       /* Usar clases .odd de DataTables (más robusto con filas child/responsive) */
       table[data-zebra-custom="398bc2"].dataTable tbody tr.odd > * {
         background-color: ${subtle} !important;
@@ -668,17 +719,17 @@ export function GenericDataTable<T>({
         background-color: ${subtle} !important;
       }
     `;
-    document.head.appendChild(s);
-  }
-})();
+          document.head.appendChild(s);
+        }
+      })();
 
-// 🎨 En hover de la fila, forzar texto blanco SOLO dentro de .dt-hover-invert
-(() => {
-  const id = 'dt-hover-invert-inner-style';
-  if (!document.getElementById(id)) {
-    const s = document.createElement('style');
-    s.id = id;
-    s.textContent = `
+      // 🎨 En hover de la fila, forzar texto blanco SOLO dentro de .dt-hover-invert
+      (() => {
+        const id = 'dt-hover-invert-inner-style';
+        if (!document.getElementById(id)) {
+          const s = document.createElement('style');
+          s.id = id;
+          s.textContent = `
 /* Sólo donde existe hover real (desktop/touchpad) */
 @media (hover: hover) and (pointer: fine) {
   /* DataTables v2 y v1 con .table-hover */
@@ -701,9 +752,39 @@ export function GenericDataTable<T>({
   }
 }
 `;
-    document.head.appendChild(s);
-  }
-})();
+          document.head.appendChild(s);
+        }
+      })();
+
+      // ➖ Rellenar celdas vacías con un guion em (solo en display)
+      (() => {
+        const DASH_HTML = '<span aria-hidden="true" class="text-muted">—</span>';
+
+        const fillEmptyCells = () => {
+          // Busca sólo en el cuerpo (tbody)
+          $(table).find('tbody td').each(function () {
+            const td = this as HTMLTableCellElement;
+
+            // Si la celda ya tiene contenido renderizado (React/HTML), no tocar
+            if (td.childElementCount > 0) return;
+
+            // Si tiene texto “real”, mantenerlo (p. ej. 0, ₡0, etc.)
+            const txt = (td.textContent || '').trim();
+            if (txt !== '') return;
+
+            // En vacío → muestra el dash sutil
+            td.innerHTML = DASH_HTML;
+          });
+        };
+
+        // Aplicar ahora y re-aplicar en cada redraw / cambio de página / responsive
+        fillEmptyCells();
+        $(table)
+          .off('draw.dt._dash page.dt._dash length.dt._dash search.dt._dash responsive-display.dt._dash')
+          .on('draw.dt._dash page.dt._dash length.dt._dash search.dt._dash responsive-display.dt._dash', fillEmptyCells);
+      })();
+
+
 
 
 
@@ -723,36 +804,36 @@ export function GenericDataTable<T>({
 
 
       // Click fila
-// Click por celda, ignorando primera y última columna visibles
-$(table)
-  .off("click.dtcell", "tbody td")
-  .on("click.dtcell", "tbody td", function () {
-    const $td = $(this);
-    const $tr = $td.closest("tr");
+      // Click por celda, ignorando primera y última columna visibles
+      $(table)
+        .off("click.dtcell", "tbody td")
+        .on("click.dtcell", "tbody td", function () {
+          const $td = $(this);
+          const $tr = $td.closest("tr");
 
-    // Ignorar filas de detalle (Responsive)
-    if ($tr.hasClass("child")) return;
+          // Ignorar filas de detalle (Responsive)
+          if ($tr.hasClass("child")) return;
 
-    const cell = dtInstance.cell(this);
-    if (!cell.any()) return;
+          const cell = dtInstance.cell(this);
+          if (!cell.any()) return;
 
-    // Índices de columnas VISIBLES (respeta responsive/hide)
-    const visibleCols = dtInstance.columns({ visible: true }).indexes().toArray();
-    const colIdx = cell.index().column;
-    const visiblePos = visibleCols.indexOf(colIdx);
+          // Índices de columnas VISIBLES (respeta responsive/hide)
+          const visibleCols = dtInstance.columns({ visible: true }).indexes().toArray();
+          const colIdx = cell.index().column;
+          const visiblePos = visibleCols.indexOf(colIdx);
 
-    // ⛔️ Si es la primera o la última columna visible, no hacer nada
-    if (visiblePos === 0 || visiblePos === visibleCols.length - 1) return;
+          // ⛔️ Si es la primera o la última columna visible, no hacer nada
+          if (visiblePos === 0 || visiblePos === visibleCols.length - 1) return;
 
-    // (Opcional) Si usas una columna control responsive:
-    if ($td.hasClass("dtr-control")) return;
+          // (Opcional) Si usas una columna control responsive:
+          if ($td.hasClass("dtr-control")) return;
 
-    // Disparar acción con los datos de la fila
-    const row = dtInstance.row($tr);
-    if (!row.any()) return;
-    const rawData = row.data() as T;
-    onRowClick?.(rawData);
-  });
+          // Disparar acción con los datos de la fila
+          const row = dtInstance.row($tr);
+          if (!row.any()) return;
+          const rawData = row.data() as T;
+          onRowClick?.(rawData);
+        });
 
 
       // ✅ Nunca ocultar 1.ª y última columna en casos extremos

@@ -365,6 +365,8 @@ export const labelMapCuenta: Record<string, string> = {
 
 };
 
+
+
 export const labelMapNegocio: Record<string, string> = {
     iD_Negocio: "ID",
     estado: "Estado",
@@ -380,8 +382,8 @@ export const labelMapNegocio: Record<string, string> = {
 export const labelMapOrdenDeServicio: Record<string, string> = {
     iD_OrdenServicio: "ID",
     estado: "Estado",
-    fechaOrdenServicio: "Fecha",
-    fechaEstimadaEntrega: "Entrega Estimada",
+    fechaOrdenServicio: "Creación",
+    fechaEstimadaEntrega: "Estimación",
     fechaInicio: "Fecha de Inicio",
     fechaFinal: "Fecha Final",
     fechaEntrega: "Fecha de Entrega",
