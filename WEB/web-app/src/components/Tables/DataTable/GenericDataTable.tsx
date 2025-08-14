@@ -309,61 +309,65 @@ export function GenericDataTable<T>({
           headerOffset, // pon 0 si no tienes barra fija
         },
         columns: dtColumns,
-       
-responsive: {
-  details: {
-    type: "inline",  // ✅ mantiene el control en la primera columna
-    target: 0,       // ✅ primera columna visible
-    // 👇 usa el HTML real del <td> para que se vea tu contenido personalizado
-                // @ts-expect-error — compat v1/v2
-    renderer: function (api, rowIdx, columns) {
-      try {
-        const rowsHtml = columns
-                    // @ts-expect-error — compat v1/v2
-          .map(function (col) {
-            if (!col.hidden) return "";
 
-            // Índice de columna (v2: columnIndex, v1: column)
+        responsive: {
+          details: {
+            type: "inline",  // ✅ mantiene el control en la primera columna
+            target: 0,       // ✅ primera columna visible
+            // 👇 usa el HTML real del <td> para que se vea tu contenido personalizado
+            // @ts-expect-error — compat v1/v2
+            renderer: function (api, rowIdx, columns) {
+              try {
+                const rowsHtml = columns
+                  // @ts-expect-error — compat v1/v2
+                  .map(function (col) {
+                    if (!col.hidden) return "";
 
-            const cIdx = col.columnIndex ?? col.column;
+                    // Índice de columna (v2: columnIndex, v1: column)
 
-            // HTML actual del <td>
-            let cellHtml = "";
-            try {
-              const node = api.cell(rowIdx, cIdx).node() as HTMLTableCellElement | null;
-              cellHtml = node ? node.innerHTML : (col.data ?? "");
-            } catch {
-              cellHtml = col.data ?? "";
-            }
+                    const cIdx = col.columnIndex ?? col.column;
 
-            if (!cellHtml || String(cellHtml).trim() === "") {
-              cellHtml = '<span aria-hidden="true" class="text-muted">—</span>';
-            }
+                    // HTML actual del <td>
+                    let cellHtml = "";
+                    try {
+                      const node = api.cell(rowIdx, cIdx).node() as HTMLTableCellElement | null;
+                      cellHtml = node ? node.innerHTML : (col.data ?? "");
+                    } catch {
+                      cellHtml = col.data ?? "";
+                    }
 
-            return `
+                    if (!cellHtml || String(cellHtml).trim() === "") {
+                      cellHtml = '<span aria-hidden="true" class="text-muted">—</span>';
+                    }
+
+                    return `
               <tr data-dt-row="${rowIdx}" data-dt-column="${cIdx}">
                 <td class="fw-semibold text-muted pe-3">${col.title}</td>
                 <td class="text-wrap">${cellHtml}</td>
               </tr>
             `;
-          })
-          .join("");
+                  })
+                  .join("");
 
-        if (!rowsHtml) return false; // si no hay ocultas, no mostrar el detalle
-        return $('<table class="table table-sm mb-0 w-100"/>').append(rowsHtml);
-      } catch (e) {
-        // Fallback al renderer por defecto si hiciera falta
-        // @ts-expect-error — acceso a renderer built-in
-        return $.fn.dataTable.Responsive.renderer.tableDisplay()(api, rowIdx, columns);
-      }
-    },
-  },
-},
+                if (!rowsHtml) return false; // si no hay ocultas, no mostrar el detalle
+                // 👇 ahora con .dtr-details para poder estilizarla sin afectar la tabla principal
+                return $('<table class="dtr-details table table-sm mb-0 w-100"/>').append(rowsHtml);
+
+                // eslint-disable-next-line @typescript-eslint/no-unused-vars
+              } catch (e) {
+                // Fallback al renderer por defecto si hiciera falta
+                // @ts-expect-error — acceso a renderer built-in
+                return $.fn.dataTable.Responsive.renderer.tableDisplay()(api, rowIdx, columns);
+              }
+            },
+          },
+        },
 
         autoWidth: false, // ✅ evita cálculos innecesarios
         columnDefs: [
           { targets: "_all", className: "text-center", defaultContent: "" },
-          { targets: 0, className: "dtr-control" },
+          { targets: 0, className: "dtr-control text-nowrap" },
+
         ],
         order: [[0, "desc"]],
         searchDelay: 200,
@@ -787,11 +791,182 @@ responsive: {
 
 
 
+      // 📄 Subtabla responsive: alinear a la IZQUIERDA el contenido de la 2.ª columna
+      (() => {
+        // elimina el estilo de centrado si estaba cargado
+        document.getElementById('dt-responsive-center-flexwrap')?.remove();
+
+        const id = 'dt-responsive-left-flexwrap';
+        if (!document.getElementById(id)) {
+          const s = document.createElement('style');
+          s.id = id;
+          s.textContent = `
+/* En el detalle responsive, 2.ª columna (valor) a la izquierda */
+.dtr-details tr > td:nth-child(2) {
+  text-align: left !important;
+  vertical-align: middle;
+}
+
+/* Si el valor usa un contenedor flex (como "referencias"), alinear a la izquierda */
+.dtr-details tr > td:nth-child(2) .d-flex.flex-wrap {
+  justify-content: flex-start !important;
+}
+
+/* Opcional: anulamos el margen negativo para no “empujar” afuera */
+.dtr-details tr > td:nth-child(2) .ms-n1 {
+  margin-left: 0 !important;
+}
+
+/* Asegura buen alineado vertical de badges/iconos */
+.dtr-details tr > td:nth-child(2) .badge {
+  display: inline-flex;
+  align-items: center;
+}
+`;
+          document.head.appendChild(s);
+        }
+      })();
+
+
+
+
+      (() => {
+        const id = 'dt-main-center-flexwrap';
+        if (!document.getElementById(id)) {
+          const s = document.createElement('style');
+          s.id = id;
+          s.textContent = `
+.dt-container table.dataTable tbody td .d-flex.flex-wrap.ms-n1,
+.dataTables_wrapper table.dataTable tbody td .d-flex.flex-wrap.ms-n1 {
+  justify-content: center !important;
+  margin-left: 0 !important;
+}
+`;
+          document.head.appendChild(s);
+        }
+      })();
+
+
+
+      // ✅ Centrar SOLO en la tabla principal (no aplica a filas .child ni a la subtabla)
+      (() => {
+        // borra el viejo si existe
+        document.getElementById('dt-main-center-flexwrap')?.remove();
+
+        const id = 'dt-main-center-flexwrap';
+        const s = document.createElement('style');
+        s.id = id;
+        s.textContent = `
+/* Solo filas normales, NO .child (que alojan la dtr-details) */
+.dt-container table.dataTable tbody tr:not(.child) td .d-flex.flex-wrap.ms-n1,
+.dataTables_wrapper table.dataTable tbody tr:not(.child) td .d-flex.flex-wrap.ms-n1 {
+  justify-content: center !important;
+  margin-left: 0 !important;
+}
+`;
+        document.head.appendChild(s);
+      })();
 
 
 
 
 
+      // 📄 Subtabla (dtr-details): alinear A LA IZQUIERDA la 2ª columna y tu contenedor flex
+      (() => {
+        const id = 'dt-responsive-left-flexwrap-exact';
+        if (!document.getElementById(id)) {
+          const s = document.createElement('style');
+          s.id = id;
+          s.textContent = `
+/* Texto de la 2ª columna del detalle: izquierda */
+.dtr-details tr > td:nth-child(2) {
+  text-align: left !important;
+  vertical-align: middle;
+}
+
+/* Tu patrón exacto: td > .w-100 > .d-flex.flex-wrap.ms-n1 … */
+.dtr-details tr > td:nth-child(2) > .w-100 > .d-flex.flex-wrap.ms-n1 {
+  justify-content: flex-start !important;
+  margin-left: 0 !important; /* anula ms-n1 */
+}
+
+/* Por si en algún caso no viene .ms-n1 */
+.dtr-details tr > td:nth-child(2) > .w-100 > .d-flex.flex-wrap {
+  justify-content: flex-start !important;
+}
+
+/* Alineado vertical decente para las badges */
+.dtr-details tr > td:nth-child(2) .badge {
+  display: inline-flex;
+  align-items: center;
+}
+`;
+          document.head.appendChild(s);
+        }
+      })();
+
+
+      // 📄 Subtabla responsive (detalle): 2.ª columna a la IZQUIERDA + soporte para tu contenedor flex
+      (() => {
+        const id = 'dt-responsive-left-force';
+        if (!document.getElementById(id)) {
+          const s = document.createElement('style');
+          s.id = id;
+          s.textContent = `
+/* 2.ª columna (valor) de la tabla de detalle */
+tr.child td > table.dtr-details tbody tr > td:nth-child(2) {
+  text-align: left !important;
+  vertical-align: middle;
+}
+
+/* Tu patrón exacto: td > .w-100 > .d-flex.flex-wrap(.ms-n1) … */
+tr.child td > table.dtr-details tbody tr > td:nth-child(2) > .w-100 > .d-flex.flex-wrap {
+  justify-content: flex-start !important;
+}
+tr.child td > table.dtr-details tbody tr > td:nth-child(2) > .w-100 > .d-flex.flex-wrap.ms-n1 {
+  margin-left: 0 !important; /* anula ms-n1 que empuja a la izquierda */
+}
+
+/* Alineado vertical decente para las badges */
+tr.child td > table.dtr-details tbody tr > td:nth-child(2) .badge {
+  display: inline-flex;
+  align-items: center;
+}
+`;
+          document.head.appendChild(s);
+        }
+      })();
+
+      // 🔧 Helper para aplicar estilos con !important a un set de elementos
+      const setImportant = (els: JQuery<HTMLElement>, prop: string, value: string) => {
+        els.each(function () {
+          (this as HTMLElement).style.setProperty(prop, value, 'important');
+        });
+      };
+
+      // Reaplica por si el panel se vuelve a dibujar
+      $(table)
+        .off('responsive-display.dt._leftForce')
+        .on('responsive-display.dt._leftForce', function (_e, _dt, row, show) {
+          if (!show) return;
+          const $child = $(row.node()).next('tr.child');
+
+          // ✅ 2.ª columna del detalle: alineación a la izquierda con !important
+          setImportant($child.find('td > table.dtr-details td:nth-child(2)'), 'text-align', 'left');
+          setImportant($child.find('td > table.dtr-details td:nth-child(2)'), 'vertical-align', 'middle');
+
+          // ✅ Tu contenedor flex “referencias” con !important
+          setImportant(
+            $child.find('td > table.dtr-details td:nth-child(2) > .w-100 > .d-flex.flex-wrap'),
+            'justify-content',
+            'flex-start'
+          );
+          setImportant(
+            $child.find('td > table.dtr-details td:nth-child(2) > .w-100 > .d-flex.flex-wrap.ms-n1'),
+            'margin-left',
+            '0'
+          );
+        });
 
 
 

@@ -40,6 +40,7 @@ export const TransaccionesPorCuentaModal = ({
   onHide,
   cuenta,
   negocioId,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   nombreCuenta = "Cuenta",
 }: TransaccionesPorCuentaModalProps) => {
 
