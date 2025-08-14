@@ -399,7 +399,7 @@ export const Monitor = () => {
             iD_Negocio: rowData.iD_Negocio ?? 0,
             iD_OrdenServicio: rowData.iD_OrdenServicio,
             tipoCuenta: "Cuenta Por Cobrar",
-            concepto: `Cuenta por cobrar de la orden de servicio #${rowData.iD_OrdenServicio}`,
+            concepto: `Cobro de Orden de Servicio #${rowData.iD_OrdenServicio}`,
             monto: items.reduce(
               (acc, item) =>
                 acc +

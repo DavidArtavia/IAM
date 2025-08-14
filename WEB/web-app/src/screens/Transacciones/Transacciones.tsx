@@ -319,8 +319,9 @@ export const Transacciones = () => {
           onDelete={handleDelete}
           disableButtonAdd={disableButtonAdd}
           onRowClick={(row) => setRowTableSelected(row)}
-          includeEstadoColumn
+          includeEstadoColumn = {false}
           customRenderers={customRenderers}
+          nowrapColumns={['Monto', 'ID']}
         />
       ) : (
         <InfoPanel msj="Selecciona un negocio para ver sus transacciones." />

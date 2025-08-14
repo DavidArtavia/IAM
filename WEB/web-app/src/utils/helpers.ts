@@ -92,13 +92,13 @@ export function formatDetalleJSON(
             : `Desc: ${Number(desc)}%`;
 
     const impStr = `Imp: ${Number(imp)}%`;
-    let filasStr = "Filas: ";
+    let filasStr = "";
     if (filas.length === 0) {
         filasStr += "0";
     } else {
         const mapped = filas.map(
             (f: any) =>
-            `<strong>${f.nombre}</strong>: <span style="color:green;">₡${Number(f.valor).toLocaleString("es-CR", {
+            `${f.nombre}: <span style="color:green;">₡${Number(f.valor).toLocaleString("es-CR", {
                 minimumFractionDigits: 2,
             })}</span>`
         );
@@ -111,7 +111,7 @@ export function formatDetalleJSON(
 
     // Adaptación para usar correctamente el truncate de Bootstrap
     return `
-    <div class="row">
+    <div class="row dt-hover-invert">
       <div class="col-auto">
         <span class="d-inline-block text-truncate bg-primary-subtle text-dark px-2 py-1 w-100" style="max-width: 100vw;">${descStr}</span>
       </div>

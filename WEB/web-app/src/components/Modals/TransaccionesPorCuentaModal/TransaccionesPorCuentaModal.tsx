@@ -17,10 +17,12 @@ import {
   formatColones,
   errorHelpers,
   notificationHelpers,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   columnKeysTransacciones,
   labelMapTransacciones,
   transaccionesFormEditFields,
   keysInfoModalTransacciones,
+  columnKeysTransaccionesPorCuenta,
 } from "@/utils";
 import { transaccionesService } from "@/services/transacciones.service";
 import { STATUS_TBL } from "@/constants";
@@ -40,6 +42,7 @@ export const TransaccionesPorCuentaModal = ({
   onHide,
   cuenta,
   negocioId,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   nombreCuenta = "Cuenta",
 }: TransaccionesPorCuentaModalProps) => {
 
@@ -314,21 +317,26 @@ export const TransaccionesPorCuentaModal = ({
     >
       <div
         className="modal-dialog modal-dialog-centered"
-        style={{ maxWidth: "95vw", width: "1200px" }}
+        style={{ maxWidth: "1200px" }}
         onClick={(e) => e.stopPropagation()}
       >
         <div className="modal-content resizable-metronic-modal">
-          <div className="modal-header cursor-move">
-            <h2 className="fw-bold">Transacciones de {nombreCuenta}</h2>
-            <button type="button" className="btn-close" onClick={onHide} />
+          <div className="modal-header cursor-move pt-4 pb-0 border-0 p-5 py-10 px-lg-17 pt-5 mb-n3">
+            <h2 className="fw-light text-gray-400 fs-5">{ cuenta.tipoCuenta.charAt(0).toUpperCase() + cuenta.tipoCuenta.slice(1).toLowerCase()  + " #" + cuenta.iD_Cuenta}</h2>
+            <button 
+            type="button" 
+            className="btn-close" 
+            onClick={onHide}>
+               </button>
           </div>
-          <div className="modal-body py-10 px-lg-17">
+          <div className="modal-body p-0">
             {loading ? (
               <LoadingPanel msj="Cargando transacciones..." />
             ) : (
               <GenericDataTable<DTO_Transacciones>
-                title={"Transacciones asociadas a la  " + cuenta.tipoCuenta + " #" + cuenta.iD_Cuenta}
-                columnKeys={columnKeysTransacciones}
+                title={"Transacciones"}
+                nowrapColumns={['Monto']}
+                columnKeys={columnKeysTransaccionesPorCuenta}
                 labelMap={labelMapTransacciones}
                 data={transacciones}
                 onAdd={handleAddNew}
@@ -336,7 +344,8 @@ export const TransaccionesPorCuentaModal = ({
                 onDelete={handleDelete}
                 onRowClick={(row) => setRowSelected(row as DTO_Transacciones)}
                 customRenderers={customRenderers}
-                includeEstadoColumn
+                includeEstadoColumn = {false}
+                
               />
             )}
 
