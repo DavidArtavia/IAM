@@ -39,6 +39,7 @@ export interface GenericDataTableProps<T> {
   includeEstadoColumn?: boolean;
   customColumns?: ColumnSettings[];
   dataTableButtons?: DynamicButtonConfig[];
+  nowrapColumns?: (keyof T | string)[];
   onRowClick?: (rowData: T) => void;
 }
 
@@ -55,6 +56,7 @@ export function GenericDataTable<T>({
   includeEstadoColumn = false,
   customColumns = [],
   dataTableButtons,
+  nowrapColumns = [],
   onRowClick,
 }: GenericDataTableProps<T>) {
   //🔄 Estado general
@@ -65,7 +67,25 @@ export function GenericDataTable<T>({
   const tableRef = useRef<HTMLTableElement>(null);
 
   //#region 🔧 Columnas dinámicas DataTable
+
+  // 🔧 Helpers — detección por key o por título (case-insensitive)
+  const _normalize = (v: unknown) => String(v ?? '').trim().toLowerCase();
+  const _joinClass = (base?: string, add?: string) =>
+    [base, add].filter(Boolean).join(' ').trim();
+
+  const _wantsNowrap = (key: string, title: string, list: (keyof T | string)[]) => {
+    const k = _normalize(key);
+    const t = _normalize(title);
+    return (list || []).some(x => {
+      const v = _normalize(x);
+      return v === k || v === t;
+    });
+  };
+
+
   const dtColumns = useMemo<ColumnSettings[]>(() => {
+
+
     const cols: ColumnSettings[] = [];
 
     const availableKeys = data.reduce<Set<string>>((set, row) => {
@@ -80,7 +100,15 @@ export function GenericDataTable<T>({
           title: labelMap[keyStr] || keyStr,
           data: keyStr,
           defaultContent: "",
+
         };
+
+        const titleTxt = labelMap[keyStr] || keyStr;
+
+        // 👇 Si la columna está listada por key o por título → nowrap
+        if (_wantsNowrap(keyStr, titleTxt, nowrapColumns)) {
+          col.className = _joinClass(col.className as string | undefined, 'text-nowrap');
+        }
 
         if (customRenderers[key]) {
           col.render = (val, _, row) => {
@@ -99,9 +127,13 @@ export function GenericDataTable<T>({
 
     //#region 🧩 Custom columns (user-defined)
 
-    if (customColumns) {
-      cols.push(...customColumns);
-    }
+  if (customColumns) {
+  customColumns.forEach((c) => {
+    const cTitle = String((c as any).title ?? '');
+    const needs = _wantsNowrap('', cTitle, nowrapColumns);
+    cols.push(needs ? { ...c, className: _joinClass((c as any).className, 'text-nowrap') } : c);
+  });
+}
     //#endregion
     //#endregion
 

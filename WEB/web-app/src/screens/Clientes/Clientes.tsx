@@ -236,8 +236,9 @@ export const Clientes = () => {
           onAdd={handleAddNew}
           onEdit={handleEdit}
           onDelete={handleDelete}
-          includeEstadoColumn
+          includeEstadoColumn = {false}
           onRowClick={(row) => setRowTableSelected(row)}
+        
         />
       )}
 

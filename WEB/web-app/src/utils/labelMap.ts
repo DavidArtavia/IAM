@@ -62,6 +62,15 @@ export const columnKeysTransacciones: (keyof DTO_Transacciones)[] = [
 
 ];
 
+export const columnKeysTransaccionesPorCuenta: (keyof DTO_Transacciones)[] = [
+    "iD_Transaccion",
+    "fechaTransaccion",
+    "monto",
+    "tipo",
+    "concepto",
+
+];
+
 //#endregion
 
 //#region modal para visualizar detalles de objetos

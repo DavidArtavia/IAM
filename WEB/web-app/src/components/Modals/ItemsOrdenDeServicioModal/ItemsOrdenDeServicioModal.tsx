@@ -378,6 +378,7 @@ export const ItemsOrdenDeServicioModal = ({
                 onRowClick={(row) =>
                   setRowTableSelected(row as DTO_ItemOrdenServicio)
                 }
+                nowrapColumns={['Monto', 'ID']}
               />
             )}
 
