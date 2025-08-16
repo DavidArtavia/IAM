@@ -1,5 +1,5 @@
 // src/pages/Cuentas.tsx
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   DTO_Negocio,
   DTO_Respuesta,
@@ -26,6 +26,7 @@ import {
   DynamicButtonConfig,
   FieldConfig,
   GenericDataTable,
+  GenericDataTableHandle,
   GenericFormModal,
   InfoModal,
   InfoPanel,
@@ -37,9 +38,13 @@ import { labelMapCuenta as labelMap } from "@/utils";
 import Select from "react-select";
 import { valida_DTO_Cuenta } from "@/validators/valida_DTO_Cuenta";
 
+
+
+
 //#region 🔁 Estado Global y Negocio
 //#region 🔁 Estado Global y Negocio
 export const Cuentas = () => {
+  const tableRef = useRef<GenericDataTableHandle<DTO_Cuenta>>(null);
   const { state } = useApp();
 
   // #region Validaciones en los formularios
@@ -139,18 +144,15 @@ export const Cuentas = () => {
     if (!selectedBusiness) return;
     cuentasService.obtenerCuentas(selectedBusiness).subscribe({
       next: (result) => {
-        const res = (procesarRespuesta(
-          result as unknown as DTO_Respuesta
-        ) as DTO_Cuenta[]) || [];
+        const res = (procesarRespuesta(result as DTO_Respuesta) as DTO_Cuenta[]) || [];
+        const filterAccounts = res.filter(b => b.estado?.iD_Estado !== STATUS_TBL.ACCOUNT.DELETED);
 
-        const filterAccounts = res.filter(
-          (b) => b.estado?.iD_Estado !== STATUS_TBL.ACCOUNT.DELETED
-        );
 
+
+        // (Opcional) si igual quieres mantener el estado local para otros usos:
         setAccountsPayable(filterAccounts);
       },
-      error: (err) => errorHelpers.serverError(err),
-      complete: () => { },
+      error: errorHelpers.serverError,
     });
   };
   //#endregion
@@ -176,6 +178,7 @@ export const Cuentas = () => {
           const nueva = (result.resultado as DTO_Cuenta[])[0];
           if (nueva.estado?.iD_Estado !== STATUS_TBL.ACCOUNT.DELETED) {
             setAccountsPayable((prev) => [nueva, ...prev]);
+            tableRef.current?.upsert(nueva);
           }
           notificationHelpers.successAlert(
             result.mensaje || "Cuenta registrada correctamente"
@@ -237,7 +240,8 @@ export const Cuentas = () => {
             (result as DTO_Respuesta)?.mensaje ||
             "Cuenta actualizada correctamente";
           notificationHelpers.successAlert(mensaje);
-          refetchAccounts();
+          tableRef.current?.upsert(updatedData);
+          //refetchAccounts();
           setShowEditModal(false);
         },
         error: (err) => errorHelpers.serverError(err),
@@ -258,6 +262,7 @@ export const Cuentas = () => {
     setAccountToDelete(rowData);
     setConfirmContext("delete");
     setIsConfirmOpen(true);
+    tableRef.current?.removeById(rowData.iD_Cuenta);
   };
 
   const handleConfirmDelete = (action: boolean | null) => {
@@ -624,7 +629,7 @@ export const Cuentas = () => {
 
         if (filas.length == 0 && detalle.descuento.valor == "" && detalle.impuesto.valor == "") {
           return (
-         <>---</>
+            <>---</>
           );
         }
 
@@ -816,11 +821,15 @@ export const Cuentas = () => {
           <InfoPanel msj="Seleccione un negocio para ver sus cuentas." />
         ) : (
           <>
+
             <GenericDataTable<DTO_Cuenta>
+              ref={tableRef}
               title="Cuentas"
               columnKeys={columnKeysCuenta}
               labelMap={labelMapCuenta}
-              data={accountsPayable}
+              data={accountsPayable}       // se carga 1 sola vez
+              independent                  // ⇦ clave para que NO escuche más cambios del padre
+              idField="iD_Cuenta"          // ⇦ campo ID que usa upsert/remove
               onAdd={handleAddNew}
               onEdit={handleEdit}
               onDelete={handleDelete}
@@ -829,10 +838,7 @@ export const Cuentas = () => {
               customRenderers={customRenderers}
               customColumns={[detalleJSONColumn]}
               dataTableButtons={dataTableButtons}
-              onRowClick={(row) => {
-                setRowTableSelected(row);
-                setIsInfoModalOpen(true);
-              }}
+              onRowClick={(row) => { setRowTableSelected(row); setIsInfoModalOpen(true); }}
             />
 
             <InfoModal
