@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useMemo } from "react";
+import React, { useEffect, useRef, useMemo, useImperativeHandle } from "react";
 import $ from "jquery";
 import "datatables.net-bs5";
 import 'datatables.net-responsive-bs5';
@@ -41,30 +41,56 @@ export interface GenericDataTableProps<T> {
   dataTableButtons?: DynamicButtonConfig[];
   nowrapColumns?: (keyof T | string)[];
   onRowClick?: (rowData: T) => void;
+  /** Si true, la tabla no escuchará cambios de `data` y sólo se manipula por métodos imperativos */
+  independent?: boolean;
+  /** Nombre de la propiedad ID usada por upsert/remove (p.ej. "iD_Cuenta") */
+  idField?: keyof T | string;
 }
 
-export function GenericDataTable<T>({
-  title,
-  columnKeys,
-  labelMap,
-  data,
-  onAdd,
-  onEdit,
-  onDelete,
-  disableButtonAdd = false,
-  customRenderers = {},
-  includeEstadoColumn = false,
-  customColumns = [],
-  dataTableButtons,
-  nowrapColumns = [],
-  onRowClick,
-}: GenericDataTableProps<T>) {
+// 🔌 API imperativa que expondrá la tabla (add/update/delete sin re-render del padre)
+export type GenericDataTableHandle<T> = {
+  load: (rows: T[]) => void;
+  upsert: (row: T) => void;
+  bulkUpsert: (rows: T[]) => void;
+  removeById: (id: unknown) => void;
+  clear: () => void;
+  getData: () => T[];
+};
+
+export const GenericDataTable = React.forwardRef(<T,>(
+  {
+    title,
+    columnKeys,
+    labelMap,
+    data,
+    onAdd,
+    onEdit,
+    onDelete,
+    disableButtonAdd = false,
+    customRenderers = {},
+    includeEstadoColumn = false,
+    customColumns = [],
+    dataTableButtons,
+    nowrapColumns = [],
+    onRowClick,
+    independent = false,
+    idField = "id",
+  }: GenericDataTableProps<T>,
+  ref: React.Ref<GenericDataTableHandle<T>>
+) => {
   //🔄 Estado general
   const { state } = useApp();
 
   //#endregion
   DataTable.use(Buttons);
   const tableRef = useRef<HTMLTableElement>(null);
+
+  // 🆕 Referencia al API de DataTables y helpers de ID/recencia
+  const dtApiRef = useRef<any>(null);
+  const idKeyRef = useRef<string>(typeof idField === "string" ? idField : String(idField));
+  useEffect(() => { idKeyRef.current = typeof idField === "string" ? idField : String(idField); }, [idField]);
+  const seqRef = useRef<number>(0);
+  const withSeq = (row: T): T & { __seq: number } => ({ ...(row as any), __seq: ++seqRef.current });
 
   //#region 🔧 Columnas dinámicas DataTable
 
@@ -88,14 +114,15 @@ export function GenericDataTable<T>({
 
     const cols: ColumnSettings[] = [];
 
-    const availableKeys = data.reduce<Set<string>>((set, row) => {
-      Object.keys(row as Record<string, unknown>).forEach((k) => set.add(k));
-      return set;
-    }, new Set<string>());
+    const availableKeys = independent
+      ? new Set<string>(columnKeys.map(String))
+      : data.reduce<Set<string>>((set, row) => {
+          Object.keys(row as Record<string, unknown>).forEach((k) => set.add(k));
+          return set;
+        }, new Set<string>());
 
-    columnKeys.forEach((key) => {
-      const keyStr = String(key);
-      if (data.length === 0 || availableKeys.has(keyStr)) {
+    (independent ? columnKeys.map(String) : columnKeys.map(String)).forEach((keyStr) => {
+      if (independent || data.length === 0 || availableKeys.has(keyStr)) {
         const col: ColumnSettings = {
           title: labelMap[keyStr] || keyStr,
           data: keyStr,
@@ -110,6 +137,7 @@ export function GenericDataTable<T>({
           col.className = _joinClass(col.className as string | undefined, 'text-nowrap');
         }
 
+        const key = keyStr as keyof T;
         if (customRenderers[key]) {
           col.render = (val, _, row) => {
             try {
@@ -146,7 +174,7 @@ export function GenericDataTable<T>({
         searchable: true,
         defaultContent: "",
         render: function (_data, type, row) {
-          const porcentaje = row["avance"] ?? 0;
+          const porcentaje = (row as any)["avance"] ?? 0;
 
           // Exportaciones (Excel, PDF, etc.)
           if (type === "export") {
@@ -162,7 +190,7 @@ export function GenericDataTable<T>({
         },
         createdCell: (cell, _cellData, row) => {
           try {
-            const porcentaje = row["avance"] ?? 0;
+            const porcentaje = (row as any)["avance"] ?? 0;
             const barColor =
               porcentaje >= 80
                 ? "bg-success"
@@ -219,7 +247,7 @@ export function GenericDataTable<T>({
         render: function (_data, type, row) {
           // ——— Para la exportación (Excel, CSV, Copiar, PDF) ———
           if (type === "export") {
-            const nombre = row?.estado?.nombre ?? "";
+            const nombre = (row as any)?.estado?.nombre ?? "";
             // Capitaliza igual que en la badge
             return nombre
               ? nombre.charAt(0).toUpperCase() + nombre.slice(1).toLowerCase()
@@ -228,7 +256,7 @@ export function GenericDataTable<T>({
 
           // ——— Para los demás usos (“display”, “filter”, “sort”) ———
           if (type === "filter" || type === "sort") {
-            return row?.estado?.nombre ?? "";
+            return (row as any)?.estado?.nombre ?? "";
           }
           // Dejamos vacío porque la celda la pintará `createdCell`
           return "";
@@ -237,7 +265,7 @@ export function GenericDataTable<T>({
         /* 3️⃣  SIGUE tu lógica de React en `createdCell` */
         createdCell: (cell, _data, row) => {
           try {
-            const estado = (row as any)?.estado?.nombre?.toLowerCase() ?? "N/A";
+            const estado = ((row as any)?.estado?.nombre?.toLowerCase?.() ?? "N/A");
 
             const badgeClassMap: Record<string, string> = {
               activo: "badge-light-success",
@@ -316,8 +344,17 @@ export function GenericDataTable<T>({
       }
     }
 
+    // 🆕 Columna oculta para ordenar siempre el último cambio primero (modo independiente)
+    cols.push({
+      title: "__seq",
+      data: "__seq" as any,
+      visible: false,
+      searchable: false,
+      orderable: true,
+    });
+
     return cols;
-  }, [data]);
+  }, [data, independent]);
   //#endregion
 
   //#region 🧠 Inicialización tabla con jQuery DataTable
@@ -334,7 +371,7 @@ export function GenericDataTable<T>({
 
     try {
       const dtInstance = $(table).DataTable({
-        data,
+        data: independent ? [] : data,
         // @ts-expect-error  — «title» aún no está en las typings
         fixedHeader: {
           header: true,
@@ -401,7 +438,7 @@ export function GenericDataTable<T>({
           { targets: 0, className: "dtr-control text-nowrap" },
 
         ],
-        order: [[0, "desc"]],
+        order: independent ? [[dtColumns.length - 1, "desc"]] : [[0, "desc"]],
         searchDelay: 200,
         processing: true,
         language: {
@@ -497,6 +534,14 @@ export function GenericDataTable<T>({
           },
         ],
       });
+
+
+
+      //#region Estilos
+
+
+      // 🆕 Guarda la instancia
+      dtApiRef.current = dtInstance;
       // 🎨 Estilos para el bloque "info" (DT2: .dt-info / DT1: .dataTables_info)
       const styleInfo = () => {
         const $wrapper = $(table).closest('.dt-container, .dataTables_wrapper');
@@ -803,7 +848,7 @@ export function GenericDataTable<T>({
   /* Opcional: bajar un poco fondos sutiles para mejor contraste */
   .dt-container table.dataTable.table-hover tbody tr:hover td .dt-hover-invert [class*="bg-"],
   .dataTables_wrapper table.dataTable.table-hover tbody tr:hover td .dt-hover-invert [class*="bg-"] {
-    filter: brightness(0.85);
+    filter: brightness(1) !important;
   }
 }
 `;
@@ -917,7 +962,6 @@ export function GenericDataTable<T>({
 `;
         document.head.appendChild(s);
       })();
-
 
 
 
@@ -1213,11 +1257,7 @@ table.table-hover.dataTable tbody tr.no-hover-row:hover > * {
 
 
 
-
-
-
-
-
+//#endregion Estilos
 
 
 
@@ -1293,11 +1333,13 @@ table.table-hover.dataTable tbody tr.no-hover-row:hover > * {
     } catch (err) {
       console.error("DataTable error", err);
     }
-  }, []);
+  }, [independent, dtColumns, data]);
   //#endregion
 
   //#region 🔁 Actualización de datos al cambiar props
   useEffect(() => {
+    if (independent) return; // 🆕 no refresques desde props cuando es independiente
+
     const table = tableRef.current;
     if (!table || !$.fn.dataTable.isDataTable(table)) return;
 
@@ -1324,9 +1366,9 @@ if ($wrap.length) {
       const dtInstance = $(table).DataTable();
 
       // ⏳ Mostrar overlay durante el refresh de datos
-const $wrap = $(table).closest('.dt-container, .dataTables_wrapper');
-if ($wrap.length && !$wrap.find('.dt-loading-overlay').length) {
-  $wrap.css('position','relative').append(`
+const $wrap2 = $(table).closest('.dt-container, .dataTables_wrapper');
+if ($wrap2.length && !$wrap2.find('.dt-loading-overlay').length) {
+  $wrap2.css('position','relative').append(`
     <div class="dt-loading-overlay">
       <div class="d-flex flex-column align-items-center justify-content-center py-10">
         <i class="bi bi-arrow-repeat fs-1 text-muted dt-rotate" aria-hidden="true"></i>
@@ -1339,8 +1381,8 @@ if ($wrap.length && !$wrap.find('.dt-loading-overlay').length) {
       dtInstance.clear().rows.add(data).draw();
       // ✅ Quitar overlay tras dibujar
 $(table).one('draw.dt._loadingUpdate', () => {
-  $wrap.find('.dt-loading-overlay').remove();
-  $wrap.removeClass('dt-loading');  
+  $wrap2.find('.dt-loading-overlay').remove();
+  $wrap2.removeClass('dt-loading');  
 });
 
       // Ajustes tras redibujar (por si cambia ancho)
@@ -1351,8 +1393,8 @@ $(table).one('draw.dt._loadingUpdate', () => {
       dtInstance.responsive.recalc();
 
       // ✅ Ocultar overlay cuando DataTables ya dibujó
-const hideLoading = () => $wrap.find('.dt-loading-overlay').remove();
-$wrap.removeClass('dt-loading');  
+const hideLoading = () => $wrap2.find('.dt-loading-overlay').remove();
+$wrap2.removeClass('dt-loading');  
 // a veces init y draw ocurren muy rápido; cubrimos ambos
 $(table)
   .off('init.dt._loading draw.dt._loading')
@@ -1367,8 +1409,42 @@ setTimeout(hideLoading, 0);
     }
 
 
-  }, [data]);
+  }, [data, independent]);
   //#endregion
+
+  // 🆕 API imperativa: load / upsert / bulkUpsert / remove / clear / getData
+  useImperativeHandle(ref, (): GenericDataTableHandle<T> => ({
+    load(rows: T[]) {
+      const dt = dtApiRef.current; if (!dt) return;
+      const withSeqRows = rows.map(r => withSeq(r));
+      dt.clear().rows.add(withSeqRows).order([dt.columns().count() - 1, 'desc']).draw(false);
+    },
+    upsert(row: T) {
+      const dt = dtApiRef.current; if (!dt) return;
+      const idKey = idKeyRef.current; const rowId = (row as any)?.[idKey];
+      const idxes = dt.rows((_: any, data: any) => (data?.[idKey] ?? null) === rowId).indexes();
+      if (idxes.length) { dt.rows(idxes).remove(); }
+      dt.row.add(withSeq(row));
+      dt.order([dt.columns().count() - 1, 'desc']).draw(false);
+    },
+    bulkUpsert(rows: T[]) {
+      const dt = dtApiRef.current; if (!dt || !rows?.length) return;
+      const idKey = idKeyRef.current;
+      const incoming = new Map<any, T>();
+      for (const r of rows) incoming.set((r as any)[idKey], r);
+      dt.rows().every(function(this: any){ const cur: any = this.data(); if (incoming.has(cur?.[idKey])) { this.remove(); } });
+      for (const r of rows) dt.row.add(withSeq(r));
+      dt.order([dt.columns().count() - 1, 'desc']).draw(false);
+    },
+    removeById(id: unknown) {
+      const dt = dtApiRef.current; if (!dt) return;
+      const idKey = idKeyRef.current;
+      const idxes = dt.rows((_: any, data: any) => (data?.[idKey] ?? null) === id).indexes();
+      if (idxes.length) { dt.rows(idxes).remove().draw(false); }
+    },
+    clear() { const dt = dtApiRef.current; if (!dt) return; dt.clear().draw(false); },
+    getData(): T[] { const dt = dtApiRef.current; if (!dt) return []; return dt.rows().data().toArray().map((r: any) => { const { __seq, ...rest } = r; return rest; }); },
+  }));
 
   //#region 🎨 Render
   return (
@@ -1394,4 +1470,4 @@ setTimeout(hideLoading, 0);
     </>
   );
   //#endregion
-}
+});
