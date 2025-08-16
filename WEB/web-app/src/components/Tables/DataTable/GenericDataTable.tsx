@@ -1287,8 +1287,6 @@ table.table-hover.dataTable tbody tr.no-hover-row:hover > * {
         .off('shown.bs.tab.dtfix shown.bs.modal.dtfix')
         .on('shown.bs.tab.dtfix shown.bs.modal.dtfix', adjust);
 
-      // Ajuste inicial por si el contenedor aparece luego (tabs, accordions)
-      setTimeout(adjust, 0);
 
 
 
