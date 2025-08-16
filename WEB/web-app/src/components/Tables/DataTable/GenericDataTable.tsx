@@ -127,13 +127,13 @@ export function GenericDataTable<T>({
 
     //#region 🧩 Custom columns (user-defined)
 
-  if (customColumns) {
-  customColumns.forEach((c) => {
-    const cTitle = String((c as any).title ?? '');
-    const needs = _wantsNowrap('', cTitle, nowrapColumns);
-    cols.push(needs ? { ...c, className: _joinClass((c as any).className, 'text-nowrap') } : c);
-  });
-}
+    if (customColumns) {
+      customColumns.forEach((c) => {
+        const cTitle = String((c as any).title ?? '');
+        const needs = _wantsNowrap('', cTitle, nowrapColumns);
+        cols.push(needs ? { ...c, className: _joinClass((c as any).className, 'text-nowrap') } : c);
+      });
+    }
     //#endregion
     //#endregion
 
@@ -407,18 +407,37 @@ export function GenericDataTable<T>({
         language: {
           search: "",
           searchPlaceholder: "Buscar…",    // <- placeholder en el input
-          emptyTable: "No hay datos disponibles",
+          emptyTable: `
+          <div class="dt-empty-state d-flex flex-column align-items-center justify-content-center py-10">
+            <i class="bi bi-inbox fs-1 text-muted" aria-hidden="true"></i>
+            <span class="text-muted mt-2">Sin datos</span>
+          </div>
+        `,
+
           lengthMenu: '<span class="d-none d-sm-inline">Mostrar</span> _MENU_ <span class="d-none d-sm-inline">registros</span>',
-          zeroRecords: "No se encontraron resultados",
+          zeroRecords: `
+          <div class="dt-empty-state d-flex flex-column align-items-center justify-content-center py-10">
+            <i class="bi bi-search fs-1 text-muted" aria-hidden="true"></i>
+            <span class="text-muted mt-2">Sin coincidencias</span>
+            <small class="text-muted d-none d-sm-inline mt-1">Prueba otros términos o limpia el filtro</small>
+          </div>
+        `,
           info: "Mostrando página _PAGE_ de _PAGES_",
-          infoEmpty: "Sin registros",
+          infoEmpty: "",
           infoFiltered: " (filtrado de _MAX_ registros totales)",
           paginate: {
             first: "Primero",
             last: "Último",
             previous: "Anterior",
             next: "Siguiente",
-          }
+          },
+          processing: `
+          <div class="dt-loading-inline d-flex flex-column align-items-center justify-content-center py-10">
+            <i class="bi bi-arrow-repeat fs-1 text-muted dt-rotate" aria-hidden="true"></i>
+            <span class="text-muted mt-2">Cargando…</span>
+          </div>
+        `,
+
         },
         deferRender: true,
         destroy: true,
@@ -1001,6 +1020,208 @@ tr.child td > table.dtr-details tbody tr > td:nth-child(2) .badge {
         });
 
 
+      // 🎨 Estado vacío: fuerza ancho completo cuando no hay filas (y centra ya mismo)
+      (() => {
+        const id = 'dt-empty-state-center-fix';
+        if (!document.getElementById(id)) {
+          const s = document.createElement('style');
+          s.id = id;
+          s.textContent = `
+/* Si la tabla está vacía, ocupa 100% (DT2 y DT1) */
+.dt-container table.dataTable:has(tbody td.dt-empty),
+.dataTables_wrapper table.dataTable:has(tbody td.dataTables_empty) {
+  width: 100% !important;
+}
+
+/* Asegura que la celda vacía tenga ancho completo y buen padding */
+.dt-container table.dataTable tbody td.dt-empty,
+.dataTables_wrapper table.dataTable tbody td.dataTables_empty {
+  width: 100% !important;
+  text-align: center !important;
+  vertical-align: middle !important;
+  padding: 2rem 0 !important;
+}
+
+/* Fallback por clase (por si :has no está disponible) */
+.dt-container table.dataTable.dt-empty-fullwidth,
+.dataTables_wrapper table.dataTable.dt-empty-fullwidth {
+  width: 100% !important;
+}
+`;
+          document.head.appendChild(s);
+        }
+      })();
+
+
+
+
+      // 🎨 Desactivar hover de filas cuando la tabla esté vacía
+      (() => {
+        const id = 'dt-disable-hover-when-empty';
+        if (!document.getElementById(id)) {
+          const s = document.createElement('style');
+          s.id = id;
+          s.textContent = `
+/* Sin highlight en hover si la tabla tiene dt-no-hover */
+.dt-container table.dataTable.table-hover.dt-no-hover tbody tr:hover > *,
+.dataTables_wrapper table.dataTable.table-hover.dt-no-hover tbody tr:hover > * {
+  background-color: transparent !important;
+}
+
+/* Anula inversión de colores de tu .dt-hover-invert cuando no hay datos */
+.dt-container table.dataTable.table-hover.dt-no-hover tbody tr:hover td .dt-hover-invert,
+.dataTables_wrapper table.dataTable.table-hover.dt-no-hover tbody tr:hover td .dt-hover-invert {
+  color: inherit !important;
+  fill: inherit !important;
+  border-color: inherit !important;
+}
+`;
+          document.head.appendChild(s);
+        }
+      })();
+
+
+
+
+      // 🎨 Apagar hover cuando no hay registros (varias rutas de escape)
+      (() => {
+        const id = 'dt-empty-hover-kill';
+        if (!document.getElementById(id)) {
+          const s = document.createElement('style');
+          s.id = id;
+          s.textContent = `
+/* A) Si marcamos la tabla con dt-no-hover */
+table.table-hover.dataTable.dt-no-hover tbody tr:hover > *,
+.dataTables_wrapper table.table-hover.dataTable.dt-no-hover tbody tr:hover > * {
+  background-color: transparent !important;
+}
+
+/* B) Si la tabla está vacía (DT2 y DT1) */
+table.table-hover.dataTable:has(tbody td.dt-empty) tbody tr:hover > *,
+.dataTables_wrapper table.table-hover.dataTable:has(tbody td.dataTables_empty) tbody tr:hover > * {
+  background-color: transparent !important;
+}
+
+/* C) Si marcamos SOLO la fila placeholder desde JS */
+table.table-hover.dataTable tbody tr.no-hover-row:hover > * {
+  background-color: transparent !important;
+}
+`;
+          document.head.appendChild(s);
+        }
+      })();
+
+
+
+
+      // 🔁 Fallback JS: añade/quita clase cuando está vacía y ajusta colspan
+      const ensureEmptyFullWidth = () => {
+        const $t = $(table);
+        const $empty = $t.find('tbody td.dt-empty, tbody td.dataTables_empty');
+        if ($empty.length) {
+          $t.addClass('dt-empty-fullwidth dt-no-hover');   // (conserva lo que ya tienes)
+          $t.removeClass('table-hover');                   // (si ya lo pusiste, déjalo)
+
+          // 👉 NUEVO: marca la fila placeholder para matar hover a nivel de fila
+          $empty.closest('tr').addClass('no-hover-row');
+
+          const span = dtInstance.columns({ visible: true }).count();
+          $empty.attr('colspan', String(span));
+          dtInstance.columns.adjust();
+        } else {
+          $t.removeClass('dt-empty-fullwidth dt-no-hover');
+          $t.addClass('table-hover');
+
+          // 👉 NUEVO: limpia la marca cuando vuelven registros
+          $t.find('tbody tr.no-hover-row').removeClass('no-hover-row');
+        }
+      };
+
+      // aplicar ahora y en redibujos relevantes
+      ensureEmptyFullWidth();
+      $(table)
+        .off('init.dt._emptyWidth draw.dt._emptyWidth page.dt._emptyWidth length.dt._emptyWidth search.dt._emptyWidth responsive-display.dt._emptyWidth')
+        .on('init.dt._emptyWidth draw.dt._emptyWidth page.dt._emptyWidth length.dt._emptyWidth search.dt._emptyWidth responsive-display.dt._emptyWidth', ensureEmptyFullWidth);
+
+
+
+// 🎨 Overlay “Cargando…” + animación del ícono
+(() => {
+  const id = 'dt-loading-overlay-style';
+  if (!document.getElementById(id)) {
+    const s = document.createElement('style');
+    s.id = id;
+    s.textContent = `
+/* Overlay absoluto dentro del wrapper de DataTables */
+.dt-loading-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255,255,255,.6);
+  z-index: 20;
+}
+
+/* Animación de carga para el icono */
+@keyframes dtspin { from { transform: rotate(0deg) } to { transform: rotate(360deg) } }
+.dt-rotate { animation: dtspin 1s linear infinite }
+
+/* Alinea el processing nativo (DT1/DT2) al centro y permite HTML bonito */
+.dt-container .dt-processing,
+.dataTables_wrapper .dataTables_processing {
+  position: absolute;
+  left: 50%; top: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 21;
+  background: rgba(255,255,255,.85);
+  border-radius: .5rem;
+  padding: 1rem 1.25rem;
+  text-align: center;
+  display: none; /* DataTables lo alterna a block cuando procesa */
+}
+
+/* Cuando DataTables activa procesamiento, muéstralo */
+.dt-container.processing .dt-processing,
+.dataTables_wrapper .dataTables_processing:empty ~ .dataTables_processing { display: block; }
+`;
+    document.head.appendChild(s);
+  }
+})();
+
+
+// 🎨 Ocultar placeholder "Sin datos" mientras está cargando
+(() => {
+  const id = 'dt-hide-empty-while-loading';
+  if (!document.getElementById(id)) {
+    const s = document.createElement('style');
+    s.id = id;
+    s.textContent = `
+/* DT2 y DT1: si el wrapper está en modo carga, no mostrar la celda vacía */
+.dt-loading table.dataTable tbody td.dt-empty,
+.dt-loading .dataTables_wrapper table.dataTable tbody td.dataTables_empty {
+  display: none !important;
+}
+`;
+    document.head.appendChild(s);
+  }
+})();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1066,8 +1287,6 @@ tr.child td > table.dtr-details tbody tr > td:nth-child(2) .badge {
         .off('shown.bs.tab.dtfix shown.bs.modal.dtfix')
         .on('shown.bs.tab.dtfix shown.bs.modal.dtfix', adjust);
 
-      // Ajuste inicial por si el contenedor aparece luego (tabs, accordions)
-      setTimeout(adjust, 0);
 
 
 
@@ -1082,10 +1301,48 @@ tr.child td > table.dtr-details tbody tr > td:nth-child(2) .badge {
     const table = tableRef.current;
     if (!table || !$.fn.dataTable.isDataTable(table)) return;
 
+    // ⏳ Overlay “Cargando…” previo a init (se quita en init/draw)
+const $wrap = $(table).closest('.dt-container, .dataTables_wrapper');
+if ($wrap.length) {
+  $wrap.css('position', 'relative'); // por si el wrapper no lo tiene
+  $wrap.addClass('dt-loading');    
+  if (!$wrap.find('.dt-loading-overlay').length) {
+    $wrap.addClass('dt-loading'); 
+    $wrap.append(`
+      <div class="dt-loading-overlay">
+        <div class="d-flex flex-column align-items-center justify-content-center py-10">
+          <i class="bi bi-arrow-repeat fs-1 text-muted dt-rotate" aria-hidden="true"></i>
+          <span class="text-muted mt-2">Cargando…</span>
+        </div>
+      </div>
+    `);
+  }
+}
+
+
     try {
       const dtInstance = $(table).DataTable();
 
+      // ⏳ Mostrar overlay durante el refresh de datos
+const $wrap = $(table).closest('.dt-container, .dataTables_wrapper');
+if ($wrap.length && !$wrap.find('.dt-loading-overlay').length) {
+  $wrap.css('position','relative').append(`
+    <div class="dt-loading-overlay">
+      <div class="d-flex flex-column align-items-center justify-content-center py-10">
+        <i class="bi bi-arrow-repeat fs-1 text-muted dt-rotate" aria-hidden="true"></i>
+        <span class="text-muted mt-2">Cargando…</span>
+      </div>
+    </div>
+  `);
+}
+
       dtInstance.clear().rows.add(data).draw();
+      // ✅ Quitar overlay tras dibujar
+$(table).one('draw.dt._loadingUpdate', () => {
+  $wrap.find('.dt-loading-overlay').remove();
+  $wrap.removeClass('dt-loading');  
+});
+
       // Ajustes tras redibujar (por si cambia ancho)
       dtInstance.columns.adjust();
       // @ts-expect-error  — por el uso de la librerí a con react
@@ -1093,9 +1350,23 @@ tr.child td > table.dtr-details tbody tr > td:nth-child(2) .badge {
       // @ts-expect-error  — por el uso de la librerí a con react
       dtInstance.responsive.recalc();
 
+      // ✅ Ocultar overlay cuando DataTables ya dibujó
+const hideLoading = () => $wrap.find('.dt-loading-overlay').remove();
+$wrap.removeClass('dt-loading');  
+// a veces init y draw ocurren muy rápido; cubrimos ambos
+$(table)
+  .off('init.dt._loading draw.dt._loading')
+  .on('init.dt._loading draw.dt._loading', hideLoading);
+
+// fallback inmediato por si ya terminó
+setTimeout(hideLoading, 0);
+
+
     } catch (err) {
       console.warn("Data update error", err);
     }
+
+
   }, [data]);
   //#endregion
 

@@ -184,10 +184,10 @@ export const keysInfoModalCuenta: FieldConfig<DTO_Cuenta>[] = [
         key: "iD_Cuenta",
         label: "Código",
         type: "text",
-        order: 1,
+        order: 0,
     },
     {
-        key: "estado",
+        key: "estadoPago",
         label: "Estado",
         type: "text",
         order: 2,
@@ -226,7 +226,7 @@ export const keysInfoModalCuenta: FieldConfig<DTO_Cuenta>[] = [
         key: "descripcion",
         label: "Descripción",
         type: "text",
-        order: 6,
+        order: 8,
     },
 ];
 
