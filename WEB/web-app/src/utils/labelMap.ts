@@ -31,7 +31,6 @@ export const columnKeysOrdenDeServicio: (keyof DTO_OrdenServicio)[] = [
     "iD_OrdenServicio",
     "fechaOrdenServicio",
     "fechaEstimadaEntrega",
-    "notaOrdenServicio"
 ];
 
 export const columnKeysCliente: (keyof DTO_Cliente)[] = [
