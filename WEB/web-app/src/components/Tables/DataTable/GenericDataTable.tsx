@@ -364,7 +364,7 @@ function GenericDataTableInner<T>(
 
     try {
       const dtInstance = $(table).DataTable({
-        data: independent ? [] : data,
+        data: data,
         // @ts-expect-error  — «title» aún no está en las typings
         fixedHeader: {
           header: true,
@@ -478,7 +478,7 @@ function GenericDataTableInner<T>(
           ">",
 
         pageLength: 50,
-        lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Todos"]],
+        lengthMenu: [[10, 25, 50, 100], [10, 25, 50, 100]],
         buttons: [
           {
             extend: "excelHtml5",
@@ -529,6 +529,10 @@ function GenericDataTableInner<T>(
       // 🆕 Guarda la instancia
       dtApiRef.current = dtInstance;
 
+if (independent && Array.isArray(data) && data.length > 0) {
+  didInitialLoadRef.current = true;
+}
+
       // 🆕 Ejecuta cualquier operación que quedó en cola (load/upsert/etc. antes del init)
       if (pendingOpsRef.current.length) {
         const pending = [...pendingOpsRef.current];
@@ -541,8 +545,7 @@ function GenericDataTableInner<T>(
       //#region Estilos
 
 
-      // 🆕 Guarda la instancia
-      dtApiRef.current = dtInstance;
+ 
       // 🎨 Estilos para el bloque "info" (DT2: .dt-info / DT1: .dataTables_info)
       const styleInfo = () => {
         const $wrapper = $(table).closest('.dt-container, .dataTables_wrapper');
@@ -566,19 +569,7 @@ function GenericDataTableInner<T>(
         .off('draw.dt._styleFooter page.dt._styleFooter length.dt._styleFooter')
         .on('draw.dt._styleFooter page.dt._styleFooter length.dt._styleFooter', styleFooter);
 
-      // 🔤 Forzar etiqueta "Todos" en la opción -1 del selector de longitud
-      const fixAllLabel = () => {
-        const $wrapper = $(table).closest('.dt-container, .dataTables_wrapper');
-        // Soporta DT v2 (.dt-length) y v1 (.dataTables_length)
-        const $select = $wrapper.find('.dt-length select, .dataTables_length select');
-        $select.find('option[value="-1"]').text('Todos');
-      };
-      fixAllLabel();
-
-      // Reaplicar por si el DOM se re-renderiza o cambia la longitud/página
-      $(table)
-        .off('init.dt._fixAll length.dt._fixAll draw.dt._fixAll')
-        .on('init.dt._fixAll length.dt._fixAll draw.dt._fixAll', fixAllLabel);
+   
 
       // 🎨 Separación del panel superior (toolbar) respecto a la tabla (15px)
       const styleToolbar = () => {
@@ -1336,6 +1327,14 @@ table.table-hover.dataTable tbody tr.no-hover-row:hover > * {
         withDT((dt) => {
           const withSeqRows = data.map(r => withSeq(r));
           dt.clear().rows.add(withSeqRows).order([dt.columns().count() - 1, 'desc']).draw(false);
+
+// 🔧 Recalcular anchos y responsive inmediatamente (siempre visible)
+dt.columns.adjust();
+// @ts-expect-error --d
+dt.responsive.recalc();
+// @ts-expect-error --e
+dt.fixedHeader?.adjust?.();
+
         });
         didInitialLoadRef.current = true;
       }
@@ -1364,6 +1363,14 @@ table.table-hover.dataTable tbody tr.no-hover-row:hover > * {
       withDT((dt) => {
         const withSeqRows = rows.map(r => withSeq(r));
         dt.clear().rows.add(withSeqRows).order([dt.columns().count() - 1, 'desc']).draw(false);
+
+// 🔧 Recalcular anchos y responsive inmediatamente (siempre visible)
+dt.columns.adjust();
+// @ts-expect-error --w
+dt.responsive.recalc();
+// @ts-expect-error --w
+dt.fixedHeader?.adjust?.();
+
       });
     },
     upsert(row: T) {

@@ -839,6 +839,7 @@ export const Cuentas = () => {
               customColumns={[detalleJSONColumn]}
               dataTableButtons={dataTableButtons}
               onRowClick={(row) => { setRowTableSelected(row); setIsInfoModalOpen(true); }}
+              nowrapColumns={['iD_Cuenta','monto','montoAbonado','saldoPendiente']}
             />
 
             <InfoModal
