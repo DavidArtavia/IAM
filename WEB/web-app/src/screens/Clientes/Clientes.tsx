@@ -20,6 +20,7 @@ import {
 } from "@/utils";
 import { STATUS_TBL } from "@/constants";
 import { valida_DTO_Cliente } from "@/validators/valida_DTO_Cliente";
+import { catchError, finalize, map, of } from "rxjs";
 
 export const Clientes = () => {
   // #region Validaciones en los formularios
@@ -66,19 +67,30 @@ export const Clientes = () => {
   //#endregion
 
   //#region 🚀 Carga inicial
-  useEffect(() => {
-    setLoading(true);
-    clientesService.obtenerClientes().subscribe({
-      next: (result) => {
-        const data = procesarRespuesta(
-          result as DTO_Respuesta
-        ) as DTO_Cliente[];
-        setClientes(data || []);
-      },
-      error: errorHelpers.serverError,
-      complete: () => setLoading(false),
-    });
-  }, []);
+useEffect(() => {
+  setLoading(true);
+
+  const sub = clientesService
+    .obtenerClientes()
+    .pipe(
+      // transforma la respuesta
+      map(result => procesarRespuesta(result as DTO_Respuesta) as DTO_Cliente[]),
+
+      // maneja error y evita romper la suscripción
+      catchError(err => {
+        errorHelpers.serverError(err);
+        return of([] as DTO_Cliente[]);
+      }),
+
+      // SIEMPRE apaga el loading: éxito, error o cancelación
+      finalize(() => setLoading(false))
+    )
+    .subscribe(setClientes);
+
+  // evita fugas al desmontar
+  return () => sub.unsubscribe();
+}, []);
+
   //#endregion
 
   //#region 🔔 Notificación

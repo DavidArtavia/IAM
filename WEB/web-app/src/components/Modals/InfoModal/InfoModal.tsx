@@ -98,7 +98,7 @@ function renderValue<T>(
   if (value === null || value === undefined || value === "") {
    return (
      <span className="px-3 py-2 fs-7">
-       <i className="bi bi-info-circle me-1"></i>[No disponible]
+       ---
      </span>
    );
   }
@@ -127,7 +127,7 @@ export const InfoModal = <T,>({
 
   return (
     <div
-      className="modal fade show d-block shadowDarkBackground"
+      className="modal fade show d-block shadowClearBackground"
       onClick={onHide}
     >
       <div
@@ -147,19 +147,17 @@ export const InfoModal = <T,>({
           </div>
 
           {/* Cuerpo */}
-          <div className="modal-body py-10 px-10 px-lg-17">
+          <div className="modal-body">
             <div className="row g-6">
               {sortedFields.map((field) => {
                 const value = data?.[field.key] ?? null;
                 return (
                   <div key={String(field.key)} className="col-12 col-md-6">
-                    <div className="bg-light border rounded p-4 shadow-sm h-100">
-                      <div className="text-muted fw-semibold fs-7 mb-1">
-                        {field.label}
+                    <div className="h-100">
+                      <div className="text-muted fs-5 mb-1">
+                        {field.label}: <span className="text-dark">{renderValue(field, value)}</span>
                       </div>
-                      <div className="fw-bold fs-6 text-gray-900">
-                        {renderValue(field, value)}
-                      </div>
+                
                     </div>
                   </div>
                 );

@@ -1,5 +1,5 @@
 // src/pages/Cuentas.tsx
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   DTO_Negocio,
   DTO_Respuesta,
@@ -26,6 +26,7 @@ import {
   DynamicButtonConfig,
   FieldConfig,
   GenericDataTable,
+  GenericDataTableHandle,
   GenericFormModal,
   InfoModal,
   InfoPanel,
@@ -37,9 +38,13 @@ import { labelMapCuenta as labelMap } from "@/utils";
 import Select from "react-select";
 import { valida_DTO_Cuenta } from "@/validators/valida_DTO_Cuenta";
 
+
+
+
 //#region 🔁 Estado Global y Negocio
 //#region 🔁 Estado Global y Negocio
 export const Cuentas = () => {
+  const tableRef = useRef<GenericDataTableHandle<DTO_Cuenta>>(null);
   const { state } = useApp();
 
   // #region Validaciones en los formularios
@@ -139,18 +144,15 @@ export const Cuentas = () => {
     if (!selectedBusiness) return;
     cuentasService.obtenerCuentas(selectedBusiness).subscribe({
       next: (result) => {
-        const res = (procesarRespuesta(
-          result as unknown as DTO_Respuesta
-        ) as DTO_Cuenta[]) || [];
+        const res = (procesarRespuesta(result as DTO_Respuesta) as DTO_Cuenta[]) || [];
+        const filterAccounts = res.filter(b => b.estado?.iD_Estado !== STATUS_TBL.ACCOUNT.DELETED);
 
-        const filterAccounts = res.filter(
-          (b) => b.estado?.iD_Estado !== STATUS_TBL.ACCOUNT.DELETED
-        );
 
+
+        // (Opcional) si igual quieres mantener el estado local para otros usos:
         setAccountsPayable(filterAccounts);
       },
-      error: (err) => errorHelpers.serverError(err),
-      complete: () => { },
+      error: errorHelpers.serverError,
     });
   };
   //#endregion
@@ -176,6 +178,7 @@ export const Cuentas = () => {
           const nueva = (result.resultado as DTO_Cuenta[])[0];
           if (nueva.estado?.iD_Estado !== STATUS_TBL.ACCOUNT.DELETED) {
             setAccountsPayable((prev) => [nueva, ...prev]);
+            tableRef.current?.upsert(nueva);
           }
           notificationHelpers.successAlert(
             result.mensaje || "Cuenta registrada correctamente"
@@ -237,7 +240,8 @@ export const Cuentas = () => {
             (result as DTO_Respuesta)?.mensaje ||
             "Cuenta actualizada correctamente";
           notificationHelpers.successAlert(mensaje);
-          refetchAccounts();
+          tableRef.current?.upsert(updatedData);
+          //refetchAccounts();
           setShowEditModal(false);
         },
         error: (err) => errorHelpers.serverError(err),
@@ -258,6 +262,7 @@ export const Cuentas = () => {
     setAccountToDelete(rowData);
     setConfirmContext("delete");
     setIsConfirmOpen(true);
+    tableRef.current?.removeById(rowData.iD_Cuenta);
   };
 
   const handleConfirmDelete = (action: boolean | null) => {
@@ -606,9 +611,9 @@ export const Cuentas = () => {
       ? [
         {
           key: "iD_OrdenServicio",
-          label: "Orden De Servicio #",
+          label: "Orden De Servicio",
           type: "text",
-          order: 0,
+          order: 1,
         } as FieldConfig<any>,
       ]
       : []),
@@ -619,73 +624,48 @@ export const Cuentas = () => {
       type: "custom",
       order: 6,
       renderer: ({ value }) => {
-        if (!value) {
-          return (
-            <div className="text-muted fst-italic">
-              <i className="bi bi-info-circle me-2"></i>
-              Sin detalles registrados
-            </div>
-          );
-        }
-
         const detalle = value as DTO_DetalleCuentaJSON;
         const filas = detalle.filas ?? [];
 
+        if (filas.length == 0 && detalle.descuento.valor == "" && detalle.impuesto.valor == "") {
+          return (
+            <>---</>
+          );
+        }
+
+
+
         return (
-          <div className="d-flex flex-column gap-4">
-            <div className="d-flex flex-wrap gap-4">
-              <div className="bg-light border rounded px-4 py-3 d-flex flex-column shadow-sm">
-                <span className="text-muted fw-semibold small">Descuento</span>
-                <span className="fw-bold text-gray-800 fs-6">
-                  {detalle.descuento?.nombre === "Monto"
-                    ? `₡${Number(detalle.descuento?.valor ?? 0).toLocaleString(
-                      "es-CR",
-                      {
-                        minimumFractionDigits: 2,
-                      }
-                    )}`
-                    : `${Number(detalle.descuento?.valor ?? 0).toLocaleString(
-                      "es-CR"
-                    )}%`}
-                </span>
-              </div>
-              <div className="bg-light border rounded px-4 py-3 d-flex flex-column shadow-sm">
-                <span className="text-muted fw-semibold small">Impuesto</span>
-                <span className="fw-bold text-gray-800 fs-6">
-                  {Number(detalle.impuesto?.valor ?? 0).toLocaleString("es-CR")}
-                  %
-                </span>
-              </div>
-              <div className="bg-light border rounded px-4 py-3 d-flex flex-column shadow-sm">
-                <span className="text-muted fw-semibold small">Filas</span>
-                <span className="fw-bold text-gray-800 fs-6">
-                  {filas.length}
-                </span>
-              </div>
-            </div>
+          <div className="d-flex flex-column gap-4 pt-6">
+
             {filas.length > 0 && (
-              <div className="table-responsive bg-white border rounded shadow-sm p-0">
+              <div className="table-responsive bg-white border rounded p-0">
                 <table className="table table-borderless table-sm align-middle w-100 mb-0">
-                  <thead className="bg-light text-muted text-uppercase fs-8 fw-bold">
+                  <thead className="text-muted fs-8 fw-bold">
                     <tr>
-                      <th className="ps-4 w-60">Nombre</th>
-                      <th className="text-end pe-4 w-40">Valor</th>
+                      <th className="text-center w-60">Fila</th>
+                      <th className="text-center w-60">Nombre</th>
+                      <th className="text-center w-60">Valor</th>
                     </tr>
                   </thead>
                   <tbody>
                     {filas.map((fila, idx) => (
-                      <tr key={idx} className="border-bottom border-gray-200">
-                        <td className="ps-4">
-                          <div className="d-flex align-items-center gap-3">
-                            <span className="badge bg-light fw-bold text-dark fs-8 px-2 py-1 shadow-sm">
-                              #{idx + 1}
-                            </span>
-                            <span className="fw-semibold text-gray-800 fs-6">
+                      <tr key={idx} className="border-bottom text-center border-gray-200">
+                        <td className="text-center">
+                          <div className="text-center gap-3">
+                            <span className="text-dark fs-6 px-2 py-1">{idx + 1}</span>
+
+                          </div>
+                        </td>
+                        <td className="text-center">
+                          <div className="text-center gap-3">
+
+                            <span className="text-dark text-center fs-5">
                               {fila.nombre}
                             </span>
                           </div>
                         </td>
-                        <td className="text-end pe-4">
+                        <td className="text-center">
                           <span className="fw-bold text-dark fs-6">
                             {formatColones(fila.valor)}
                           </span>
@@ -696,24 +676,88 @@ export const Cuentas = () => {
                 </table>
               </div>
             )}
+            <div className="d-flex flex-wrap gap-4 pt-5">
+              <div className="d-flex flex-column">
+                <span className="text-muted fs-5">Descuento:  <span className="fw-bold text-dark fs-5">
+                  {detalle.descuento?.nombre === "Monto"
+                    ? `₡${Number(detalle.descuento?.valor ?? 0).toLocaleString(
+                      "es-CR",
+                      {
+                        minimumFractionDigits: 2,
+                      }
+                    )}`
+                    : `${Number(detalle.descuento?.valor ?? 0).toLocaleString(
+                      "es-CR"
+                    )}%`}
+                </span></span>
+
+              </div>
+              <div className="d-flex flex-column">
+                <span className="text-muted fs-5">Impuesto:   <span className="fw-bold text-dark fs-5">
+                  {Number(detalle.impuesto?.valor ?? 0).toLocaleString("es-CR")}
+                  %
+                </span></span>
+
+              </div>
+              {/* <div className="py-3 d-flex flex-column">
+                <span className="text-muted fw-semibold small">Filas: <span className="fw-bold text-gray-800 fs-6">
+                  {filas.length}
+                </span></span>
+                
+              </div> */}
+            </div>
           </div>
         );
       },
     },
     {
       key: "monto",
-      label: "Monto (₡)",
+      label: "Monto Inicial",
       type: "custom",
       order: 9,
       renderer: ({ value }) => {
         const monto = Number(value || 0);
 
         return (
-          <div className="border border-gray-200 rounded px-4 py-3 d-flex align-items-center justify-content-between shadow-sm">
-            <i className="bi bi-cash-coin fs-4 text-gray-600 me-3"></i>
-            <span className="fw-semibold fs-5 text-gray-800"></span>
+          <>
+
+            <span className="fs-5 text-dark text-end"></span>
             {formatColones(monto)}
-          </div>
+          </>
+        );
+      },
+    },
+    {
+      key: "montoAbonado",
+      label: "Monto Abonado",
+      type: "custom",
+      order: 10,
+      renderer: ({ value }) => {
+        const monto = Number(value || 0);
+
+        return (
+          <>
+
+            <span className="fs-5 text-dark text-end"></span>
+            {formatColones(monto)}
+          </>
+        );
+      },
+    },
+    {
+      key: "saldoPendiente",
+      label: "Saldo",
+      type: "custom",
+      order: 11,
+      renderer: ({ value }) => {
+        const monto = Number(value || 0);
+
+        return (
+          <>
+
+            <span className="fs-5 text-dark text-end"></span>
+            {formatColones(monto)}
+          </>
         );
       },
     },
@@ -777,11 +821,15 @@ export const Cuentas = () => {
           <InfoPanel msj="Seleccione un negocio para ver sus cuentas." />
         ) : (
           <>
+
             <GenericDataTable<DTO_Cuenta>
+              ref={tableRef}
               title="Cuentas"
               columnKeys={columnKeysCuenta}
               labelMap={labelMapCuenta}
-              data={accountsPayable}
+              data={accountsPayable}       // se carga 1 sola vez
+              independent                  // ⇦ clave para que NO escuche más cambios del padre
+              idField="iD_Cuenta"          // ⇦ campo ID que usa upsert/remove
               onAdd={handleAddNew}
               onEdit={handleEdit}
               onDelete={handleDelete}
@@ -790,10 +838,8 @@ export const Cuentas = () => {
               customRenderers={customRenderers}
               customColumns={[detalleJSONColumn]}
               dataTableButtons={dataTableButtons}
-              onRowClick={(row) => {
-                setRowTableSelected(row);
-                setIsInfoModalOpen(true);
-              }}
+              onRowClick={(row) => { setRowTableSelected(row); setIsInfoModalOpen(true); }}
+              nowrapColumns={['iD_Cuenta','monto','montoAbonado','saldoPendiente']}
             />
 
             <InfoModal
