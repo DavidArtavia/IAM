@@ -344,6 +344,7 @@ function GenericDataTableInner<T>(
       visible: false,
       searchable: false,
       orderable: true,
+      className: "never"
     });
 
     return cols;
@@ -384,6 +385,10 @@ function GenericDataTableInner<T>(
                   // @ts-expect-error — compat v1/v2
                   .map(function (col) {
                     if (!col.hidden) return "";
+                    // ⛔ saltar la columna interna __seq tanto por título como por data-key
+                    const t = String(col.title ?? "").toLowerCase();
+                    const d = String(col.data ?? "").toLowerCase?.() ?? "";
+                    if (t === "__seq" || d === "__seq") return "";
 
                     // Índice de columna (v2: columnIndex, v1: column)
                     const cIdx = col.columnIndex ?? col.column;
@@ -482,7 +487,7 @@ function GenericDataTableInner<T>(
         buttons: [
           {
             extend: "excelHtml5",
-           text: `
+            text: `
   <i class="bi bi-download fs-5 js-btn-icon" aria-hidden="true"></i>
   <span class="visually-hidden">Exportar Excel</span>
   <span class="js-btn-label d-none d-sm-inline">Exportar Excel</span>
@@ -529,9 +534,9 @@ function GenericDataTableInner<T>(
       // 🆕 Guarda la instancia
       dtApiRef.current = dtInstance;
 
-if (independent && Array.isArray(data) && data.length > 0) {
-  didInitialLoadRef.current = true;
-}
+      if (independent && Array.isArray(data) && data.length > 0) {
+        didInitialLoadRef.current = true;
+      }
 
       // 🆕 Ejecuta cualquier operación que quedó en cola (load/upsert/etc. antes del init)
       if (pendingOpsRef.current.length) {
@@ -545,7 +550,7 @@ if (independent && Array.isArray(data) && data.length > 0) {
       //#region Estilos
 
 
- 
+
       // 🎨 Estilos para el bloque "info" (DT2: .dt-info / DT1: .dataTables_info)
       const styleInfo = () => {
         const $wrapper = $(table).closest('.dt-container, .dataTables_wrapper');
@@ -569,7 +574,7 @@ if (independent && Array.isArray(data) && data.length > 0) {
         .off('draw.dt._styleFooter page.dt._styleFooter length.dt._styleFooter')
         .on('draw.dt._styleFooter page.dt._styleFooter length.dt._styleFooter', styleFooter);
 
-   
+
 
       // 🎨 Separación del panel superior (toolbar) respecto a la tabla (15px)
       const styleToolbar = () => {
@@ -1328,12 +1333,12 @@ table.table-hover.dataTable tbody tr.no-hover-row:hover > * {
           const withSeqRows = data.map(r => withSeq(r));
           dt.clear().rows.add(withSeqRows).order([dt.columns().count() - 1, 'desc']).draw(false);
 
-// 🔧 Recalcular anchos y responsive inmediatamente (siempre visible)
-dt.columns.adjust();
-// @ts-expect-error --d
-dt.responsive.recalc();
-// @ts-expect-error --e
-dt.fixedHeader?.adjust?.();
+          // 🔧 Recalcular anchos y responsive inmediatamente (siempre visible)
+          dt.columns.adjust();
+          // @ts-expect-error --d
+          dt.responsive.recalc();
+          // @ts-expect-error --e
+          dt.fixedHeader?.adjust?.();
 
         });
         didInitialLoadRef.current = true;
@@ -1364,12 +1369,12 @@ dt.fixedHeader?.adjust?.();
         const withSeqRows = rows.map(r => withSeq(r));
         dt.clear().rows.add(withSeqRows).order([dt.columns().count() - 1, 'desc']).draw(false);
 
-// 🔧 Recalcular anchos y responsive inmediatamente (siempre visible)
-dt.columns.adjust();
-// @ts-expect-error --w
-dt.responsive.recalc();
-// @ts-expect-error --w
-dt.fixedHeader?.adjust?.();
+        // 🔧 Recalcular anchos y responsive inmediatamente (siempre visible)
+        dt.columns.adjust();
+        // @ts-expect-error --w
+        dt.responsive.recalc();
+        // @ts-expect-error --w
+        dt.fixedHeader?.adjust?.();
 
       });
     },
