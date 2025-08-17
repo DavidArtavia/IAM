@@ -127,9 +127,9 @@ function GenericDataTableInner<T>(
     const availableKeys = independent
       ? new Set<string>(columnKeys.map(String))
       : data.reduce<Set<string>>((set, row) => {
-          Object.keys(row as Record<string, unknown>).forEach((k) => set.add(k));
-          return set;
-        }, new Set<string>());
+        Object.keys(row as Record<string, unknown>).forEach((k) => set.add(k));
+        return set;
+      }, new Set<string>());
 
     (independent ? columnKeys.map(String) : columnKeys.map(String)).forEach((keyStr) => {
       if (independent || data.length === 0 || availableKeys.has(keyStr)) {
@@ -203,8 +203,8 @@ function GenericDataTableInner<T>(
               porcentaje >= 80
                 ? "bg-success"
                 : porcentaje >= 50
-                ? "bg-warning"
-                : "bg-danger";
+                  ? "bg-warning"
+                  : "bg-danger";
 
             const container = document.createElement("div");
             (cell as HTMLElement).innerHTML = "";
@@ -482,10 +482,10 @@ function GenericDataTableInner<T>(
         buttons: [
           {
             extend: "excelHtml5",
-            text: `
-  <i class="bi bi-download fs-5 d-inline d-sm-none" aria-hidden="true"></i>
-  <span class="visualmente-hidden d-inline d-sm-none">Exportar Excel</span>
-  <span class="d-none d-sm-inline">Exportar Excel</span>
+           text: `
+  <i class="bi bi-download fs-5 js-btn-icon" aria-hidden="true"></i>
+  <span class="visually-hidden">Exportar Excel</span>
+  <span class="js-btn-label d-none d-sm-inline">Exportar Excel</span>
 `,
             className:
               "btn btn-success btn-sm mb-0 d-flex align-items-center justify-content-center gap-2",
@@ -534,11 +534,11 @@ function GenericDataTableInner<T>(
         const pending = [...pendingOpsRef.current];
         pendingOpsRef.current = [];
         pending.forEach(fn => {
-          try { fn(dtInstance); } catch {}
+          try { fn(dtInstance); } catch { /* empty */ }
         });
       }
 
-//#region Estilos
+      //#region Estilos
 
 
       // 🆕 Guarda la instancia
@@ -1369,7 +1369,7 @@ table.table-hover.dataTable tbody tr.no-hover-row:hover > * {
     upsert(row: T) {
       withDT((dt) => {
         const idKey = idKeyRef.current; const rowId = (row as any)?.[idKey];
-        // @ts-expect-error — selector por función no está tipado en DT types
+
         const idxes = dt.rows((_: any, data: any) => (data?.[idKey] ?? null) === rowId).indexes();
         if (idxes.length) { dt.rows(idxes).remove(); }
         dt.row.add(withSeq(row));
@@ -1382,7 +1382,7 @@ table.table-hover.dataTable tbody tr.no-hover-row:hover > * {
         const idKey = idKeyRef.current;
         const incoming = new Map<any, T>();
         for (const r of rows) incoming.set((r as any)[idKey], r);
-        // @ts-expect-error — iterador de filas con this DataTables
+
         dt.rows().every(function (this: any) {
           const cur: any = this.data();
           if (incoming.has(cur?.[idKey])) {
@@ -1396,7 +1396,7 @@ table.table-hover.dataTable tbody tr.no-hover-row:hover > * {
     removeById(id: unknown) {
       withDT((dt) => {
         const idKey = idKeyRef.current;
-        // @ts-expect-error — selector por función no está tipado en DT types
+
         const idxes = dt.rows((_: any, data: any) => (data?.[idKey] ?? null) === id).indexes();
         if (idxes.length) { dt.rows(idxes).remove().draw(false); }
       });
@@ -1406,8 +1406,9 @@ table.table-hover.dataTable tbody tr.no-hover-row:hover > * {
     },
     getData(): T[] {
       const dt = dtApiRef.current; if (!dt) return [];
-      // @ts-expect-error — toArray no siempre está en defs TS
+
       return dt.rows().data().toArray().map((r: any) => {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { __seq, ...rest } = r;
         return rest;
       });
@@ -1441,5 +1442,8 @@ table.table-hover.dataTable tbody tr.no-hover-row:hover > * {
 }
 
 // ✅ Export con genéricos soportados en JSX y sin error TS (cast a unknown sugerido por TS)
-type GenericDataTableComponent = <T>(props: GenericDataTableProps<T> & { ref?: React.Ref<GenericDataTableHandle<T>> }) => JSX.Element;
+type GenericDataTableComponent =
+  <T>(props: GenericDataTableProps<T> & { ref?: React.Ref<GenericDataTableHandle<T>> }) => React.ReactElement | null;
+
 export const GenericDataTable = React.forwardRef(GenericDataTableInner) as unknown as GenericDataTableComponent;
+

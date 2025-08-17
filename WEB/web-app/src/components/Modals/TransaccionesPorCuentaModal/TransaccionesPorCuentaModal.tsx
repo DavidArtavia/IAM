@@ -321,7 +321,7 @@ export const TransaccionesPorCuentaModal = ({
         onClick={(e) => e.stopPropagation()}
       >
         <div className="modal-content resizable-metronic-modal">
-          <div className="modal-header cursor-move pt-4 pb-0 border-0 p-5 py-10 px-lg-17 pt-5 mb-n3">
+          <div className="modal-header cursor-move pt-4 pb-0 border-0 p-5 py-10 px-lg-17 pt-5">
             <h2 className="fw-light text-gray-400 fs-5">{ cuenta.tipoCuenta.charAt(0).toUpperCase() + cuenta.tipoCuenta.slice(1).toLowerCase()  + " #" + cuenta.iD_Cuenta}</h2>
             <button 
             type="button" 
