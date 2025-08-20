@@ -62,19 +62,19 @@ namespace DAL
             respuesta = new DTO_Respuesta();
             try
             {
-                using var cmd = new SqlCommand("CORE.SP_actualizarProforma", GetObjConexion())
+                using var sqlcmd = new SqlCommand("CORE.SP_actualizarProforma", GetObjConexion())
                 { CommandType = CommandType.StoredProcedure };
 
-                cmd.Parameters.Add("@ID_Proforma", SqlDbType.Int).Value = p.ID_Proforma;
-                cmd.Parameters.Add("@ID_Cliente", SqlDbType.Int).Value = (object?)p.ID_Cliente ?? DBNull.Value;
-                cmd.Parameters.Add("@ID_Estado", SqlDbType.Int).Value = p.Estado.ID_Estado;
-                cmd.Parameters.Add("@ObservacionProforma", SqlDbType.NVarChar, 255).Value =
+                sqlcmd.Parameters.Add("@ID_Proforma", SqlDbType.Int).Value = p.ID_Proforma;
+                sqlcmd.Parameters.Add("@ID_Cliente", SqlDbType.Int).Value = (object?)p.ID_Cliente ?? DBNull.Value;
+                sqlcmd.Parameters.Add("@ID_Estado", SqlDbType.Int).Value = p.Estado.ID_Estado;
+                sqlcmd.Parameters.Add("@ObservacionProforma", SqlDbType.NVarChar, 255).Value =
                     (object?)p.ObservacionProforma ?? DBNull.Value;
-                cmd.Parameters.Add("@FechaVencimiento", SqlDbType.DateTime).Value =
+                sqlcmd.Parameters.Add("@FechaVencimiento", SqlDbType.DateTime).Value =
                     (object?)p.FechaVencimiento ?? DBNull.Value;
 
                 Open();
-                using var reader = await cmd.ExecuteReaderAsync();
+                using var reader = await sqlcmd.ExecuteReaderAsync();
 
                 DTO_Proforma updated = new();
                 if (await reader.ReadAsync())
@@ -139,7 +139,20 @@ namespace DAL
                         FechaProforma = UTL_DBHelper.ReadNullSafeDateTime(reader["FechaProforma"]),
                         FechaVencimiento = UTL_DBHelper.ReadNullSafeDateTime(reader["FechaVencimiento"]),
                         ObservacionProforma = UTL_DBHelper.ReadNullSafeString(reader["ObservacionProforma"]),
+                        FechaModificacion = UTL_DBHelper.ReadNullSafeDateTime(reader["FechaModificacion"]),
+                        DescuentoProforma = UTL_DBHelper.ReadNullSafeDecimal(reader["DescuentoProforma"]),
+                        DescuentoPorcentualProforma = UTL_DBHelper.ReadNullSafeBoolean(reader["DescuentoPorcentualProforma"]),
+                        ImpuestoPorcentualProforma = UTL_DBHelper.ReadNullSafeDecimal(reader["ImpuestoPorcentualProforma"]),
+                        SubTotal = UTL_DBHelper.ReadNullSafeDecimal(reader["SubTotal"]),
+                        MontoDescuento = UTL_DBHelper.ReadNullSafeDecimal(reader["MontoDescuento"]),
+                        BaseImponible = UTL_DBHelper.ReadNullSafeDecimal(reader["BaseImponible"]),
+                        MontoImpuesto = UTL_DBHelper.ReadNullSafeDecimal(reader["MontoImpuesto"]),
                         TotalCalculado = UTL_DBHelper.ReadNullSafeDecimal(reader["TotalCalculado"]),
+                        Cliente = new DTO_Cliente
+                        {
+                            NombreCliente = UTL_DBHelper.ReadNullSafeString(reader["NombreCliente"]),
+                            ApellidoCliente = UTL_DBHelper.ReadNullSafeString(reader["ApellidoCliente"]),
+                        },
                     };
                     lista.Add(p);
                 }
@@ -189,7 +202,20 @@ namespace DAL
                         FechaProforma = UTL_DBHelper.ReadNullSafeDateTime(reader["FechaProforma"]),
                         FechaVencimiento = UTL_DBHelper.ReadNullSafeDateTime(reader["FechaVencimiento"]),
                         ObservacionProforma = UTL_DBHelper.ReadNullSafeString(reader["ObservacionProforma"]),
-                        TotalCalculado = UTL_DBHelper.ReadNullSafeDecimal(reader["TotalCalculado"])
+                        FechaModificacion = UTL_DBHelper.ReadNullSafeDateTime(reader["FechaModificacion"]),
+                        DescuentoProforma = UTL_DBHelper.ReadNullSafeDecimal(reader["DescuentoProforma"]),
+                        DescuentoPorcentualProforma = UTL_DBHelper.ReadNullSafeBoolean(reader["DescuentoPorcentualProforma"]),
+                        ImpuestoPorcentualProforma = UTL_DBHelper.ReadNullSafeDecimal(reader["ImpuestoPorcentualProforma"]),
+                        SubTotal = UTL_DBHelper.ReadNullSafeDecimal(reader["SubTotal"]),
+                        MontoDescuento = UTL_DBHelper.ReadNullSafeDecimal(reader["MontoDescuento"]),
+                        BaseImponible = UTL_DBHelper.ReadNullSafeDecimal(reader["BaseImponible"]),
+                        MontoImpuesto = UTL_DBHelper.ReadNullSafeDecimal(reader["MontoImpuesto"]),
+                        TotalCalculado = UTL_DBHelper.ReadNullSafeDecimal(reader["TotalCalculado"]),
+                        Cliente = new DTO_Cliente
+                        {
+                            NombreCliente = UTL_DBHelper.ReadNullSafeString(reader["NombreCliente"]),
+                            ApellidoCliente = UTL_DBHelper.ReadNullSafeString(reader["ApellidoCliente"]),
+                        },
                     };
                     lista.Add(p);
                 }
