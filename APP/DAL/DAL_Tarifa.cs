@@ -11,7 +11,7 @@ namespace DAL
     {
         private DTO_Respuesta respuesta = new();
 
-        public async Task<List<DTO_Tarifa>> BuscarTarifasAsync(DTO_Tarifa filtro)
+        public async Task<List<DTO_Tarifa>> BuscarTarifasAsync(DTO_SolicitudDeBusqueda busqueda)
         {
             var lista = new List<DTO_Tarifa>();
             try
@@ -20,30 +20,11 @@ namespace DAL
                 { CommandType = CommandType.StoredProcedure };
 
                 // ID negocio (obligatorio)
-                sqlcmd.Parameters.Add("@ID_Negocio", SqlDbType.Int).Value = filtro.ID_Negocio;
+                sqlcmd.Parameters.Add("@ID_Negocio", SqlDbType.Int).Value = busqueda.Negocio?.ID_Negocio;
 
                 // Strings: manda NULL cuando no hay valor
-                sqlcmd.Parameters.Add("@NombreTarifa", SqlDbType.NVarChar, 100).Value =
-                    string.IsNullOrWhiteSpace(filtro.NombreTarifa) ? (object)DBNull.Value : filtro.NombreTarifa;
-
-                sqlcmd.Parameters.Add("@DescripcionTarifa", SqlDbType.NVarChar, 255).Value =
-                    string.IsNullOrWhiteSpace(filtro.DescripcionTarifa) ? (object)DBNull.Value : filtro.DescripcionTarifa;
-
-                // DECIMAL(16,3): define precision/scale
-                var PrecioTarifario = sqlcmd.Parameters.Add("@PrecioTarifa", SqlDbType.Decimal);
-                PrecioTarifario.Precision = 16;
-                PrecioTarifario.Scale = 3;
-
-                if (filtro.PrecioTarifa.HasValue)
-                {
-                    // Acepta tanto 0 como cualquier número
-                    PrecioTarifario.Value = filtro.PrecioTarifa.Value;
-                }
-                else
-                {
-                    // Solo cuando no trae nada
-                    PrecioTarifario.Value = DBNull.Value;
-                }
+                sqlcmd.Parameters.Add("@Term", SqlDbType.NVarChar, 100).Value =
+                    string.IsNullOrWhiteSpace(busqueda.Term) ? (object)DBNull.Value : busqueda.Term;
 
                 Open();
                 using var reader = await sqlcmd.ExecuteReaderAsync();

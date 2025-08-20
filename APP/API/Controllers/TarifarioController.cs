@@ -18,9 +18,9 @@ namespace API.Controllers
         [Produces("application/json")]
         [HttpPost]
         [Route("buscarTarifas")] // Type-ahead: lista ligera
-        public async Task<List<DTO_Tarifa>> BuscarTarifas([FromBody] DTO_Tarifa tarifa)
+        public async Task<List<DTO_Tarifa>> BuscarTarifas([FromBody] DTO_SolicitudDeBusqueda busqueda)
         {
-            return await bll.BuscarTarifasAsync(tarifa);
+            return await bll.BuscarTarifasAsync(busqueda);
         }
 
         [Authorize(Roles = "1")]

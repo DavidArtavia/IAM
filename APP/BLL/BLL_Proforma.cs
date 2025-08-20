@@ -16,13 +16,8 @@ namespace BLL
         public async Task<DTO_Respuesta> ObtenerProformas(DTO_Proforma proforma)
             => await dal.ObtenerProformas(proforma);
 
-        public async Task<DTO_Respuesta> RegistrarItemsProforma(DTO_ProformaItem item)
-            => await dal.RegistrarItemsProforma(item);
+        public async Task<DTO_Respuesta> BuscarProformas(DTO_SolicitudDeBusqueda busqueda)
+         => await dal.BuscarProformas(busqueda);
 
-        public async Task<DTO_Respuesta> ActualizarItemsProforma(DTO_ProformaItem item)
-            => await dal.ActualizarItemsProforma(item);
-
-        public async Task<DTO_Respuesta> ObtenerItemsProforma(DTO_Proforma proforma)
-            => await dal.ObtenerItemsProforma(proforma);
     }
 }

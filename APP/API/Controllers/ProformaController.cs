@@ -65,6 +65,23 @@ namespace API.Controllers
             return respuesta;
         }
 
+        [Authorize(Roles = "1")]
+        [Produces("application/json")]
+        [HttpPost]
+        [Route("buscarProformas")]
+        public async Task<DTO_Respuesta> BuscarProformas([FromBody] DTO_SolicitudDeBusqueda busqueda)
+        {
+            try
+            {
+                respuesta = await bll.BuscarProformas(busqueda);
+            }
+            catch (Exception ex)
+            {
+                respuesta = manejoError.errorNoControlado(ex);
+            }
+            return respuesta;
+        }
+
 
     }
 }

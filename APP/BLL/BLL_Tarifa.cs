@@ -8,8 +8,8 @@ namespace BLL
     {
         private readonly DAL_Tarifa dal = new();
 
-        public async Task<List<DTO_Tarifa>> BuscarTarifasAsync(DTO_Tarifa tarifa)
-            => await dal.BuscarTarifasAsync(tarifa);
+        public async Task<List<DTO_Tarifa>> BuscarTarifasAsync(DTO_SolicitudDeBusqueda busqueda)
+            => await dal.BuscarTarifasAsync(busqueda);
 
         public async Task<DTO_Respuesta> ObtenerTarifas(DTO_Negocio negocio)
             => await dal.ObtenerTarifas(negocio);

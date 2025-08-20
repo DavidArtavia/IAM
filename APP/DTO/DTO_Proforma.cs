@@ -31,7 +31,7 @@ namespace DTO
             FechaVencimiento = null;
             ObservacionProforma = string.Empty;
             FechaModificacion = null;
-            TotalCalculado = null;
+            TotalCalculado = null; // No está en la DB, solo aqui xq se obtiene de el sp de obtener proformas y devueve el total caluando cada item de proforma
         }
         #endregion
 

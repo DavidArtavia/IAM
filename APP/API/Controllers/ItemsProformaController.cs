@@ -6,10 +6,11 @@ using UTL;
 
 namespace API.Controllers
 {
+    [Route("api/[controller]")]
     public class ItemsProformaController
     {
         private readonly UTL_ManejoError manejoError = new();
-        private readonly BLL_Proforma bll = new();
+        private readonly BLL_ItemsProforma bll = new();
         private DTO_Respuesta respuesta = new();
 
 
@@ -55,7 +56,7 @@ namespace API.Controllers
         {
             try
             {
-                //respuesta = await bll.ObtenerItemsProforma(filtro);
+                respuesta = await bll.ObtenerItemsProforma(filtro);
             }
             catch (Exception ex)
             {
