@@ -8,6 +8,11 @@ import { useLogout } from "@/hooks/useLogout";
 import { BusinessButtons, ConfirmModal } from "@/components";
 import { AuthContext } from "@/context";
 
+//imagenes 
+import imgLogo6 from "@assets/media/logos/logo-6.svg";
+import imgLogo2 from "@assets/media/logos/logo-2.svg";
+import imgAvatar from "@assets/media/avatars/blank.png";
+
 declare global {
   interface Window {
     KTDrawer: { createInstances: () => void };
@@ -23,7 +28,7 @@ export const LayoutMain = () => {
     // Este useEffect habilita el sonido de la notificación previamente
     const habilitarSonido = () => {
       try {
-        const audioTemp = new Audio("../../assets/media/audios/Monitor.mp3");
+        const audioTemp = new Audio("@/assets/media/audios/Monitor.mp3");
         audioTemp.play().then(() => {
           audioTemp.pause();
           audioTemp.currentTime = 0;
@@ -165,7 +170,7 @@ export const LayoutMain = () => {
             <img
               alt="Logo"
               className="h-45px logo"
-              src="src/assets/media/logos/logo-demo-6.svg"
+              src={imgLogo6}
             />
           </Link>
         </div>
@@ -408,7 +413,7 @@ export const LayoutMain = () => {
                 <img
                   alt="Logo"
                   className="h-30px"
-                  src="src/assets/media/logos/logo-2.svg"
+                  src={imgLogo2}
                 />
               </Link>
             </div>
@@ -431,7 +436,7 @@ export const LayoutMain = () => {
                   data-kt-menu-placement="bottom-end"
                   data-kt-menu-flip="bottom"
                 >
-                  {/* <img src="src/assets/media/avatars/150-26.jpg" alt="metronic" /> */}
+             
                   <i className="bi bi-person-fill fs-1"></i>
                 </div>
 
@@ -452,8 +457,8 @@ export const LayoutMain = () => {
                       <div className="symbol symbol-50px me-5">
                         {/* {Aqui debe ir la foto del cliente usuario } */}
                         <img
-                          // src={user?.fotoUsuario || "src/assets/media/avatars/blank.png"}
-                          src={"src/assets/media/avatars/blank.png"}
+    
+                          src={imgAvatar}
                           alt="Foto de usuario"
                         />
                       </div>

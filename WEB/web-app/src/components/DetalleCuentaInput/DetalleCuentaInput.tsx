@@ -193,7 +193,7 @@ export const DetalleCuentaInput = ({
         onAction={confirmModalAction}
       />
       {enabled && (
-        <div className="border rounded-3 shadow-sm p-4 bg-white">
+        <div className="border p-4 bg-white">
           <div className="mb-4">
             <h5 className="fw-bold mb-3">Detalles</h5>
             {filas.length === 0 && (
