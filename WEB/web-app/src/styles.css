@@ -245,3 +245,21 @@ table.dataTable thead th {
 } */
 
 
+
+/*Para bloquear el scroll del body cuando se abre un modal*/
+/* Evita “empuje”/rebote en móviles y fuga de scroll */
+body.modal-open { 
+  overflow: hidden;
+  overscroll-behavior: contain;
+  touch-action: none;
+}
+/* Si tu scroll real está en .app-scroll, añade: */
+.modal-open .app-scroll { overflow: hidden !important; }
+
+
+/* El propio modal tampoco debe propagar overscroll al fondo */
+.modal { overscroll-behavior: contain; }
+
+/* Si tu app scrollea en un contenedor distinto al body */
+.modal-open .app-scroll { overflow: hidden !important; }
+

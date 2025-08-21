@@ -2,6 +2,8 @@ import { useGenericForm } from "@/hooks/useGenericForm";
 import { FieldConfig } from "./types";
 import { DynamicButtonConfig, ModalHeaderButtons } from "@/components";
 import { DTO_Param } from "@/models";
+import { useScrollLockOnly } from "@/hooks/useScrollLockOnly";
+import { useEffect, useRef } from "react";
 
 //#region INTERFACES
 interface GenericFormModalProps<T> {
@@ -32,15 +34,36 @@ export const GenericFormModal = <T,>({
   erroresValidacion = [],
   onEliminarError
 }: GenericFormModalProps<T>) => {
+
+
+
+
+
   //#region HOOKS
   const {
     localDisplay,
     handleChange,
     handleBlur,
   } = useGenericForm(data, setData, fields, show, onSubmit);
+
+
+//#region Scroll del body
+//Ajustes para el croll del body, para bloquearlo en cuando se abren los modales
+const modalRef = useRef<HTMLDivElement>(null);
+
+useScrollLockOnly(show, "body");
+
+  useEffect(() => {
+    if (show) modalRef.current?.focus();
+  }, [show]);
+//#endregion
+
+
   //#endregion
 
   if (!show) return null;
+
+
 
   //#region RENDER FIELD
   const renderField = (field: FieldConfig<T>, idx: number) => {
@@ -279,6 +302,10 @@ export const GenericFormModal = <T,>({
     <div
       className="modal fade show d-block shadowDarkBackground"
       onClick={onHide}
+      ref={modalRef}           
+      tabIndex={-1}  
+      role="dialog"          
+      aria-modal="true" 
     >
       <div
         className="modal-dialog modal-dialog-centered modal-lg"

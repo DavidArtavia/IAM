@@ -844,7 +844,7 @@ export const Cuentas = () => {
 
             <InfoModal
               show={isInfoModalOpen}
-              onHide={() => setRowTableSelected(undefined)}
+              onHide={() => {setIsInfoModalOpen(false); setRowTableSelected(undefined); }}
               data={rowTableSelected!}
               fields={infoModalFields}
               headerButtons={headerButtonsToInfo}

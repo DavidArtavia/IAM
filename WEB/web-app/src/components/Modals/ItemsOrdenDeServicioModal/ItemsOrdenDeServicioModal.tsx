@@ -1,6 +1,6 @@
 // ✅ RP-06: ItemsOrdenDeServicioModal adaptado con manejo local sin refetch y estructura organizada
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { GenericDataTable } from "@/components/Tables/DataTable/GenericDataTable";
 import { LoadingPanel } from "@/components/Panel/LoadingPanel";
 import { CustomRange } from "@/components/Range/CustomRange";
@@ -24,6 +24,7 @@ import {
   InfoModal,
 } from "@/components";
 import { valida_DTO_ItemOrdenServicio } from "@/validators/valida_DTO_ItemOrdenServicio";
+import { useScrollLockOnly } from "@/hooks";
 
 interface ItemsOrdenDeServicioModalProps {
   open: boolean;
@@ -38,6 +39,19 @@ export const ItemsOrdenDeServicioModal = ({
   title = "Lista de ítems",
   rowData,
 }: ItemsOrdenDeServicioModalProps) => {
+
+
+  //#region Scroll del body
+      //Ajustes para el croll del body, para bloquearlo en cuando se abren los modales
+  const modalRef = useRef<HTMLDivElement>(null);
+  
+  useScrollLockOnly(open, "body");
+  
+    useEffect(() => {
+      if (open) modalRef.current?.focus();
+    }, [open]);
+  //#endregion Scroll del body
+  
 
   // #region Validaciones en los formularios
   const [erroresValidacion, setErroresValidacion] = useState<DTO_Param[]>([]);
@@ -345,6 +359,10 @@ export const ItemsOrdenDeServicioModal = ({
     <div
       className="modal fade show d-block shadowClearBackground"
       onClick={onHide}
+      ref={modalRef}           
+      tabIndex={-1}  
+      role="dialog"          
+      aria-modal="true" 
     >
       <div
         className="modal-dialog modal-dialog-centered"

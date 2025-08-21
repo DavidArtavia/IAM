@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   DTO_Transacciones,
   DTO_Respuesta,
@@ -28,6 +28,7 @@ import { transaccionesService } from "@/services/transacciones.service";
 import { STATUS_TBL } from "@/constants";
 import { AutoAccountTransactionInfoField } from "@/screens";
 import { valida_DTO_Transacciones } from "@/validators/valida_DTO_Transacciones";
+import { useScrollLockOnly } from "@/hooks";
 
 interface TransaccionesPorCuentaModalProps {
   open: boolean;
@@ -45,6 +46,22 @@ export const TransaccionesPorCuentaModal = ({
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   nombreCuenta = "Cuenta",
 }: TransaccionesPorCuentaModalProps) => {
+
+
+    //#region Scroll del body
+        //Ajustes para el croll del body, para bloquearlo en cuando se abren los modales
+    const modalRef = useRef<HTMLDivElement>(null);
+    
+    useScrollLockOnly(open, "body");
+    
+      useEffect(() => {
+        if (open) modalRef.current?.focus();
+      }, [open]);
+    //#endregion Scroll del body
+
+
+
+
 
   // #region Validaciones en los formularios
   const [erroresValidacion, setErroresValidacion] = useState<DTO_Param[]>([]);
@@ -319,6 +336,11 @@ export const TransaccionesPorCuentaModal = ({
         className="modal-dialog modal-dialog-centered"
         style={{ maxWidth: "1200px" }}
         onClick={(e) => e.stopPropagation()}
+            
+      ref={modalRef}           
+      tabIndex={-1}  
+      role="dialog"          
+      aria-modal="true" 
       >
         <div className="modal-content resizable-metronic-modal">
           <div className="modal-header cursor-move pt-4 pb-0 border-0 p-5 py-10 px-lg-17 pt-5">
