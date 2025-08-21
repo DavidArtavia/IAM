@@ -426,6 +426,10 @@ function GenericDataTableInner<T>(
                 return $.fn.dataTable.Responsive.renderer.tableDisplay()(api, rowIdx, columns);
               }
             },
+            headerCallback: function (thead: any) {
+              // Centrar SIEMPRE todos los <th> del thead original
+              $(thead).find('th').addClass('text-center');
+            },
           },
         },
 
@@ -1250,11 +1254,55 @@ table.table-hover.dataTable tbody tr.no-hover-row:hover > * {
 
 
 
+(() => {
+  const id = 'dt-header-center-align';
+  if (!document.getElementById(id)) {
+    const s = document.createElement('style');
+    s.id = id;
+    s.textContent = `
+/* Header normal (DT2 y DT1) */
+.dt-container table.dataTable thead th,
+.dataTables_wrapper table.dataTable thead th {
+  text-align: center !important;
+}
+
+/* Header flotante de FixedHeader (DT2 y DT1) */
+.dtfh-floatingparent thead th,
+.fixedHeader-floating thead th {
+  text-align: center !important;
+}
+`;
+    document.head.appendChild(s);
+  }
+})();
 
 
 
 
       //#endregion Estilos
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

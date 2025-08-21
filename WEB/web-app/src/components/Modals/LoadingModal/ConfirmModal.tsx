@@ -1,3 +1,6 @@
+import { useScrollLockSmart } from "@/hooks";
+import { useEffect, useRef } from "react";
+
 interface ConfirmModalProps {
   show: boolean;
   confirmMessage?: string;
@@ -9,6 +12,21 @@ export const ConfirmModal = ({
   confirmMessage,
   onAction,
 }: ConfirmModalProps) => {
+
+
+//#region Scroll del body
+    //Ajustes para el croll del body, para bloquearlo en cuando se abren los modales
+const modalRef = useRef<HTMLDivElement>(null);
+
+ useScrollLockSmart(show, { rootRef: modalRef, fallbackSelector: ".app-scroll" });
+
+
+  useEffect(() => {
+    if (show) modalRef.current?.focus();
+  }, [show]);
+//#endregion Scroll del body
+
+
   if (!show) return null;
 
   
@@ -16,6 +34,10 @@ export const ConfirmModal = ({
     <div
       className="modal fade show d-block shadowDarkBackground"
       onClick={() => onAction(null)} // clic afuera cierra
+      tabIndex={-1}  
+      ref={modalRef}   
+      role="dialog"          
+      aria-modal="true" 
     >
       <div
         className="modal-dialog modal-dialog-centered"

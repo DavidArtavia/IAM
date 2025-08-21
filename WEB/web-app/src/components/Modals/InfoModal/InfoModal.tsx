@@ -3,11 +3,11 @@
 // Muestra valores formateados, con soporte para custom renderers.
 // -------------------------------------------------------------------------------------------------
 
-import React from "react";
+import { useEffect, useRef } from "react";
 import { dateHelpers } from "@/utils";
 import { FieldConfig } from "../GenericFormModal/types";
 import { DynamicButtonConfig, ModalHeaderButtons } from "@/components";
-
+import { useScrollLockSmart } from "@/hooks";
 
 
 interface InfoModalProps<T> {
@@ -18,6 +18,11 @@ interface InfoModalProps<T> {
   title?: string;
   headerButtons?: DynamicButtonConfig[];
 }
+
+
+
+
+
 
 /**
  * Formatea fechas válidas si están después del año 1753.
@@ -117,6 +122,22 @@ export const InfoModal = <T,>({
   title = "Detalles",
   headerButtons,
 }: InfoModalProps<T>) => {
+
+//#region Scroll del body
+    //Ajustes para el croll del body, para bloquearlo en cuando se abren los modales
+const modalRef = useRef<HTMLDivElement>(null);
+
+ useScrollLockSmart(show, { rootRef: modalRef, fallbackSelector: ".app-scroll" });
+
+
+  useEffect(() => {
+    if (show) modalRef.current?.focus();
+  }, [show]);
+//#endregion Scroll del body
+
+
+
+
   if (!show) return null;
 
   const sortedFields = [...fields].sort(
@@ -129,6 +150,10 @@ export const InfoModal = <T,>({
     <div
       className="modal fade show d-block shadowClearBackground"
       onClick={onHide}
+      ref={modalRef}           
+      tabIndex={-1}  
+      role="dialog"          
+      aria-modal="true" 
     >
       <div
         className="modal-dialog modal-dialog-centered mw-750px"

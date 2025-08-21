@@ -844,7 +844,7 @@ export const Cuentas = () => {
 
             <InfoModal
               show={isInfoModalOpen}
-              onHide={() => setRowTableSelected(undefined)}
+              onHide={() => {setIsInfoModalOpen(false); setRowTableSelected(undefined); }}
               data={rowTableSelected!}
               fields={infoModalFields}
               headerButtons={headerButtonsToInfo}
@@ -887,9 +887,10 @@ export const Cuentas = () => {
 
             <TransaccionesPorCuentaModal
               open={isTransaccionesModalOpen}
-              onHide={() => { refetchAccounts(); setIsTransaccionesModalOpen(false); }}
+              onHide={() => { setIsTransaccionesModalOpen(false); }}
               cuenta={accountTransactions || new DTO_Cuenta()}
               negocioId={selectedBusiness?.iD_Negocio || 0}
+              onChange={(cuenta) => { tableRef.current?.upsert(cuenta) }}
             />
           </>
         )}
