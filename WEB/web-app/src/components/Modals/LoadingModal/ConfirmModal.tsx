@@ -1,4 +1,4 @@
-import { useScrollLockOnly } from "@/hooks";
+import { useScrollLockSmart } from "@/hooks";
 import { useEffect, useRef } from "react";
 
 interface ConfirmModalProps {
@@ -18,7 +18,7 @@ export const ConfirmModal = ({
     //Ajustes para el croll del body, para bloquearlo en cuando se abren los modales
 const modalRef = useRef<HTMLDivElement>(null);
 
-useScrollLockOnly(show, ".app-scroll");
+ useScrollLockSmart(show, { rootRef: modalRef, fallbackSelector: ".app-scroll" });
 
 
   useEffect(() => {

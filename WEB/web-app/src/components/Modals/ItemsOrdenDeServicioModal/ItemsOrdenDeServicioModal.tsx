@@ -24,7 +24,7 @@ import {
   InfoModal,
 } from "@/components";
 import { valida_DTO_ItemOrdenServicio } from "@/validators/valida_DTO_ItemOrdenServicio";
-import { useScrollLockOnly } from "@/hooks";
+import { useScrollLockSmart } from "@/hooks";
 
 interface ItemsOrdenDeServicioModalProps {
   open: boolean;
@@ -45,7 +45,8 @@ export const ItemsOrdenDeServicioModal = ({
       //Ajustes para el croll del body, para bloquearlo en cuando se abren los modales
   const modalRef = useRef<HTMLDivElement>(null);
   
-  useScrollLockOnly(open, "body");
+ useScrollLockSmart(open, { rootRef: modalRef, fallbackSelector: ".app-scroll" });
+
   
     useEffect(() => {
       if (open) modalRef.current?.focus();

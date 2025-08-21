@@ -7,7 +7,7 @@ import { useEffect, useRef } from "react";
 import { dateHelpers } from "@/utils";
 import { FieldConfig } from "../GenericFormModal/types";
 import { DynamicButtonConfig, ModalHeaderButtons } from "@/components";
-import { useScrollLockOnly } from "@/hooks";
+import { useScrollLockSmart } from "@/hooks";
 
 
 interface InfoModalProps<T> {
@@ -127,7 +127,8 @@ export const InfoModal = <T,>({
     //Ajustes para el croll del body, para bloquearlo en cuando se abren los modales
 const modalRef = useRef<HTMLDivElement>(null);
 
-useScrollLockOnly(show, "body");
+ useScrollLockSmart(show, { rootRef: modalRef, fallbackSelector: ".app-scroll" });
+
 
   useEffect(() => {
     if (show) modalRef.current?.focus();

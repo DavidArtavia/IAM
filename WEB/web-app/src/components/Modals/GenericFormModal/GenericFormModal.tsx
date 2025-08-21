@@ -2,7 +2,7 @@ import { useGenericForm } from "@/hooks/useGenericForm";
 import { FieldConfig } from "./types";
 import { DynamicButtonConfig, ModalHeaderButtons } from "@/components";
 import { DTO_Param } from "@/models";
-import { useScrollLockOnly } from "@/hooks/useScrollLockOnly";
+import { useScrollLockSmart } from "@/hooks/useScrollLockSmart";
 import { useEffect, useRef } from "react";
 
 //#region INTERFACES
@@ -51,7 +51,8 @@ export const GenericFormModal = <T,>({
   //Ajustes para el croll del body, para bloquearlo en cuando se abren los modales
   const modalRef = useRef<HTMLDivElement>(null);
 
-  useScrollLockOnly(show, "body");
+ useScrollLockSmart(show, { rootRef: modalRef, fallbackSelector: ".app-scroll" });
+
 
   useEffect(() => {
     if (show) modalRef.current?.focus();

@@ -28,7 +28,7 @@ import { transaccionesService } from "@/services/transacciones.service";
 import { STATUS_TBL } from "@/constants";
 import { AutoAccountTransactionInfoField } from "@/screens";
 import { valida_DTO_Transacciones } from "@/validators/valida_DTO_Transacciones";
-import { useScrollLockOnly } from "@/hooks";
+import { useScrollLockSmart } from "@/hooks";
 
 interface TransaccionesPorCuentaModalProps {
   open: boolean;
@@ -54,7 +54,7 @@ export const TransaccionesPorCuentaModal = ({
   //Ajustes para el croll del body, para bloquearlo en cuando se abren los modales
   const modalRef = useRef<HTMLDivElement>(null);
 
-  useScrollLockOnly(open, "body");
+ useScrollLockSmart(open, { rootRef: modalRef, fallbackSelector: ".app-scroll" });
 
   useEffect(() => {
     if (open) modalRef.current?.focus();
