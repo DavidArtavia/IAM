@@ -47,16 +47,16 @@ export const GenericFormModal = <T,>({
   } = useGenericForm(data, setData, fields, show, onSubmit);
 
 
-//#region Scroll del body
-//Ajustes para el croll del body, para bloquearlo en cuando se abren los modales
-const modalRef = useRef<HTMLDivElement>(null);
+  //#region Scroll del body
+  //Ajustes para el croll del body, para bloquearlo en cuando se abren los modales
+  const modalRef = useRef<HTMLDivElement>(null);
 
-useScrollLockOnly(show, "body");
+  useScrollLockOnly(show, "body");
 
   useEffect(() => {
     if (show) modalRef.current?.focus();
   }, [show]);
-//#endregion
+  //#endregion
 
 
   //#endregion
@@ -73,10 +73,10 @@ useScrollLockOnly(show, "body");
 
 
 
-    const inputClass = 
-    type === "custom"  ?
-    (erroresValidacion.some(error => error.nombre === String(key)) ? " is-invalid-custom-select": "") :
-    (erroresValidacion.some(error => error.nombre === String(key)) ? `form-control ` + " is-invalid" : `form-control `);
+    const inputClass =
+      type === "custom" ?
+        (erroresValidacion.some(error => error.nombre === String(key)) ? " is-invalid-custom-select" : "") :
+        (erroresValidacion.some(error => error.nombre === String(key)) ? `form-control ` + " is-invalid" : `form-control `);
     const wrapperClass =
       type === "custom"
         ? idx < 2
@@ -207,7 +207,7 @@ useScrollLockOnly(show, "body");
             value={String(rawVal ?? "")}
             onChange={(e) => { onEliminarError(key.toString()); handleChange(key, e.target.value, "select") }}
             onBlur={() => handleBlur(key)}
-            
+
           >
             <option value="">– Seleccione –</option>
             {options?.map((opt) => (
@@ -302,10 +302,10 @@ useScrollLockOnly(show, "body");
     <div
       className="modal fade show d-block shadowDarkBackground"
       onClick={onHide}
-      ref={modalRef}           
-      tabIndex={-1}  
-      role="dialog"          
-      aria-modal="true" 
+      ref={modalRef}
+      tabIndex={-1}
+      role="dialog"
+      aria-modal="true"
     >
       <div
         className="modal-dialog modal-dialog-centered modal-lg"
@@ -329,7 +329,7 @@ useScrollLockOnly(show, "body");
             }}
             className="form"
           >
-            <div className="card-body">
+            <div className="card-body p-4">
               {[...fields]
                 .sort((a, b) => (a.order ?? 999) - (b.order ?? 999))
                 .map((field, idx) => (
@@ -339,18 +339,13 @@ useScrollLockOnly(show, "body");
                 ))}
             </div>
 
-            <div className="card-footer">
-              <button type="submit" className="btn btn-primary me-3">
-                Guardar
-              </button>
-              <button
-                type="button"
-                className="btn btn-secondary"
-                onClick={onHide}
-              >
+            <div className="card-footer d-flex justify-content-end gap-2">
+              <button type="button" className="btn btn-secondary" onClick={onHide}>
                 Cancelar
               </button>
+              <button type="submit" className="btn btn-primary">Guardar</button>
             </div>
+
           </form>
         </div>
       </div>

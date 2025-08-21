@@ -263,3 +263,4 @@ body.modal-open {
 /* Si tu app scrollea en un contenedor distinto al body */
 .modal-open .app-scroll { overflow: hidden !important; }
 
+.modal-open .app-scroll { overflow: hidden !important; }
