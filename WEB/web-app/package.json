@@ -8,7 +8,9 @@
     "build": "vite build",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
-    "typewatch": "tsc --noEmit --watch"
+    "typewatch": "tsc --noEmit --watch",
+  "deploy:qa": "npm run build && py deploy_iis.py --mirror --robocopy --backup --zip-backup --exclude *.config --backup-dir C:\\temp\\Backups\\IAMWEB_QA"
+
   },
   "dependencies": {
     "@ant-design/icons": "^6.0.0",
