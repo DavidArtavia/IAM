@@ -16,12 +16,14 @@ import {
 } from "@/utils";
 import { itemsOrdenesService } from "@/services";
 import { STATUS_TBL } from "@/constants";
-import { DTO_ItemOrdenServicio, DTO_Param, DTO_Respuesta } from "@/models";
+import { DTO_ItemOrdenServicio, DTO_Negocio, DTO_Param, DTO_Respuesta, DTO_Tarifa } from "@/models";
 import {
+  AsyncTarifaSelect,
   ConfirmModal,
   FieldConfig,
   GenericFormModal,
   InfoModal,
+  TarifarioOption,
 } from "@/components";
 import { valida_DTO_ItemOrdenServicio } from "@/validators/valida_DTO_ItemOrdenServicio";
 import { useScrollLockSmart } from "@/hooks";
@@ -31,6 +33,7 @@ interface ItemsOrdenDeServicioModalProps {
   onHide: () => void;
   title?: string;
   rowData: Record<string, any>;
+  negocio: DTO_Negocio;
 }
 
 export const ItemsOrdenDeServicioModal = ({
@@ -38,33 +41,36 @@ export const ItemsOrdenDeServicioModal = ({
   onHide,
   title = "Lista de ítems",
   rowData,
+  negocio,
 }: ItemsOrdenDeServicioModalProps) => {
-
-
   //#region Scroll del body
-      //Ajustes para el croll del body, para bloquearlo en cuando se abren los modales
+  //Ajustes para el croll del body, para bloquearlo en cuando se abren los modales
   const modalRef = useRef<HTMLDivElement>(null);
-  
- useScrollLockSmart(open, { rootRef: modalRef, fallbackSelector: ".app-scroll" });
 
-  
-    useEffect(() => {
-      if (open) modalRef.current?.focus();
-    }, [open]);
+  useScrollLockSmart(open, {
+    rootRef: modalRef,
+    fallbackSelector: ".app-scroll",
+  });
+
+  useEffect(() => {
+    if (open) modalRef.current?.focus();
+  }, [open]);
   //#endregion Scroll del body
-  
 
   // #region Validaciones en los formularios
   const [erroresValidacion, setErroresValidacion] = useState<DTO_Param[]>([]);
   let validacion: Array<DTO_Param>;
   const eliminarError = (campo: string) => {
-    setErroresValidacion(prev => prev.filter(e => e.nombre !== campo));
+    setErroresValidacion((prev) => prev.filter((e) => e.nombre !== campo));
   };
   // #endregion
 
   //#region 🔄 Estados generales
   const [itemsOrdenes, setItemsOrdenes] = useState<DTO_ItemOrdenServicio[]>([]);
   const [loading, setLoading] = useState(false);
+  const [tarifaSeleccionada, setTarifaSeleccionada] =
+    useState<TarifarioOption | null>(null);
+  const [reloadKey, setReloadKey] = useState(0);
   //#endregion
 
   //#region ℹ️ info Modal estados;
@@ -142,7 +148,7 @@ export const ItemsOrdenDeServicioModal = ({
     };
 
     validacion = valida_DTO_ItemOrdenServicio.validar(formData, "C");
-    setErroresValidacion(validacion)
+    setErroresValidacion(validacion);
     if (validacion.length === 0) {
       itemsOrdenesService.registrarItemsOrdensDeServicio(formData).subscribe({
         next: (result: DTO_Respuesta) => {
@@ -154,7 +160,9 @@ export const ItemsOrdenDeServicioModal = ({
         error: errorHelpers.serverError,
       });
     } else {
-      notificationHelpers.warningAlert("Por favor valida los datos ingresados nuevamente");
+      notificationHelpers.warningAlert(
+        "Por favor valida los datos ingresados nuevamente"
+      );
     }
   };
   //#endregion
@@ -168,7 +176,7 @@ export const ItemsOrdenDeServicioModal = ({
   const handleSaveEdit = () => {
     if (!editData) return;
     validacion = valida_DTO_ItemOrdenServicio.validar(editData, "U");
-    setErroresValidacion(validacion)
+    setErroresValidacion(validacion);
     if (validacion.length === 0) {
       itemsOrdenesService.actualizarItemsOrdensDeServicio(editData).subscribe({
         next: (result: DTO_Respuesta) => {
@@ -181,7 +189,9 @@ export const ItemsOrdenDeServicioModal = ({
         error: errorHelpers.serverError,
       });
     } else {
-      notificationHelpers.warningAlert("Por favor valida los datos ingresados nuevamente");
+      notificationHelpers.warningAlert(
+        "Por favor valida los datos ingresados nuevamente"
+      );
     }
   };
   //#endregion
@@ -243,7 +253,7 @@ export const ItemsOrdenDeServicioModal = ({
       if (confirmContext === "cancelAdd") {
         setIsModalFormOpen(false);
         notificationHelpers.infoAlert("Nuevo ítem descartado correctamente");
-        setErroresValidacion([])
+        setErroresValidacion([]);
       } else if (confirmContext === "delete") {
         handleConfirmDelete(true);
       }
@@ -254,7 +264,7 @@ export const ItemsOrdenDeServicioModal = ({
   //#endregion
 
   //#region 🧾 Formularios y renderizadores
-  const registerFormFields: FieldConfig<DTO_ItemOrdenServicio>[] = [
+  const registerFormFields: FieldConfig<any>[] = [
     ...ItemsOrdenServicioFormEditFields,
     {
       key: "avance",
@@ -266,6 +276,29 @@ export const ItemsOrdenDeServicioModal = ({
           onChange={(value) =>
             setFormData((prev) => ({ ...prev, avance: value }))
           }
+        />
+      ),
+    },
+    {
+      key: "Tarifario",
+      label: "Tarifario",
+      type: "custom",
+      order: 1,
+      renderer: () => (
+        <AsyncTarifaSelect
+          value={tarifaSeleccionada}
+          onChange={(op) => {
+            setTarifaSeleccionada(op);
+            const itemsConTarifa: DTO_ItemOrdenServicio = {
+              ...formData,
+              nombreItemOrdenServicio: op?.tarifa.nombreTarifa || "",
+              descripcion: op?.tarifa.descripcionTarifa || "",
+              monto: op?.tarifa.precioTarifa || 0,
+            }
+            setFormData(itemsConTarifa);
+          }}
+          reloadKey={reloadKey}
+          negocio={negocio}
         />
       ),
     },
@@ -307,8 +340,8 @@ export const ItemsOrdenDeServicioModal = ({
           porcentaje >= 80
             ? "bg-success"
             : porcentaje >= 50
-              ? "bg-warning"
-              : "bg-danger";
+            ? "bg-warning"
+            : "bg-danger";
         return (
           <div
             className="d-flex flex-column w-100 me-2"
@@ -360,10 +393,10 @@ export const ItemsOrdenDeServicioModal = ({
     <div
       className="modal fade show d-block shadowClearBackground"
       onClick={onHide}
-      ref={modalRef}           
-      tabIndex={-1}  
-      role="dialog"          
-      aria-modal="true" 
+      ref={modalRef}
+      tabIndex={-1}
+      role="dialog"
+      aria-modal="true"
     >
       <div
         className="modal-dialog modal-dialog-centered"
@@ -372,13 +405,14 @@ export const ItemsOrdenDeServicioModal = ({
       >
         <div className="modal-content resizable-metronic-modal">
           <div className="modal-header cursor-move pt-4 pb-0 border-0 p-5 py-10 px-lg-17 pt-5 mb-n3">
-            <h2 className="fw-light text-gray-400 fs-5">{ title.charAt(0).toUpperCase() + title.slice(1).toLowerCase() }</h2>
+            <h2 className="fw-light text-gray-400 fs-5">
+              {title.charAt(0).toUpperCase() + title.slice(1).toLowerCase()}
+            </h2>
             <button
               type="button"
               className="btn-close"
               onClick={onHide}
-            >
-            </button>
+            ></button>
           </div>
           <div className="modal-body p-0">
             {loading ? (
@@ -397,7 +431,7 @@ export const ItemsOrdenDeServicioModal = ({
                 onRowClick={(row) =>
                   setRowTableSelected(row as DTO_ItemOrdenServicio)
                 }
-                nowrapColumns={['Monto', 'ID']}
+                nowrapColumns={["Monto", "ID"]}
               />
             )}
 

@@ -20,6 +20,9 @@ CREATE TABLE CORE.TBL_PROFORMAS
     ID_Negocio INT NOT NULL,   --FK (CORE.TBL_NEGOCIOS)
     ID_Cliente INT NULL,       --FK (CORE.TBL_CLIENTES)
     ID_Estado INT NOT NULL,    --FK (UTIL.TBL_ESTADOS)  Ej: Borrador/Aprobada/Anulada
+    DescuentoProforma DECIMAL(16, 3) NULL DEFAULT(0),
+    DescuentoPorcentualProforma BIT NULL, -- true = porcentual, false = monto fijo
+    ImpuestoPorcentualProforma DECIMAL(5, 2) NULL DEFAULT(0),
     FechaProforma DATETIME DEFAULT GETDATE() NOT NULL,
     FechaVencimiento DATETIME NULL,
     ObservacionProforma NVARCHAR(255) NULL,

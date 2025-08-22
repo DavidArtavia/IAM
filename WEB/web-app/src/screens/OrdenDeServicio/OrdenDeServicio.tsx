@@ -93,8 +93,11 @@ export const OrdenDeServicio = () => {
   //#endregion
 
   const [clienteNombreNota, setClienteNombreNota] = useState<string>("");
-  const [isModalRegisterClientOpen, setIsModalRegisterClientOpen] = useState(false);
-  const [newClientData, setNewClientData] = useState<DTO_Cliente>(new DTO_Cliente());
+  const [isModalRegisterClientOpen, setIsModalRegisterClientOpen] =
+    useState(false);
+  const [newClientData, setNewClientData] = useState<DTO_Cliente>(
+    new DTO_Cliente()
+  );
   const [clientReloadKey, setClientReloadKey] = useState(0);
 
   const [hasRegisteredClients, setHasRegisteredClients] =
@@ -245,55 +248,54 @@ export const OrdenDeServicio = () => {
     setIsModalRegisterClientOpen(true);
   };
 
-const handleSaveNewClient = () => {
-  if (!newClientData) return;
+  const handleSaveNewClient = () => {
+    if (!newClientData) return;
 
-  validacion = valida_DTO_Cliente.validar(newClientData, "C");
-  setErroresValidacion(validacion);
+    validacion = valida_DTO_Cliente.validar(newClientData, "C");
+    setErroresValidacion(validacion);
 
-  if (validacion.length === 0) {
-    clientesService.registrarClientes(newClientData).subscribe({
-      next: (res: DTO_Respuesta) => {
-        notificationHelpers.successAlert(res.mensaje);
-        setIsModalRegisterClientOpen(false);
+    if (validacion.length === 0) {
+      clientesService.registrarClientes(newClientData).subscribe({
+        next: (res: DTO_Respuesta) => {
+          notificationHelpers.successAlert(res.mensaje);
+          setIsModalRegisterClientOpen(false);
 
-        setClientReloadKey((k) => k + 1);
+          setClientReloadKey((k) => k + 1);
 
-        const creado = Array.isArray(res.resultado)
-          ? (res.resultado[0] as DTO_Cliente)
-          : (res.resultado as DTO_Cliente);
+          const creado = Array.isArray(res.resultado)
+            ? (res.resultado[0] as DTO_Cliente)
+            : (res.resultado as DTO_Cliente);
 
-        if (creado?.iD_Cliente) {
-          const opt: ClientOption = {
-            value: creado.iD_Cliente,
-            label: `${creado.nombreCliente ?? ""} ${
-              creado.apellidoCliente ?? ""
-            }`.trim(),
-          };
+          if (creado?.iD_Cliente) {
+            const opt: ClientOption = {
+              value: creado.iD_Cliente,
+              label: `${creado.nombreCliente ?? ""} ${
+                creado.apellidoCliente ?? ""
+              }`.trim(),
+            };
 
-          setSelectedClientOption(opt);
+            setSelectedClientOption(opt);
 
-          setFormData((prev) => ({ ...prev, iD_Cliente: creado.iD_Cliente }));
+            setFormData((prev) => ({ ...prev, iD_Cliente: creado.iD_Cliente }));
 
-          setEditData((prev) =>
-            prev ? { ...prev, iD_Cliente: creado.iD_Cliente } : prev
-          );
+            setEditData((prev) =>
+              prev ? { ...prev, iD_Cliente: creado.iD_Cliente } : prev
+            );
 
-          setHasRegisteredClients(true);
-        }
-      },
-      complete: () => {
-        setNewClientData(new DTO_Cliente());
-      },
-      error: errorHelpers.serverError,
-    });
-  } else {
-    notificationHelpers.warningAlert(
-      "Por favor valida los datos ingresados nuevamente"
-    );
-  }
-};
-
+            setHasRegisteredClients(true);
+          }
+        },
+        complete: () => {
+          setNewClientData(new DTO_Cliente());
+        },
+        error: errorHelpers.serverError,
+      });
+    } else {
+      notificationHelpers.warningAlert(
+        "Por favor valida los datos ingresados nuevamente"
+      );
+    }
+  };
 
   //#endregion
 
@@ -1022,18 +1024,18 @@ const handleSaveNewClient = () => {
   ];
   //#endregion
 
-    //#region 🧩 Botones de la tabla
-    const dataTableButtons: DynamicButtonConfig[] = [
-      {
-        titulo: "Ver Items",
-        icon: <i className="bi bi-check2-square fs-5"></i>,
-        onClick: (row) => {
-           setShowItemsOrdenFormModal(true);
-           setDataToItemsOrder(row as DTO_OrdenServicio);
-        },
+  //#region 🧩 Botones de la tabla
+  const dataTableButtons: DynamicButtonConfig[] = [
+    {
+      titulo: "Ver Items",
+      icon: <i className="bi bi-check2-square fs-5"></i>,
+      onClick: (row) => {
+        setShowItemsOrdenFormModal(true);
+        setDataToItemsOrder(row as DTO_OrdenServicio);
       },
-    ];
-    //#endregion
+    },
+  ];
+  //#endregion
 
   // #region 🧩 Render
   return (
@@ -1130,6 +1132,7 @@ const handleSaveNewClient = () => {
             open={showItemsOrdenFormModal}
             onHide={() => setShowItemsOrdenFormModal(false)}
             rowData={dataToItemsOrder || new DTO_OrdenServicio()}
+            negocio={state.negocio}
           />
 
           {/* === Modal Genérico: Confirmación === */}

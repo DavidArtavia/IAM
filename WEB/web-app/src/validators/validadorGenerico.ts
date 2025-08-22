@@ -56,7 +56,11 @@ export class validadorGenerico {
     }
 
     static startsWith(value: string, text: string): boolean {
-    return value.startsWith(text);
-}
+        return value.startsWith(text);
+    }
+
+    static isNonNegative(value: number | null | undefined): boolean {
+        return value !== null && value !== undefined && value >= 0;
+    }
 
 }

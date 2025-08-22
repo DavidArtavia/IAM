@@ -17,7 +17,16 @@ namespace DTO
         private DateTime? fechaVencimiento;
         private string observacionProforma;
         private DateTime? fechaModificacion;
+        private decimal? descuentoProforma;
+        private bool? descuentoPorcentualProforma;
+        private decimal? impuestoPorcentualProforma;
+        private decimal? subTotal;
+        private decimal? montoDescuento;
+        private decimal? baseImponible; // Es lo que queda después del descuento
+        private decimal? montoImpuesto;
         private decimal? totalCalculado;
+        private DTO_Cliente? cliente;
+
         #endregion
 
         #region Constructor
@@ -32,6 +41,16 @@ namespace DTO
             ObservacionProforma = string.Empty;
             FechaModificacion = null;
             TotalCalculado = null; // No está en la DB, solo aqui xq se obtiene de el sp de obtener proformas y devueve el total caluando cada item de proforma
+            DescuentoProforma = null;
+            DescuentoPorcentualProforma = null;
+            ImpuestoPorcentualProforma = null;
+            SubTotal = null;
+            MontoDescuento = null;
+            BaseImponible = null; // Base imponible es el total menos el descuento
+            MontoImpuesto = null;
+            Cliente = new DTO_Cliente();
+
+
         }
         #endregion
 
@@ -44,7 +63,16 @@ namespace DTO
         public DateTime? FechaVencimiento { get => fechaVencimiento; set => fechaVencimiento = value; }
         public string ObservacionProforma { get => observacionProforma; set => observacionProforma = value; }
         public DateTime? FechaModificacion { get => fechaModificacion; set => fechaModificacion = value; }
+        public decimal? DescuentoProforma { get => descuentoProforma; set => descuentoProforma = value; }
+        public bool? DescuentoPorcentualProforma { get => descuentoPorcentualProforma; set => descuentoPorcentualProforma = value; }
+        public decimal? ImpuestoPorcentualProforma { get => impuestoPorcentualProforma; set => impuestoPorcentualProforma = value; }
+        public decimal? SubTotal { get => subTotal; set => subTotal = value; }
+        public decimal? MontoDescuento { get => montoDescuento; set => montoDescuento = value; }
+        public decimal? BaseImponible { get => baseImponible; set => baseImponible = value; }
+        public decimal? MontoImpuesto { get => montoDescuento; set => montoDescuento = value; }
         public decimal? TotalCalculado { get => totalCalculado; set => totalCalculado = value; }
+        public DTO_Cliente? Cliente { get => cliente; set => cliente = value; }
+
 
         #endregion
     }
