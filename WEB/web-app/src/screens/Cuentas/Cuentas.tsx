@@ -424,7 +424,7 @@ export const Cuentas = () => {
                   setFormData({ ...formData, monto: 0 });
                 }
               }}
-              placeholder="₡0.00"
+              placeholder="0.00"
               min={0}
               step={0.01}
             />
@@ -551,10 +551,17 @@ export const Cuentas = () => {
                   setEditData((prev) => (prev ? { ...prev, monto: 0 } : null));
                 }
               }}
-              placeholder="₡0.00"
+              placeholder="0.00"
               min={0}
               step={0.01}
             />
+            {detalleHabilitado && (
+  <div style={{ width: '100%' }}  className="form-text text-muted small opacity-75">
+  Con la opción "Detalle" habilitada este campo es calculado.
+</div>
+)}
+            
+
           </div>
         );
       },
@@ -839,7 +846,7 @@ export const Cuentas = () => {
               customColumns={[detalleJSONColumn]}
               dataTableButtons={dataTableButtons}
               onRowClick={(row) => { setRowTableSelected(row); setIsInfoModalOpen(true); }}
-              nowrapColumns={['iD_Cuenta','monto','montoAbonado','saldoPendiente']}
+              nowrapColumns={['iD_Cuenta','monto','montoAbonado','saldoPendiente', "tipoCuenta"]}
             />
 
             <InfoModal

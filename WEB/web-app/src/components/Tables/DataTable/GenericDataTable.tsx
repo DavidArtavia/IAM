@@ -134,11 +134,6 @@ const ensureFlashStyles = () => {
   s.textContent = `
 @keyframes flashBorder { from { opacity: 1 } to { opacity: 0 } }
 
-/* Fuerza el mismo color de hover de Bootstrap/DataTables */
-tr.dt-force-hover > * {
-  background-color: var(--bs-table-hover-bg, rgba(0,0,0,.075)) !important;
-}
-
 /* Overlay absoluto para el destello azul */
 .flash-blue-overlay { position: absolute; inset: auto; pointer-events: none; z-index: 30; border-radius: .5rem; }
 .flash-blue-overlay::before {
@@ -147,7 +142,7 @@ tr.dt-force-hover > * {
   inset: 0;
   padding: 2px;                 /* grosor del borde */
   border-radius: inherit;
-  background: #009EF7;          /* azul brillante */
+  background: #3e96d2 ;          /* azul brillante */
   mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   mask-composite: exclude;      /* Firefox */
   -webkit-mask-composite: xor;  /* Chrome / Safari */

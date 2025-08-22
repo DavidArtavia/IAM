@@ -350,9 +350,9 @@ export const labelMapCuenta: Record<string, string> = {
     estado: "Estado",
     concepto: "Concepto",
     monto: "Monto",
-    fechaInicial: "Fecha Inicial",
-    fechaLimite: "Fecha Límite",
-    tipoCuenta: "Tipo De Cuenta",
+    fechaInicial: "Fecha",
+    fechaLimite: "Límite",
+    tipoCuenta: "Tipo",
     
     fechaModificacion: "Fecha de Modificación",
     detalleJSON: "Detalles",

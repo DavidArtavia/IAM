@@ -193,7 +193,7 @@ export const DetalleCuentaInput = ({
         onAction={confirmModalAction}
       />
       {enabled && (
-        <div className="border p-4 bg-white">
+        <div className="p-4 bg-white">
           <div className="mb-4">
             <h5 className="fw-bold mb-3">Detalles</h5>
             {filas.length === 0 && (
@@ -282,7 +282,7 @@ export const DetalleCuentaInput = ({
             </div>
 
             {/* Descuento & Impuesto */}
-            <div className="row g-3 mb-2">
+            <div className="row g-3 mb-2 mt-10">
               <div className="col-md-6">
                 <label className="form-label fw-semibold">Descuento</label>
                 <div className="input-group">
@@ -308,7 +308,7 @@ export const DetalleCuentaInput = ({
                     className={`btn ${descuento.nombre === "Porcentaje"
                         ? "btn-primary"
                         : "btn-secondary"
-                      }`}
+                      } btn-icon pulse`}
                     onClick={() => {
                       setDescuento((prev) => ({
                         nombre:
@@ -319,11 +319,12 @@ export const DetalleCuentaInput = ({
                     title="Cambiar tipo"
                   >
                     {descuento.nombre === "Porcentaje" ? "%" : "₡"}
+                    <span className="pulse-ring"></span>
                   </button>
                 </div>
-                <small className="form-text text-muted">
+                {/* <small className="form-text text-muted">
                   Tipo: <span className="fw-bold">{descuento.nombre}</span>
-                </small>
+                </small> */}
               </div>
 
               <div className="col-md-6">
