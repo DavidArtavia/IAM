@@ -1426,33 +1426,167 @@ table.table-hover.dataTable tbody tr.no-hover-row:hover > * {
 
       });
     },
-    upsert(row: T) {
-      withDT((dt) => {
-        const idKey = idKeyRef.current; const rowId = (row as any)?.[idKey];
+upsert(row: T) {
+  withDT((dt) => {
+    const idKey = idKeyRef.current;
+    const rowId = (row as any)?.[idKey];
 
-        const idxes = dt.rows((_: any, data: any) => (data?.[idKey] ?? null) === rowId).indexes();
-        if (idxes.length) { dt.rows(idxes).remove(); }
-        dt.row.add(withSeq(row));
-        dt.order([dt.columns().count() - 1, 'desc']).draw(false);
-      });
-    },
-    bulkUpsert(rows: T[]) {
-      withDT((dt) => {
-        if (!rows?.length) return;
-        const idKey = idKeyRef.current;
-        const incoming = new Map<any, T>();
-        for (const r of rows) incoming.set((r as any)[idKey], r);
+    const idxes = dt
+      .rows((_: any, data: any) => (data?.[idKey] ?? null) === rowId)
+      .indexes();
 
-        dt.rows().every(function (this: any) {
-          const cur: any = this.data();
-          if (incoming.has(cur?.[idKey])) {
-            this.remove();
-          }
-        });
-        for (const r of rows) dt.row.add(withSeq(r));
-        dt.order([dt.columns().count() - 1, 'desc']).draw(false);
+    if (idxes.length) {
+      // 🔁 Actualizar EN SU LUGAR (preserva __seq) — NO mover ni redibujar
+      idxes.each((idx: number) => {
+        const cur: any = dt.row(idx).data();
+        const preservedSeq = cur?.__seq ?? 0;
+        const updated: any = { ...(row as any), __seq: preservedSeq };
+        dt.row(idx).data(updated); // sin draw()
+
+        // Repintar Acciones (sin draw global)
+        const tr = dt.row(idx).node() as HTMLTableRowElement | null;
+        const actionsIdx = dtColumns.length - 2;
+        const td = tr?.cells?.[actionsIdx];
+        if (td) {
+          td.innerHTML = "";
+          const container = document.createElement("div");
+          td.appendChild(container);
+          ReactDOM.createRoot(container).render(
+            <ActionButtons
+              rowData={updated as T}
+              onEdit={() => onEdit(updated as T)}
+              onDelete={() => onDelete(updated as T)}
+              dataTableButtons={dataTableButtons}
+            />
+          );
+        }
       });
-    },
+      // ⛔ No draw(), no order(), no page() → no se mueve
+      return;
+    }
+
+    // 🆕 NUEVA FILA: sí sube por __seq y nos vamos a la primera página
+    dt.row.add(withSeq(row));
+    if (independent) {
+      dt.order([dt.columns().count() - 1, "desc"]);
+    }
+
+    // 👉 Ir a la primera página y dibujar una sola vez
+    dt.page("first").draw(false);
+
+    // Ajustes visuales (como ya tienes)
+    dt.columns.adjust();
+    // @ts-expect-error
+    dt.responsive.recalc();
+    // @ts-expect-error
+    dt.fixedHeader?.adjust?.();
+
+    // 🚀 Scroll suave a la primera fila visible (con offset de header)
+    setTimeout(() => {
+      const headerOffset =
+        document.querySelector<HTMLElement>(".navbar, .app-navbar, .header")
+          ?.offsetHeight ?? 0;
+
+      const node = dt.row(":eq(0)", { page: "current" }).node() as
+        | HTMLElement
+        | null;
+
+      const targetEl = node || tableRef.current;
+      if (!targetEl) return;
+
+      const rect = targetEl.getBoundingClientRect();
+      const top =
+        window.pageYOffset + rect.top - Math.max(0, headerOffset + 10);
+
+      window.scrollTo({ top, behavior: "smooth" });
+    }, 0);
+  });
+},
+
+bulkUpsert(rows: T[]) {
+  withDT((dt) => {
+    if (!rows?.length) return;
+    const idKey = idKeyRef.current;
+
+    const incoming = new Map<any, T>();
+    for (const r of rows) incoming.set((r as any)[idKey], r);
+
+    // 1) Actualizar existentes EN SU LUGAR (sin draw global)
+    dt.rows().every(function (this: any) {
+      const cur: any = this.data();
+      const curId = cur?.[idKey];
+      if (incoming.has(curId)) {
+        const newRow = incoming.get(curId)!;
+        const preservedSeq = cur?.__seq ?? 0;
+        const updated: any = { ...(newRow as any), __seq: preservedSeq };
+
+        this.data(updated); // sin draw()
+
+        // Repintar Acciones de esta fila
+        const tr = this.node() as HTMLTableRowElement | null;
+        const actionsIdx = dtColumns.length - 2;
+        const td = tr?.cells?.[actionsIdx];
+        if (td) {
+          td.innerHTML = "";
+          const container = document.createElement("div");
+          td.appendChild(container);
+          ReactDOM.createRoot(container).render(
+            <ActionButtons
+              rowData={updated as T}
+              onEdit={() => onEdit(updated as T)}
+              onDelete={() => onDelete(updated as T)}
+              dataTableButtons={dataTableButtons}
+            />
+          );
+        }
+
+        incoming.delete(curId);
+      }
+    });
+
+    // 2) Agregar los que realmente son nuevos
+    let added = 0;
+    incoming.forEach((r) => {
+      dt.row.add(withSeq(r));
+      added++;
+    });
+
+    if (!added) return; // solo había updates → no mover ni redibujar
+
+    if (independent) {
+      dt.order([dt.columns().count() - 1, "desc"]);
+    }
+
+    // Ir a primera página y dibujar una vez
+    dt.page("first").draw(false);
+
+    dt.columns.adjust();
+    // @ts-expect-error --er
+    dt.responsive.recalc();
+    // @ts-expect-error --er
+    dt.fixedHeader?.adjust?.();
+
+    // Scroll a la primera fila de la primera página
+    setTimeout(() => {
+      const headerOffset =
+        document.querySelector<HTMLElement>(".navbar, .app-navbar, .header")
+          ?.offsetHeight ?? 0;
+      const node = dt.row(":eq(0)", { page: "current" }).node() as
+        | HTMLElement
+        | null;
+      const targetEl = node || tableRef.current;
+      if (!targetEl) return;
+
+      const rect = targetEl.getBoundingClientRect();
+      const top =
+        window.pageYOffset + rect.top - Math.max(0, headerOffset + 10);
+
+      window.scrollTo({ top, behavior: "smooth" });
+    }, 0);
+  });
+},
+
+
     removeById(id: unknown) {
       withDT((dt) => {
         const idKey = idKeyRef.current;
