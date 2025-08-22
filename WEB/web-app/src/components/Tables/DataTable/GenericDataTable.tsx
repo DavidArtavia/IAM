@@ -87,6 +87,7 @@ function GenericDataTableInner<T>(
   DataTable.use(Buttons);
   const tableRef = useRef<HTMLTableElement>(null);
 
+
   // ✅ NUEVOS refs internos
   const dtApiRef = useRef<DataTables.Api | null>(null);
   const pendingOpsRef = useRef<Array<(dt: DataTables.Api) => void>>([]); // ← cola de ops antes de init
@@ -120,6 +121,95 @@ function GenericDataTableInner<T>(
       return v === k || v === t;
     });
   };
+
+  // === Highlight helpers (mínimos) ===
+const getScrollContainer = () =>
+  tableRef.current?.closest('.card-body.table-responsive') as HTMLElement | null;
+
+const ensureFlashStyles = () => {
+  const id = 'dt-flash-row-style';
+  if (document.getElementById(id)) return;
+  const s = document.createElement('style');
+  s.id = id;
+  s.textContent = `
+@keyframes flashBorder { from { opacity: 1 } to { opacity: 0 } }
+
+/* Fuerza el mismo color de hover de Bootstrap/DataTables */
+tr.dt-force-hover > * {
+  background-color: var(--bs-table-hover-bg, rgba(0,0,0,.075)) !important;
+}
+
+/* Overlay absoluto para el destello azul */
+.flash-blue-overlay { position: absolute; inset: auto; pointer-events: none; z-index: 30; border-radius: .5rem; }
+.flash-blue-overlay::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  padding: 2px;                 /* grosor del borde */
+  border-radius: inherit;
+  background: #009EF7;          /* azul brillante */
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask-composite: exclude;      /* Firefox */
+  -webkit-mask-composite: xor;  /* Chrome / Safari */
+  animation: flashBorder 3s ease-out forwards; /* dura 3s y desaparece */
+}
+
+/* Asegura que el contenedor reciba posicionamiento relativo si era estático */
+.dt-flash-rel { position: relative !important; }
+`;
+  document.head.appendChild(s);
+};
+
+const isInView = (el: HTMLElement, container?: HTMLElement) => {
+  const r = el.getBoundingClientRect();
+  const v = container
+    ? container.getBoundingClientRect()
+    : ({ top: 0, left: 0, right: window.innerWidth, bottom: window.innerHeight } as DOMRect);
+  return r.bottom > v.top && r.top < v.bottom && r.right > v.left && r.left < v.right;
+};
+
+const flashRow = (tr: HTMLElement) => {
+  ensureFlashStyles();
+
+  // 1) Forzar "hover" y focus por 3s
+  tr.classList.add('dt-force-hover');
+  if (!tr.hasAttribute('tabindex')) tr.setAttribute('tabindex', '-1'); // focusable
+  tr.focus({ preventScroll: true });
+  setTimeout(() => tr.classList.remove('dt-force-hover'), 3000);
+
+  // 2) Destello azul en el borde (fila + detalle responsive si está abierto)
+  const container = getScrollContainer() || document.body;
+  const contRect = container.getBoundingClientRect();
+  if (getComputedStyle(container).position === 'static') container.classList.add('dt-flash-rel');
+
+  const r1 = tr.getBoundingClientRect();
+  let top = r1.top, left = r1.left, right = r1.right, bottom = r1.bottom;
+
+  const maybeChild = tr.nextElementSibling as HTMLElement | null;
+  if (maybeChild && maybeChild.classList.contains('child') && maybeChild.offsetParent !== null) {
+    const r2 = maybeChild.getBoundingClientRect();
+    top = Math.min(top, r2.top);
+    left = Math.min(left, r2.left);
+    right = Math.max(right, r2.right);
+    bottom = Math.max(bottom, r2.bottom);
+  }
+
+  const overlay = document.createElement('div');
+  overlay.className = 'flash-blue-overlay';
+
+  // Posicionar relativo al contenedor de scroll (o ventana)
+  const scrollTop = container === document.body ? window.pageYOffset : (container as HTMLElement).scrollTop;
+  const scrollLeft = container === document.body ? window.pageXOffset : (container as HTMLElement).scrollLeft;
+
+  overlay.style.top = `${top - contRect.top + scrollTop}px`;
+  overlay.style.left = `${left - contRect.left + scrollLeft}px`;
+  overlay.style.width = `${Math.max(1, right - left)}px`;
+  overlay.style.height = `${Math.max(1, bottom - top)}px`;
+
+  container.appendChild(overlay);
+  setTimeout(() => overlay.remove(), 3000);
+};
+
 
   const dtColumns = useMemo<ColumnSettings[]>(() => {
     const cols: ColumnSettings[] = [];
@@ -171,6 +261,10 @@ function GenericDataTableInner<T>(
       });
     }
     //#endregion
+
+
+
+
     //#endregion
 
     //#region 📊 Columna Avance (barra de progreso)
@@ -1278,7 +1372,6 @@ table.table-hover.dataTable tbody tr.no-hover-row:hover > * {
 
 
 
-
       //#endregion Estilos
 
 
@@ -1431,9 +1524,7 @@ upsert(row: T) {
     const idKey = idKeyRef.current;
     const rowId = (row as any)?.[idKey];
 
-    const idxes = dt
-      .rows((_: any, data: any) => (data?.[idKey] ?? null) === rowId)
-      .indexes();
+    const idxes = dt.rows((_: any, data: any) => (data?.[idKey] ?? null) === rowId).indexes();
 
     if (idxes.length) {
       // 🔁 Actualizar EN SU LUGAR (preserva __seq) — NO mover ni redibujar
@@ -1441,6 +1532,7 @@ upsert(row: T) {
         const cur: any = dt.row(idx).data();
         const preservedSeq = cur?.__seq ?? 0;
         const updated: any = { ...(row as any), __seq: preservedSeq };
+
         dt.row(idx).data(updated); // sin draw()
 
         // Repintar Acciones (sin draw global)
@@ -1460,6 +1552,12 @@ upsert(row: T) {
             />
           );
         }
+
+        // 👉 Si la fila está visible, aplica foco + destello
+        if (tr) {
+          const cont = getScrollContainer();
+          if (!cont || isInView(tr, cont)) flashRow(tr);
+        }
       });
       // ⛔ No draw(), no order(), no page() → no se mueve
       return;
@@ -1471,37 +1569,40 @@ upsert(row: T) {
       dt.order([dt.columns().count() - 1, "desc"]);
     }
 
-    // 👉 Ir a la primera página y dibujar una sola vez
+    // Ir a la primera página y dibujar una vez
     dt.page("first").draw(false);
 
-    // Ajustes visuales (como ya tienes)
+    // Ajustes visuales
     dt.columns.adjust();
     // @ts-expect-error
     dt.responsive.recalc();
     // @ts-expect-error
     dt.fixedHeader?.adjust?.();
 
-    // 🚀 Scroll suave a la primera fila visible (con offset de header)
+    // 🚀 Scroll suave a la primera fila visible + highlight
     setTimeout(() => {
       const headerOffset =
         document.querySelector<HTMLElement>(".navbar, .app-navbar, .header")
           ?.offsetHeight ?? 0;
 
-      const node = dt.row(":eq(0)", { page: "current" }).node() as
-        | HTMLElement
-        | null;
-
+      const node = dt.row(":eq(0)", { page: "current" }).node() as HTMLElement | null;
       const targetEl = node || tableRef.current;
       if (!targetEl) return;
 
       const rect = targetEl.getBoundingClientRect();
-      const top =
-        window.pageYOffset + rect.top - Math.max(0, headerOffset + 10);
+      const top = window.pageYOffset + rect.top - Math.max(0, headerOffset + 10);
 
       window.scrollTo({ top, behavior: "smooth" });
+
+      // Dale un pequeño tiempo al scroll para comenzar (sin bloquear)
+      setTimeout(() => {
+        const first = dt.row(':eq(0)', { page: 'current' }).node() as HTMLElement | null;
+        if (first) flashRow(first);
+      }, 300);
     }, 0);
   });
 },
+
 
 bulkUpsert(rows: T[]) {
   withDT((dt) => {
@@ -1511,7 +1612,7 @@ bulkUpsert(rows: T[]) {
     const incoming = new Map<any, T>();
     for (const r of rows) incoming.set((r as any)[idKey], r);
 
-    // 1) Actualizar existentes EN SU LUGAR (sin draw global)
+    // 1) Actualizar existentes EN SU LUGAR (preserva __seq) y repintar Acciones SIN draw()
     dt.rows().every(function (this: any) {
       const cur: any = this.data();
       const curId = cur?.[idKey];
@@ -1540,6 +1641,12 @@ bulkUpsert(rows: T[]) {
           );
         }
 
+        // 👉 Si está visible, highlight
+        if (tr) {
+          const cont = getScrollContainer();
+          if (!cont || isInView(tr, cont)) flashRow(tr);
+        }
+
         incoming.delete(curId);
       }
     });
@@ -1561,30 +1668,19 @@ bulkUpsert(rows: T[]) {
     dt.page("first").draw(false);
 
     dt.columns.adjust();
-    // @ts-expect-error --er
+    // @ts-expect-error
     dt.responsive.recalc();
-    // @ts-expect-error --er
+    // @ts-expect-error
     dt.fixedHeader?.adjust?.();
 
-    // Scroll a la primera fila de la primera página
+    // Highlight a la primera fila recién visible
     setTimeout(() => {
-      const headerOffset =
-        document.querySelector<HTMLElement>(".navbar, .app-navbar, .header")
-          ?.offsetHeight ?? 0;
-      const node = dt.row(":eq(0)", { page: "current" }).node() as
-        | HTMLElement
-        | null;
-      const targetEl = node || tableRef.current;
-      if (!targetEl) return;
-
-      const rect = targetEl.getBoundingClientRect();
-      const top =
-        window.pageYOffset + rect.top - Math.max(0, headerOffset + 10);
-
-      window.scrollTo({ top, behavior: "smooth" });
-    }, 0);
+      const first = dt.row(':eq(0)', { page: 'current' }).node() as HTMLElement | null;
+      if (first) flashRow(first);
+    }, 300);
   });
 },
+
 
 
     removeById(id: unknown) {
