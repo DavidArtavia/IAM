@@ -46,6 +46,20 @@ export function parametrosAString(
 }
 //#endregion
 
+export function compararObjetos<T extends object>(a: T, b: T, omitKeys: (keyof T)[]) {
+  const strip = (o: any): any =>
+    o && typeof o === 'object'
+      ? Array.isArray(o)
+        ? o.map(strip)
+        : Object.fromEntries(
+            Object.entries(o)
+              .filter(([k]) => !(omitKeys as string[]).includes(k))
+              .map(([k, v]) => [k, strip(v)])
+          )
+      : o;
+
+  return JSON.stringify(strip(a)) === JSON.stringify(strip(b));
+}
 
 //#region formatColones: Formatea un valor numérico como colones costarricenses
 /**

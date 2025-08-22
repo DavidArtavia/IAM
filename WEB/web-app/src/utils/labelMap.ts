@@ -308,12 +308,6 @@ export const keysInfoModalTransacciones: FieldConfig<DTO_Transacciones>[] = [
         order: 1,
     },
     {
-        key: "iD_Negocio",
-        label: "Negocio #",
-        type: "text",
-        order: 2,
-    },
-    {
         key: "fechaTransaccion",
         label: "Fecha",
         type: "date",
@@ -342,13 +336,7 @@ export const keysInfoModalTransacciones: FieldConfig<DTO_Transacciones>[] = [
         label: "N° Referencia",
         type: "text",
         order: 8,
-    },
-    {
-        key: "estado",
-        label: "Estado",
-        type: "text",
-        order: 9,
-    },
+    }
 ];
 
 //#endregion
