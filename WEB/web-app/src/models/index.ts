@@ -15,3 +15,6 @@ export * from "./DTO_Transacciones";
 export * from "./DTO_DetalleCuentaJSON";
 export * from "./DTO_MetricaKPI";
 export * from "./DTO_SolicitudDeBusqueda";
+export * from "./DTO_Proforma";
+export * from "./DTO_ProformaItem";
+export * from "./DTO_Tarifa";

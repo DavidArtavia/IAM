@@ -22,6 +22,7 @@ export const ROUTES = {
     TRANSACTIONS: "/transactions",
     SERVICE_ORDER: "/orden-servicio", 
     INFO: "/info",
+    RATE: "/rates", // Tarifario
     NOT_FOUND: "*", 
 } as const;
 

@@ -51,7 +51,6 @@ export const AsyncClientSelect = ({ value, onChange, reloadKey = 0 }: Props) => 
   const loadPromise = async (input: string): Promise<ClientOption[]> => {
     if (!input || input.trim().length < 3) return [];
     const solicitud: DTO_SolicitudDeBusqueda = { term: input, negocio: new DTO_Negocio() };
-    console.log("Buscando clientes con solicitud:", solicitud);
     
     const list = await clientesService.buscarClientes(solicitud).toPromise();
     return (list ?? [])
