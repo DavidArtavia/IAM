@@ -1,5 +1,8 @@
 import { FieldConfig } from "@/components/Modals/GenericFormModal/types";
 import { DTO_Cliente, DTO_Cuenta, DTO_ItemOrdenServicio, DTO_Negocio, DTO_OrdenServicio, DTO_Transacciones } from "@/models";
+import { DTO_Proforma } from "@/models/DTO_Proforma";
+import { DTO_ProformaItem } from "@/models/DTO_ProformaItem";
+import { DTO_Tarifa } from "@/models/DTO_Tarifa";
 
 //#region columnas de tablas
 
@@ -40,7 +43,6 @@ export const columnKeysCliente: (keyof DTO_Cliente)[] = [
     "telefonoCliente",
     "correoCliente",
 ];
-
 export const columnKeysItemsOrdenServicio: (keyof DTO_ItemOrdenServicio)[] = [
     "iD_ItemOrdenServicio",
     "iD_OrdenServicio",
@@ -68,6 +70,36 @@ export const columnKeysTransaccionesPorCuenta: (keyof DTO_Transacciones)[] = [
     "tipo",
     "concepto",
 
+];
+
+export const columnKeysTarifa: (keyof DTO_Tarifa)[] = [
+    "iD_Tarifa",
+    // "iD_Negocio",
+    "nombreTarifa",
+    "descripcionTarifa",
+    "precioTarifa",
+    "fechaCreacion",
+    // "fechaModificacion",
+];
+
+export const columnKeysProforma: (keyof DTO_Proforma)[] = [
+    "iD_Proforma",
+    "fechaProforma",
+    "estado",
+    "totalCalculado",
+    "observacionProforma",
+    "cliente",
+];
+
+export const columnKeysItemsProforma: (keyof DTO_ProformaItem)[] = [
+    "iD_ProformaItem",
+    "iD_Proforma",
+    "nombreItemProforma",
+    "descripcionItemProforma",
+    "cantidadItemProforma",
+    "precioItemProforma",
+    "fechaCreacion",
+    "fechaModificacion",
 ];
 
 //#endregion
@@ -339,6 +371,50 @@ export const keysInfoModalTransacciones: FieldConfig<DTO_Transacciones>[] = [
     }
 ];
 
+export const keysInfoModalTarifa: FieldConfig<DTO_Tarifa>[] = [
+    {
+        key: "iD_Tarifa",
+        label: "ID",
+        type: "text",
+        order: 1,
+    },
+    {
+        key: "iD_Negocio",
+        label: "ID Negocio",
+        type: "text",
+        order: 2,
+    },
+    {
+        key: "nombreTarifa",
+        label: "Nombre",
+        type: "text",
+        order: 3,
+    },
+    {
+        key: "descripcionTarifa",
+        label: "Descripción",
+        type: "text",
+        order: 4,
+    },
+    {
+        key: "fechaCreacion",
+        label: "Creación",
+        type: "date",
+        order: 6,
+    },
+    {
+        key: "fechaModificacion",
+        label: "Modificación",
+        type: "date",
+        order: 7,
+    },
+    {
+        key: "estado",
+        label: "Estado",
+        type: "text",
+        order: 8,
+    },
+];
 //#endregion
 
 //#region tablas
@@ -418,7 +494,38 @@ export const labelMapTransacciones: Record<string, string> = {
     numReferencia: "N° Referencia",
     estado: "Estado",
 };
+export const labelMapTarifa: Record<string, string> = {
+    iD_Tarifa: "ID",
+    iD_Negocio: "ID Negocio",
+    nombreTarifa: "Nombre",
+    descripcionTarifa: "Descripción",
+    precioTarifa: "Precio",
+    fechaCreacion: "Creación",
+    fechaModificacion: "Modificación",
+    estado: "Estado",
+};
 
+export const labelMapProforma: Record<string, string> = {
+    iD_Proforma: "ID",
+    iD_Cliente: "ID Cliente",
+    fechaProforma: "Fecha",
+    estado: "Estado",
+    totalCalculado: "Total",
+    observacionProforma: "Observación",
+    cliente: "Cliente",
+};
+
+export const labelMapItemsProforma: Record<string, string> = {
+    iD_ProformaItem: "ID",
+    iD_Proforma: "ID Proforma",
+    nombreItemProforma: "Nombre",
+    descripcionItemProforma: "Descripción",
+    cantidadItemProforma: "Cantidad",
+    precioItemProforma: "Precio",
+    fechaCreacion: "Creación",
+    fechaModificacion: "Modificación",
+    estado: "Estado",
+};
 //#endregion
 
 //#region campos a mostrar para el form de editar
@@ -606,6 +713,27 @@ export const transaccionesFormEditFields: FieldConfig<DTO_Transacciones>[] = [
     { key: "numReferencia", label: "N° Referencia", type: "text", required: false }
 ];
 
+export const tarifaFormEditFields: Array<FieldConfig<DTO_Tarifa>> = [
+    {
+        key: "nombreTarifa",
+        label: labelMapTarifa["nombreTarifa"] ?? "Nombre",
+        type: "text",
+        required: true,
+    },
+    {
+        key: "descripcionTarifa",
+        label: labelMapTarifa["descripcionTarifa"] ?? "Descripción",
+        type: "textarea",
+        required: false,
+    },
+    {
+        key: "precioTarifa",
+        label: labelMapTarifa["precioTarifa"] ?? "Precio",
+        type: "number",
+        required: false,
+    },
+];
+
 //#endregion
 
 //#region campos a mostrar para el form de agregar
@@ -631,6 +759,27 @@ export const cuentasFormAddFields: FieldConfig<DTO_Cuenta>[] = [
         type: "date",
         required: true,
         order: 4,
+    },
+];
+
+export const tarifaFormAddFields: Array<FieldConfig<DTO_Tarifa>> = [
+    {
+        key: "nombreTarifa",
+        label: labelMapTarifa["nombreTarifa"] ?? "Nombre",
+        type: "text",
+        required: true,
+    },
+    {
+        key: "descripcionTarifa",
+        label: labelMapTarifa["descripcionTarifa"] ?? "Descripción",
+        type: "textarea",
+        required: false,
+    },
+    {
+        key: "precioTarifa",
+        label: labelMapTarifa["precioTarifa"] ?? "Precio",
+        type: "number",
+        required: true,
     },
 ];
 //#endregion

@@ -1,14 +1,14 @@
 import React, { useEffect, useRef, useMemo, useImperativeHandle } from "react";
 import $ from "jquery";
 import "datatables.net-bs5";
-import 'datatables.net-responsive-bs5';
-import 'datatables.net-responsive-bs5/css/responsive.bootstrap5.min.css';
+import "datatables.net-responsive-bs5";
+import "datatables.net-responsive-bs5/css/responsive.bootstrap5.min.css";
 import DataTable from "datatables.net-dt";
 import JsZip from "jszip";
 import Buttons from "datatables.net-buttons";
 import "datatables.net-buttons/js/buttons.html5.js";
-import 'datatables.net-fixedheader-bs5';
-import 'datatables.net-fixedheader-bs5/css/fixedHeader.bootstrap5.min.css';
+import "datatables.net-fixedheader-bs5";
+import "datatables.net-fixedheader-bs5/css/fixedHeader.bootstrap5.min.css";
 
 import ReactDOM from "react-dom/client";
 import { useApp } from "@/hooks/useApp";
@@ -50,11 +50,11 @@ export interface GenericDataTableProps<T> {
 
 // 🔌 API imperativa que expondrá la tabla (add/update/delete sin re-render del padre)
 export type GenericDataTableHandle<T> = {
-  load: (rows: T[]) => void;            // reemplaza todo el contenido
-  upsert: (row: T) => void;             // inserta/actualiza por id y sube al tope
-  bulkUpsert: (rows: T[]) => void;      // inserta/actualiza varias
-  removeById: (id: unknown) => void;    // elimina por id
-  clear: () => void;                    // limpia todo
+  load: (rows: T[]) => void; // reemplaza todo el contenido
+  upsert: (row: T) => void; // inserta/actualiza por id y sube al tope
+  bulkUpsert: (rows: T[]) => void; // inserta/actualiza varias
+  removeById: (id: unknown) => void; // elimina por id
+  clear: () => void; // limpia todo
   getData: () => T[];
 };
 
@@ -92,31 +92,48 @@ function GenericDataTableInner<T>(
   const dtApiRef = useRef<DataTables.Api | null>(null);
   const pendingOpsRef = useRef<Array<(dt: DataTables.Api) => void>>([]); // ← cola de ops antes de init
   const seqRef = useRef<number>(0);
-  const idKeyRef = useRef<string>(typeof idField === "string" ? idField : String(idField));
-  useEffect(() => { idKeyRef.current = typeof idField === "string" ? idField : String(idField); }, [idField]);
+  const idKeyRef = useRef<string>(
+    typeof idField === "string" ? idField : String(idField)
+  );
+  useEffect(() => {
+    idKeyRef.current = typeof idField === "string" ? idField : String(idField);
+  }, [idField]);
 
   // Carga inicial única para `independent`
   const didInitialLoadRef = useRef(false);
 
-  const withSeq = (row: T): T & { __seq: number } => ({ ...(row as any), __seq: ++seqRef.current });
+  const withSeq = (row: T): T & { __seq: number } => ({
+    ...(row as any),
+    __seq: ++seqRef.current,
+  });
 
   const withDT = (fn: (dt: DataTables.Api) => void) => {
     const dt = dtApiRef.current;
-    if (dt) { fn(dt); return; }
+    if (dt) {
+      fn(dt);
+      return;
+    }
     pendingOpsRef.current.push(fn);
   };
 
   //#region 🔧 Columnas dinámicas DataTable
 
   // 🔧 Helpers — detección por key o por título (case-insensitive)
-  const _normalize = (v: unknown) => String(v ?? '').trim().toLowerCase();
+  const _normalize = (v: unknown) =>
+    String(v ?? "")
+      .trim()
+      .toLowerCase();
   const _joinClass = (base?: string, add?: string) =>
-    [base, add].filter(Boolean).join(' ').trim();
+    [base, add].filter(Boolean).join(" ").trim();
 
-  const _wantsNowrap = (key: string, title: string, list: (keyof T | string)[]) => {
+  const _wantsNowrap = (
+    key: string,
+    title: string,
+    list: (keyof T | string)[]
+  ) => {
     const k = _normalize(key);
     const t = _normalize(title);
-    return (list || []).some(x => {
+    return (list || []).some((x) => {
       const v = _normalize(x);
       return v === k || v === t;
     });
@@ -212,47 +229,61 @@ const flashRow = (tr: HTMLElement) => {
     const availableKeys = independent
       ? new Set<string>(columnKeys.map(String))
       : data.reduce<Set<string>>((set, row) => {
-        Object.keys(row as Record<string, unknown>).forEach((k) => set.add(k));
-        return set;
-      }, new Set<string>());
+          Object.keys(row as Record<string, unknown>).forEach((k) =>
+            set.add(k)
+          );
+          return set;
+        }, new Set<string>());
 
-    (independent ? columnKeys.map(String) : columnKeys.map(String)).forEach((keyStr) => {
-      if (independent || data.length === 0 || availableKeys.has(keyStr)) {
-        const col: ColumnSettings = {
-          title: labelMap[keyStr] || keyStr,
-          data: keyStr,
-          defaultContent: "",
-        };
-
-        const titleTxt = labelMap[keyStr] || keyStr;
-
-        // 👇 Si la columna está listada por key o por título → nowrap
-        if (_wantsNowrap(keyStr, titleTxt, nowrapColumns)) {
-          col.className = _joinClass(col.className as string | undefined, 'text-nowrap');
-        }
-
-        const key = keyStr as keyof T;
-        if (customRenderers[key]) {
-          col.render = (val, _, row) => {
-            try {
-              return customRenderers[key]!(val, row as T);
-            } catch (error) {
-              console.warn(`Render error (${keyStr})`, error);
-              return val || "";
-            }
+    (independent ? columnKeys.map(String) : columnKeys.map(String)).forEach(
+      (keyStr) => {
+        if (independent || data.length === 0 || availableKeys.has(keyStr)) {
+          const col: ColumnSettings = {
+            title: labelMap[keyStr] || keyStr,
+            data: keyStr,
+            defaultContent: "",
           };
-        }
 
-        cols.push(col);
+          const titleTxt = labelMap[keyStr] || keyStr;
+
+          // 👇 Si la columna está listada por key o por título → nowrap
+          if (_wantsNowrap(keyStr, titleTxt, nowrapColumns)) {
+            col.className = _joinClass(
+              col.className as string | undefined,
+              "text-nowrap"
+            );
+          }
+
+          const key = keyStr as keyof T;
+          if (customRenderers[key]) {
+            col.render = (val, _, row) => {
+              try {
+                return customRenderers[key]!(val, row as T);
+              } catch (error) {
+                console.warn(`Render error (${keyStr})`, error);
+                return val || "";
+              }
+            };
+          }
+
+          cols.push(col);
+        }
       }
-    });
+    );
 
     //#region 🧩 Custom columns (user-defined)
     if (customColumns) {
       customColumns.forEach((c) => {
-        const cTitle = String((c as any).title ?? '');
-        const needs = _wantsNowrap('', cTitle, nowrapColumns);
-        cols.push(needs ? { ...c, className: _joinClass((c as any).className, 'text-nowrap') } : c);
+        const cTitle = String((c as any).title ?? "");
+        const needs = _wantsNowrap("", cTitle, nowrapColumns);
+        cols.push(
+          needs
+            ? {
+                ...c,
+                className: _joinClass((c as any).className, "text-nowrap"),
+              }
+            : c
+        );
       });
     }
     //#endregion
@@ -292,8 +323,8 @@ const flashRow = (tr: HTMLElement) => {
               porcentaje >= 80
                 ? "bg-success"
                 : porcentaje >= 50
-                  ? "bg-warning"
-                  : "bg-danger";
+                ? "bg-warning"
+                : "bg-danger";
 
             const container = document.createElement("div");
             (cell as HTMLElement).innerHTML = "";
@@ -352,7 +383,8 @@ const flashRow = (tr: HTMLElement) => {
         },
         createdCell: (cell, _data, row) => {
           try {
-            const estado = ((row as any)?.estado?.nombre?.toLowerCase?.() ?? "N/A");
+            const estado =
+              (row as any)?.estado?.nombre?.toLowerCase?.() ?? "N/A";
             const badgeClassMap: Record<string, string> = {
               activo: "badge-light-success",
               nuevo: "badge badge-secondary",
@@ -361,9 +393,13 @@ const flashRow = (tr: HTMLElement) => {
               completado: "badge-light-success",
               eliminado: "badge-light-danger",
               inactivo: "badge-light-light",
+              borrador: "badge-light-info",
+              anulado: "badge-light-danger",
+              aprobado: "badge-light-success",
               default: "badge badge-dark",
             };
-            const badgeClass = badgeClassMap[estado] || badgeClassMap["default"];
+            const badgeClass =
+              badgeClassMap[estado] || badgeClassMap["default"];
             const container = document.createElement("span");
             (cell as HTMLElement).innerHTML = "";
             cell.appendChild(container);
@@ -433,11 +469,23 @@ const flashRow = (tr: HTMLElement) => {
       visible: false,
       searchable: false,
       orderable: true,
-      className: "never"
+      className: "never",
     });
 
     return cols;
-  }, [data, independent, columnKeys, labelMap, customColumns, includeEstadoColumn, nowrapColumns, customRenderers, onDelete, onEdit, dataTableButtons]);
+  }, [
+    data,
+    independent,
+    columnKeys,
+    labelMap,
+    customColumns,
+    includeEstadoColumn,
+    nowrapColumns,
+    customRenderers,
+    onDelete,
+    onEdit,
+    dataTableButtons,
+  ]);
   //#endregion
 
   //#region 🧠 Inicialización tabla con jQuery DataTable
@@ -450,7 +498,9 @@ const flashRow = (tr: HTMLElement) => {
       $(table).empty();
     }
 
-    const headerOffset = document.querySelector<HTMLElement>('.navbar, .app-navbar, .header')?.offsetHeight ?? 0;
+    const headerOffset =
+      document.querySelector<HTMLElement>(".navbar, .app-navbar, .header")
+        ?.offsetHeight ?? 0;
 
     try {
       const dtInstance = $(table).DataTable({
@@ -464,8 +514,8 @@ const flashRow = (tr: HTMLElement) => {
 
         responsive: {
           details: {
-            type: "inline",  // ✅ mantiene el control en la primera columna
-            target: 0,       // ✅ primera columna visible
+            type: "inline", // ✅ mantiene el control en la primera columna
+            target: 0, // ✅ primera columna visible
             // 👇 usa el HTML real del <td> para que se vea tu contenido personalizado
             // @ts-expect-error — compat v1/v2
             renderer: function (api, rowIdx, columns) {
@@ -485,14 +535,17 @@ const flashRow = (tr: HTMLElement) => {
                     // HTML actual del <td>
                     let cellHtml = "";
                     try {
-                      const node = api.cell(rowIdx, cIdx).node() as HTMLTableCellElement | null;
-                      cellHtml = node ? node.innerHTML : (col.data ?? "");
+                      const node = api
+                        .cell(rowIdx, cIdx)
+                        .node() as HTMLTableCellElement | null;
+                      cellHtml = node ? node.innerHTML : col.data ?? "";
                     } catch {
                       cellHtml = col.data ?? "";
                     }
 
                     if (!cellHtml || String(cellHtml).trim() === "") {
-                      cellHtml = '<span aria-hidden="true" class="text-muted">—</span>';
+                      cellHtml =
+                        '<span aria-hidden="true" class="text-muted">—</span>';
                     }
 
                     return `
@@ -506,18 +559,24 @@ const flashRow = (tr: HTMLElement) => {
 
                 if (!rowsHtml) return false; // si no hay ocultas, no mostrar el detalle
                 // 👇 ahora con .dtr-details para poder estilizarla sin afectar la tabla principal
-                return $('<table class="dtr-details table table-sm mb-0 w-100"/>').append(rowsHtml);
+                return $(
+                  '<table class="dtr-details table table-sm mb-0 w-100"/>'
+                ).append(rowsHtml);
 
                 // eslint-disable-next-line @typescript-eslint/no-unused-vars
               } catch (e) {
                 // Fallback al renderer por defecto si hiciera falta
                 // @ts-expect-error — acceso a renderer built-in
-                return $.fn.dataTable.Responsive.renderer.tableDisplay()(api, rowIdx, columns);
+                return $.fn.dataTable.Responsive.renderer.tableDisplay()(
+                  api,
+                  rowIdx,
+                  columns
+                );
               }
             },
             headerCallback: function (thead: any) {
               // Centrar SIEMPRE todos los <th> del thead original
-              $(thead).find('th').addClass('text-center');
+              $(thead).find("th").addClass("text-center");
             },
           },
         },
@@ -541,7 +600,8 @@ const flashRow = (tr: HTMLElement) => {
             <span class="text-muted mt-2">Sin datos</span>
           </div>
         `,
-          lengthMenu: '<span class="d-none d-sm-inline">Mostrar</span> _MENU_ <span class="d-none d-sm-inline">registros</span>',
+          lengthMenu:
+            '<span class="d-none d-sm-inline">Mostrar</span> _MENU_ <span class="d-none d-sm-inline">registros</span>',
           zeroRecords: `
           <div class="dt-empty-state d-flex flex-column align-items-center justify-content-center py-10">
             <i class="bi bi-search fs-1 text-muted" aria-hidden="true"></i>
@@ -576,7 +636,10 @@ const flashRow = (tr: HTMLElement) => {
           ">",
 
         pageLength: 50,
-        lengthMenu: [[10, 25, 50, 100], [10, 25, 50, 100]],
+        lengthMenu: [
+          [10, 25, 50, 100],
+          [10, 25, 50, 100],
+        ],
         buttons: [
           {
             extend: "excelHtml5",
@@ -619,7 +682,7 @@ const flashRow = (tr: HTMLElement) => {
                 .split("/")
                 .join("-"),
             sheetName: "Datos",
-            stripeClasses: ['zebra-odd', 'zebra-even']
+            stripeClasses: ["zebra-odd", "zebra-even"],
           },
         ],
       });
@@ -635,71 +698,88 @@ const flashRow = (tr: HTMLElement) => {
       if (pendingOpsRef.current.length) {
         const pending = [...pendingOpsRef.current];
         pendingOpsRef.current = [];
-        pending.forEach(fn => {
-          try { fn(dtInstance); } catch { /* empty */ }
+        pending.forEach((fn) => {
+          try {
+            fn(dtInstance);
+          } catch {
+            /* empty */
+          }
         });
       }
 
       //#region Estilos
 
-
-
       // 🎨 Estilos para el bloque "info" (DT2: .dt-info / DT1: .dataTables_info)
       const styleInfo = () => {
-        const $wrapper = $(table).closest('.dt-container, .dataTables_wrapper');
-        const $info = $wrapper.find('.dt-info, .dataTables_info');
-        $info.css({ color: '#b5b5c3', padding: '5px' });
+        const $wrapper = $(table).closest(".dt-container, .dataTables_wrapper");
+        const $info = $wrapper.find(".dt-info, .dataTables_info");
+        $info.css({ color: "#b5b5c3", padding: "5px" });
       };
       styleInfo();
       // Reaplicar en redraw / cambio de página / longitud
       $(table)
-        .off('draw.dt._styleInfo page.dt._styleInfo length.dt._styleInfo')
-        .on('draw.dt._styleInfo page.dt._styleInfo length.dt._styleInfo', styleInfo);
+        .off("draw.dt._styleInfo page.dt._styleInfo length.dt._styleInfo")
+        .on(
+          "draw.dt._styleInfo page.dt._styleInfo length.dt._styleInfo",
+          styleInfo
+        );
 
       // 🎨 Estilo para el footer (margen superior de 10px)
       const styleFooter = () => {
-        const $wrapper = $(table).closest('.dt-container, .dataTables_wrapper');
-        $wrapper.find('.dt-footer').css({ marginTop: '15px' });
+        const $wrapper = $(table).closest(".dt-container, .dataTables_wrapper");
+        $wrapper.find(".dt-footer").css({ marginTop: "15px" });
       };
       styleFooter();
       // Reaplicar en redraw / cambio de página / cambio de longitud
       $(table)
-        .off('draw.dt._styleFooter page.dt._styleFooter length.dt._styleFooter')
-        .on('draw.dt._styleFooter page.dt._styleFooter length.dt._styleFooter', styleFooter);
-
-
+        .off("draw.dt._styleFooter page.dt._styleFooter length.dt._styleFooter")
+        .on(
+          "draw.dt._styleFooter page.dt._styleFooter length.dt._styleFooter",
+          styleFooter
+        );
 
       // 🎨 Separación del panel superior (toolbar) respecto a la tabla (15px)
       const styleToolbar = () => {
-        const $wrapper = $(table).closest('.dt-container, .dataTables_wrapper');
-        $wrapper.find('.dt-toolbar').css({ marginBottom: '10px' });
+        const $wrapper = $(table).closest(".dt-container, .dataTables_wrapper");
+        $wrapper.find(".dt-toolbar").css({ marginBottom: "10px" });
       };
       styleToolbar();
       // Reaplicar en redraw / cambio de página / cambio de longitud
       $(table)
-        .off('draw.dt._styleToolbar page.dt._styleToolbar length.dt._styleToolbar')
-        .on('draw.dt._styleToolbar page.dt._styleToolbar length.dt._styleToolbar', styleToolbar);
+        .off(
+          "draw.dt._styleToolbar page.dt._styleToolbar length.dt._styleToolbar"
+        )
+        .on(
+          "draw.dt._styleToolbar page.dt._styleToolbar length.dt._styleToolbar",
+          styleToolbar
+        );
 
       // 🎨 Quitar negrita en títulos de columna (thead) — original y FixedHeader
       const styleHeader = () => {
-        const $wrapper = $(table).closest('.dt-container, .dataTables_wrapper');
+        const $wrapper = $(table).closest(".dt-container, .dataTables_wrapper");
         // Header original
-        $wrapper.find('table thead th').css({ fontWeight: '400' });
+        $wrapper.find("table thead th").css({ fontWeight: "400" });
         // Header flotante de FixedHeader (DT2 y DT1)
-        $('.dtfh-floatingparent thead th, .fixedHeader-floating thead th').css({ fontWeight: '400' });
+        $(".dtfh-floatingparent thead th, .fixedHeader-floating thead th").css({
+          fontWeight: "400",
+        });
       };
       styleHeader();
       // Reaplicar en redraw / cambios responsivos / re-cálculo
       $(table)
-        .off('draw.dt._styleHeader responsive-resize.dt._styleHeader column-sizing.dt._styleHeader')
-        .on('draw.dt._styleHeader responsive-resize.dt._styleHeader column-sizing.dt._styleHeader', styleHeader);
-
+        .off(
+          "draw.dt._styleHeader responsive-resize.dt._styleHeader column-sizing.dt._styleHeader"
+        )
+        .on(
+          "draw.dt._styleHeader responsive-resize.dt._styleHeader column-sizing.dt._styleHeader",
+          styleHeader
+        );
 
       // 🎨 Header: flechas sólo en hover y hover sutil (DT v2 y v1)
       (() => {
-        const styleId = 'dt-header-hover-sort-style';
+        const styleId = "dt-header-hover-sort-style";
         if (!document.getElementById(styleId)) {
-          const style = document.createElement('style');
+          const style = document.createElement("style");
           style.id = styleId;
           style.textContent = `
 /* ===== DataTables v2: el icono suele ser un span .dt-column-order ===== */
@@ -746,9 +826,9 @@ const flashRow = (tr: HTMLElement) => {
       // 🎯 Asegurar que la flechita quede visible en la columna ordenada (DT v2)
       // (complementa el style previo; no lo reemplaza)
       (() => {
-        const styleId = 'dt-header-hover-sort-style-extra';
+        const styleId = "dt-header-hover-sort-style-extra";
         if (!document.getElementById(styleId)) {
-          const style = document.createElement('style');
+          const style = document.createElement("style");
           style.id = styleId;
           style.textContent = `
 /* Si el TH tiene orden asc/desc, mostrar el icono aunque no haya hover */
@@ -763,9 +843,9 @@ const flashRow = (tr: HTMLElement) => {
 
       // 🎨 Aumentar suavemente la altura del header (thead) — original y FixedHeader
       (() => {
-        const styleId = 'dt-header-height-style';
+        const styleId = "dt-header-height-style";
         if (!document.getElementById(styleId)) {
-          const style = document.createElement('style');
+          const style = document.createElement("style");
           style.id = styleId;
           style.textContent = `
 /* Header normal (DT2 y DT1) */
@@ -786,12 +866,11 @@ const flashRow = (tr: HTMLElement) => {
         }
       })();
 
-
       // 🎯 FixedHeader: mantener flechas ocultas salvo hover y visibles en la columna ordenada
       (() => {
-        const styleId = 'dt-header-hover-sort-style-fh';
+        const styleId = "dt-header-hover-sort-style-fh";
         if (!document.getElementById(styleId)) {
-          const style = document.createElement('style');
+          const style = document.createElement("style");
           style.id = styleId;
           style.textContent = `
 /* ===== DataTables v2 (FixedHeader): el flotante vive en .dtfh-floatingparent ===== */
@@ -827,13 +906,11 @@ const flashRow = (tr: HTMLElement) => {
         }
       })();
 
-
-
       // 📱 Desactivar hover gris del header SOLO en móvil / pantallas táctiles
       (() => {
-        const id = 'dt-header-hover-mobile-off';
+        const id = "dt-header-hover-mobile-off";
         if (!document.getElementById(id)) {
-          const s = document.createElement('style');
+          const s = document.createElement("style");
           s.id = id;
           s.textContent = `
 /* Teléfono (xs) o dispositivos sin hover (táctiles) */
@@ -881,23 +958,22 @@ const flashRow = (tr: HTMLElement) => {
         }
       })();
 
-
       // 🎨 Zebra personalizado sutil (#398bc2) SOLO para esta tabla
       (() => {
         // Limpia estilos previos anti-zebra o zebra antiguos (si existieran)
-        document.getElementById('dt-no-zebra')?.remove();
-        document.getElementById('dt-striped-custom')?.remove();
+        document.getElementById("dt-no-zebra")?.remove();
+        document.getElementById("dt-striped-custom")?.remove();
 
         // Marca esta tabla para scopear la regla
-        $(table).attr('data-zebra-custom', '398bc2');
+        $(table).attr("data-zebra-custom", "398bc2");
 
-        const id = 'dt-zebra-custom-398bc2';
+        const id = "dt-zebra-custom-398bc2";
         if (!document.getElementById(id)) {
-          const s = document.createElement('style');
+          const s = document.createElement("style");
           s.id = id;
 
           // 🎛️ Ajusta la intensidad: 0.02 (muy tenue) – 0.08 (más visible)
-          const subtle = 'rgba(57, 139, 194, 0.02)';
+          const subtle = "rgba(57, 139, 194, 0.02)";
 
           s.textContent = `
       /* Usar clases .odd de DataTables (más robusto con filas child/responsive) */
@@ -915,9 +991,9 @@ const flashRow = (tr: HTMLElement) => {
 
       // 🎨 En hover de la fila, forzar texto blanco SOLO dentro de .dt-hover-invert
       (() => {
-        const id = 'dt-hover-invert-inner-style';
+        const id = "dt-hover-invert-inner-style";
         if (!document.getElementById(id)) {
-          const s = document.createElement('style');
+          const s = document.createElement("style");
           s.id = id;
           s.textContent = `
 /* Sólo donde existe hover real (desktop/touchpad) */
@@ -948,43 +1024,48 @@ const flashRow = (tr: HTMLElement) => {
 
       // ➖ Rellenar celdas vacías con un guion em (solo en display)
       (() => {
-        const DASH_HTML = '<span aria-hidden="true" class="text-muted">—</span>';
+        const DASH_HTML =
+          '<span aria-hidden="true" class="text-muted">—</span>';
 
         const fillEmptyCells = () => {
           // Busca sólo en el cuerpo (tbody)
-          $(table).find('tbody td').each(function () {
-            const td = this as HTMLTableCellElement;
+          $(table)
+            .find("tbody td")
+            .each(function () {
+              const td = this as HTMLTableCellElement;
 
-            // Si la celda ya tiene contenido renderizado (React/HTML), no tocar
-            if (td.childElementCount > 0) return;
+              // Si la celda ya tiene contenido renderizado (React/HTML), no tocar
+              if (td.childElementCount > 0) return;
 
-            // Si tiene texto “real”, mantenerlo (p. ej. 0, ₡0, etc.)
-            const txt = (td.textContent || '').trim();
-            if (txt !== '') return;
+              // Si tiene texto “real”, mantenerlo (p. ej. 0, ₡0, etc.)
+              const txt = (td.textContent || "").trim();
+              if (txt !== "") return;
 
-            // En vacío → muestra el dash sutil
-            td.innerHTML = DASH_HTML;
-          });
+              // En vacío → muestra el dash sutil
+              td.innerHTML = DASH_HTML;
+            });
         };
 
         // Aplicar ahora y re-aplicar en cada redraw / cambio de página / responsive
         fillEmptyCells();
         $(table)
-          .off('draw.dt._dash page.dt._dash length.dt._dash search.dt._dash responsive-display.dt._dash')
-          .on('draw.dt._dash page.dt._dash length.dt._dash search.dt._dash responsive-display.dt._dash', fillEmptyCells);
+          .off(
+            "draw.dt._dash page.dt._dash length.dt._dash search.dt._dash responsive-display.dt._dash"
+          )
+          .on(
+            "draw.dt._dash page.dt._dash length.dt._dash search.dt._dash responsive-display.dt._dash",
+            fillEmptyCells
+          );
       })();
-
-
-
 
       // 📄 Subtabla responsive: alinear a la IZQUIERDA el contenido de la 2.ª columna
       (() => {
         // elimina el estilo de centrado si estaba cargado
-        document.getElementById('dt-responsive-center-flexwrap')?.remove();
+        document.getElementById("dt-responsive-center-flexwrap")?.remove();
 
-        const id = 'dt-responsive-left-flexwrap';
+        const id = "dt-responsive-left-flexwrap";
         if (!document.getElementById(id)) {
-          const s = document.createElement('style');
+          const s = document.createElement("style");
           s.id = id;
           s.textContent = `
 /* En el detalle responsive, 2.ª columna (valor) a la izquierda */
@@ -1013,13 +1094,10 @@ const flashRow = (tr: HTMLElement) => {
         }
       })();
 
-
-
-
       (() => {
-        const id = 'dt-main-center-flexwrap';
+        const id = "dt-main-center-flexwrap";
         if (!document.getElementById(id)) {
-          const s = document.createElement('style');
+          const s = document.createElement("style");
           s.id = id;
           s.textContent = `
 .dt-container table.dataTable tbody td .d-flex.flex-wrap.ms-n1,
@@ -1032,15 +1110,13 @@ const flashRow = (tr: HTMLElement) => {
         }
       })();
 
-
-
       // ✅ Centrar SOLO en la tabla principal (no aplica a filas .child ni a la subtabla)
       (() => {
         // borra el viejo si existe
-        document.getElementById('dt-main-center-flexwrap')?.remove();
+        document.getElementById("dt-main-center-flexwrap")?.remove();
 
-        const id = 'dt-main-center-flexwrap';
-        const s = document.createElement('style');
+        const id = "dt-main-center-flexwrap";
+        const s = document.createElement("style");
         s.id = id;
         s.textContent = `
 /* Solo filas normales, NO .child (que alojan la dtr-details) */
@@ -1053,14 +1129,11 @@ const flashRow = (tr: HTMLElement) => {
         document.head.appendChild(s);
       })();
 
-
-
-
       // 📄 Subtabla (dtr-details): alinear A LA IZQUIERDA la 2ª columna y tu contenedor flex
       (() => {
-        const id = 'dt-responsive-left-flexwrap-exact';
+        const id = "dt-responsive-left-flexwrap-exact";
         if (!document.getElementById(id)) {
-          const s = document.createElement('style');
+          const s = document.createElement("style");
           s.id = id;
           s.textContent = `
 /* Texto de la 2ª columna del detalle: izquierda */
@@ -1090,12 +1163,11 @@ const flashRow = (tr: HTMLElement) => {
         }
       })();
 
-
       // 📄 Subtabla responsive (detalle): 2.ª columna a la IZQUIERDA + soporte para tu contenedor flex
       (() => {
-        const id = 'dt-responsive-left-force';
+        const id = "dt-responsive-left-force";
         if (!document.getElementById(id)) {
-          const s = document.createElement('style');
+          const s = document.createElement("style");
           s.id = id;
           s.textContent = `
 /* 2.ª columna (valor) de la tabla de detalle */
@@ -1123,42 +1195,57 @@ tr.child td > table.dtr-details tbody tr > td:nth-child(2) .badge {
       })();
 
       // 🔧 Helper para aplicar estilos con !important a un set de elementos
-      const setImportant = (els: JQuery<HTMLElement>, prop: string, value: string) => {
+      const setImportant = (
+        els: JQuery<HTMLElement>,
+        prop: string,
+        value: string
+      ) => {
         els.each(function () {
-          (this as HTMLElement).style.setProperty(prop, value, 'important');
+          (this as HTMLElement).style.setProperty(prop, value, "important");
         });
       };
 
       // Reaplica por si el panel se vuelve a dibujar
       $(table)
-        .off('responsive-display.dt._leftForce')
-        .on('responsive-display.dt._leftForce', function (_e, _dt, row, show) {
+        .off("responsive-display.dt._leftForce")
+        .on("responsive-display.dt._leftForce", function (_e, _dt, row, show) {
           if (!show) return;
-          const $child = $(row.node()).next('tr.child');
+          const $child = $(row.node()).next("tr.child");
 
           // ✅ 2.ª columna del detalle: alineación a la izquierda con !important
-          setImportant($child.find('td > table.dtr-details td:nth-child(2)'), 'text-align', 'left');
-          setImportant($child.find('td > table.dtr-details td:nth-child(2)'), 'vertical-align', 'middle');
+          setImportant(
+            $child.find("td > table.dtr-details td:nth-child(2)"),
+            "text-align",
+            "left"
+          );
+          setImportant(
+            $child.find("td > table.dtr-details td:nth-child(2)"),
+            "vertical-align",
+            "middle"
+          );
 
           // ✅ Tu contenedor flex “referencias” con !important
           setImportant(
-            $child.find('td > table.dtr-details td:nth-child(2) > .w-100 > .d-flex.flex-wrap'),
-            'justify-content',
-            'flex-start'
+            $child.find(
+              "td > table.dtr-details td:nth-child(2) > .w-100 > .d-flex.flex-wrap"
+            ),
+            "justify-content",
+            "flex-start"
           );
           setImportant(
-            $child.find('td > table.dtr-details td:nth-child(2) > .w-100 > .d-flex.flex-wrap.ms-n1'),
-            'margin-left',
-            '0'
+            $child.find(
+              "td > table.dtr-details td:nth-child(2) > .w-100 > .d-flex.flex-wrap.ms-n1"
+            ),
+            "margin-left",
+            "0"
           );
         });
 
-
       // 🎨 Estado vacío: fuerza ancho completo cuando no hay filas (y centra ya mismo)
       (() => {
-        const id = 'dt-empty-state-center-fix';
+        const id = "dt-empty-state-center-fix";
         if (!document.getElementById(id)) {
-          const s = document.createElement('style');
+          const s = document.createElement("style");
           s.id = id;
           s.textContent = `
 /* Si la tabla está vacía, ocupa 100% (DT2 y DT1) */
@@ -1186,14 +1273,11 @@ tr.child td > table.dtr-details tbody tr > td:nth-child(2) .badge {
         }
       })();
 
-
-
-
       // 🎨 Desactivar hover de filas cuando la tabla esté vacía
       (() => {
-        const id = 'dt-disable-hover-when-empty';
+        const id = "dt-disable-hover-when-empty";
         if (!document.getElementById(id)) {
-          const s = document.createElement('style');
+          const s = document.createElement("style");
           s.id = id;
           s.textContent = `
 /* Sin highlight en hover si la tabla tiene dt-no-hover */
@@ -1214,14 +1298,11 @@ tr.child td > table.dtr-details tbody tr > td:nth-child(2) .badge {
         }
       })();
 
-
-
-
       // 🎨 Apagar hover cuando no hay registros (varias rutas de escape)
       (() => {
-        const id = 'dt-empty-hover-kill';
+        const id = "dt-empty-hover-kill";
         if (!document.getElementById(id)) {
-          const s = document.createElement('style');
+          const s = document.createElement("style");
           s.id = id;
           s.textContent = `
 /* A) Si marcamos la tabla con dt-no-hover */
@@ -1245,45 +1326,45 @@ table.table-hover.dataTable tbody tr.no-hover-row:hover > * {
         }
       })();
 
-
-
-
       // 🔁 Fallback JS: añade/quita clase cuando está vacía y ajusta colspan
       const ensureEmptyFullWidth = () => {
         const $t = $(table);
-        const $empty = $t.find('tbody td.dt-empty, tbody td.dataTables_empty');
+        const $empty = $t.find("tbody td.dt-empty, tbody td.dataTables_empty");
         if ($empty.length) {
-          $t.addClass('dt-empty-fullwidth dt-no-hover');   // (conserva lo que ya tienes)
-          $t.removeClass('table-hover');                   // (si ya lo pusiste, déjalo)
+          $t.addClass("dt-empty-fullwidth dt-no-hover"); // (conserva lo que ya tienes)
+          $t.removeClass("table-hover"); // (si ya lo pusiste, déjalo)
 
           // 👉 NUEVO: marca la fila placeholder para matar hover a nivel de fila
-          $empty.closest('tr').addClass('no-hover-row');
+          $empty.closest("tr").addClass("no-hover-row");
 
           const span = dtInstance.columns({ visible: true }).count();
-          $empty.attr('colspan', String(span));
+          $empty.attr("colspan", String(span));
           dtInstance.columns.adjust();
         } else {
-          $t.removeClass('dt-empty-fullwidth dt-no-hover');
-          $t.addClass('table-hover');
+          $t.removeClass("dt-empty-fullwidth dt-no-hover");
+          $t.addClass("table-hover");
 
           // 👉 NUEVO: limpia la marca cuando vuelven registros
-          $t.find('tbody tr.no-hover-row').removeClass('no-hover-row');
+          $t.find("tbody tr.no-hover-row").removeClass("no-hover-row");
         }
       };
 
       // aplicar ahora y en redibujos relevantes
       ensureEmptyFullWidth();
       $(table)
-        .off('init.dt._emptyWidth draw.dt._emptyWidth page.dt._emptyWidth length.dt._emptyWidth search.dt._emptyWidth responsive-display.dt._emptyWidth')
-        .on('init.dt._emptyWidth draw.dt._emptyWidth page.dt._emptyWidth length.dt._emptyWidth search.dt._emptyWidth responsive-display.dt._emptyWidth', ensureEmptyFullWidth);
-
-
+        .off(
+          "init.dt._emptyWidth draw.dt._emptyWidth page.dt._emptyWidth length.dt._emptyWidth search.dt._emptyWidth responsive-display.dt._emptyWidth"
+        )
+        .on(
+          "init.dt._emptyWidth draw.dt._emptyWidth page.dt._emptyWidth length.dt._emptyWidth search.dt._emptyWidth responsive-display.dt._emptyWidth",
+          ensureEmptyFullWidth
+        );
 
       // 🎨 Overlay “Cargando…” + animación del ícono
       (() => {
-        const id = 'dt-loading-overlay-style';
+        const id = "dt-loading-overlay-style";
         if (!document.getElementById(id)) {
-          const s = document.createElement('style');
+          const s = document.createElement("style");
           s.id = id;
           s.textContent = `
 /* Overlay absoluto dentro del wrapper de DataTables */
@@ -1323,12 +1404,11 @@ table.table-hover.dataTable tbody tr.no-hover-row:hover > * {
         }
       })();
 
-
       // 🎨 Ocultar placeholder "Sin datos" mientras está cargando
       (() => {
-        const id = 'dt-hide-empty-while-loading';
+        const id = "dt-hide-empty-while-loading";
         if (!document.getElementById(id)) {
-          const s = document.createElement('style');
+          const s = document.createElement("style");
           s.id = id;
           s.textContent = `
 /* DT2 y DT1: si el wrapper está en modo carga, no mostrar la celda vacía */
@@ -1341,14 +1421,12 @@ table.table-hover.dataTable tbody tr.no-hover-row:hover > * {
         }
       })();
 
-
-
-(() => {
-  const id = 'dt-header-center-align';
-  if (!document.getElementById(id)) {
-    const s = document.createElement('style');
-    s.id = id;
-    s.textContent = `
+      (() => {
+        const id = "dt-header-center-align";
+        if (!document.getElementById(id)) {
+          const s = document.createElement("style");
+          s.id = id;
+          s.textContent = `
 /* Header normal (DT2 y DT1) */
 .dt-container table.dataTable thead th,
 .dataTables_wrapper table.dataTable thead th {
@@ -1361,38 +1439,13 @@ table.table-hover.dataTable tbody tr.no-hover-row:hover > * {
   text-align: center !important;
 }
 `;
-    document.head.appendChild(s);
-  }
-})();
+          document.head.appendChild(s);
+        }
+      })();
 
 
 
       //#endregion Estilos
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
       // Click fila
       // Click por celda, ignorando primera y última columna visibles
@@ -1409,7 +1462,10 @@ table.table-hover.dataTable tbody tr.no-hover-row:hover > * {
           if (!cell.any()) return;
 
           // Índices de columnas VISIBLES (respeta responsive/hide)
-          const visibleCols = dtInstance.columns({ visible: true }).indexes().toArray();
+          const visibleCols = dtInstance
+            .columns({ visible: true })
+            .indexes()
+            .toArray();
           const colIdx = cell.index().column;
           const visiblePos = visibleCols.indexOf(colIdx);
 
@@ -1428,8 +1484,8 @@ table.table-hover.dataTable tbody tr.no-hover-row:hover > * {
 
       // ✅ Nunca ocultar 1.ª y última columna en casos extremos
       $(table)
-        .off('responsive-resize.dt._keepEnds')
-        .on('responsive-resize.dt._keepEnds', function () {
+        .off("responsive-resize.dt._keepEnds")
+        .on("responsive-resize.dt._keepEnds", function () {
           const n = dtInstance.columns().count();
           if (n > 1) {
             dtInstance.column(0).visible(true);
@@ -1446,9 +1502,8 @@ table.table-hover.dataTable tbody tr.no-hover-row:hover > * {
         dtInstance.responsive.recalc();
       };
       $(document)
-        .off('shown.bs.tab.dtfix shown.bs.modal.dtfix')
-        .on('shown.bs.tab.dtfix shown.bs.modal.dtfix', adjust);
-
+        .off("shown.bs.tab.dtfix shown.bs.modal.dtfix")
+        .on("shown.bs.tab.dtfix shown.bs.modal.dtfix", adjust);
     } catch (err) {
       console.error("DataTable error", err);
     }
@@ -1464,10 +1519,17 @@ table.table-hover.dataTable tbody tr.no-hover-row:hover > * {
 
     // 🆕 MODO INDEPENDIENTE: CARGA INICIAL ÚNICA si llega dataset inicial
     if (independent) {
-      if (!didInitialLoadRef.current && Array.isArray(data) && data.length > 0) {
+      if (
+        !didInitialLoadRef.current &&
+        Array.isArray(data) &&
+        data.length > 0
+      ) {
         withDT((dt) => {
-          const withSeqRows = data.map(r => withSeq(r));
-          dt.clear().rows.add(withSeqRows).order([dt.columns().count() - 1, 'desc']).draw(false);
+          const withSeqRows = data.map((r) => withSeq(r));
+          dt.clear()
+            .rows.add(withSeqRows)
+            .order([dt.columns().count() - 1, "desc"])
+            .draw(false);
 
           // 🔧 Recalcular anchos y responsive inmediatamente (siempre visible)
           dt.columns.adjust();
@@ -1475,7 +1537,6 @@ table.table-hover.dataTable tbody tr.no-hover-row:hover > * {
           dt.responsive.recalc();
           // @ts-expect-error --e
           dt.fixedHeader?.adjust?.();
-
         });
         didInitialLoadRef.current = true;
       }
@@ -1499,11 +1560,16 @@ table.table-hover.dataTable tbody tr.no-hover-row:hover > * {
   //#endregion
 
   // 🆕 API imperativa: load / upsert / bulkUpsert / remove / clear / getData
-  useImperativeHandle(ref, (): GenericDataTableHandle<T> => ({
-    load(rows: T[]) {
-      withDT((dt) => {
-        const withSeqRows = rows.map(r => withSeq(r));
-        dt.clear().rows.add(withSeqRows).order([dt.columns().count() - 1, 'desc']).draw(false);
+  useImperativeHandle(
+    ref,
+    (): GenericDataTableHandle<T> => ({
+      load(rows: T[]) {
+        withDT((dt) => {
+          const withSeqRows = rows.map((r) => withSeq(r));
+          dt.clear()
+            .rows.add(withSeqRows)
+            .order([dt.columns().count() - 1, "desc"])
+            .draw(false);
 
         // 🔧 Recalcular anchos y responsive inmediatamente (siempre visible)
         dt.columns.adjust();
@@ -1682,23 +1748,33 @@ bulkUpsert(rows: T[]) {
       withDT((dt) => {
         const idKey = idKeyRef.current;
 
-        const idxes = dt.rows((_: any, data: any) => (data?.[idKey] ?? null) === id).indexes();
-        if (idxes.length) { dt.rows(idxes).remove().draw(false); }
-      });
-    },
-    clear() {
-      withDT((dt) => dt.clear().draw(false));
-    },
-    getData(): T[] {
-      const dt = dtApiRef.current; if (!dt) return [];
+          const idxes = dt
+            .rows((_: any, data: any) => (data?.[idKey] ?? null) === id)
+            .indexes();
+          if (idxes.length) {
+            dt.rows(idxes).remove().draw(false);
+          }
+        });
+      },
+      clear() {
+        withDT((dt) => dt.clear().draw(false));
+      },
+      getData(): T[] {
+        const dt = dtApiRef.current;
+        if (!dt) return [];
 
-      return dt.rows().data().toArray().map((r: any) => {
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const { __seq, ...rest } = r;
-        return rest;
-      });
-    },
-  }));
+        return dt
+          .rows()
+          .data()
+          .toArray()
+          .map((r: any) => {
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            const { __seq, ...rest } = r;
+            return rest;
+          });
+      },
+    })
+  );
 
   //#region 🎨 Render
   return (
@@ -1727,8 +1803,12 @@ bulkUpsert(rows: T[]) {
 }
 
 // ✅ Export con genéricos soportados en JSX y sin error TS (cast a unknown sugerido por TS)
-type GenericDataTableComponent =
-  <T>(props: GenericDataTableProps<T> & { ref?: React.Ref<GenericDataTableHandle<T>> }) => React.ReactElement | null;
+type GenericDataTableComponent = <T>(
+  props: GenericDataTableProps<T> & {
+    ref?: React.Ref<GenericDataTableHandle<T>>;
+  }
+) => React.ReactElement | null;
 
-export const GenericDataTable = React.forwardRef(GenericDataTableInner) as unknown as GenericDataTableComponent;
-
+export const GenericDataTable = React.forwardRef(
+  GenericDataTableInner
+) as unknown as GenericDataTableComponent;

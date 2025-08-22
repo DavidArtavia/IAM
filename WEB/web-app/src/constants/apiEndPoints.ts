@@ -54,4 +54,23 @@ export const API_ENDPOINTS = {
     METRICA: {
         GET_METRICA: "/MetricaKPI/obtenerMetrica"
     },
+    TARIFAS: {
+        SEARCH_TARIFA: "/Tarifario/buscarTarifas",
+        GET_TARIFAS: "/Tarifario/obtenerTarifas",
+        ADD_TARIFA: "/Tarifario/registrarTarifa",
+        UPDATE_TARIFA: "/Tarifario/actualizarTarifa",
+    }
+    ,
+    PROFORMA: {
+        ADD_PROFORMA: "/Proforma/registrarProforma",
+        UPDATE_PROFORMA: "/Proforma/actualizarProforma",
+        GET_PROFORMAS: "/Proforma/obtenerProformas",
+        SEARCH_PROFORMAS: "/Proforma/buscarProformas",
+    }
+    ,
+    PROFORMA_ITEMS: {
+        ADD_ITEMS: "/ItemsProforma/registrarItemsProforma",
+        UPDATE_ITEMS: "/ItemsProforma/actualizarItemsProforma",
+        GET_ITEMS: "/ItemsProforma/obtenerItemsProforma",
+    }
 } as const;

@@ -313,6 +313,23 @@ export const LayoutMain = () => {
                   <span className="menu-title">Negocio</span>
                 </Link>
               </div>
+              
+              <div className="menu-item py-2">
+                <Link
+                  to={ROUTES.RATE}
+                  className={`menu-link menu-center${
+                    pathname === ROUTES.RATE ? " active" : ""
+                  }`}
+                  data-bs-trigger="hover"
+                  data-bs-dismiss="click"
+                  data-bs-placement="right"
+                >
+                    <span className="menu-icon me-0">
+                    <i className="bi bi-currency-exchange fs-2" />
+                    </span>
+                  <span className="menu-title">Tarifario</span>
+                </Link>
+              </div>
 
                <div className="menu-item py-2">
                 {/* <Link

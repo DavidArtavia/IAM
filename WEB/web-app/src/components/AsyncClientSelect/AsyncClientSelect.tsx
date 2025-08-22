@@ -2,7 +2,7 @@
 import  {  useEffect, useMemo, useState } from "react";
 import AsyncSelect from "react-select/async";
 import { clientesService } from "@/services";
-import { DTO_Cliente, DTO_Respuesta } from "@/models";
+import { DTO_Cliente, DTO_Respuesta, DTO_SolicitudDeBusqueda, DTO_Negocio } from "@/models";
 import { errorHelpers, procesarRespuesta } from "@/utils";
 import { useDebouncedPromise } from "@/hooks";
 import { STATUS_TBL } from "@/constants";
@@ -49,11 +49,13 @@ export const AsyncClientSelect = ({ value, onChange, reloadKey = 0 }: Props) => 
   );
 
   const loadPromise = async (input: string): Promise<ClientOption[]> => {
-    if (input.length < 3) return [];
-    const list = await clientesService.buscarClientes(input).toPromise();
+    if (!input || input.trim().length < 3) return [];
+    const solicitud: DTO_SolicitudDeBusqueda = { term: input, negocio: new DTO_Negocio() };
+    
+    const list = await clientesService.buscarClientes(solicitud).toPromise();
     return (list ?? [])
-      .filter((c) => c.estado?.iD_Estado !== STATUS_TBL.CLIENT.DELETED)
-      .map((c) => ({
+      .filter((c: DTO_Cliente) => c.estado?.iD_Estado !== STATUS_TBL.CLIENT.DELETED)
+      .map((c: DTO_Cliente) => ({
         value: c.iD_Cliente,
         label: `${c.nombreCliente} ${c.apellidoCliente}`,
       }));
@@ -62,7 +64,7 @@ export const AsyncClientSelect = ({ value, onChange, reloadKey = 0 }: Props) => 
   const debouncedPromiseLoad = useDebouncedPromise(loadPromise, 300);
 
   return (
-    <AsyncSelect<ClientOption, false>
+    <AsyncSelect
       cacheOptions
       defaultOptions={recentOptions}
       loadOptions={debouncedPromiseLoad}
@@ -70,6 +72,7 @@ export const AsyncClientSelect = ({ value, onChange, reloadKey = 0 }: Props) => 
       value={value}
       placeholder="Buscar cliente..."
       noOptionsMessage={() => "Escribe al menos 3 caracteres"}
+      isMulti={false}
     />
   );
 };
