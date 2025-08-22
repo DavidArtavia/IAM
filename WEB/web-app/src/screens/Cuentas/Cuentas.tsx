@@ -589,6 +589,7 @@ export const Cuentas = () => {
       label: labelMapCuenta["concepto"] ?? "Concepto",
       type: "text",
       order: 5,
+      required: true,
       readOnly: isCuentaPorCobrarOS,
     },
     {
@@ -890,7 +891,7 @@ export const Cuentas = () => {
             <GenericFormModal<DTO_Cuenta>
               title="Editar Cuenta"
               show={showEditModal}
-              onHide={() => setShowEditModal(false)}
+              onHide={() => {setShowEditModal(false); setErroresValidacion([]);}}
               data={editData!}
               setData={(x) => setEditData(x as DTO_Cuenta)}
               onSubmit={() => {

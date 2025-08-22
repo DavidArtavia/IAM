@@ -558,13 +558,6 @@ export const cuentasFormEditFields: FieldConfig<DTO_Cuenta>[] = [
         order: 2,
     },
     {
-        key: "estado",
-        label: labelMapCuenta["estado"] ?? "Estado",
-        type: "text",
-        readOnly: true,
-        order: 3,
-    },
-    {
         key: "descripcion",
         label: labelMapCuenta["descripcion"] ?? "Descripción",
         type: "textarea",
