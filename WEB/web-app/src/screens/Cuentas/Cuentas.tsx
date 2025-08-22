@@ -157,6 +157,22 @@ export const Cuentas = () => {
   };
   //#endregion
 
+
+
+  const actualizarCamposCalculadosCuenta = (cuenta: DTO_Cuenta) => {
+
+    if (cuenta.montoAbonado >= cuenta.monto)
+      cuenta.estadoPago = "Pagada"
+    else
+      cuenta.estadoPago = "Pendiente"
+
+    cuenta.saldoPendiente = cuenta.monto - cuenta.montoAbonado
+
+    return cuenta;
+
+  }
+
+
   //#region ➕ Crear cuenta - Funciones
   const handleAddNew = () => {
     setDetalleHabilitado(false);
@@ -240,6 +256,8 @@ export const Cuentas = () => {
             (result as DTO_Respuesta)?.mensaje ||
             "Cuenta actualizada correctamente";
           notificationHelpers.successAlert(mensaje);
+
+          updatedData = actualizarCamposCalculadosCuenta(updatedData);
           tableRef.current?.upsert(updatedData);
           //refetchAccounts();
           setShowEditModal(false);
@@ -556,11 +574,11 @@ export const Cuentas = () => {
               step={0.01}
             />
             {detalleHabilitado && (
-  <div style={{ width: '100%' }}  className="form-text text-muted small opacity-75">
-  Con la opción "Detalle" habilitada este campo es calculado.
-</div>
-)}
-            
+              <div style={{ width: '100%' }} className="form-text text-muted small opacity-75">
+                Con la opción "Detalle" habilitada este campo es calculado.
+              </div>
+            )}
+
 
           </div>
         );
@@ -846,12 +864,12 @@ export const Cuentas = () => {
               customColumns={[detalleJSONColumn]}
               dataTableButtons={dataTableButtons}
               onRowClick={(row) => { setRowTableSelected(row); setIsInfoModalOpen(true); }}
-              nowrapColumns={['iD_Cuenta','monto','montoAbonado','saldoPendiente', "tipoCuenta"]}
+              nowrapColumns={['iD_Cuenta', 'monto', 'montoAbonado', 'saldoPendiente', "tipoCuenta"]}
             />
 
             <InfoModal
               show={isInfoModalOpen}
-              onHide={() => {setIsInfoModalOpen(false); setRowTableSelected(undefined); }}
+              onHide={() => { setIsInfoModalOpen(false); setRowTableSelected(undefined); }}
               data={rowTableSelected!}
               fields={infoModalFields}
               headerButtons={headerButtonsToInfo}

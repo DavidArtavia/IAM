@@ -177,6 +177,7 @@ table.dataTable thead th {
   pointer-events: none;
 }
 
+
 /* Animación: aparece, mantiene, se desvanece */
 @keyframes flashBorder {
   0% {

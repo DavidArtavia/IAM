@@ -140,21 +140,22 @@ function GenericDataTableInner<T>(
   };
 
   // === Highlight helpers (mínimos) ===
-const getScrollContainer = () =>
-  tableRef.current?.closest('.card-body.table-responsive') as HTMLElement | null;
+  const getScrollContainer = () =>
+    tableRef.current?.closest('.card-body.table-responsive') as HTMLElement | null;
 
-const ensureFlashStyles = () => {
-  const id = 'dt-flash-row-style';
-  if (document.getElementById(id)) return;
-  const s = document.createElement('style');
-  s.id = id;
-  s.textContent = `
+  const ensureFlashStyles = () => {
+    const id = 'dt-flash-row-style';
+    if (document.getElementById(id)) return;
+    const s = document.createElement('style');
+    s.id = id;
+    s.textContent = `
 @keyframes flashBorder { from { opacity: 1 } to { opacity: 0 } }
 
 /* Overlay absoluto para el destello azul */
-.flash-blue-overlay { position: absolute; inset: auto; pointer-events: none; z-index: 30; border-radius: .5rem; }
+.flash-blue-overlay { position: absolute; inset: auto; pointer-events: none; z-index: 30; border-radius: .5rem; transform: translate(-2px, 2px); }
 .flash-blue-overlay::before {
   content: '';
+  
   position: absolute;
   inset: 0;
   padding: 2px;                 /* grosor del borde */
@@ -169,58 +170,58 @@ const ensureFlashStyles = () => {
 /* Asegura que el contenedor reciba posicionamiento relativo si era estático */
 .dt-flash-rel { position: relative !important; }
 `;
-  document.head.appendChild(s);
-};
+    document.head.appendChild(s);
+  };
 
-const isInView = (el: HTMLElement, container?: HTMLElement) => {
-  const r = el.getBoundingClientRect();
-  const v = container
-    ? container.getBoundingClientRect()
-    : ({ top: 0, left: 0, right: window.innerWidth, bottom: window.innerHeight } as DOMRect);
-  return r.bottom > v.top && r.top < v.bottom && r.right > v.left && r.left < v.right;
-};
+  const isInView = (el: HTMLElement, container?: HTMLElement) => {
+    const r = el.getBoundingClientRect();
+    const v = container
+      ? container.getBoundingClientRect()
+      : ({ top: 0, left: 0, right: window.innerWidth, bottom: window.innerHeight } as DOMRect);
+    return r.bottom > v.top && r.top < v.bottom && r.right > v.left && r.left < v.right;
+  };
 
-const flashRow = (tr: HTMLElement) => {
-  ensureFlashStyles();
+  const flashRow = (tr: HTMLElement) => {
+    ensureFlashStyles();
 
-  // 1) Forzar "hover" y focus por 3s
-  tr.classList.add('dt-force-hover');
-  if (!tr.hasAttribute('tabindex')) tr.setAttribute('tabindex', '-1'); // focusable
-  tr.focus({ preventScroll: true });
-  setTimeout(() => tr.classList.remove('dt-force-hover'), 3000);
+    // 1) Forzar "hover" y focus por 3s
+    tr.classList.add('dt-force-hover');
+    if (!tr.hasAttribute('tabindex')) tr.setAttribute('tabindex', '-1'); // focusable
+    tr.focus({ preventScroll: true });
+    setTimeout(() => tr.classList.remove('dt-force-hover'), 3);
 
-  // 2) Destello azul en el borde (fila + detalle responsive si está abierto)
-  const container = getScrollContainer() || document.body;
-  const contRect = container.getBoundingClientRect();
-  if (getComputedStyle(container).position === 'static') container.classList.add('dt-flash-rel');
+    // 2) Destello azul en el borde (fila + detalle responsive si está abierto)
+    const container = getScrollContainer() || document.body;
+    const contRect = container.getBoundingClientRect();
+    if (getComputedStyle(container).position === 'static') container.classList.add('dt-flash-rel');
 
-  const r1 = tr.getBoundingClientRect();
-  let top = r1.top, left = r1.left, right = r1.right, bottom = r1.bottom;
+    const r1 = tr.getBoundingClientRect();
+    let top = r1.top, left = r1.left, right = r1.right, bottom = r1.bottom;
 
-  const maybeChild = tr.nextElementSibling as HTMLElement | null;
-  if (maybeChild && maybeChild.classList.contains('child') && maybeChild.offsetParent !== null) {
-    const r2 = maybeChild.getBoundingClientRect();
-    top = Math.min(top, r2.top);
-    left = Math.min(left, r2.left);
-    right = Math.max(right, r2.right);
-    bottom = Math.max(bottom, r2.bottom);
-  }
+    const maybeChild = tr.nextElementSibling as HTMLElement | null;
+    if (maybeChild && maybeChild.classList.contains('child') && maybeChild.offsetParent !== null) {
+      const r2 = maybeChild.getBoundingClientRect();
+      top = Math.min(top, r2.top);
+      left = Math.min(left, r2.left);
+      right = Math.max(right, r2.right);
+      bottom = Math.max(bottom, r2.bottom);
+    }
 
-  const overlay = document.createElement('div');
-  overlay.className = 'flash-blue-overlay';
+    const overlay = document.createElement('div');
+    overlay.className = 'flash-blue-overlay';
 
-  // Posicionar relativo al contenedor de scroll (o ventana)
-  const scrollTop = container === document.body ? window.pageYOffset : (container as HTMLElement).scrollTop;
-  const scrollLeft = container === document.body ? window.pageXOffset : (container as HTMLElement).scrollLeft;
+    // Posicionar relativo al contenedor de scroll (o ventana)
+    const scrollTop = container === document.body ? window.pageYOffset : (container as HTMLElement).scrollTop;
+    const scrollLeft = container === document.body ? window.pageXOffset : (container as HTMLElement).scrollLeft;
 
-  overlay.style.top = `${top - contRect.top + scrollTop}px`;
-  overlay.style.left = `${left - contRect.left + scrollLeft}px`;
-  overlay.style.width = `${Math.max(1, right - left)}px`;
-  overlay.style.height = `${Math.max(1, bottom - top)}px`;
+    overlay.style.top = `${top - contRect.top + scrollTop}px`;
+    overlay.style.left = `${left - contRect.left + scrollLeft}px`;
+    overlay.style.width = `${Math.max(1, right - left) + 5}px`;
+    overlay.style.height = `${Math.max(1, bottom - top) + 10}px`;
 
-  container.appendChild(overlay);
-  setTimeout(() => overlay.remove(), 3000);
-};
+    container.appendChild(overlay);
+    setTimeout(() => overlay.remove(), 300000);
+  };
 
 
   const dtColumns = useMemo<ColumnSettings[]>(() => {
@@ -229,11 +230,11 @@ const flashRow = (tr: HTMLElement) => {
     const availableKeys = independent
       ? new Set<string>(columnKeys.map(String))
       : data.reduce<Set<string>>((set, row) => {
-          Object.keys(row as Record<string, unknown>).forEach((k) =>
-            set.add(k)
-          );
-          return set;
-        }, new Set<string>());
+        Object.keys(row as Record<string, unknown>).forEach((k) =>
+          set.add(k)
+        );
+        return set;
+      }, new Set<string>());
 
     (independent ? columnKeys.map(String) : columnKeys.map(String)).forEach(
       (keyStr) => {
@@ -279,9 +280,9 @@ const flashRow = (tr: HTMLElement) => {
         cols.push(
           needs
             ? {
-                ...c,
-                className: _joinClass((c as any).className, "text-nowrap"),
-              }
+              ...c,
+              className: _joinClass((c as any).className, "text-nowrap"),
+            }
             : c
         );
       });
@@ -323,8 +324,8 @@ const flashRow = (tr: HTMLElement) => {
               porcentaje >= 80
                 ? "bg-success"
                 : porcentaje >= 50
-                ? "bg-warning"
-                : "bg-danger";
+                  ? "bg-warning"
+                  : "bg-danger";
 
             const container = document.createElement("div");
             (cell as HTMLElement).innerHTML = "";
@@ -1559,6 +1560,152 @@ table.table-hover.dataTable tbody tr.no-hover-row:hover > * {
   }, [data, independent]);
   //#endregion
 
+
+  // 🔎 Obtiene el índice de una columna por el título (case-insensitive)
+  const getColIdxByTitle = (title?: string) => {
+    if (!title) return -1;
+    const t = String(title).trim().toLowerCase();
+    return dtColumns.findIndex(c => String((c as any).title ?? '').trim().toLowerCase() === t);
+  };
+
+  // 🔁 Re-renderiza celdas "ricas" (Acciones, Avance, Estado) de UNA fila (visible u oculta)
+  const rerenderRichCellsForRow = (dt: DataTables.Api, rowIdx: number, rowData: any) => {
+    const tr = dt.row(rowIdx).node() as HTMLTableRowElement | null;
+    if (!tr) return;
+
+    // 1) Acciones (penúltima; la última es __seq)
+    const actionsIdx = dtColumns.length - 2;
+    const tdAct = tr.cells?.[actionsIdx];
+    if (tdAct) {
+      tdAct.innerHTML = "";
+      const container = document.createElement("div");
+      tdAct.appendChild(container);
+      ReactDOM.createRoot(container).render(
+        <ActionButtons
+          rowData={rowData}
+          onEdit={() => onEdit(rowData)}
+          onDelete={() => onDelete(rowData)}
+          dataTableButtons={dataTableButtons}
+        />
+      );
+    }
+
+    // 2) Avance (si existe)
+    const avanceTitle = labelMap["avance"];
+    const avanceIdx = getColIdxByTitle(avanceTitle);
+    if (avanceIdx >= 0) {
+      const tdAv = tr.cells?.[avanceIdx];
+      if (tdAv) {
+        const porcentaje = (rowData as any)["avance"] ?? 0;
+        const barColor =
+          porcentaje >= 80 ? "bg-success" : porcentaje >= 50 ? "bg-warning" : "bg-danger";
+        tdAv.innerHTML = "";
+        const container = document.createElement("div");
+        tdAv.appendChild(container);
+        ReactDOM.createRoot(container).render(
+          <div className="d-flex flex-column w-100 me-2">
+            <div className="d-flex flex-stack mb-2">
+              <span className="text-muted me-2 fs-7 fw-bold">{porcentaje}%</span>
+            </div>
+            <div className="progress h-6px w-100">
+              <div
+                className={`progress-bar ${barColor}`}
+                role="progressbar"
+                style={{ width: `${porcentaje}%` }}
+                aria-valuenow={porcentaje}
+                aria-valuemin={0}
+                aria-valuemax={100}
+              />
+            </div>
+          </div>
+        );
+      }
+    }
+
+    // 3) Estado (si existe)
+    const estadoTitle = includeEstadoColumn && labelMap["estado"] ? labelMap["estado"] : undefined;
+    const estadoIdx = getColIdxByTitle(estadoTitle);
+    if (estadoIdx >= 0) {
+      const tdEs = tr.cells?.[estadoIdx];
+      if (tdEs) {
+        const estado = ((rowData as any)?.estado?.nombre?.toLowerCase?.() ?? "N/A");
+        const badgeClassMap: Record<string, string> = {
+          activo: "badge-light-success",
+          nuevo: "badge badge-secondary",
+          "en proceso": "badge-light-primary",
+          "en espera": "badge-light-warning",
+          completado: "badge-light-success",
+          eliminado: "badge-light-danger",
+          inactivo: "badge-light-light",
+          default: "badge badge-dark",
+        };
+        const badgeClass = badgeClassMap[estado] || badgeClassMap["default"];
+        tdEs.innerHTML = "";
+        const container = document.createElement("span");
+        tdEs.appendChild(container);
+        ReactDOM.createRoot(container).render(
+          <span className={`badge ${badgeClass}`}>
+            {estado.charAt(0).toUpperCase() + estado.slice(1)}
+          </span>
+        );
+      }
+    }
+  };
+
+  // 🔄 Reconstruye el panel responsive (child) de ESA fila usando el HTML actual de los TDs
+  // 🔄 Reconstruye el panel responsive (child) mostrando SOLO las columnas que ya estaba mostrando
+  const refreshResponsiveDetailsForRow = (dt: DataTables.Api, rowIdx: number) => {
+    const tr = dt.row(rowIdx).node() as HTMLTableRowElement | null;
+    if (!tr) return;
+
+    const child = tr.nextElementSibling as HTMLElement | null;
+    if (!child || !child.classList.contains("child")) return;
+
+    const detailsTable = child.querySelector("table.dtr-details") as HTMLTableElement | null;
+    if (!detailsTable) return;
+
+    // 1) 🔍 Lee qué columnas estaba mostrando el detalle (según nuestro renderer)
+    const currentIdxs: number[] = Array
+      .from(detailsTable.querySelectorAll('tr[data-dt-column]'))
+      .map(el => parseInt((el as HTMLElement).getAttribute('data-dt-column') || '', 10))
+      .filter(n => Number.isFinite(n));
+
+    // 2) Fallback (raro): si por algún motivo no hay marcadores, usa ocultas globales como última opción
+    const targetIdxs: number[] = currentIdxs.length
+      ? currentIdxs
+      : (dt.columns({ visible: false }).indexes().toArray() as number[]);
+
+    // 3) Reconstruye SÓLO esas columnas
+    const rowsHtml = targetIdxs.map((cIdx) => {
+      const header = dt.column(cIdx).header() as HTMLElement | null;
+      const title = String(header?.textContent ?? "").trim();
+
+      // Saltar columna interna __seq por título
+      if (title.toLowerCase() === "__seq") return "";
+
+      // HTML actual del <td> de la tabla principal
+      const node = dt.cell(rowIdx, cIdx).node() as HTMLTableCellElement | null;
+      let cellHtml = node ? node.innerHTML : String(dt.cell(rowIdx, cIdx).data() ?? "");
+
+      if (!cellHtml || String(cellHtml).trim() === "") {
+        cellHtml = '<span aria-hidden="true" class="text-muted">—</span>';
+      }
+
+      return `
+      <tr data-dt-row="${rowIdx}" data-dt-column="${cIdx}">
+        <td class="fw-semibold text-muted pe-3">${title}</td>
+        <td class="text-wrap">${cellHtml}</td>
+      </tr>
+    `;
+    }).join("");
+
+    if (rowsHtml) {
+      detailsTable.innerHTML = rowsHtml; // 🔁 reemplaza sin duplicar columnas visibles
+    }
+  };
+
+
+
   // 🆕 API imperativa: load / upsert / bulkUpsert / remove / clear / getData
   useImperativeHandle(
     ref,
@@ -1571,182 +1718,187 @@ table.table-hover.dataTable tbody tr.no-hover-row:hover > * {
             .order([dt.columns().count() - 1, "desc"])
             .draw(false);
 
-        // 🔧 Recalcular anchos y responsive inmediatamente (siempre visible)
-        dt.columns.adjust();
-        // @ts-expect-error --w
-        dt.responsive.recalc();
-        // @ts-expect-error --w
-        dt.fixedHeader?.adjust?.();
+          // 🔧 Recalcular anchos y responsive inmediatamente (siempre visible)
+          dt.columns.adjust();
+          // @ts-expect-error --w
+          dt.responsive.recalc();
+          // @ts-expect-error --w
+          dt.fixedHeader?.adjust?.();
 
-      });
-    },
-upsert(row: T) {
-  withDT((dt) => {
-    const idKey = idKeyRef.current;
-    const rowId = (row as any)?.[idKey];
+        });
+      },
+      upsert(row: T) {
+        withDT((dt) => {
+          const idKey = idKeyRef.current;
+          const rowId = (row as any)?.[idKey];
 
-    const idxes = dt.rows((_: any, data: any) => (data?.[idKey] ?? null) === rowId).indexes();
+          const idxes = dt.rows((_: any, data: any) => (data?.[idKey] ?? null) === rowId).indexes();
 
-    if (idxes.length) {
-      // 🔁 Actualizar EN SU LUGAR (preserva __seq) — NO mover ni redibujar
-      idxes.each((idx: number) => {
-        const cur: any = dt.row(idx).data();
-        const preservedSeq = cur?.__seq ?? 0;
-        const updated: any = { ...(row as any), __seq: preservedSeq };
+          if (idxes.length) {
+            // 🔁 Actualizar EN SU LUGAR (preserva __seq) — NO mover ni redibujar
+            idxes.each((idx: number) => {
+              const cur: any = dt.row(idx).data();
+              const preservedSeq = cur?.__seq ?? 0;
+              const updated: any = { ...(row as any), __seq: preservedSeq };
 
-        dt.row(idx).data(updated); // sin draw()
+              dt.row(idx).data(updated); // sin draw()
 
-        // Repintar Acciones (sin draw global)
-        const tr = dt.row(idx).node() as HTMLTableRowElement | null;
-        const actionsIdx = dtColumns.length - 2;
-        const td = tr?.cells?.[actionsIdx];
-        if (td) {
-          td.innerHTML = "";
-          const container = document.createElement("div");
-          td.appendChild(container);
-          ReactDOM.createRoot(container).render(
-            <ActionButtons
-              rowData={updated as T}
-              onEdit={() => onEdit(updated as T)}
-              onDelete={() => onDelete(updated as T)}
-              dataTableButtons={dataTableButtons}
-            />
-          );
-        }
-
-        // 👉 Si la fila está visible, aplica foco + destello
-        if (tr) {
-          const cont = getScrollContainer();
-          if (!cont || isInView(tr, cont)) flashRow(tr);
-        }
-      });
-      // ⛔ No draw(), no order(), no page() → no se mueve
-      return;
-    }
-
-    // 🆕 NUEVA FILA: sí sube por __seq y nos vamos a la primera página
-    dt.row.add(withSeq(row));
-    if (independent) {
-      dt.order([dt.columns().count() - 1, "desc"]);
-    }
-
-    // Ir a la primera página y dibujar una vez
-    dt.page("first").draw(false);
-
-    // Ajustes visuales
-    dt.columns.adjust();
-    // @ts-expect-error
-    dt.responsive.recalc();
-    // @ts-expect-error
-    dt.fixedHeader?.adjust?.();
-
-    // 🚀 Scroll suave a la primera fila visible + highlight
-    setTimeout(() => {
-      const headerOffset =
-        document.querySelector<HTMLElement>(".navbar, .app-navbar, .header")
-          ?.offsetHeight ?? 0;
-
-      const node = dt.row(":eq(0)", { page: "current" }).node() as HTMLElement | null;
-      const targetEl = node || tableRef.current;
-      if (!targetEl) return;
-
-      const rect = targetEl.getBoundingClientRect();
-      const top = window.pageYOffset + rect.top - Math.max(0, headerOffset + 10);
-
-      window.scrollTo({ top, behavior: "smooth" });
-
-      // Dale un pequeño tiempo al scroll para comenzar (sin bloquear)
-      setTimeout(() => {
-        const first = dt.row(':eq(0)', { page: 'current' }).node() as HTMLElement | null;
-        if (first) flashRow(first);
-      }, 300);
-    }, 0);
-  });
-},
+              // Repintar Acciones (sin draw global)
+              const tr = dt.row(idx).node() as HTMLTableRowElement | null;
+              const actionsIdx = dtColumns.length - 2;
+              const td = tr?.cells?.[actionsIdx];
+              if (td) {
+                td.innerHTML = "";
+                const container = document.createElement("div");
+                td.appendChild(container);
+                ReactDOM.createRoot(container).render(
+                  <ActionButtons
+                    rowData={updated as T}
+                    onEdit={() => onEdit(updated as T)}
+                    onDelete={() => onDelete(updated as T)}
+                    dataTableButtons={dataTableButtons}
+                  />
+                );
+              }
+              // Re-renderizar celdas ricas + refrescar detalle responsive de ESTA fila
+              rerenderRichCellsForRow(dt, idx, updated);
+              refreshResponsiveDetailsForRow(dt, idx);
 
 
-bulkUpsert(rows: T[]) {
-  withDT((dt) => {
-    if (!rows?.length) return;
-    const idKey = idKeyRef.current;
+              // 👉 Si la fila está visible, aplica foco + destello
+              if (tr) {
+                const cont = getScrollContainer();
 
-    const incoming = new Map<any, T>();
-    for (const r of rows) incoming.set((r as any)[idKey], r);
+                if (!cont || isInView(tr, cont)) flashRow(tr);
+              }
+            });
+            // ⛔ No draw(), no order(), no page() → no se mueve
+            return;
+          }
 
-    // 1) Actualizar existentes EN SU LUGAR (preserva __seq) y repintar Acciones SIN draw()
-    dt.rows().every(function (this: any) {
-      const cur: any = this.data();
-      const curId = cur?.[idKey];
-      if (incoming.has(curId)) {
-        const newRow = incoming.get(curId)!;
-        const preservedSeq = cur?.__seq ?? 0;
-        const updated: any = { ...(newRow as any), __seq: preservedSeq };
+          // 🆕 NUEVA FILA: sí sube por __seq y nos vamos a la primera página
+          dt.row.add(withSeq(row));
+          if (independent) {
+            dt.order([dt.columns().count() - 1, "desc"]);
+          }
 
-        this.data(updated); // sin draw()
+          // Ir a la primera página y dibujar una vez
+          dt.page("first").draw(false);
 
-        // Repintar Acciones de esta fila
-        const tr = this.node() as HTMLTableRowElement | null;
-        const actionsIdx = dtColumns.length - 2;
-        const td = tr?.cells?.[actionsIdx];
-        if (td) {
-          td.innerHTML = "";
-          const container = document.createElement("div");
-          td.appendChild(container);
-          ReactDOM.createRoot(container).render(
-            <ActionButtons
-              rowData={updated as T}
-              onEdit={() => onEdit(updated as T)}
-              onDelete={() => onDelete(updated as T)}
-              dataTableButtons={dataTableButtons}
-            />
-          );
-        }
+          // Ajustes visuales
+          dt.columns.adjust();
+          // @ts-expect-error --s
+          dt.responsive.recalc();
+          // @ts-expect-error --s
+          dt.fixedHeader?.adjust?.();
 
-        // 👉 Si está visible, highlight
-        if (tr) {
-          const cont = getScrollContainer();
-          if (!cont || isInView(tr, cont)) flashRow(tr);
-        }
+          // 🚀 Scroll suave a la primera fila visible + highlight
+          setTimeout(() => {
+            const headerOffset =
+              document.querySelector<HTMLElement>(".navbar, .app-navbar, .header")
+                ?.offsetHeight ?? 0;
 
-        incoming.delete(curId);
-      }
-    });
+            const node = dt.row(":eq(0)", { page: "current" }).node() as HTMLElement | null;
+            const targetEl = node || tableRef.current;
+            if (!targetEl) return;
 
-    // 2) Agregar los que realmente son nuevos
-    let added = 0;
-    incoming.forEach((r) => {
-      dt.row.add(withSeq(r));
-      added++;
-    });
+            const rect = targetEl.getBoundingClientRect();
+            const top = window.pageYOffset + rect.top - Math.max(0, headerOffset + 10);
 
-    if (!added) return; // solo había updates → no mover ni redibujar
+            window.scrollTo({ top, behavior: "smooth" });
 
-    if (independent) {
-      dt.order([dt.columns().count() - 1, "desc"]);
-    }
-
-    // Ir a primera página y dibujar una vez
-    dt.page("first").draw(false);
-
-    dt.columns.adjust();
-    // @ts-expect-error
-    dt.responsive.recalc();
-    // @ts-expect-error
-    dt.fixedHeader?.adjust?.();
-
-    // Highlight a la primera fila recién visible
-    setTimeout(() => {
-      const first = dt.row(':eq(0)', { page: 'current' }).node() as HTMLElement | null;
-      if (first) flashRow(first);
-    }, 300);
-  });
-},
+            // Dale un pequeño tiempo al scroll para comenzar (sin bloquear)
+            setTimeout(() => {
+              const first = dt.row(':eq(0)', { page: 'current' }).node() as HTMLElement | null;
+              if (first) flashRow(first);
+            }, 300);
+          }, 0);
+        });
+      },
 
 
+      bulkUpsert(rows: T[]) {
+        withDT((dt) => {
+          if (!rows?.length) return;
+          const idKey = idKeyRef.current;
 
-    removeById(id: unknown) {
-      withDT((dt) => {
-        const idKey = idKeyRef.current;
+          const incoming = new Map<any, T>();
+          for (const r of rows) incoming.set((r as any)[idKey], r);
+
+          // 1) Actualizar existentes EN SU LUGAR (preserva __seq) y repintar Acciones SIN draw()
+          dt.rows().every(function (this: any) {
+            const cur: any = this.data();
+            const curId = cur?.[idKey];
+            if (incoming.has(curId)) {
+              const newRow = incoming.get(curId)!;
+              const preservedSeq = cur?.__seq ?? 0;
+              const updated: any = { ...(newRow as any), __seq: preservedSeq };
+
+              this.data(updated); // sin draw()
+
+              // Repintar Acciones de esta fila
+              const tr = this.node() as HTMLTableRowElement | null;
+              const actionsIdx = dtColumns.length - 2;
+              const td = tr?.cells?.[actionsIdx];
+              if (td) {
+                td.innerHTML = "";
+                const container = document.createElement("div");
+                td.appendChild(container);
+                ReactDOM.createRoot(container).render(
+                  <ActionButtons
+                    rowData={updated as T}
+                    onEdit={() => onEdit(updated as T)}
+                    onDelete={() => onDelete(updated as T)}
+                    dataTableButtons={dataTableButtons}
+                  />
+                );
+              }
+
+              // 👉 Si está visible, highlight
+              if (tr) {
+                const cont = getScrollContainer();
+                if (!cont || isInView(tr, cont)) flashRow(tr);
+              }
+
+              incoming.delete(curId);
+            }
+          });
+
+          // 2) Agregar los que realmente son nuevos
+          let added = 0;
+          incoming.forEach((r) => {
+            dt.row.add(withSeq(r));
+            added++;
+          });
+
+          if (!added) return; // solo había updates → no mover ni redibujar
+
+          if (independent) {
+            dt.order([dt.columns().count() - 1, "desc"]);
+          }
+
+          // Ir a primera página y dibujar una vez
+          dt.page("first").draw(false);
+
+          dt.columns.adjust();
+          // @ts-expect-error
+          dt.responsive.recalc();
+          // @ts-expect-error
+          dt.fixedHeader?.adjust?.();
+
+          // Highlight a la primera fila recién visible
+          setTimeout(() => {
+            const first = dt.row(':eq(0)', { page: 'current' }).node() as HTMLElement | null;
+            if (first) flashRow(first);
+          }, 300);
+        });
+      },
+
+
+
+      removeById(id: unknown) {
+        withDT((dt) => {
+          const idKey = idKeyRef.current;
 
           const idxes = dt
             .rows((_: any, data: any) => (data?.[idKey] ?? null) === id)
