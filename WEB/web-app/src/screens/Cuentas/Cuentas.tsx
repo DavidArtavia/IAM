@@ -389,7 +389,7 @@ export const Cuentas = () => {
     ...cuentasFormAddFields,
     {
       key: "detalleJSON",
-      label: "Detalle",
+      label: "",
       type: "custom",
       required: false,
       order: 6,
