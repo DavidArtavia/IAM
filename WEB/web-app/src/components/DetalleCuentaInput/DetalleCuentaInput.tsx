@@ -308,6 +308,7 @@ export const DetalleCuentaInput = ({
                 <div className="input-group">
                   <input
                     type="number"
+                    placeholder="0.00"
                     className="form-control"
                     value={descuento.valor}
                     onChange={(e) => {
@@ -344,6 +345,7 @@ export const DetalleCuentaInput = ({
                 <label className="fs-5">Impuesto (%)</label>
                 <input
                   type="number"
+                  placeholder="0.00"
                   className="form-control"
                   value={impuesto.valor}
                   onChange={(e) => {
