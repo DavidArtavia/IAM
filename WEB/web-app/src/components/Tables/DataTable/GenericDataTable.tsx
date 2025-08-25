@@ -224,6 +224,36 @@ function GenericDataTableInner<T>(
   };
 
 
+
+  // Usa el mismo dash que ya usas en la tabla
+  const DASH_HTML = '<span aria-hidden="true" class="text-muted">—</span>';
+
+  const ensureDashForRow = (tr: HTMLTableRowElement) => {
+    // Rellena celdas vacías de la fila principal (omite celdas con contenido/React)
+    Array.from(tr.cells).forEach((td) => {
+      if (td.childElementCount > 0) return;         // ya hay HTML (acciones, badges, etc.)
+      const txt = (td.textContent || '').trim();
+      if (txt !== '') return;                        // tiene texto (0, ₡0, etc.)
+      td.innerHTML = DASH_HTML;                      // pon dash sutil
+    });
+  };
+
+  const ensureDashInDetailsForRow = (tr: HTMLTableRowElement) => {
+    // Si la fila tiene panel responsive abierto, rellena la 2ª columna (valor)
+    const child = tr.nextElementSibling as HTMLElement | null;
+    const details = child?.querySelector('table.dtr-details') as HTMLTableElement | null;
+    if (!details) return;
+    details.querySelectorAll('td:nth-child(2)').forEach((td) => {
+      const el = td as HTMLTableCellElement;
+      if (el.childElementCount > 0) return;
+      const txt = (el.textContent || '').trim();
+      if (txt !== '') return;
+      el.innerHTML = DASH_HTML;
+    });
+  };
+
+
+
   const dtColumns = useMemo<ColumnSettings[]>(() => {
     const cols: ColumnSettings[] = [];
 
@@ -1845,6 +1875,12 @@ table.table-hover.dataTable tbody tr.no-hover-row:hover > * {
               rerenderRichCellsForRow(dt, idx, updated);
               refreshResponsiveDetailsForRow(dt, idx);
 
+
+              if (tr) {
+                ensureDashForRow(tr);
+                ensureDashInDetailsForRow(tr);
+              }
+
               // Highlight solo si ya está a la vista
               if (tr) {
                 const cont = getScrollContainer();
@@ -1954,6 +1990,13 @@ table.table-hover.dataTable tbody tr.no-hover-row:hover > * {
                   />
                 );
               }
+
+              // ✅ NUEVO: rellenar vacíos en esa fila y su detalle
+if (tr) {
+  ensureDashForRow(tr);
+  ensureDashInDetailsForRow(tr);
+}
+
 
               // 👉 Si está visible, highlight
               if (tr) {
