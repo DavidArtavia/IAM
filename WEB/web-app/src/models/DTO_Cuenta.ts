@@ -11,7 +11,7 @@ export class DTO_Cuenta {
     descripcion?: string;
     monto: number = 0;
     tipoCuenta: string = "";
-    detalleJSON?: DTO_DetalleCuentaJSON;
+    detalleJSON: DTO_DetalleCuentaJSON = new DTO_DetalleCuentaJSON();
     fechaInicial: Date = new Date();
     fechaModificacion: Date = new Date();
     fechaLimite?: Date;

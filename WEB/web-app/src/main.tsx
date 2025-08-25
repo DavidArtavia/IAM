@@ -23,6 +23,7 @@ import "@/assets/js/custom/widgets.js"
 import "@/assets/js/custom/apps/chat/chat.js"
 import "@/assets/js/custom/modals/create-app.js"
 import "@/assets/js/custom/modals/upgrade-plan.js"
+import "@/assets/js/custom/documentation/forms/daterangepicker.js"
 
 
 import { App } from '@/App';

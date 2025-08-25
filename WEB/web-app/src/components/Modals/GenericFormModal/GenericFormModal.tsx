@@ -248,6 +248,7 @@ export const GenericFormModal = <T,>({
           <input
             id={String(key)}
             type="date"
+            placeholder="dd/mm/aaaa"
             className={inputClass}
             value={dateVal}
             onChange={(e) => { onEliminarError(key.toString()); handleChange(key, e.target.value, "date") }}

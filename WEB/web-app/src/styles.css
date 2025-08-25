@@ -265,3 +265,16 @@ body.modal-open {
 .modal-open .app-scroll { overflow: hidden !important; }
 
 .modal-open .app-scroll { overflow: hidden !important; }
+
+
+
+input[type="date"] {
+  pointer-events: auto !important;
+  -webkit-appearance: textfield; /* evita eliminar comportamiento nativo */
+  appearance: auto;
+}
+
+/* Asegura que el indicador es clickeable */
+input[type="date"]::-webkit-calendar-picker-indicator {
+  pointer-events: auto;
+}

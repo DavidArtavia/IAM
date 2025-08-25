@@ -19,6 +19,7 @@ import {
   cuentasFormAddFields,
   formatColones,
   formatDetalleJSON,
+  compararObjetos,
 } from "@/utils";
 import {
   ConfirmModal,
@@ -191,9 +192,10 @@ export const Cuentas = () => {
     if (validacion.length === 0) {
       cuentasService.registrarCuenta(formData).subscribe({
         next: (result: any) => {
-          const nueva = (result.resultado as DTO_Cuenta[])[0];
+          let nueva = (result.resultado as DTO_Cuenta[])[0];
           if (nueva.estado?.iD_Estado !== STATUS_TBL.ACCOUNT.DELETED) {
             setAccountsPayable((prev) => [nueva, ...prev]);
+            nueva = actualizarCamposCalculadosCuenta(nueva);
             tableRef.current?.upsert(nueva);
           }
           notificationHelpers.successAlert(
@@ -215,9 +217,15 @@ export const Cuentas = () => {
   };
 
   const handleCancelAdd = () => {
-    setConfirmModalMessage("¿Estás seguro de que deseas cancelar el registro?");
     setConfirmContext("cancelAdd");
-    setIsConfirmOpen(true);
+    //entramos a sacar el modal de confirmación solo si no son vacios los valores
+    if (!compararObjetos(formData as DTO_Cuenta, new DTO_Cuenta, ['fechaInicial', 'fechaModificacion'])) {
+
+      setConfirmModalMessage("¿Estás seguro de que deseas cancelar el registro?");
+      setIsConfirmOpen(true);
+    }else{
+     setIsModalFormOpen(false);
+    }
   };
   //#endregion
 
@@ -434,11 +442,11 @@ export const Cuentas = () => {
                 const val = e.target.value.replace(/[^0-9.]/g, "");
                 setMontoInput(val);
                 const num = parseFloat(val);
-                   setFormData({ ...formData, monto: num });
+                setFormData({ ...formData, monto: num });
               }}
-                            
-           
-      
+
+
+
               onBlur={(e) => {
                 if (e.target.value === "" || isNaN(Number(e.target.value))) {
                   setMontoInput("");
@@ -894,7 +902,7 @@ export const Cuentas = () => {
             <GenericFormModal<DTO_Cuenta>
               title="Editar Cuenta"
               show={showEditModal}
-              onHide={() => {setShowEditModal(false); setErroresValidacion([]);}}
+              onHide={() => { setShowEditModal(false); setErroresValidacion([]); }}
               data={editData!}
               setData={(x) => setEditData(x as DTO_Cuenta)}
               onSubmit={() => {
