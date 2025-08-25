@@ -215,7 +215,7 @@ function GenericDataTableInner<T>(
     const scrollLeft = container === document.body ? window.pageXOffset : (container as HTMLElement).scrollLeft;
 
     overlay.style.top = `${top - contRect.top + scrollTop + 2}px`;
-    overlay.style.left = `${left - contRect.left + scrollLeft -2}px`;
+    overlay.style.left = `${left - contRect.left + scrollLeft - 2}px`;
     overlay.style.width = `${Math.max(1, right - left) + 5}px`;
     overlay.style.height = `${Math.max(1, bottom - top) + 10}px`;
 
@@ -665,7 +665,22 @@ function GenericDataTableInner<T>(
                 .join("-"),
             titleAttr: "Descargar como Excel",
             exportOptions: {
-              columns: ":visible:not(.noExport)",
+              // incluye TODAS las columnas (aunque estén ocultas por responsive),
+              // excepto "Acciones" y "__seq" y cualquier .noExport
+              columns: (idx: number, _data: unknown, node: Node | null) => {
+                // fuera Acciones y __seq por índice conocido
+                if (idx === dtColumns.length - 2 || idx === dtColumns.length - 1) return false;
+
+                // respeta columnas marcadas con .noExport
+                const th = node as HTMLElement | null;
+                if (th?.classList.contains("noExport")) return false;
+
+                // seguridad extra por título (por si cambian el orden)
+                const titleTxt = (th?.textContent || "").trim().toLowerCase();
+                if (titleTxt === "__seq" || titleTxt === "acciones") return false;
+
+                return true; // ✅ exportar esta columna aunque esté oculta en móvil
+              },
               orthogonal: "export",
             },
             title:
@@ -1790,117 +1805,117 @@ table.table-hover.dataTable tbody tr.no-hover-row:hover > * {
 
         });
       },
-    upsert(row: T) {
-  withDT((dt) => {
-    const idKey = idKeyRef.current;
-    const rowId = (row as any)?.[idKey];
+      upsert(row: T) {
+        withDT((dt) => {
+          const idKey = idKeyRef.current;
+          const rowId = (row as any)?.[idKey];
 
-    const idxes = dt
-      .rows((_: any, data: any) => (data?.[idKey] ?? null) === rowId)
-      .indexes();
+          const idxes = dt
+            .rows((_: any, data: any) => (data?.[idKey] ?? null) === rowId)
+            .indexes();
 
-    if (idxes.length) {
-      // 🔁 EDITAR EN SU LUGAR (NO mover ni redibujar)
-      idxes.each((idx: number) => {
-        const cur: any = dt.row(idx).data();
-        const preservedSeq = cur?.__seq ?? 0;
-        const updated: any = { ...(row as any), __seq: preservedSeq };
+          if (idxes.length) {
+            // 🔁 EDITAR EN SU LUGAR (NO mover ni redibujar)
+            idxes.each((idx: number) => {
+              const cur: any = dt.row(idx).data();
+              const preservedSeq = cur?.__seq ?? 0;
+              const updated: any = { ...(row as any), __seq: preservedSeq };
 
-        dt.row(idx).data(updated); // sin draw()
+              dt.row(idx).data(updated); // sin draw()
 
-        // Repintar Acciones (sin draw global)
-        const tr = dt.row(idx).node() as HTMLTableRowElement | null;
-        const actionsIdx = dtColumns.length - 2;
-        const td = tr?.cells?.[actionsIdx];
-        if (td) {
-          td.innerHTML = "";
-          const container = document.createElement("div");
-          td.appendChild(container);
-          ReactDOM.createRoot(container).render(
-            <ActionButtons
-              rowData={updated as T}
-              onEdit={() => onEdit(updated as T)}
-              onDelete={() => onDelete(updated as T)}
-              dataTableButtons={dataTableButtons}
-            />
-          );
-        }
+              // Repintar Acciones (sin draw global)
+              const tr = dt.row(idx).node() as HTMLTableRowElement | null;
+              const actionsIdx = dtColumns.length - 2;
+              const td = tr?.cells?.[actionsIdx];
+              if (td) {
+                td.innerHTML = "";
+                const container = document.createElement("div");
+                td.appendChild(container);
+                ReactDOM.createRoot(container).render(
+                  <ActionButtons
+                    rowData={updated as T}
+                    onEdit={() => onEdit(updated as T)}
+                    onDelete={() => onDelete(updated as T)}
+                    dataTableButtons={dataTableButtons}
+                  />
+                );
+              }
 
-        // Celdas ricas + detalle responsive
-        rerenderRichCellsForRow(dt, idx, updated);
-        refreshResponsiveDetailsForRow(dt, idx);
+              // Celdas ricas + detalle responsive
+              rerenderRichCellsForRow(dt, idx, updated);
+              refreshResponsiveDetailsForRow(dt, idx);
 
-        // Highlight solo si ya está a la vista
-        if (tr) {
-          const cont = getScrollContainer();
-          if (!cont || isInView(tr, cont)) flashRow(tr);
-        }
-      });
-      // ⛔ Nada de draw/order/page aquí
-      return;
-    }
+              // Highlight solo si ya está a la vista
+              if (tr) {
+                const cont = getScrollContainer();
+                if (!cont || isInView(tr, cont)) flashRow(tr);
+              }
+            });
+            // ⛔ Nada de draw/order/page aquí
+            return;
+          }
 
-    // 🆕 INSERTAR — 2 pasos: (A) ir a pág. 1 y subir al tope, (B) insertar + flash
+          // 🆕 INSERTAR — 2 pasos: (A) ir a pág. 1 y subir al tope, (B) insertar + flash
 
-    // (B) Insertar y flashear después del scroll
-    const doInsertAndFlash = () => {
-      // Inserta y ordena por __seq en modo independent
-      dt.row.add(withSeq(row));
-      if (independent) {
-        dt.order([dt.columns().count() - 1, "desc"]);
-      }
+          // (B) Insertar y flashear después del scroll
+          const doInsertAndFlash = () => {
+            // Inserta y ordena por __seq en modo independent
+            dt.row.add(withSeq(row));
+            if (independent) {
+              dt.order([dt.columns().count() - 1, "desc"]);
+            }
 
-      // Registrar el draw del INSERT antes de dibujar
-      dt.one("draw.dt.insert.flash", () => {
-        dt.columns.adjust();
-        // @ts-expect-error --e
-        dt.responsive.recalc();
-        // @ts-expect-error --e
-        dt.fixedHeader?.adjust?.();
+            // Registrar el draw del INSERT antes de dibujar
+            dt.one("draw.dt.insert.flash", () => {
+              dt.columns.adjust();
+              // @ts-expect-error --e
+              dt.responsive.recalc();
+              // @ts-expect-error --e
+              dt.fixedHeader?.adjust?.();
 
-        const first = dt.row(":eq(0)", { page: "current" }).node() as HTMLElement | null;
-        if (first) flashRowViewport(first);
-      });
+              const first = dt.row(":eq(0)", { page: "current" }).node() as HTMLElement | null;
+              if (first) flashRowViewport(first);
+            });
 
-      dt.draw(false);
-    };
+            dt.draw(false);
+          };
 
-    // (A) Una vez en pág. 1, subir al tope del scroller y luego insertar
-    const afterPagedAndScrolled = () => {
-      dt.columns.adjust();
-      // @ts-expect-error
-      dt.responsive.recalc();
-      // @ts-expect-error
-      dt.fixedHeader?.adjust?.();
+          // (A) Una vez en pág. 1, subir al tope del scroller y luego insertar
+          const afterPagedAndScrolled = () => {
+            dt.columns.adjust();
+            // @ts-expect-error
+            dt.responsive.recalc();
+            // @ts-expect-error
+            dt.fixedHeader?.adjust?.();
 
-      const scroller = getScrollRoot();
-      const cur = scroller === window ? window.pageYOffset : (scroller as HTMLElement).scrollTop;
+            const scroller = getScrollRoot();
+            const cur = scroller === window ? window.pageYOffset : (scroller as HTMLElement).scrollTop;
 
-      // Si ya estamos arriba, insertamos ya; si no, scroll suave y luego insertamos
-      if (cur <= 2) {
-        doInsertAndFlash();
-      } else {
-        smoothScrollToY(scroller, 0, 1000).then(() => {
-          // Ajuste por si el header fijo cambió algo al terminar el scroll
-          // @ts-expect-error
-          dt.fixedHeader?.adjust?.();
-          doInsertAndFlash();
+            // Si ya estamos arriba, insertamos ya; si no, scroll suave y luego insertamos
+            if (cur <= 2) {
+              doInsertAndFlash();
+            } else {
+              smoothScrollToY(scroller, 0, 1000).then(() => {
+                // Ajuste por si el header fijo cambió algo al terminar el scroll
+                // @ts-expect-error
+                dt.fixedHeader?.adjust?.();
+                doInsertAndFlash();
+              });
+            }
+          };
+
+          // Si ya estamos en la primera página, no forces un draw extra
+          const info = dt.page.info();
+          if (info.page === 0) {
+            afterPagedAndScrolled();
+          } else {
+            // Registrar el draw de "ir a la primera" ANTES de dispararlo
+            dt.one("draw.dt.insert.pagefirst", afterPagedAndScrolled);
+            dt.page("first").draw(false);
+          }
         });
       }
-    };
-
-    // Si ya estamos en la primera página, no forces un draw extra
-    const info = dt.page.info();
-    if (info.page === 0) {
-      afterPagedAndScrolled();
-    } else {
-      // Registrar el draw de "ir a la primera" ANTES de dispararlo
-      dt.one("draw.dt.insert.pagefirst", afterPagedAndScrolled);
-      dt.page("first").draw(false);
-    }
-  });
-}
-,
+      ,
 
 
       bulkUpsert(rows: T[]) {
@@ -1973,9 +1988,9 @@ table.table-hover.dataTable tbody tr.no-hover-row:hover > * {
           dt.fixedHeader?.adjust?.();
 
           // Highlight a la primera fila recién visible
- 
-            const first = dt.row(':eq(0)', { page: 'current' }).node() as HTMLElement | null;
-            if (first) flashRow(first);
+
+          const first = dt.row(':eq(0)', { page: 'current' }).node() as HTMLElement | null;
+          if (first) flashRow(first);
 
         });
       },
