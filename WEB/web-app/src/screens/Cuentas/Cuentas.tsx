@@ -401,6 +401,7 @@ export const Cuentas = () => {
           onChange={onChange}
           monto={formData.monto}
           setMonto={(val) => {
+            console.log(val);
             setFormData({ ...formData, monto: val });
             setMontoInput(val !== 0 ? String(val) : "");
           }}
@@ -432,10 +433,12 @@ export const Cuentas = () => {
               onChange={(e) => {
                 const val = e.target.value.replace(/[^0-9.]/g, "");
                 setMontoInput(val);
-                if (val === "") {
-                  setFormData({ ...formData, monto: 0 });
-                }
+                const num = parseFloat(val);
+                   setFormData({ ...formData, monto: num });
               }}
+                            
+           
+      
               onBlur={(e) => {
                 if (e.target.value === "" || isNaN(Number(e.target.value))) {
                   setMontoInput("");

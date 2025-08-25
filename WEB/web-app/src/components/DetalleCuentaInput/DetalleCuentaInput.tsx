@@ -59,6 +59,7 @@ export const DetalleCuentaInput = ({
     setAutoInicializado(true);
   }, [value, autoInicializado]);
 
+  
   // ✅ Calcula monto si está habilitado
   useEffect(() => {
     if (!enabled) return;
@@ -129,23 +130,33 @@ export const DetalleCuentaInput = ({
 
   const toggleDetalle = () => {
     if (enabled) {
-      setPendingToggle(false);
-      setConfirmModalMessage(
-        "¿Deseas desactivar el detalle? Se borrará el valor actual."
-      );
+      
+      if (filas.length === 0 && (descuento.valor == "0" || descuento.valor === '') && (impuesto.valor == "0" || impuesto.valor === '')) {
+        setPendingToggle(false);
+        setEnabled(false);
+        confirmModalAction(true);
+      } else {
+        setIsConfirmOpen(true);
+        setPendingToggle(false);
+        setConfirmModalMessage(
+          "¿Desea desactivar el detalle? Se eliminarán las filas y los valores ingresados."
+        );
+      }
     } else {
       if (monto > 0) {
+        setIsConfirmOpen(true);
         setPendingToggle(true);
         setConfirmModalMessage(
-          "Al activar el detalle se eliminará el monto manual actual. ¿Deseas continuar?"
+          "Al activar el detalle se eliminará el monto actual y será calculado con los valores de cada fila agregada. ¿Desea continuar?"
         );
       } else {
         setEnabled(true);
+        setPendingToggle(false);
         onEnabledChange?.(true);
         return;
       }
     }
-    setIsConfirmOpen(true);
+    //setIsConfirmOpen(true);
   };
 
   const confirmModalAction = (confirm: boolean | null) => {
