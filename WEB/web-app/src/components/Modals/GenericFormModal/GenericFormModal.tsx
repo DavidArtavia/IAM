@@ -248,6 +248,7 @@ export const GenericFormModal = <T,>({
           <input
             id={String(key)}
             type="date"
+            placeholder="dd/mm/aaaa"
             className={inputClass}
             value={dateVal}
             onChange={(e) => { onEliminarError(key.toString()); handleChange(key, e.target.value, "date") }}
@@ -313,7 +314,7 @@ export const GenericFormModal = <T,>({
         onClick={(e) => e.stopPropagation()}
       >
         <div className="modal-content card card-custom example example-compact">
-          <div className="card-header">
+          <div className="card-header px-5">
             <h3 className="card-title">{title}</h3>
             <div className="card-toolbar">
               {headerButtons && headerButtons.length > 0 && (

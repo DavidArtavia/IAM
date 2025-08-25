@@ -32,7 +32,7 @@ const modalRef = useRef<HTMLDivElement>(null);
   
   return (
     <div
-      className="modal fade show d-block shadowDarkBackground"
+      className="modal fade show d-block shadowDarkBackground p-2"
       onClick={() => onAction(null)} // clic afuera cierra
       tabIndex={-1}  
       ref={modalRef}   
@@ -44,15 +44,15 @@ const modalRef = useRef<HTMLDivElement>(null);
         onClick={(e) => e.stopPropagation()}
       >
         <div className="modal-content">
-          <div className="modal-header">
-            <h5 className="modal-title">Confirmación</h5>
+          <div className="modal-header p-4">
+            <h5 className="fs-5 fw-bold">Confirmación</h5>
             <button
               type="button"
               className="btn-close"
               onClick={() => onAction(null)}
             />
           </div>
-          <div className="modal-body">
+          <div className="modal-body p-4">
             <p>{confirmMessage}</p>
           </div>
           <div className="modal-footer">

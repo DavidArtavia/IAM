@@ -31,7 +31,7 @@ export const DetalleCuentaInput = ({
     nombre: "Porcentaje",
     valor: "",
   });
-  
+
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [confirmModalMessage, setConfirmModalMessage] = useState("");
   const [pendingToggle, setPendingToggle] = useState<boolean | null>(null);
@@ -59,6 +59,7 @@ export const DetalleCuentaInput = ({
     setAutoInicializado(true);
   }, [value, autoInicializado]);
 
+  
   // ✅ Calcula monto si está habilitado
   useEffect(() => {
     if (!enabled) return;
@@ -115,8 +116,8 @@ export const DetalleCuentaInput = ({
     }
   };
   const limpiarCampos = () => {
-      setNombreFila("");
-      setValorFila("");
+    setNombreFila("");
+    setValorFila("");
   };
 
 
@@ -129,23 +130,33 @@ export const DetalleCuentaInput = ({
 
   const toggleDetalle = () => {
     if (enabled) {
-      setPendingToggle(false);
-      setConfirmModalMessage(
-        "¿Deseas desactivar el detalle? Se borrará el valor actual."
-      );
+      
+      if (filas.length === 0 && (descuento.valor == "0" || descuento.valor === '') && (impuesto.valor == "0" || impuesto.valor === '')) {
+        setPendingToggle(false);
+        setEnabled(false);
+        confirmModalAction(true);
+      } else {
+        setIsConfirmOpen(true);
+        setPendingToggle(false);
+        setConfirmModalMessage(
+          "¿Desea desactivar el detalle? Se eliminarán las filas y los valores ingresados."
+        );
+      }
     } else {
       if (monto > 0) {
+        setIsConfirmOpen(true);
         setPendingToggle(true);
         setConfirmModalMessage(
-          "Al activar el detalle se eliminará el monto manual actual. ¿Deseas continuar?"
+          "Al activar el detalle se eliminará el monto actual y será calculado con los valores de cada fila agregada. ¿Desea continuar?"
         );
       } else {
         setEnabled(true);
+        setPendingToggle(false);
         onEnabledChange?.(true);
         return;
       }
     }
-    setIsConfirmOpen(true);
+    //setIsConfirmOpen(true);
   };
 
   const confirmModalAction = (confirm: boolean | null) => {
@@ -179,10 +190,10 @@ export const DetalleCuentaInput = ({
             id="detalleSwitch"
           />
           <label
-            className="form-check-label fw-semibold"
+            className="form-check-label fs-5"
             htmlFor="detalleSwitch"
           >
-            Detalle de la cuenta
+            Detalle
           </label>
         </div>
       </div>
@@ -193,12 +204,13 @@ export const DetalleCuentaInput = ({
         onAction={confirmModalAction}
       />
       {enabled && (
-        <div className="border p-4 bg-white">
+        <div className="bg-white">
           <div className="mb-4">
-            <h5 className="fw-bold mb-3">Detalles</h5>
             {filas.length === 0 && (
-              <div className="text-muted fst-italic mb-2">
-                No hay detalles agregados.
+
+              <div className="dt-empty-state d-flex flex-column align-items-center justify-content-center py-10">
+                <i className="bi bi-inbox fs-1 text-muted" aria-hidden="true"></i>
+                <span className="text-muted mt-2">No hay detalles agregados.</span>
               </div>
             )}
             {filas.map((item, idx) => (
@@ -207,9 +219,9 @@ export const DetalleCuentaInput = ({
                 className="d-flex justify-content-between align-items-center py-2 px-3 mb-2 rounded bg-light"
               >
                 <div>
-                  <span className="fw-semibold">{item.nombre}</span>
+                  <span className="">{item.nombre}</span>
                   <span className="mx-2 text-secondary">|</span>
-                  <span className="text-success fw-bold">
+                  <span className="text-success">
                     ₡
                     {parseFloat(item.valor).toLocaleString("en-US", {
                       minimumFractionDigits: 2,
@@ -230,22 +242,32 @@ export const DetalleCuentaInput = ({
           </div>
 
           {/* Nueva fila */}
-          <div className="row g-3 mb-2">
-            <div className="col-md-6">
-              <label className="form-label fw-semibold">
-                Nombre del detalle
-              </label>
-              <input
-                type="text"
-                className="form-control"
-                placeholder="Nombre del detalle"
-                value={nombreFila}
-                onChange={(e) => setNombreFila(e.target.value)}
-              />
-            </div>
-            <div className="col-md-6 d-flex align-items-end">
-              <div className="flex-grow-1 me-2">
-                <label className="form-label fw-semibold">Monto</label>
+          {/* Contenedor principal */}
+          <div style={{ width: "100%" }}>
+            {/* Row: Nombre y Monto (SIEMPRE en la misma línea) */}
+            <div
+              style={{
+                display: "flex",
+                gap: 8,
+                alignItems: "flex-end",
+                flexWrap: "nowrap", // evita que se apilen
+                width: "100%",
+              }}
+            >
+              {/* Nombre: ocupa lo restante y puede encogerse */}
+              <div style={{ flex: "1 1 auto", minWidth: 0 }}>
+                <input
+                  type="text"
+                  className="form-control"
+                  placeholder="Nombre del detalle"
+                  value={nombreFila}
+                  onChange={(e) => setNombreFila(e.target.value)}
+                  style={{ fontSize: "1.03rem", width: "100%", minWidth: 0 }}
+                />
+              </div>
+
+              {/* Monto: ancho fijo razonable */}
+              <div style={{ flex: "0 0 160px", minWidth: 120 }}>
                 <input
                   type="number"
                   className="form-control"
@@ -253,41 +275,51 @@ export const DetalleCuentaInput = ({
                   value={valorFila}
                   onChange={(e) => setValorFila(e.target.value)}
                   min="0"
+                  step="any"
+                  style={{ fontSize: "0.95rem", width: "100%" }}
                 />
-              </div>
-              <div className="p-1">
-                <button
-                  type="button"
-                  className="btn btn-success btn-icon"
-                  title="Agregar fila"
-                  onClick={agregarFila}
-                  disabled={
-                    !nombreFila || !valorFila || isNaN(parseFloat(valorFila))
-                  }
-                >
-                  <i className="bi bi-plus-lg" />
-                </button>
-
-              </div>
-              <div className="p-1">
-                                <button
-                  type="button"
-                  className="btn btn-secondary btn-icon"
-                  onClick={limpiarCampos}
-                  title="Limpiar"
-                >
-                  <i className="bi bi-arrow-counterclockwise" />
-                </button>
               </div>
             </div>
 
-            {/* Descuento & Impuesto */}
-            <div className="row g-3 mb-2">
-              <div className="col-md-6">
-                <label className="form-label fw-semibold">Descuento</label>
+            {/* Botones: colocados debajo (siempre) */}
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "flex-end",
+                gap: 8,
+                marginTop: 8,
+                width: "100%",
+              }}
+            >
+              <button
+                type="button"
+                className="btn btn-secondary btn-icon"
+                onClick={limpiarCampos}
+                title="Limpiar"
+              >
+                <i className="bi bi-arrow-counterclockwise" />
+              </button>
+              <button
+                type="button"
+                className="btn btn-primary btn-icon"
+                title="Agregar fila"
+                onClick={agregarFila}
+                disabled={!nombreFila || !valorFila || isNaN(parseFloat(valorFila))}
+              >
+                <i className="bi bi-plus-lg" />
+              </button>
+
+
+            </div>
+
+            {/* Descuento & Impuesto (igual que antes) */}
+            <div className="row g-3 mt-3">
+              <div className="col-12 col-md-6">
+                <label className="fs-5">Descuento ({descuento.nombre === "Porcentaje" ? "%" : "₡"})</label>
                 <div className="input-group">
                   <input
                     type="number"
+                    placeholder="0.00"
                     className="form-control"
                     value={descuento.valor}
                     onChange={(e) => {
@@ -305,31 +337,26 @@ export const DetalleCuentaInput = ({
                   />
                   <button
                     type="button"
-                    className={`btn ${descuento.nombre === "Porcentaje"
-                        ? "btn-primary"
-                        : "btn-secondary"
-                      }`}
-                    onClick={() => {
+                    className={`btn ${descuento.nombre === "Porcentaje" ? "btn-primary" : "btn-secondary"} btn-icon pulse`}
+                    onClick={() =>
                       setDescuento((prev) => ({
-                        nombre:
-                          prev.nombre === "Porcentaje" ? "Monto" : "Porcentaje",
+                        nombre: prev.nombre === "Porcentaje" ? "Monto" : "Porcentaje",
                         valor: "0",
-                      }));
-                    }}
+                      }))
+                    }
                     title="Cambiar tipo"
                   >
                     {descuento.nombre === "Porcentaje" ? "%" : "₡"}
+                    <span className="pulse-ring" />
                   </button>
                 </div>
-                <small className="form-text text-muted">
-                  Tipo: <span className="fw-bold">{descuento.nombre}</span>
-                </small>
               </div>
 
-              <div className="col-md-6">
-                <label className="form-label fw-semibold">Impuesto (%)</label>
+              <div className="col-12 col-md-6">
+                <label className="fs-5">Impuesto (%)</label>
                 <input
                   type="number"
+                  placeholder="0.00"
                   className="form-control"
                   value={impuesto.valor}
                   onChange={(e) => {
@@ -344,6 +371,8 @@ export const DetalleCuentaInput = ({
               </div>
             </div>
           </div>
+
+
         </div>
       )}
     </div>

@@ -340,12 +340,6 @@ export const keysInfoModalTransacciones: FieldConfig<DTO_Transacciones>[] = [
         order: 1,
     },
     {
-        key: "iD_Negocio",
-        label: "Negocio #",
-        type: "text",
-        order: 2,
-    },
-    {
         key: "fechaTransaccion",
         label: "Fecha",
         type: "date",
@@ -374,13 +368,7 @@ export const keysInfoModalTransacciones: FieldConfig<DTO_Transacciones>[] = [
         label: "N° Referencia",
         type: "text",
         order: 8,
-    },
-    {
-        key: "estado",
-        label: "Estado",
-        type: "text",
-        order: 9,
-    },
+    }
 ];
 
 export const keysInfoModalTarifa: FieldConfig<DTO_Tarifa>[] = [
@@ -438,9 +426,9 @@ export const labelMapCuenta: Record<string, string> = {
     estado: "Estado",
     concepto: "Concepto",
     monto: "Monto",
-    fechaInicial: "Fecha Inicial",
-    fechaLimite: "Fecha Límite",
-    tipoCuenta: "Tipo De Cuenta",
+    fechaInicial: "Creación",
+    fechaLimite: "Límite",
+    tipoCuenta: "Tipo",
     
     fechaModificacion: "Fecha de Modificación",
     detalleJSON: "Detalles",
@@ -568,13 +556,6 @@ export const cuentasFormEditFields: FieldConfig<DTO_Cuenta>[] = [
         type: "text",
         readOnly: true,
         order: 2,
-    },
-    {
-        key: "estado",
-        label: labelMapCuenta["estado"] ?? "Estado",
-        type: "text",
-        readOnly: true,
-        order: 3,
     },
     {
         key: "descripcion",

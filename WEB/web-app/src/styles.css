@@ -161,7 +161,7 @@ table.dataTable thead th {
   padding: 2px;
   /* grosor del borde         */
   border-radius: inherit;
-  background: #009EF7;
+  background: #3e96d2 ;
   /* azul brillante           */
 
   /* solo la franja del borde */
@@ -176,6 +176,7 @@ table.dataTable thead th {
   /* dura 3 s, luego desaparece */
   pointer-events: none;
 }
+
 
 /* Animación: aparece, mantiene, se desvanece */
 @keyframes flashBorder {
@@ -264,3 +265,16 @@ body.modal-open {
 .modal-open .app-scroll { overflow: hidden !important; }
 
 .modal-open .app-scroll { overflow: hidden !important; }
+
+
+
+input[type="date"] {
+  pointer-events: auto !important;
+  -webkit-appearance: textfield; /* evita eliminar comportamiento nativo */
+  appearance: auto;
+}
+
+/* Asegura que el indicador es clickeable */
+input[type="date"]::-webkit-calendar-picker-indicator {
+  pointer-events: auto;
+}

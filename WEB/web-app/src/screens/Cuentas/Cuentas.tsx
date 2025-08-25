@@ -19,6 +19,7 @@ import {
   cuentasFormAddFields,
   formatColones,
   formatDetalleJSON,
+  compararObjetos,
 } from "@/utils";
 import {
   ConfirmModal,
@@ -157,6 +158,22 @@ export const Cuentas = () => {
   };
   //#endregion
 
+
+
+  const actualizarCamposCalculadosCuenta = (cuenta: DTO_Cuenta) => {
+
+    if (cuenta.montoAbonado >= cuenta.monto)
+      cuenta.estadoPago = "Pagada"
+    else
+      cuenta.estadoPago = "Pendiente"
+
+    cuenta.saldoPendiente = cuenta.monto - cuenta.montoAbonado
+
+    return cuenta;
+
+  }
+
+
   //#region ➕ Crear cuenta - Funciones
   const handleAddNew = () => {
     setDetalleHabilitado(false);
@@ -175,9 +192,10 @@ export const Cuentas = () => {
     if (validacion.length === 0) {
       cuentasService.registrarCuenta(formData).subscribe({
         next: (result: any) => {
-          const nueva = (result.resultado as DTO_Cuenta[])[0];
+          let nueva = (result.resultado as DTO_Cuenta[])[0];
           if (nueva.estado?.iD_Estado !== STATUS_TBL.ACCOUNT.DELETED) {
             setAccountsPayable((prev) => [nueva, ...prev]);
+            nueva = actualizarCamposCalculadosCuenta(nueva);
             tableRef.current?.upsert(nueva);
           }
           notificationHelpers.successAlert(
@@ -199,9 +217,15 @@ export const Cuentas = () => {
   };
 
   const handleCancelAdd = () => {
-    setConfirmModalMessage("¿Estás seguro de que deseas cancelar el registro?");
     setConfirmContext("cancelAdd");
-    setIsConfirmOpen(true);
+    //entramos a sacar el modal de confirmación solo si no son vacios los valores
+    if (!compararObjetos(formData as DTO_Cuenta, new DTO_Cuenta, ['fechaInicial', 'fechaModificacion'])) {
+
+      setConfirmModalMessage("¿Estás seguro de que deseas cancelar el registro?");
+      setIsConfirmOpen(true);
+    }else{
+     setIsModalFormOpen(false);
+    }
   };
   //#endregion
 
@@ -240,6 +264,8 @@ export const Cuentas = () => {
             (result as DTO_Respuesta)?.mensaje ||
             "Cuenta actualizada correctamente";
           notificationHelpers.successAlert(mensaje);
+
+          updatedData = actualizarCamposCalculadosCuenta(updatedData);
           tableRef.current?.upsert(updatedData);
           //refetchAccounts();
           setShowEditModal(false);
@@ -371,7 +397,7 @@ export const Cuentas = () => {
     ...cuentasFormAddFields,
     {
       key: "detalleJSON",
-      label: "Detalle",
+      label: "",
       type: "custom",
       required: false,
       order: 6,
@@ -383,6 +409,7 @@ export const Cuentas = () => {
           onChange={onChange}
           monto={formData.monto}
           setMonto={(val) => {
+            console.log(val);
             setFormData({ ...formData, monto: val });
             setMontoInput(val !== 0 ? String(val) : "");
           }}
@@ -414,17 +441,19 @@ export const Cuentas = () => {
               onChange={(e) => {
                 const val = e.target.value.replace(/[^0-9.]/g, "");
                 setMontoInput(val);
-                if (val === "") {
-                  setFormData({ ...formData, monto: 0 });
-                }
+                const num = parseFloat(val);
+                setFormData({ ...formData, monto: num });
               }}
+
+
+
               onBlur={(e) => {
                 if (e.target.value === "" || isNaN(Number(e.target.value))) {
                   setMontoInput("");
                   setFormData({ ...formData, monto: 0 });
                 }
               }}
-              placeholder="₡0.00"
+              placeholder="0.00"
               min={0}
               step={0.01}
             />
@@ -551,10 +580,17 @@ export const Cuentas = () => {
                   setEditData((prev) => (prev ? { ...prev, monto: 0 } : null));
                 }
               }}
-              placeholder="₡0.00"
+              placeholder="0.00"
               min={0}
               step={0.01}
             />
+            {detalleHabilitado && (
+              <div style={{ width: '100%' }} className="form-text text-muted small opacity-75">
+                Con la opción "Detalle" habilitada este campo es calculado.
+              </div>
+            )}
+
+
           </div>
         );
       },
@@ -564,6 +600,7 @@ export const Cuentas = () => {
       label: labelMapCuenta["concepto"] ?? "Concepto",
       type: "text",
       order: 5,
+      required: true,
       readOnly: isCuentaPorCobrarOS,
     },
     {
@@ -839,12 +876,12 @@ export const Cuentas = () => {
               customColumns={[detalleJSONColumn]}
               dataTableButtons={dataTableButtons}
               onRowClick={(row) => { setRowTableSelected(row); setIsInfoModalOpen(true); }}
-              nowrapColumns={['iD_Cuenta','monto','montoAbonado','saldoPendiente']}
+              nowrapColumns={['iD_Cuenta', 'monto', 'montoAbonado', 'saldoPendiente', "tipoCuenta"]}
             />
 
             <InfoModal
               show={isInfoModalOpen}
-              onHide={() => {setIsInfoModalOpen(false); setRowTableSelected(undefined); }}
+              onHide={() => { setIsInfoModalOpen(false); setRowTableSelected(undefined); }}
               data={rowTableSelected!}
               fields={infoModalFields}
               headerButtons={headerButtonsToInfo}
@@ -865,7 +902,7 @@ export const Cuentas = () => {
             <GenericFormModal<DTO_Cuenta>
               title="Editar Cuenta"
               show={showEditModal}
-              onHide={() => setShowEditModal(false)}
+              onHide={() => { setShowEditModal(false); setErroresValidacion([]); }}
               data={editData!}
               setData={(x) => setEditData(x as DTO_Cuenta)}
               onSubmit={() => {
