@@ -31,7 +31,7 @@ export const AsyncProformaSelect = ({
   reloadKey = 0,
   negocio,
 }: Props) => {
-  const [tarifas, setTarifas] = useState<DTO_Proforma[]>(() => []);
+  const [proformas, setProformas] = useState<DTO_Proforma[]>(() => []);
 
   useEffect(() => {
     const proforma = new DTO_Proforma();
@@ -42,46 +42,46 @@ export const AsyncProformaSelect = ({
           (procesarRespuesta(
             result as unknown as DTO_Respuesta
           ) as DTO_Proforma[]) || [];
-        setTarifas(parsed);
+        setProformas(parsed);
       },
       error: (err) => errorHelpers.serverError(err),
     });
     return () => sub.unsubscribe?.();
   }, [reloadKey, negocio]);
 
-  const activeTarifas = useMemo(
+  const activeProformas = useMemo(
     () =>
-      tarifas.filter((t) => t.estado?.iD_Estado !== STATUS_TBL.CLIENT.DELETED),
-    [tarifas]
+      proformas.filter((t) => t.estado?.iD_Estado !== STATUS_TBL.CLIENT.DELETED),
+    [proformas]
   );
 
   // este viene del obtenerTarifas
   const recentOptions: ProformaOption[] = useMemo(
     () =>
-      activeTarifas.map((p) => ({
+      activeProformas.map((p) => ({
         proforma: p,
         value: p.iD_Proforma ?? 0, // <-- valor único
         label: `${p.iD_Proforma + " | " + p.cliente?.nombreCliente} | ₡${Number(p.totalCalculado).toLocaleString(
           "es-CR"
         )}`,
       })),
-    [activeTarifas]
+    [activeProformas]
   );
 
   const loadOptions = async (input: string): Promise<ProformaOption[]> => {
-    if (!input || input.trim().length < 3) return [];
+    //if (!input || input.trim().length < 3) return [];
     const solicitud: DTO_SolicitudDeBusqueda = { term: input.trim(), negocio };
+    console.log(solicitud);
 
-    const list = await proformaService.buscarProformas(solicitud).toPromise();
-    return (list ?? [])
-      .filter((p) => p.estado?.iD_Estado !== STATUS_TBL.TARIFF.DELETED)
-      .map((p) => ({
-        proforma: p,
-        value: p.iD_Proforma ?? 0, // <-- valor único
-        label: `${p.iD_Proforma + " | " + p.cliente?.nombreCliente} | ₡${Number(p.totalCalculado).toLocaleString(
-          "es-CR"
-        )}`,
-      }));
+    const respuesta = await proformaService.buscarProformas(solicitud).toPromise();
+
+    return (respuesta ?? []).map((p: DTO_Proforma) => ({
+      proforma: p,
+      value: p.iD_Proforma ?? 0, // <-- valor único
+      label: `${p.iD_Proforma + " | " + p.cliente?.nombreCliente} | ₡${Number(p.totalCalculado).toLocaleString(
+        "es-CR"
+      )}`,
+    }));
   };
 
   const debouncedPromiseLoad = useDebouncedPromise(loadOptions, 300);
@@ -94,7 +94,7 @@ export const AsyncProformaSelect = ({
       onChange={onChange}
       value={value}
       placeholder="Buscar proforma..."
-      noOptionsMessage={() => "Escribe al menos 3 caracteres"}
+      noOptionsMessage={() => "Sin resultados"}
       isMulti={false}
       getOptionValue={(opt) => String(opt.value)}
       getOptionLabel={(opt) => opt.label}
