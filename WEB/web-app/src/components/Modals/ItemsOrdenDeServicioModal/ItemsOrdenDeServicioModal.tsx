@@ -16,13 +16,15 @@ import {
 } from "@/utils";
 import { itemsOrdenesService } from "@/services";
 import { STATUS_TBL } from "@/constants";
-import { DTO_ItemOrdenServicio, DTO_Negocio, DTO_Param, DTO_Respuesta, DTO_Tarifa } from "@/models";
+import { DTO_Cliente, DTO_ItemOrdenServicio, DTO_Negocio, DTO_Param, DTO_Proforma, DTO_Respuesta } from "@/models";
 import {
+  AsyncProformaSelect,
   AsyncTarifaSelect,
   ConfirmModal,
   FieldConfig,
   GenericFormModal,
   InfoModal,
+  ProformaOption,
   TarifarioOption,
 } from "@/components";
 import { valida_DTO_ItemOrdenServicio } from "@/validators/valida_DTO_ItemOrdenServicio";
@@ -68,8 +70,8 @@ export const ItemsOrdenDeServicioModal = ({
   //#region 🔄 Estados generales
   const [itemsOrdenes, setItemsOrdenes] = useState<DTO_ItemOrdenServicio[]>([]);
   const [loading, setLoading] = useState(false);
-  const [tarifaSeleccionada, setTarifaSeleccionada] =
-    useState<TarifarioOption | null>(null);
+  const [tarifaSeleccionada, setTarifaSeleccionada] = useState<TarifarioOption | null>(null);
+  const [proformaSeleccionada, setProformaSeleccionada] = useState<ProformaOption | null>(null);
   const [reloadKey, setReloadKey] = useState(0);
   //#endregion
 
@@ -83,6 +85,9 @@ export const ItemsOrdenDeServicioModal = ({
   const [isModalFormOpen, setIsModalFormOpen] = useState(false);
   const [formData, setFormData] = useState<DTO_ItemOrdenServicio>(
     new DTO_ItemOrdenServicio()
+  );
+  const [buscarProforma, setBuscarProforma] = useState<DTO_Proforma>(
+    new DTO_Proforma()
   );
   //#endregion
 
@@ -400,7 +405,7 @@ export const ItemsOrdenDeServicioModal = ({
       aria-modal="true"
     >
       <div
-        className="modal-dialog modal-fullscreen"
+        className="modal-dialog modal-fullscreen p-4"
         style={{ maxWidth: "1200px" }}
         onClick={(e) => e.stopPropagation()}
       >
@@ -426,17 +431,14 @@ export const ItemsOrdenDeServicioModal = ({
                 <div className="rounded border p-0">
                   <ul className="nav nav-tabs nav-line-tabs fs-6 px-4 justify-content-end">
                     <li className="nav-item">
-                      <a className="nav-link active" data-bs-toggle="tab" href="#kt_tab_pane_1">Ítems</a>
+                      <a className="nav-link" data-bs-toggle="tab" href="#proformas">Proformas</a>
                     </li>
                     <li className="nav-item">
-                      <a className="nav-link" data-bs-toggle="tab" href="#kt_tab_pane_2">Tarifário</a>
+                      <a className="nav-link active" data-bs-toggle="tab" href="#items">Ítems</a>
                     </li>
-                    <li className="nav-item">
-                      <a className="nav-link" data-bs-toggle="tab" href="#kt_tab_pane_3">Proformas</a>
-                    </li>
-                  </ul> 
+                  </ul>
                   <div className="tab-content" id="myTabContent">
-                    <div className="tab-pane fade active show" id="kt_tab_pane_1" role="tabpanel">
+                    <div className="tab-pane fade active show" id="items" role="tabpanel">
                       <GenericDataTable
                         title={`Orden de servicio #${rowData.iD_OrdenServicio}`}
                         columnKeys={columnKeysItemsOrdenServicio}
@@ -452,8 +454,24 @@ export const ItemsOrdenDeServicioModal = ({
                         }
                         nowrapColumns={["Monto", "ID"]}
                       /></div>
-                    <div className="tab-pane fade" id="kt_tab_pane_2" role="tabpanel">Nulla est ullamco ut irure incididunt nulla Lorem Lorem minim irure officia enim reprehenderit. Magna duis labore cillum sint adipisicing exercitation ipsum. Nostrud ut anim non exercitation velit laboris fugiat cupidatat. Commodo esse dolore fugiat sint velit ullamco magna consequat voluptate minim amet aliquip ipsum aute laboris nisi. Labore labore veniam irure irure ipsum pariatur mollit magna in cupidatat dolore magna irure esse tempor ad mollit. Dolore commodo nulla minim amet ipsum officia consectetur amet ullamco voluptate nisi commodo ea sit eu.</div>
-                    <div className="tab-pane fade" id="kt_tab_pane_3" role="tabpanel">Sint sit mollit irure quis est nostrud cillum consequat Lorem esse do quis dolor esse fugiat sunt do. Eu ex commodo veniam Lorem aliquip laborum occaecat qui Lorem esse mollit dolore anim cupidatat. eserunt officia id Lorem nostrud aute id commodo elit eiusmod enim irure amet eiusmod qui reprehenderit nostrud tempor. Fugiat ipsum excepteur in aliqua non et quis aliquip ad irure in labore cillum elit enim. Consequat aliquip incididunt ipsum et minim laborum laborum laborum et cillum labore. Deserunt adipisicing cillum id nulla minim nostrud labore eiusmod et amet.</div>
+                    <div className="tab-pane fade" id="proformas" role="tabpanel">
+                      <div className="px-4 mt-10">
+                        <AsyncProformaSelect
+                          value={proformaSeleccionada}
+                          onChange={(op) => {
+                            setProformaSeleccionada(op);
+                            const proforma: DTO_Proforma = {
+                              ...buscarProforma,
+                              totalCalculado: op?.proforma.totalCalculado || 0,
+                              cliente: op?.proforma.cliente || new DTO_Cliente()
+                            }
+                            setBuscarProforma(proforma);
+                          }}
+                          reloadKey={reloadKey}
+                          negocio={negocio}
+                        />
+                      </div>
+                    </div>
                   </div>
                 </div>
 
