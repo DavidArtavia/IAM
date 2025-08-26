@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -9,17 +10,19 @@ namespace DTO
     public class DTO_Proforma
     {
         #region Atributos
+
         private int iD_Proforma;
         private int iD_Negocio;
         private int iD_Cliente;
         private DTO_Estado estado;
         private DateTime? fechaProforma;
         private DateTime? fechaVencimiento;
-        private string observacionProforma;
         private DateTime? fechaModificacion;
-        private decimal? descuentoProforma;
+        private string observacionProforma;
         private bool? descuentoPorcentualProforma;
+        private decimal? descuentoProforma;
         private decimal? impuestoPorcentualProforma;
+        //Area no ingresada, viene del sp 
         private decimal? subTotal;
         private decimal? montoDescuento;
         private decimal? baseImponible; // Es lo que queda después del descuento
