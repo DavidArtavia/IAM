@@ -212,9 +212,9 @@ export const LayoutMain = () => {
 
               <div className="menu-item py-2">
                 <Link
-                  to={ROUTES.CLIENTES}
+                  to={ROUTES.CLIENTS}
                   className={`menu-link menu-center${
-                    pathname === ROUTES.CLIENTES ? " active" : ""
+                    pathname === ROUTES.CLIENTS ? " active" : ""
                   }`}
                   data-bs-trigger="hover"
                   data-bs-dismiss="click"
@@ -229,9 +229,9 @@ export const LayoutMain = () => {
 
               <div className="menu-item py-2">
                 <Link
-                  to={ROUTES.CUENTAS}
+                  to={ROUTES.ACCOUNTS}
                   className={`menu-link menu-center${
-                    pathname === ROUTES.CUENTAS ? " active" : ""
+                    pathname === ROUTES.ACCOUNTS ? " active" : ""
                   }`}
                   data-bs-trigger="hover"
                   data-bs-dismiss="click"
@@ -299,9 +299,9 @@ export const LayoutMain = () => {
 
               <div className="menu-item py-2">
                 <Link
-                  to={ROUTES.NEGOCIO}
+                  to={ROUTES.BUSINESS}
                   className={`menu-link menu-center${
-                    pathname === ROUTES.NEGOCIO ? " active" : ""
+                    pathname === ROUTES.BUSINESS ? " active" : ""
                   }`}
                   data-bs-trigger="hover"
                   data-bs-dismiss="click"
@@ -316,9 +316,9 @@ export const LayoutMain = () => {
               
               <div className="menu-item py-2">
                 <Link
-                  to={ROUTES.RATE}
+                  to={ROUTES.RATES}
                   className={`menu-link menu-center${
-                    pathname === ROUTES.RATE ? " active" : ""
+                    pathname === ROUTES.RATES ? " active" : ""
                   }`}
                   data-bs-trigger="hover"
                   data-bs-dismiss="click"
@@ -328,6 +328,21 @@ export const LayoutMain = () => {
                     <i className="bi bi-currency-exchange fs-2" />
                     </span>
                   <span className="menu-title">Tarifario</span>
+                </Link>
+              </div>
+
+              <div className="menu-item py-2">
+                <Link
+                  to={ROUTES.QUOTATION}
+                  className={`menu-link menu-center${pathname === ROUTES.QUOTATION ? " active" : ""}`}
+                  data-bs-trigger="hover"
+                  data-bs-dismiss="click"
+                  data-bs-placement="right"
+                >
+                  <span className="menu-icon me-0">
+                    <i className="bi bi-file-earmark-text fs-2" />
+                  </span>
+                  <span className="menu-title">Proformas</span>
                 </Link>
               </div>
 

@@ -11,7 +11,6 @@ import { errorHelpers, procesarRespuesta } from "@/utils";
 import { useDebouncedPromise } from "@/hooks";
 import { STATUS_TBL } from "@/constants";
 import { tarifasService } from "@/services/tarifas.service";
-import { firstValueFrom } from "rxjs";
 
 export interface TarifarioOption {
   tarifa: DTO_Tarifa;
@@ -71,9 +70,7 @@ export const AsyncTarifaSelect = ({
     if (!input || input.trim().length < 3) return [];
     const solicitud: DTO_SolicitudDeBusqueda = { term: input.trim(), negocio };
 
-    const list = (await firstValueFrom(
-      tarifasService.buscarTarifas(solicitud)
-    )) as unknown as DTO_Tarifa[];
+    const list = await tarifasService.buscarTarifas(solicitud).toPromise();
     return (list ?? [])
       .filter((t) => t.estado?.iD_Estado !== STATUS_TBL.TARIFF.DELETED)
       .map((t) => ({

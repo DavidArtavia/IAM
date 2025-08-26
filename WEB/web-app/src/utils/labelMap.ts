@@ -85,10 +85,12 @@ export const columnKeysTarifa: (keyof DTO_Tarifa)[] = [
 export const columnKeysProforma: (keyof DTO_Proforma)[] = [
     "iD_Proforma",
     "fechaProforma",
-    "estado",
     "totalCalculado",
     "observacionProforma",
     "cliente",
+    "descuentoProforma",
+    "impuestoPorcentualProforma"
+
 ];
 
 export const columnKeysItemsProforma: (keyof DTO_ProformaItem)[] = [
@@ -525,6 +527,8 @@ export const labelMapProforma: Record<string, string> = {
     totalCalculado: "Total",
     observacionProforma: "Observación",
     cliente: "Cliente",
+    descuentoProforma: "Descuento",
+    impuestoPorcentualProforma: "Impuesto %",
 };
 
 export const labelMapItemsProforma: Record<string, string> = {

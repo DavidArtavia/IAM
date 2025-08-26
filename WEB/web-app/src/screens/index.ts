@@ -10,3 +10,4 @@ export * from "./Transacciones/Transacciones";
 export * from "./Transacciones/AutoAccountTransactionInfoField";
 export * from "./Info/Info";
 export * from "./Tarifario/Tarifario";
+export * from "./Proforma/Proforma";

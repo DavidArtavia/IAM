@@ -295,7 +295,7 @@ export const Tarifario = () => {
           onEdit={handleEdit}
           onDelete={handleDelete}
           onRowClick={setRowTableSelected}
-          includeEstadoColumn
+          includeEstadoColumn={false}
           customRenderers={customRenderers}
         />
       )}

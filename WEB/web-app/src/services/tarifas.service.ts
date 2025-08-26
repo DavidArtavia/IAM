@@ -2,20 +2,20 @@ import { Observable, defer, of } from 'rxjs';
 import { map } from 'rxjs';
 import { api } from '@/api';
 import { API_ENDPOINTS } from '@/constants';
-import { DTO_Cliente, DTO_Negocio, DTO_Respuesta, DTO_SolicitudDeBusqueda } from '@/models';
+import { DTO_Negocio, DTO_Respuesta, DTO_SolicitudDeBusqueda } from '@/models';
 import { AxiosResponse } from 'axios';
 import { DTO_Tarifa } from '@/models/DTO_Tarifa';
 
 export class tarifasService {
 
-    static buscarTarifas(busqueda: DTO_SolicitudDeBusqueda | null): Observable<DTO_Cliente[]> {
+    static buscarTarifas(busqueda: DTO_SolicitudDeBusqueda | null): Observable<DTO_Tarifa[]> {
         // 1) Validación previa
         if (!busqueda || !busqueda.term || busqueda.term.trim().length < 3) {
             return of([]);
         }
         // 2) Deferir la llamada hasta la subscripción
         return defer(() =>
-            api.post<DTO_Cliente[]>(API_ENDPOINTS.TARIFAS.SEARCH_TARIFA, busqueda)
+            api.post<DTO_Tarifa[]>(API_ENDPOINTS.TARIFAS.SEARCH_TARIFA, busqueda)
         ).pipe(
             // 3) Extraer sólo el body
             map(response => response.data)
