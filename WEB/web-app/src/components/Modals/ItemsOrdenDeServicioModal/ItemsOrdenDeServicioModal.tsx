@@ -340,8 +340,8 @@ export const ItemsOrdenDeServicioModal = ({
           porcentaje >= 80
             ? "bg-success"
             : porcentaje >= 50
-            ? "bg-warning"
-            : "bg-danger";
+              ? "bg-warning"
+              : "bg-danger";
         return (
           <div
             className="d-flex flex-column w-100 me-2"
@@ -392,6 +392,7 @@ export const ItemsOrdenDeServicioModal = ({
   return (
     <div
       className="modal fade show d-block shadowClearBackground"
+      // className="modal fade show d-block shadowClearBackground"
       onClick={onHide}
       ref={modalRef}
       tabIndex={-1}
@@ -399,12 +400,12 @@ export const ItemsOrdenDeServicioModal = ({
       aria-modal="true"
     >
       <div
-        className="modal-dialog modal-dialog-centered"
+        className="modal-dialog modal-fullscreen"
         style={{ maxWidth: "1200px" }}
         onClick={(e) => e.stopPropagation()}
       >
         <div className="modal-content resizable-metronic-modal">
-          <div className="modal-header cursor-move pt-4 pb-0 border-0 p-5 py-10 px-lg-17 pt-5 mb-n3">
+          <div className="modal-header cursor-move border-0 p-5 py-4 px-lg-17">
             <h2 className="fw-light text-gray-400 fs-5">
               {title.charAt(0).toUpperCase() + title.slice(1).toLowerCase()}
             </h2>
@@ -418,21 +419,49 @@ export const ItemsOrdenDeServicioModal = ({
             {loading ? (
               <LoadingPanel msj="Cargando Items de la órden de servicio, por favor espere..." />
             ) : (
-              <GenericDataTable
-                title={`Orden de servicio #${rowData.iD_OrdenServicio}`}
-                columnKeys={columnKeysItemsOrdenServicio}
-                labelMap={labelMapItemsOrdenServicio}
-                data={getActiveItemsOrdenes()}
-                onAdd={handleAddNew}
-                onEdit={handleEdit}
-                onDelete={handleDelete}
-                customRenderers={customRenderers}
-                includeEstadoColumn={false}
-                onRowClick={(row) =>
-                  setRowTableSelected(row as DTO_ItemOrdenServicio)
-                }
-                nowrapColumns={["Monto", "ID"]}
-              />
+
+              <>
+
+
+                <div className="rounded border p-0">
+                  <ul className="nav nav-tabs nav-line-tabs fs-6 px-4 justify-content-end">
+                    <li className="nav-item">
+                      <a className="nav-link active" data-bs-toggle="tab" href="#kt_tab_pane_1">Ítems</a>
+                    </li>
+                    <li className="nav-item">
+                      <a className="nav-link" data-bs-toggle="tab" href="#kt_tab_pane_2">Tarifário</a>
+                    </li>
+                    <li className="nav-item">
+                      <a className="nav-link" data-bs-toggle="tab" href="#kt_tab_pane_3">Proformas</a>
+                    </li>
+                  </ul> 
+                  <div className="tab-content" id="myTabContent">
+                    <div className="tab-pane fade active show" id="kt_tab_pane_1" role="tabpanel">
+                      <GenericDataTable
+                        title={`Orden de servicio #${rowData.iD_OrdenServicio}`}
+                        columnKeys={columnKeysItemsOrdenServicio}
+                        labelMap={labelMapItemsOrdenServicio}
+                        data={getActiveItemsOrdenes()}
+                        onAdd={handleAddNew}
+                        onEdit={handleEdit}
+                        onDelete={handleDelete}
+                        customRenderers={customRenderers}
+                        includeEstadoColumn={false}
+                        onRowClick={(row) =>
+                          setRowTableSelected(row as DTO_ItemOrdenServicio)
+                        }
+                        nowrapColumns={["Monto", "ID"]}
+                      /></div>
+                    <div className="tab-pane fade" id="kt_tab_pane_2" role="tabpanel">Nulla est ullamco ut irure incididunt nulla Lorem Lorem minim irure officia enim reprehenderit. Magna duis labore cillum sint adipisicing exercitation ipsum. Nostrud ut anim non exercitation velit laboris fugiat cupidatat. Commodo esse dolore fugiat sint velit ullamco magna consequat voluptate minim amet aliquip ipsum aute laboris nisi. Labore labore veniam irure irure ipsum pariatur mollit magna in cupidatat dolore magna irure esse tempor ad mollit. Dolore commodo nulla minim amet ipsum officia consectetur amet ullamco voluptate nisi commodo ea sit eu.</div>
+                    <div className="tab-pane fade" id="kt_tab_pane_3" role="tabpanel">Sint sit mollit irure quis est nostrud cillum consequat Lorem esse do quis dolor esse fugiat sunt do. Eu ex commodo veniam Lorem aliquip laborum occaecat qui Lorem esse mollit dolore anim cupidatat. eserunt officia id Lorem nostrud aute id commodo elit eiusmod enim irure amet eiusmod qui reprehenderit nostrud tempor. Fugiat ipsum excepteur in aliqua non et quis aliquip ad irure in labore cillum elit enim. Consequat aliquip incididunt ipsum et minim laborum laborum laborum et cillum labore. Deserunt adipisicing cillum id nulla minim nostrud labore eiusmod et amet.</div>
+                  </div>
+                </div>
+
+
+
+
+
+              </>
             )}
 
             <InfoModal
@@ -480,6 +509,7 @@ export const ItemsOrdenDeServicioModal = ({
         </div>
       </div>
     </div>
+
   );
   //#endregion
 };
