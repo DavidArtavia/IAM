@@ -87,6 +87,7 @@ function GenericDataTableInner<T>(
   DataTable.use(Buttons);
   const tableRef = useRef<HTMLTableElement>(null);
 
+
   // ✅ NUEVOS refs internos
   const dtApiRef = useRef<DataTables.Api | null>(null);
   const pendingOpsRef = useRef<Array<(dt: DataTables.Api) => void>>([]); // ← cola de ops antes de init
@@ -138,17 +139,132 @@ function GenericDataTableInner<T>(
     });
   };
 
+  // === Highlight helpers (mínimos) ===
+  const getScrollContainer = () =>
+    tableRef.current?.closest('.card-body.table-responsive') as HTMLElement | null;
+
+  const ensureFlashStyles = () => {
+    const id = 'dt-flash-row-style';
+    if (document.getElementById(id)) return;
+    const s = document.createElement('style');
+    s.id = id;
+    s.textContent = `
+@keyframes flashBorder { from { opacity: 1 } to { opacity: 0 } }
+
+/* Overlay absoluto para el destello azul */
+.flash-blue-overlay { position: absolute; inset: auto; pointer-events: none; z-index: 30; border-radius: .5rem; }
+.flash-blue-overlay::before {
+  content: '';
+  
+  position: absolute;
+  inset: 0;
+  padding: 2px;                 /* grosor del borde */
+  border-radius: inherit;
+  background: #3e96d2 ;          /* azul brillante */
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask-composite: exclude;      /* Firefox */
+  -webkit-mask-composite: xor;  /* Chrome / Safari */
+  animation: flashBorder 3s ease-out forwards; /* dura 3s y desaparece */
+}
+
+/* Asegura que el contenedor reciba posicionamiento relativo si era estático */
+.dt-flash-rel { position: relative !important; }
+`;
+    document.head.appendChild(s);
+  };
+
+  const isInView = (el: HTMLElement, container?: HTMLElement) => {
+    const r = el.getBoundingClientRect();
+    const v = container
+      ? container.getBoundingClientRect()
+      : ({ top: 0, left: 0, right: window.innerWidth, bottom: window.innerHeight } as DOMRect);
+    return r.bottom > v.top && r.top < v.bottom && r.right > v.left && r.left < v.right;
+  };
+
+  const flashRow = (tr: HTMLElement) => {
+    ensureFlashStyles();
+
+    // 1) Forzar "hover" y focus por 3s
+    tr.classList.add('dt-force-hover');
+    if (!tr.hasAttribute('tabindex')) tr.setAttribute('tabindex', '-1'); // focusable
+    tr.focus({ preventScroll: true });
+    setTimeout(() => tr.classList.remove('dt-force-hover'), 3);
+
+    // 2) Destello azul en el borde (fila + detalle responsive si está abierto)
+    const container = getScrollContainer() || document.body;
+    const contRect = container.getBoundingClientRect();
+    if (getComputedStyle(container).position === 'static') container.classList.add('dt-flash-rel');
+
+    const r1 = tr.getBoundingClientRect();
+    let top = r1.top, left = r1.left, right = r1.right, bottom = r1.bottom;
+
+    const maybeChild = tr.nextElementSibling as HTMLElement | null;
+    if (maybeChild && maybeChild.classList.contains('child') && maybeChild.offsetParent !== null) {
+      const r2 = maybeChild.getBoundingClientRect();
+      top = Math.min(top, r2.top);
+      left = Math.min(left, r2.left);
+      right = Math.max(right, r2.right);
+      bottom = Math.max(bottom, r2.bottom);
+    }
+
+    const overlay = document.createElement('div');
+    overlay.className = 'flash-blue-overlay';
+
+    // Posicionar relativo al contenedor de scroll (o ventana)
+    const scrollTop = container === document.body ? window.pageYOffset : (container as HTMLElement).scrollTop;
+    const scrollLeft = container === document.body ? window.pageXOffset : (container as HTMLElement).scrollLeft;
+
+    overlay.style.top = `${top - contRect.top + scrollTop + 2}px`;
+    overlay.style.left = `${left - contRect.left + scrollLeft - 2}px`;
+    overlay.style.width = `${Math.max(1, right - left) + 5}px`;
+    overlay.style.height = `${Math.max(1, bottom - top) + 10}px`;
+
+    container.appendChild(overlay);
+    setTimeout(() => overlay.remove(), 3000);
+  };
+
+
+
+  // Usa el mismo dash que ya usas en la tabla
+  const DASH_HTML = '<span aria-hidden="true" class="text-muted">—</span>';
+
+  const ensureDashForRow = (tr: HTMLTableRowElement) => {
+    // Rellena celdas vacías de la fila principal (omite celdas con contenido/React)
+    Array.from(tr.cells).forEach((td) => {
+      if (td.childElementCount > 0) return;         // ya hay HTML (acciones, badges, etc.)
+      const txt = (td.textContent || '').trim();
+      if (txt !== '') return;                        // tiene texto (0, ₡0, etc.)
+      td.innerHTML = DASH_HTML;                      // pon dash sutil
+    });
+  };
+
+  const ensureDashInDetailsForRow = (tr: HTMLTableRowElement) => {
+    // Si la fila tiene panel responsive abierto, rellena la 2ª columna (valor)
+    const child = tr.nextElementSibling as HTMLElement | null;
+    const details = child?.querySelector('table.dtr-details') as HTMLTableElement | null;
+    if (!details) return;
+    details.querySelectorAll('td:nth-child(2)').forEach((td) => {
+      const el = td as HTMLTableCellElement;
+      if (el.childElementCount > 0) return;
+      const txt = (el.textContent || '').trim();
+      if (txt !== '') return;
+      el.innerHTML = DASH_HTML;
+    });
+  };
+
+
+
   const dtColumns = useMemo<ColumnSettings[]>(() => {
     const cols: ColumnSettings[] = [];
 
     const availableKeys = independent
       ? new Set<string>(columnKeys.map(String))
       : data.reduce<Set<string>>((set, row) => {
-          Object.keys(row as Record<string, unknown>).forEach((k) =>
-            set.add(k)
-          );
-          return set;
-        }, new Set<string>());
+        Object.keys(row as Record<string, unknown>).forEach((k) =>
+          set.add(k)
+        );
+        return set;
+      }, new Set<string>());
 
     (independent ? columnKeys.map(String) : columnKeys.map(String)).forEach(
       (keyStr) => {
@@ -194,14 +310,18 @@ function GenericDataTableInner<T>(
         cols.push(
           needs
             ? {
-                ...c,
-                className: _joinClass((c as any).className, "text-nowrap"),
-              }
+              ...c,
+              className: _joinClass((c as any).className, "text-nowrap"),
+            }
             : c
         );
       });
     }
     //#endregion
+
+
+
+
     //#endregion
 
     //#region 📊 Columna Avance (barra de progreso)
@@ -234,8 +354,8 @@ function GenericDataTableInner<T>(
               porcentaje >= 80
                 ? "bg-success"
                 : porcentaje >= 50
-                ? "bg-warning"
-                : "bg-danger";
+                  ? "bg-warning"
+                  : "bg-danger";
 
             const container = document.createElement("div");
             (cell as HTMLElement).innerHTML = "";
@@ -575,7 +695,22 @@ function GenericDataTableInner<T>(
                 .join("-"),
             titleAttr: "Descargar como Excel",
             exportOptions: {
-              columns: ":visible:not(.noExport)",
+              // incluye TODAS las columnas (aunque estén ocultas por responsive),
+              // excepto "Acciones" y "__seq" y cualquier .noExport
+              columns: (idx: number, _data: unknown, node: Node | null) => {
+                // fuera Acciones y __seq por índice conocido
+                if (idx === dtColumns.length - 2 || idx === dtColumns.length - 1) return false;
+
+                // respeta columnas marcadas con .noExport
+                const th = node as HTMLElement | null;
+                if (th?.classList.contains("noExport")) return false;
+
+                // seguridad extra por título (por si cambian el orden)
+                const titleTxt = (th?.textContent || "").trim().toLowerCase();
+                if (titleTxt === "__seq" || titleTxt === "acciones") return false;
+
+                return true; // ✅ exportar esta columna aunque esté oculta en móvil
+              },
               orthogonal: "export",
             },
             title:
@@ -1354,6 +1489,8 @@ table.table-hover.dataTable tbody tr.no-hover-row:hover > * {
         }
       })();
 
+
+
       //#endregion Estilos
 
       // Click fila
@@ -1468,6 +1605,215 @@ table.table-hover.dataTable tbody tr.no-hover-row:hover > * {
   }, [data, independent]);
   //#endregion
 
+
+  // 🔎 Obtiene el índice de una columna por el título (case-insensitive)
+  const getColIdxByTitle = (title?: string) => {
+    if (!title) return -1;
+    const t = String(title).trim().toLowerCase();
+    return dtColumns.findIndex(c => String((c as any).title ?? '').trim().toLowerCase() === t);
+  };
+
+  // 🔁 Re-renderiza celdas "ricas" (Acciones, Avance, Estado) de UNA fila (visible u oculta)
+  const rerenderRichCellsForRow = (dt: DataTables.Api, rowIdx: number, rowData: any) => {
+    const tr = dt.row(rowIdx).node() as HTMLTableRowElement | null;
+    if (!tr) return;
+
+    // 1) Acciones (penúltima; la última es __seq)
+    const actionsIdx = dtColumns.length - 2;
+    const tdAct = tr.cells?.[actionsIdx];
+    if (tdAct) {
+      tdAct.innerHTML = "";
+      const container = document.createElement("div");
+      tdAct.appendChild(container);
+      ReactDOM.createRoot(container).render(
+        <ActionButtons
+          rowData={rowData}
+          onEdit={() => onEdit(rowData)}
+          onDelete={() => onDelete(rowData)}
+          dataTableButtons={dataTableButtons}
+        />
+      );
+    }
+
+    // 2) Avance (si existe)
+    const avanceTitle = labelMap["avance"];
+    const avanceIdx = getColIdxByTitle(avanceTitle);
+    if (avanceIdx >= 0) {
+      const tdAv = tr.cells?.[avanceIdx];
+      if (tdAv) {
+        const porcentaje = (rowData as any)["avance"] ?? 0;
+        const barColor =
+          porcentaje >= 80 ? "bg-success" : porcentaje >= 50 ? "bg-warning" : "bg-danger";
+        tdAv.innerHTML = "";
+        const container = document.createElement("div");
+        tdAv.appendChild(container);
+        ReactDOM.createRoot(container).render(
+          <div className="d-flex flex-column w-100 me-2">
+            <div className="d-flex flex-stack mb-2">
+              <span className="text-muted me-2 fs-7 fw-bold">{porcentaje}%</span>
+            </div>
+            <div className="progress h-6px w-100">
+              <div
+                className={`progress-bar ${barColor}`}
+                role="progressbar"
+                style={{ width: `${porcentaje}%` }}
+                aria-valuenow={porcentaje}
+                aria-valuemin={0}
+                aria-valuemax={100}
+              />
+            </div>
+          </div>
+        );
+      }
+    }
+
+    // 3) Estado (si existe)
+    const estadoTitle = includeEstadoColumn && labelMap["estado"] ? labelMap["estado"] : undefined;
+    const estadoIdx = getColIdxByTitle(estadoTitle);
+    if (estadoIdx >= 0) {
+      const tdEs = tr.cells?.[estadoIdx];
+      if (tdEs) {
+        const estado = ((rowData as any)?.estado?.nombre?.toLowerCase?.() ?? "N/A");
+        const badgeClassMap: Record<string, string> = {
+          activo: "badge-light-success",
+          nuevo: "badge badge-secondary",
+          "en proceso": "badge-light-primary",
+          "en espera": "badge-light-warning",
+          completado: "badge-light-success",
+          eliminado: "badge-light-danger",
+          inactivo: "badge-light-light",
+          default: "badge badge-dark",
+        };
+        const badgeClass = badgeClassMap[estado] || badgeClassMap["default"];
+        tdEs.innerHTML = "";
+        const container = document.createElement("span");
+        tdEs.appendChild(container);
+        ReactDOM.createRoot(container).render(
+          <span className={`badge ${badgeClass}`}>
+            {estado.charAt(0).toUpperCase() + estado.slice(1)}
+          </span>
+        );
+      }
+    }
+  };
+
+  // 🔄 Reconstruye el panel responsive (child) de ESA fila usando el HTML actual de los TDs
+  // 🔄 Reconstruye el panel responsive (child) mostrando SOLO las columnas que ya estaba mostrando
+  const refreshResponsiveDetailsForRow = (dt: DataTables.Api, rowIdx: number) => {
+    const tr = dt.row(rowIdx).node() as HTMLTableRowElement | null;
+    if (!tr) return;
+
+    const child = tr.nextElementSibling as HTMLElement | null;
+    if (!child || !child.classList.contains("child")) return;
+
+    const detailsTable = child.querySelector("table.dtr-details") as HTMLTableElement | null;
+    if (!detailsTable) return;
+
+    // 1) 🔍 Lee qué columnas estaba mostrando el detalle (según nuestro renderer)
+    const currentIdxs: number[] = Array
+      .from(detailsTable.querySelectorAll('tr[data-dt-column]'))
+      .map(el => parseInt((el as HTMLElement).getAttribute('data-dt-column') || '', 10))
+      .filter(n => Number.isFinite(n));
+
+    // 2) Fallback (raro): si por algún motivo no hay marcadores, usa ocultas globales como última opción
+    const targetIdxs: number[] = currentIdxs.length
+      ? currentIdxs
+      : (dt.columns({ visible: false }).indexes().toArray() as number[]);
+
+    // 3) Reconstruye SÓLO esas columnas
+    const rowsHtml = targetIdxs.map((cIdx) => {
+      const header = dt.column(cIdx).header() as HTMLElement | null;
+      const title = String(header?.textContent ?? "").trim();
+
+      // Saltar columna interna __seq por título
+      if (title.toLowerCase() === "__seq") return "";
+
+      // HTML actual del <td> de la tabla principal
+      const node = dt.cell(rowIdx, cIdx).node() as HTMLTableCellElement | null;
+      let cellHtml = node ? node.innerHTML : String(dt.cell(rowIdx, cIdx).data() ?? "");
+
+      if (!cellHtml || String(cellHtml).trim() === "") {
+        cellHtml = '<span aria-hidden="true" class="text-muted">—</span>';
+      }
+
+      return `
+      <tr data-dt-row="${rowIdx}" data-dt-column="${cIdx}">
+        <td class="fw-semibold text-muted pe-3">${title}</td>
+        <td class="text-wrap">${cellHtml}</td>
+      </tr>
+    `;
+    }).join("");
+
+    if (rowsHtml) {
+      detailsTable.innerHTML = rowsHtml; // 🔁 reemplaza sin duplicar columnas visibles
+    }
+  };
+
+  // 🔎 Detecta el root que realmente scrollea (window o contenedor con overflow)
+  const getScrollRoot = (): Window | HTMLElement => {
+    const table = tableRef.current;
+    if (!table) return window;
+    let el: HTMLElement | null = table.parentElement;
+    while (el) {
+      const st = getComputedStyle(el);
+      const canScrollY = (st.overflowY === 'auto' || st.overflowY === 'scroll') && el.scrollHeight > el.clientHeight;
+      if (canScrollY) return el;
+      el = el.parentElement;
+    }
+    return window;
+  };
+
+  // 🧭 Scroll suave del root hasta Y; resuelve cuando “llega” o vence el timeout
+  const smoothScrollToY = (scroller: Window | HTMLElement, y: number, timeout = 1000) =>
+    new Promise<void>((resolve) => {
+      let done = false;
+      const start = Date.now();
+      const onScroll = () => {
+        const cur = scroller === window ? window.pageYOffset : (scroller as HTMLElement).scrollTop;
+        if (Math.abs(cur - y) < 2 || Date.now() - start > timeout) {
+          if (!done) {
+            done = true;
+            (scroller === window ? window : (scroller as HTMLElement)).removeEventListener('scroll', onScroll as any);
+            resolve();
+          }
+        }
+      };
+      (scroller === window ? window : (scroller as HTMLElement)).addEventListener('scroll', onScroll as any, { passive: true });
+      if (scroller === window) window.scrollTo({ top: y, behavior: 'smooth' });
+      else (scroller as HTMLElement).scrollTo({ top: y, behavior: 'smooth' });
+      setTimeout(onScroll, timeout + 60); // fallback
+    });
+
+  // 💡 Flash medido en viewport (evita header fijo y contenedores con scroll)
+  const flashRowViewport = (tr: HTMLElement) => {
+    ensureFlashStyles();
+    if (!tr.hasAttribute('tabindex')) tr.setAttribute('tabindex', '-1');
+    tr.focus({ preventScroll: true });
+
+    const r1 = tr.getBoundingClientRect();
+    let { top, left, right, bottom } = r1;
+
+    const child = tr.nextElementSibling as HTMLElement | null;
+    if (child && child.classList.contains('child') && child.offsetParent !== null) {
+      const r2 = child.getBoundingClientRect();
+      top = Math.min(top, r2.top);
+      left = Math.min(left, r2.left);
+      right = Math.max(right, r2.right);
+      bottom = Math.max(bottom, r2.bottom);
+    }
+
+    const overlay = document.createElement('div');
+    overlay.className = 'flash-blue-overlay';
+    overlay.style.position = 'fixed';
+    overlay.style.top = `${Math.max(0, top)}px`;
+    overlay.style.left = `${Math.max(0, left)}px`;
+    overlay.style.width = `${Math.max(1, right - left)}px`;
+    overlay.style.height = `${Math.max(1, bottom - top)}px`;
+    document.body.appendChild(overlay);
+    setTimeout(() => overlay.remove(), 3000);
+  };
+
+
   // 🆕 API imperativa: load / upsert / bulkUpsert / remove / clear / getData
   useImperativeHandle(
     ref,
@@ -1486,6 +1832,7 @@ table.table-hover.dataTable tbody tr.no-hover-row:hover > * {
           dt.responsive.recalc();
           // @ts-expect-error --w
           dt.fixedHeader?.adjust?.();
+
         });
       },
       upsert(row: T) {
@@ -1496,30 +1843,203 @@ table.table-hover.dataTable tbody tr.no-hover-row:hover > * {
           const idxes = dt
             .rows((_: any, data: any) => (data?.[idKey] ?? null) === rowId)
             .indexes();
+
           if (idxes.length) {
-            dt.rows(idxes).remove();
+            // 🔁 EDITAR EN SU LUGAR (NO mover ni redibujar)
+            idxes.each((idx: number) => {
+              const cur: any = dt.row(idx).data();
+              const preservedSeq = cur?.__seq ?? 0;
+              const updated: any = { ...(row as any), __seq: preservedSeq };
+
+              dt.row(idx).data(updated); // sin draw()
+
+              // Repintar Acciones (sin draw global)
+              const tr = dt.row(idx).node() as HTMLTableRowElement | null;
+              const actionsIdx = dtColumns.length - 2;
+              const td = tr?.cells?.[actionsIdx];
+              if (td) {
+                td.innerHTML = "";
+                const container = document.createElement("div");
+                td.appendChild(container);
+                ReactDOM.createRoot(container).render(
+                  <ActionButtons
+                    rowData={updated as T}
+                    onEdit={() => onEdit(updated as T)}
+                    onDelete={() => onDelete(updated as T)}
+                    dataTableButtons={dataTableButtons}
+                  />
+                );
+              }
+
+              // Celdas ricas + detalle responsive
+              rerenderRichCellsForRow(dt, idx, updated);
+              refreshResponsiveDetailsForRow(dt, idx);
+
+
+              if (tr) {
+                ensureDashForRow(tr);
+                ensureDashInDetailsForRow(tr);
+              }
+
+              // Highlight solo si ya está a la vista
+              if (tr) {
+                const cont = getScrollContainer();
+                if (!cont || isInView(tr, cont)) flashRow(tr);
+              }
+            });
+            // ⛔ Nada de draw/order/page aquí
+            return;
           }
-          dt.row.add(withSeq(row));
-          dt.order([dt.columns().count() - 1, "desc"]).draw(false);
+
+          // 🆕 INSERTAR — 2 pasos: (A) ir a pág. 1 y subir al tope, (B) insertar + flash
+
+          // (B) Insertar y flashear después del scroll
+          const doInsertAndFlash = () => {
+            // Inserta y ordena por __seq en modo independent
+            dt.row.add(withSeq(row));
+            if (independent) {
+              dt.order([dt.columns().count() - 1, "desc"]);
+            }
+
+            // Registrar el draw del INSERT antes de dibujar
+            dt.one("draw.dt.insert.flash", () => {
+              dt.columns.adjust();
+              // @ts-expect-error --e
+              dt.responsive.recalc();
+              // @ts-expect-error --e
+              dt.fixedHeader?.adjust?.();
+
+              const first = dt.row(":eq(0)", { page: "current" }).node() as HTMLElement | null;
+              if (first) flashRowViewport(first);
+            });
+
+            dt.draw(false);
+          };
+
+          // (A) Una vez en pág. 1, subir al tope del scroller y luego insertar
+          const afterPagedAndScrolled = () => {
+            dt.columns.adjust();
+            // @ts-expect-error
+            dt.responsive.recalc();
+            // @ts-expect-error
+            dt.fixedHeader?.adjust?.();
+
+            const scroller = getScrollRoot();
+            const cur = scroller === window ? window.pageYOffset : (scroller as HTMLElement).scrollTop;
+
+            // Si ya estamos arriba, insertamos ya; si no, scroll suave y luego insertamos
+            if (cur <= 2) {
+              doInsertAndFlash();
+            } else {
+              smoothScrollToY(scroller, 0, 1000).then(() => {
+                // Ajuste por si el header fijo cambió algo al terminar el scroll
+                // @ts-expect-error
+                dt.fixedHeader?.adjust?.();
+                doInsertAndFlash();
+              });
+            }
+          };
+
+          // Si ya estamos en la primera página, no forces un draw extra
+          const info = dt.page.info();
+          if (info.page === 0) {
+            afterPagedAndScrolled();
+          } else {
+            // Registrar el draw de "ir a la primera" ANTES de dispararlo
+            dt.one("draw.dt.insert.pagefirst", afterPagedAndScrolled);
+            dt.page("first").draw(false);
+          }
         });
-      },
+      }
+      ,
+
+
       bulkUpsert(rows: T[]) {
         withDT((dt) => {
           if (!rows?.length) return;
           const idKey = idKeyRef.current;
+
           const incoming = new Map<any, T>();
           for (const r of rows) incoming.set((r as any)[idKey], r);
 
+          // 1) Actualizar existentes EN SU LUGAR (preserva __seq) y repintar Acciones SIN draw()
           dt.rows().every(function (this: any) {
             const cur: any = this.data();
-            if (incoming.has(cur?.[idKey])) {
-              this.remove();
+            const curId = cur?.[idKey];
+            if (incoming.has(curId)) {
+              const newRow = incoming.get(curId)!;
+              const preservedSeq = cur?.__seq ?? 0;
+              const updated: any = { ...(newRow as any), __seq: preservedSeq };
+
+              this.data(updated); // sin draw()
+
+              // Repintar Acciones de esta fila
+              const tr = this.node() as HTMLTableRowElement | null;
+              const actionsIdx = dtColumns.length - 2;
+              const td = tr?.cells?.[actionsIdx];
+              if (td) {
+                td.innerHTML = "";
+                const container = document.createElement("div");
+                td.appendChild(container);
+                ReactDOM.createRoot(container).render(
+                  <ActionButtons
+                    rowData={updated as T}
+                    onEdit={() => onEdit(updated as T)}
+                    onDelete={() => onDelete(updated as T)}
+                    dataTableButtons={dataTableButtons}
+                  />
+                );
+              }
+
+              // ✅ NUEVO: rellenar vacíos en esa fila y su detalle
+if (tr) {
+  ensureDashForRow(tr);
+  ensureDashInDetailsForRow(tr);
+}
+
+
+              // 👉 Si está visible, highlight
+              if (tr) {
+                const cont = getScrollContainer();
+                if (!cont || isInView(tr, cont)) flashRow(tr);
+              }
+
+              incoming.delete(curId);
             }
           });
-          for (const r of rows) dt.row.add(withSeq(r));
-          dt.order([dt.columns().count() - 1, "desc"]).draw(false);
+
+          // 2) Agregar los que realmente son nuevos
+          let added = 0;
+          incoming.forEach((r) => {
+            dt.row.add(withSeq(r));
+            added++;
+          });
+
+          if (!added) return; // solo había updates → no mover ni redibujar
+
+          if (independent) {
+            dt.order([dt.columns().count() - 1, "desc"]);
+          }
+
+          // Ir a primera página y dibujar una vez
+          dt.page("first").draw(false);
+
+          dt.columns.adjust();
+          // @ts-expect-error
+          dt.responsive.recalc();
+          // @ts-expect-error
+          dt.fixedHeader?.adjust?.();
+
+          // Highlight a la primera fila recién visible
+
+          const first = dt.row(':eq(0)', { page: 'current' }).node() as HTMLElement | null;
+          if (first) flashRow(first);
+
         });
       },
+
+
+
       removeById(id: unknown) {
         withDT((dt) => {
           const idKey = idKeyRef.current;

@@ -161,7 +161,7 @@ const modalRef = useRef<HTMLDivElement>(null);
       >
         <div className="modal-content card card-custom example example-compact">
           {/* Título */}
-          <div className="card-header">
+          <div className="card-header p-4">
               <h3 className="card-title">{title}</h3>
             <div className="card-toolbar">
               {headerButtons && headerButtons.length > 0 && (
