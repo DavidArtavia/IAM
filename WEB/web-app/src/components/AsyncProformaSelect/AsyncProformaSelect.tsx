@@ -10,7 +10,6 @@ import {
 import { errorHelpers, procesarRespuesta } from "@/utils";
 import { useDebouncedPromise } from "@/hooks";
 import { STATUS_TBL } from "@/constants";
-import { tarifasService } from "@/services/tarifas.service";
 import { proformaService } from "@/services/proformas.service";
 
 export interface ProformaOption {
@@ -35,7 +34,9 @@ export const AsyncProformaSelect = ({
   const [tarifas, setTarifas] = useState<DTO_Proforma[]>(() => []);
 
   useEffect(() => {
-    const sub = tarifasService.obtenerTarifas(negocio).subscribe({
+    const proforma = new DTO_Proforma();
+    proforma.iD_Negocio = negocio.iD_Negocio
+    const sub = proformaService.obtenerProformas(proforma).subscribe({
       next: (result) => {
         const parsed =
           (procesarRespuesta(
@@ -60,7 +61,7 @@ export const AsyncProformaSelect = ({
       activeTarifas.map((p) => ({
         proforma: p,
         value: p.iD_Proforma ?? 0, // <-- valor único
-        label: `${p.cliente?.nombreCliente} | ₡${Number(p.totalCalculado).toLocaleString(
+        label: `${p.iD_Proforma + " | " + p.cliente?.nombreCliente} | ₡${Number(p.totalCalculado).toLocaleString(
           "es-CR"
         )}`,
       })),
@@ -77,7 +78,7 @@ export const AsyncProformaSelect = ({
       .map((p) => ({
         proforma: p,
         value: p.iD_Proforma ?? 0, // <-- valor único
-        label: `${p.cliente?.nombreCliente} | ₡${Number(p.totalCalculado).toLocaleString(
+        label: `${p.iD_Proforma + " | " + p.cliente?.nombreCliente} | ₡${Number(p.totalCalculado).toLocaleString(
           "es-CR"
         )}`,
       }));
