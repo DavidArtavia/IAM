@@ -16,8 +16,8 @@ namespace API.Controllers
 
         [Authorize(Roles = "1")]
         [Produces("application/json")]
-        [HttpPost]
         [Route("buscarTarifas")] // Type-ahead: lista ligera
+        [HttpPost]
         public async Task<List<DTO_Tarifa>> BuscarTarifas([FromBody] DTO_SolicitudDeBusqueda busqueda)
         {
             return await bll.BuscarTarifasAsync(busqueda);
@@ -25,8 +25,8 @@ namespace API.Controllers
 
         [Authorize(Roles = "1")]
         [Produces("application/json")]
-        [HttpPost]
         [Route("obtenerTarifas")]
+        [HttpPost]
         public async Task<DTO_Respuesta> ObtenerTarifas([FromBody] DTO_Negocio negocio)
         {
             try
@@ -42,8 +42,8 @@ namespace API.Controllers
 
         [Authorize(Roles = "1")]
         [Produces("application/json")]
-        [HttpPost]
         [Route("registrarTarifa")]
+        [HttpPost]
         public async Task<DTO_Respuesta> RegistrarTarifa([FromBody] DTO_Tarifa tarifa)
         {
             try
@@ -59,8 +59,8 @@ namespace API.Controllers
 
         [Authorize(Roles = "1")]
         [Produces("application/json")]
-        [HttpPost]
         [Route("actualizarTarifa")]
+        [HttpPost]
         public async Task<DTO_Respuesta> ActualizarTarifa([FromBody] DTO_Tarifa tarifa)
         {
             try
