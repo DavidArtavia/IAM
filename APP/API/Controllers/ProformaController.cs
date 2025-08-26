@@ -1,7 +1,9 @@
 ﻿using BLL;
+using DAL;
 using DTO;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 using UTL;
 
 namespace API.Controllers
@@ -69,7 +71,7 @@ namespace API.Controllers
         [Produces("application/json")]
         [HttpPost]
         [Route("buscarProformas")]
-        public async Task<DTO_Respuesta> BuscarProformas([FromBody] DTO_SolicitudDeBusqueda busqueda)
+        public async Task<IActionResult> BuscarProformas([FromBody] DTO_SolicitudDeBusqueda busqueda)
         {
             try
             {
@@ -79,9 +81,8 @@ namespace API.Controllers
             {
                 respuesta = manejoError.errorNoControlado(ex);
             }
-            return respuesta;
+            return Ok(respuesta.Resultado);
         }
-
 
     }
 }

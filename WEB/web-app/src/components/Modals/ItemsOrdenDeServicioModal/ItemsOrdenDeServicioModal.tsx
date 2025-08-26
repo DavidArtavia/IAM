@@ -14,15 +14,17 @@ import {
   updateItemById,
   formatColones,
 } from "@/utils";
-import { itemsOrdenesService } from "@/services";
+import { items_proformaService, itemsOrdenesService } from "@/services";
 import { STATUS_TBL } from "@/constants";
-import { DTO_ItemOrdenServicio, DTO_Negocio, DTO_Param, DTO_Respuesta, DTO_Tarifa } from "@/models";
+import { DTO_Cliente, DTO_ItemOrdenServicio, DTO_Negocio, DTO_Param, DTO_Proforma, DTO_ProformaItem, DTO_Respuesta } from "@/models";
 import {
+  AsyncProformaSelect,
   AsyncTarifaSelect,
   ConfirmModal,
   FieldConfig,
   GenericFormModal,
   InfoModal,
+  ProformaOption,
   TarifarioOption,
 } from "@/components";
 import { valida_DTO_ItemOrdenServicio } from "@/validators/valida_DTO_ItemOrdenServicio";
@@ -67,9 +69,10 @@ export const ItemsOrdenDeServicioModal = ({
 
   //#region 🔄 Estados generales
   const [itemsOrdenes, setItemsOrdenes] = useState<DTO_ItemOrdenServicio[]>([]);
+  const [itemsProformas, setItemsProformas] = useState<DTO_ProformaItem[]>([]);
   const [loading, setLoading] = useState(false);
-  const [tarifaSeleccionada, setTarifaSeleccionada] =
-    useState<TarifarioOption | null>(null);
+  const [tarifaSeleccionada, setTarifaSeleccionada] = useState<TarifarioOption | null>(null);
+  const [proformaSeleccionada, setProformaSeleccionada] = useState<ProformaOption | null>(null);
   const [reloadKey, setReloadKey] = useState(0);
   //#endregion
 
@@ -83,6 +86,9 @@ export const ItemsOrdenDeServicioModal = ({
   const [isModalFormOpen, setIsModalFormOpen] = useState(false);
   const [formData, setFormData] = useState<DTO_ItemOrdenServicio>(
     new DTO_ItemOrdenServicio()
+  );
+  const [buscarProforma, setBuscarProforma] = useState<DTO_Proforma>(
+    new DTO_Proforma()
   );
   //#endregion
 
@@ -164,6 +170,19 @@ export const ItemsOrdenDeServicioModal = ({
         "Por favor valida los datos ingresados nuevamente"
       );
     }
+  };
+
+
+  const handleProformaOnchange = (proforma: DTO_Proforma) => {
+    items_proformaService.obtenerItemsProformas(proforma).subscribe({
+      next: (result: DTO_Respuesta) => {
+        const nuevo = (result.resultado[0] as DTO_ProformaItem[]);
+        console.log(nuevo);
+        
+        if (nuevo) setItemsProformas(nuevo);
+      },
+      error: errorHelpers.serverError,
+    });
   };
   //#endregion
 
@@ -340,8 +359,8 @@ export const ItemsOrdenDeServicioModal = ({
           porcentaje >= 80
             ? "bg-success"
             : porcentaje >= 50
-            ? "bg-warning"
-            : "bg-danger";
+              ? "bg-warning"
+              : "bg-danger";
         return (
           <div
             className="d-flex flex-column w-100 me-2"
@@ -392,6 +411,7 @@ export const ItemsOrdenDeServicioModal = ({
   return (
     <div
       className="modal fade show d-block shadowClearBackground"
+      // className="modal fade show d-block shadowClearBackground"
       onClick={onHide}
       ref={modalRef}
       tabIndex={-1}
@@ -399,12 +419,12 @@ export const ItemsOrdenDeServicioModal = ({
       aria-modal="true"
     >
       <div
-        className="modal-dialog modal-dialog-centered"
+        className="modal-dialog modal-fullscreen p-4"
         style={{ maxWidth: "1200px" }}
         onClick={(e) => e.stopPropagation()}
       >
         <div className="modal-content resizable-metronic-modal">
-          <div className="modal-header cursor-move pt-4 pb-0 border-0 p-5 py-10 px-lg-17 pt-5 mb-n3">
+          <div className="modal-header cursor-move border-0 p-5 py-4 px-lg-17">
             <h2 className="fw-light text-gray-400 fs-5">
               {title.charAt(0).toUpperCase() + title.slice(1).toLowerCase()}
             </h2>
@@ -418,21 +438,115 @@ export const ItemsOrdenDeServicioModal = ({
             {loading ? (
               <LoadingPanel msj="Cargando Items de la órden de servicio, por favor espere..." />
             ) : (
-              <GenericDataTable
-                title={`Orden de servicio #${rowData.iD_OrdenServicio}`}
-                columnKeys={columnKeysItemsOrdenServicio}
-                labelMap={labelMapItemsOrdenServicio}
-                data={getActiveItemsOrdenes()}
-                onAdd={handleAddNew}
-                onEdit={handleEdit}
-                onDelete={handleDelete}
-                customRenderers={customRenderers}
-                includeEstadoColumn={false}
-                onRowClick={(row) =>
-                  setRowTableSelected(row as DTO_ItemOrdenServicio)
-                }
-                nowrapColumns={["Monto", "ID"]}
-              />
+
+              <>
+
+
+                <div className="rounded border p-0">
+                  <ul className="nav nav-tabs nav-line-tabs fs-6 px-4 justify-content-end">
+                    <li className="nav-item">
+                      <a className="nav-link" data-bs-toggle="tab" href="#proformas">Proformas</a>
+                    </li>
+                    <li className="nav-item">
+                      <a className="nav-link active" data-bs-toggle="tab" href="#items">Ítems</a>
+                    </li>
+                  </ul>
+                  <div className="tab-content" id="myTabContent">
+                    <div className="tab-pane fade active show" id="items" role="tabpanel">
+                      <GenericDataTable
+                        title={`Orden de servicio #${rowData.iD_OrdenServicio}`}
+                        columnKeys={columnKeysItemsOrdenServicio}
+                        labelMap={labelMapItemsOrdenServicio}
+                        data={getActiveItemsOrdenes()}
+                        onAdd={handleAddNew}
+                        onEdit={handleEdit}
+                        onDelete={handleDelete}
+                        customRenderers={customRenderers}
+                        includeEstadoColumn={false}
+                        onRowClick={(row) =>
+                          setRowTableSelected(row as DTO_ItemOrdenServicio)
+                        }
+                        nowrapColumns={["Monto", "ID"]}
+                      /></div>
+                    <div className="tab-pane fade" id="proformas" role="tabpanel">
+                      <div className="px-4 mt-10">
+                        <AsyncProformaSelect
+                          value={proformaSeleccionada}
+                          onChange={(op) => {
+                            setProformaSeleccionada(op);
+
+
+                            const proforma: DTO_Proforma = {
+                              ...buscarProforma,
+                              totalCalculado: op?.proforma.totalCalculado || 0,
+                              cliente: op?.proforma.cliente || new DTO_Cliente()
+                            }
+
+                            setBuscarProforma(proforma);
+                            handleProformaOnchange(op?.proforma as DTO_Proforma)
+                          }}
+                          reloadKey={reloadKey}
+                          negocio={negocio}
+                        />
+                      </div>
+
+
+                      <div className="card-body p-4">
+
+                        <table className="table table-row-dashed table-row-gray-300 gy-4">
+                          <thead>
+                            <tr className="fs-7 text-gray-500">
+                              <th>Nombre</th>
+                              <th>Descripción</th>
+                              <th className="text-end">Precio</th>
+                              <th className="text-center">Cantidad</th>
+                              <th className="text-center">Acción</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {itemsProformas.length === 0 && (
+
+
+                              <tr className="no-hover-row">
+                                <td colSpan={5} className="dt-empty">
+                                <div className="dt-empty-state d-flex flex-column align-items-center justify-content-center py-10">
+                                  <i className="bi bi-inbox fs-1 text-muted" aria-hidden="true"></i>
+                                  <span className="text-muted mt-2">Sin datos</span>
+                                </div>
+                              </td>
+                              </tr>
+                            )}
+
+                            {itemsProformas.map((it) => (
+                              <tr key={it.iD_ProformaItem}>
+                                <td className="align-middle">{it.nombreItemProforma}</td>
+                                <td className="align-middle">{it.descripcionItemProforma}</td>
+                                <td className="text-end align-middle">{it.precioItemProforma?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 3 })}</td>
+                                <td className="text-center align-middle">{it.cantidadItemProforma}</td>
+                                <td className="text-center align-middle">
+
+
+                                  <button type="button" className="btn" title="Eliminar"
+                                  //onClick={() => handleDelete(it.iD_Proforma, idx)}
+                                  >
+                                    <i className="bi bi-trash"></i>
+                                  </button>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+
+                    </div>
+                  </div>
+                </div>
+
+
+
+
+
+              </>
             )}
 
             <InfoModal
@@ -480,6 +594,7 @@ export const ItemsOrdenDeServicioModal = ({
         </div>
       </div>
     </div>
+
   );
   //#endregion
 };
