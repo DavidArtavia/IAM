@@ -1,6 +1,6 @@
 // ✅ RP-06: ItemsOrdenDeServicioModal adaptado con manejo local sin refetch y estructura organizada
 
-import { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { GenericDataTable } from "@/components/Tables/DataTable/GenericDataTable";
 import { LoadingPanel } from "@/components/Panel/LoadingPanel";
 import { CustomRange } from "@/components/Range/CustomRange";
@@ -178,7 +178,7 @@ export const ItemsOrdenDeServicioModal = ({
       next: (result: DTO_Respuesta) => {
         const nuevo = (result.resultado[0] as DTO_ProformaItem[]);
         console.log(nuevo);
-        
+
         if (nuevo) setItemsProformas(nuevo);
       },
       error: errorHelpers.serverError,
@@ -224,6 +224,14 @@ export const ItemsOrdenDeServicioModal = ({
     setConfirmContext("delete");
     setIsConfirmOpen(true);
   };
+
+  const handleChange = (index: any, field: any, value: any) => {
+  setItemsProformas((prev) => {
+    const newItems = [...prev];
+    newItems[index] = { ...newItems[index], [field]: value };
+    return newItems;
+  });
+};
 
   const handleConfirmDelete = (action: boolean | null) => {
     if (action && itemOrderToDelete) {
@@ -496,11 +504,10 @@ export const ItemsOrdenDeServicioModal = ({
                         <table className="table table-row-dashed table-row-gray-300 gy-4">
                           <thead>
                             <tr className="fs-7 text-gray-500">
-                              <th>Nombre</th>
-                              <th>Descripción</th>
-                              <th className="text-end">Precio</th>
-                              <th className="text-center">Cantidad</th>
-                              <th className="text-center">Acción</th>
+                              <th className="col-6">Nombre</th>
+                              <th className="text-start col-3">Precio</th>
+                              <th className="text-start col-2">Cant.</th>
+                              <th className="text-center col-1"></th>
                             </tr>
                           </thead>
                           <tbody>
@@ -509,31 +516,134 @@ export const ItemsOrdenDeServicioModal = ({
 
                               <tr className="no-hover-row">
                                 <td colSpan={5} className="dt-empty">
-                                <div className="dt-empty-state d-flex flex-column align-items-center justify-content-center py-10">
-                                  <i className="bi bi-inbox fs-1 text-muted" aria-hidden="true"></i>
-                                  <span className="text-muted mt-2">Sin datos</span>
-                                </div>
-                              </td>
+                                  <div className="dt-empty-state d-flex flex-column align-items-center justify-content-center py-10">
+                                    <i className="bi bi-inbox fs-1 text-muted" aria-hidden="true"></i>
+                                    <span className="text-muted mt-2">Sin datos</span>
+                                  </div>
+                                </td>
                               </tr>
                             )}
 
-                            {itemsProformas.map((it) => (
-                              <tr key={it.iD_ProformaItem}>
-                                <td className="align-middle">{it.nombreItemProforma}</td>
-                                <td className="align-middle">{it.descripcionItemProforma}</td>
-                                <td className="text-end align-middle">{it.precioItemProforma?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 3 })}</td>
-                                <td className="text-center align-middle">{it.cantidadItemProforma}</td>
-                                <td className="text-center align-middle">
+{itemsProformas.map((it, idx) => (
+  <React.Fragment key={it.iD_ProformaItem}>
+    {/* ======= Vista de ESCRITORIO (>= sm): tabla normal ======= */}
+    <tr className="d-none d-sm-table-row">
+      <td className="align-middle">
+        <input
+          type="text"
+          className="form-control form-control-sm"
+          value={it.nombreItemProforma}
+          onChange={(e) => handleChange(idx, "nombreItemProforma", e.target.value)}
+        />
+      </td>
+
+      <td className="align-middle">
+        <input
+          type="number"
+          className="form-control form-control-sm text-end"
+          value={it.precioItemProforma}
+          onChange={(e) => handleChange(idx, "precioItemProforma", e.target.value)}
+        />
+      </td>
+
+      <td className="align-middle">
+        <input
+          type="number"
+          className="form-control form-control-sm text-center"
+          value={it.cantidadItemProforma}
+          onChange={(e) => handleChange(idx, "cantidadItemProforma", e.target.value)}
+        />
+      </td>
+
+      <td className="text-center align-middle">
+        <button
+          type="button"
+          className="btn btn-sm"
+          title="Eliminar"
+          onClick={() => handleDelete(it.iD_ProformaItem)}
+        >
+          <i className="bi bi-trash"></i>
+        </button>
+      </td>
+    </tr>
+    {/* Descripción (escritorio) */}
+    <tr className="d-none d-sm-table-row">
+      <td colSpan={4} className="p-1">
+        <textarea
+          className="form-control form-control-sm"
+          rows={2}
+          value={it.descripcionItemProforma}
+          onChange={(e) => handleChange(idx, "descripcionItemProforma", e.target.value)}
+        />
+      </td>
+    </tr>
+
+    {/* ======= Vista MÓVIL (< sm): grid 8/2/1/1 ======= */}
+    <tr className="d-table-row d-sm-none">
+      <td colSpan={4} className="py-4">
+        <div className="row g-1 align-items-center">
+          {/* Nombre: 8/12 */}
+          <div className="col-6">
+            <input
+              type="text"
+              className="form-control form-control-sm"
+              placeholder="Nombre"
+              value={it.nombreItemProforma}
+              onChange={(e) => handleChange(idx, "nombreItemProforma", e.target.value)}
+            />
+          </div>
+
+          {/* Precio: 2/12 */}
+          <div className="col-3">
+            <input
+              type="number"
+              className="form-control form-control-sm text-end"
+              placeholder="Precio"
+              value={it.precioItemProforma}
+              onChange={(e) => handleChange(idx, "precioItemProforma", e.target.value)}
+            />
+          </div>
+
+          {/* Cantidad: 1/12 */}
+          <div className="col-2">
+            <input
+              type="number"
+              className="form-control form-control-sm text-center"
+              placeholder="Cant."
+              value={it.cantidadItemProforma}
+              onChange={(e) => handleChange(idx, "cantidadItemProforma", e.target.value)}
+            />
+          </div>
+
+          {/* Acción: 1/12 */}
+          <div className="col-1 text-center">
+            <button
+              type="button"
+              className="btn btn-sm p-2"
+              title="Eliminar"
+              onClick={() => handleDelete(it.iD_ProformaItem)}
+            >
+              <i className="bi bi-trash"></i>
+            </button>
+          </div>
+
+          {/* Descripción a ancho completo */}
+          <div className="col-12">
+            <textarea
+              className="form-control form-control-sm my-2"
+              rows={2}
+              placeholder="Descripción"
+              value={it.descripcionItemProforma}
+              onChange={(e) => handleChange(idx, "descripcionItemProforma", e.target.value)}
+            />
+          </div>
+        </div>
+      </td>
+    </tr>
+  </React.Fragment>
+))}
 
 
-                                  <button type="button" className="btn" title="Eliminar"
-                                  //onClick={() => handleDelete(it.iD_Proforma, idx)}
-                                  >
-                                    <i className="bi bi-trash"></i>
-                                  </button>
-                                </td>
-                              </tr>
-                            ))}
                           </tbody>
                         </table>
                       </div>
