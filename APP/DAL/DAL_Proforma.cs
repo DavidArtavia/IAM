@@ -22,8 +22,10 @@ namespace DAL
                 sqlcmd.Parameters.Add("@ID_Estado", SqlDbType.Int).Value = proforma.Estado?.ID_Estado;
                 sqlcmd.Parameters.Add("@ObservacionProforma", SqlDbType.NVarChar, 255).Value =
                     (object?)proforma.ObservacionProforma ?? DBNull.Value;
-                sqlcmd.Parameters.Add("@FechaVencimiento", SqlDbType.DateTime).Value =
-                    (object?)proforma.FechaVencimiento ?? DBNull.Value;
+                sqlcmd.Parameters.Add("@DescuentoProforma", SqlDbType.Decimal).Value = proforma.DescuentoProforma;
+                sqlcmd.Parameters.Add("@DescuentoPorcentualProforma", SqlDbType.Bit).Value = proforma.DescuentoPorcentualProforma;
+                sqlcmd.Parameters.Add("@ImpuestoPorcentualProforma", SqlDbType.Decimal).Value = proforma.ImpuestoPorcentualProforma;
+                sqlcmd.Parameters.Add("@FechaVencimiento", SqlDbType.DateTime).Value = (object?)proforma.FechaVencimiento ?? DBNull.Value;
 
                 Open();
                 using var reader = await sqlcmd.ExecuteReaderAsync();
@@ -57,7 +59,7 @@ namespace DAL
             finally { Close(); }
         }
 
-        public async Task<DTO_Respuesta> ActualizarProforma(DTO_Proforma p)
+        public async Task<DTO_Respuesta> ActualizarProforma(DTO_Proforma proforma)
         {
             respuesta = new DTO_Respuesta();
             try
@@ -65,13 +67,13 @@ namespace DAL
                 using var sqlcmd = new SqlCommand("CORE.SP_actualizarProforma", GetObjConexion())
                 { CommandType = CommandType.StoredProcedure };
 
-                sqlcmd.Parameters.Add("@ID_Proforma", SqlDbType.Int).Value = p.ID_Proforma;
-                sqlcmd.Parameters.Add("@ID_Cliente", SqlDbType.Int).Value = (object?)p.ID_Cliente ?? DBNull.Value;
-                sqlcmd.Parameters.Add("@ID_Estado", SqlDbType.Int).Value = p.Estado.ID_Estado;
+                sqlcmd.Parameters.Add("@ID_Proforma", SqlDbType.Int).Value = proforma.ID_Proforma;
+                sqlcmd.Parameters.Add("@ID_Cliente", SqlDbType.Int).Value = (object?)proforma.ID_Cliente ?? DBNull.Value;
+                sqlcmd.Parameters.Add("@ID_Estado", SqlDbType.Int).Value = proforma.Estado.ID_Estado;
                 sqlcmd.Parameters.Add("@ObservacionProforma", SqlDbType.NVarChar, 255).Value =
-                    (object?)p.ObservacionProforma ?? DBNull.Value;
+                    (object?)proforma.ObservacionProforma ?? DBNull.Value;
                 sqlcmd.Parameters.Add("@FechaVencimiento", SqlDbType.DateTime).Value =
-                    (object?)p.FechaVencimiento ?? DBNull.Value;
+                    (object?)proforma.FechaVencimiento ?? DBNull.Value;
 
                 Open();
                 using var reader = await sqlcmd.ExecuteReaderAsync();

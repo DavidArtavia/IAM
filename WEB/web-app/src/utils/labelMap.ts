@@ -83,14 +83,18 @@ export const columnKeysTarifa: (keyof DTO_Tarifa)[] = [
 ];
 
 export const columnKeysProforma: (keyof DTO_Proforma)[] = [
-    "iD_Proforma",
-    "fechaProforma",
-    "totalCalculado",
-    "observacionProforma",
-    "cliente",
-    "descuentoProforma",
-    "impuestoPorcentualProforma"
-
+    "iD_Proforma",                // ID principal
+    "fechaProforma",              // Fecha de creación
+    "fechaVencimiento",           // Fecha de vencimiento
+    "cliente",                    // Cliente asociado
+    "observacionProforma",        // Observaciones
+    "descuentoProforma",          // % Descuento aplicado
+    "montoDescuento",             // Monto de descuento
+    "impuestoPorcentualProforma", // % de impuesto
+    "montoImpuesto",              // Monto de impuesto
+    "subTotal",                   // Subtotal antes de descuentos/impuestos
+    "baseImponible",              // Monto base después de descuento
+    "totalCalculado",             // Total final
 ];
 
 export const columnKeysItemsProforma: (keyof DTO_ProformaItem)[] = [
@@ -509,14 +513,17 @@ export const labelMapTarifa: Record<string, string> = {
 
 export const labelMapProforma: Record<string, string> = {
     iD_Proforma: "ID",
-    iD_Cliente: "ID Cliente",
-    fechaProforma: "Fecha",
-    estado: "Estado",
-    totalCalculado: "Total",
-    observacionProforma: "Observación",
-    cliente: "Cliente",
+    fechaProforma: "Creación",
+    fechaVencimiento: "Vencimiento",
+    cliente: "Cliente asociado",
+    observacionProforma: "Observaciones",
     descuentoProforma: "Descuento",
-    impuestoPorcentualProforma: "Impuesto %",
+    montoDescuento: "Monto de descuento",
+    impuestoPorcentualProforma: "IVA(%)",
+    montoImpuesto: "Monto de impuesto",
+    subTotal: "Subtotal",
+    baseImponible: "Subtotal c/desc:",
+    totalCalculado: "Total final",
 };
 
 export const labelMapItemsProforma: Record<string, string> = {
@@ -777,6 +784,44 @@ export const tarifaFormAddFields: Array<FieldConfig<DTO_Tarifa>> = [
         label: labelMapTarifa["precioTarifa"] ?? "Precio",
         type: "number",
         required: true,
+    },
+];
+
+export const proformaFormAddFields: FieldConfig<DTO_Proforma>[] = [
+    // {debe ser un select 
+    //     key: "cliente",
+    //     label: labelMapProforma["cliente"] ?? "Cliente asociado",
+    //     type: "text",
+    //     required: false,
+    //     order: 1,
+    // },
+    {
+        key: "observacionProforma",
+        label: labelMapProforma["observacionProforma"] ?? "Observaciones",
+        type: "textarea",
+        required: false,
+        order: 3,
+    },
+    {
+        key: "descuentoProforma",
+        label: labelMapProforma["descuentoProforma"] ?? "Descuento",
+        type: "number",
+        required: false,
+        order: 4,
+    },
+    {
+        key: "impuestoPorcentualProforma",
+        label: labelMapProforma["impuestoPorcentualProforma"] ?? "% de impuesto",
+        type: "number",
+        required: false,
+        order: 5,
+    },
+    {
+        key: "fechaVencimiento",
+        label: labelMapProforma["fechaVencimiento"] ?? "Vencimiento",
+        type: "date",
+        required: true,
+        order: 2,
     },
 ];
 //#endregion

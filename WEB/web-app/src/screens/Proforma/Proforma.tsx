@@ -3,9 +3,11 @@ import {
   ConfirmModal,
   FieldConfig,
   GenericDataTable,
+  GenericDataTableHandle,
   GenericFormModal,
   InfoModal,
   LoadingPanel,
+  ProformaCrearModal,
 } from "@/components";
 import { STATUS_TBL } from "@/constants";
 import { useApp } from "@/hooks/useApp";
@@ -21,10 +23,12 @@ import {
 } from "@/utils";
 import { valida_DTO_Proformas } from "@/validators/valida_DTO_Proformas";
 import { useEffect, useState } from "react";
+import { useRef } from "react";
 import { catchError, finalize, map, of } from "rxjs";
 
 export const Proformas = () => {
   const { state } = useApp();
+  const tableRef = useRef<GenericDataTableHandle<DTO_Proforma>>(null);
 
   //#region 🛡️ Validaciones
   const [erroresValidacion, setErroresValidacion] = useState<DTO_Param[]>([]);
@@ -48,6 +52,7 @@ export const Proformas = () => {
   const [registerFormData, setRegisterFormData] = useState<DTO_Proforma>(
     new DTO_Proforma()
   );
+  const [showCrearProforma, setShowCrearProforma] = useState(false);
   //#endregion
 
   //#region ✏️ Editar
@@ -96,9 +101,11 @@ export const Proformas = () => {
 
   //#region 🧠 CRUD Logic
 
+  //#region 🧩 Registrar
   const handleAddNew = () => {
-    setRegisterFormData(new DTO_Proforma());
-    setIsRegisterFormOpen(true);
+    // setRegisterFormData(new DTO_Proforma());
+    // setIsRegisterFormOpen(true);
+    setShowCrearProforma(true);
   };
 
   const handleSave = () => {
@@ -128,6 +135,7 @@ export const Proformas = () => {
             Array.isArray(res.resultado) ? res.resultado[0] : res.resultado
           ) as DTO_Proforma;
           setProformas((prev) => [...prev, nuevo]);
+          tableRef.current?.upsert(nuevo);
           notificationHelpers.successAlert(
             res.mensaje || "Proforma registrada correctamente"
           );
@@ -147,7 +155,8 @@ export const Proformas = () => {
     setConfirmContext("cancelAdd");
     setIsConfirmOpen(true);
   };
-
+  //#endregion
+  
   const handleEdit = (proforma: DTO_Proforma) => {
     setEditData(proforma);
     setShowEditForm(true);
@@ -190,28 +199,36 @@ export const Proformas = () => {
   };
 
   const handleConfirmDelete = (action: boolean | null) => {
-    if (action && proformaToDelete) {
-      const updated: DTO_Proforma = {
-        ...proformaToDelete,
-        estado: {
-          ...proformaToDelete.estado!,
-          iD_Estado: STATUS_TBL.PROFORMA.DELETED,
-          nombre: "Eliminado",
-        },
-      };
-      setProformas((prev) =>
-        updateItemById(prev, updated, "iD_Proforma").filter(
-          (c) => c.estado?.iD_Estado !== STATUS_TBL.PROFORMA.DELETED
-        )
-      );
-      proformaService.actualizarProformas(updated).subscribe({
-        next: (res: DTO_Respuesta) =>
-          notificationHelpers.infoAlert(
-            res.codigo === "B037" ? "Proforma eliminada correctamente" : ""
-          ),
-        error: errorHelpers.serverError,
-      });
+    if (!action || !proformaToDelete) {
+      setProformaToDelete(null);
+      setIsConfirmOpen(false);
+      setConfirmContext(null);
+      return;
     }
+    tableRef.current?.removeById(proformaToDelete.iD_Proforma);
+    const updated: DTO_Proforma = {
+      ...proformaToDelete,
+      estado: {
+        ...(proformaToDelete.estado ?? { tabla: "" }),
+        iD_Estado: STATUS_TBL.PROFORMA.DELETED,
+        nombre: "Eliminado",
+      },
+    };
+    proformaService.actualizarProformas(updated).subscribe({
+      next: (res: DTO_Respuesta) => {
+        if (res?.codigo === "B045") {
+          notificationHelpers.infoAlert("Proforma eliminada correctamente");
+        } else {
+          notificationHelpers.warningAlert(
+            res?.mensaje || "No se pudo eliminar"
+          );
+        }
+      },
+      error: (err) => {
+        errorHelpers.serverError(err);
+      },
+    });
+
     setProformaToDelete(null);
     setIsConfirmOpen(false);
     setConfirmContext(null);
@@ -235,17 +252,45 @@ export const Proformas = () => {
   //#region 🔧 Renderizadores
   const customRenderers = {
     fechaProforma: (val: unknown) =>
-      val ? new Date(String(val)).toLocaleDateString() : "",
+      val ? new Date(String(val)).toLocaleDateString("es-CR") : "",
+    fechaVencimiento: (val: unknown) =>
+      val ? new Date(String(val)).toLocaleDateString("es-CR") : "",
     totalCalculado: (val: unknown) => formatColones(Number(val) || 0),
+    subTotal: (val: unknown) => formatColones(Number(val) || 0),
+    baseImponible: (val: unknown) => formatColones(Number(val) || 0),
+    montoDescuento: (val: unknown) => formatColones(Number(val) || 0),
+    montoImpuesto: (val: unknown) => formatColones(Number(val) || 0),
+    descuentoProforma: (val: unknown, row?: DTO_Proforma) => {
+      if (row?.descuentoPorcentualProforma) {
+        return typeof val === "number" ? `${val}%` : "0%";
+      }
+      return formatColones(Number(val) || 0);
+    },
+    impuestoPorcentualProforma: (val: unknown) =>
+      typeof val === "number" ? `${val}%` : "0%",
     cliente: (val: unknown) => {
-      if (val && typeof val === "object" && "nombreCliente" in val && "apellidoCliente" in val) {
-        const cliente = val as { nombreCliente?: string; apellidoCliente?: string };
-        return `${cliente.nombreCliente ?? ""} ${cliente.apellidoCliente ?? ""}`.trim();
+      if (!val) {
+        return (
+          <span className="d-flex align-items-center text-muted">
+            <i className="bi bi-person-x me-2"></i>
+            Sin cliente asignado
+          </span>
+        );
+      }
+      if (typeof val === "object") {
+        const c = val as { nombreCliente?: string; apellidoCliente?: string };
+        const nombreCompleto = [
+          c.nombreCliente?.trim(),
+          c.apellidoCliente?.trim(),
+        ]
+          .filter(Boolean)
+          .join(" ");
+        if (nombreCompleto) return nombreCompleto;
       }
       return (
         <span className="d-flex align-items-center text-muted">
           <i className="bi bi-person-x me-2"></i>
-          No tiene cliente asignado
+          Sin cliente asignado
         </span>
       );
     },
@@ -253,21 +298,21 @@ export const Proformas = () => {
   //#endregion
 
   //#region 🔑 InfoModal
-//   const infoModalFields: FieldConfig<DTO_Proforma>[] = [
-//     ...keysInfoModalProforma,
-//     {
-//       key: "montoTotal",
-//       label: "Monto total",
-//       type: "custom",
-//       order: 10,
-//       renderer: ({ value }) => (
-//         <div className="border rounded px-4 py-3 d-flex align-items-center justify-content-between shadow-sm">
-//           <i className="bi bi-cash-stack fs-4 text-gray-600 me-3"></i>
-//           {formatColones(Number(value) || 0)}
-//         </div>
-//       ),
-//     },
-//   ];
+  //   const infoModalFields: FieldConfig<DTO_Proforma>[] = [
+  //     ...keysInfoModalProforma,
+  //     {
+  //       key: "montoTotal",
+  //       label: "Monto total",
+  //       type: "custom",
+  //       order: 10,
+  //       renderer: ({ value }) => (
+  //         <div className="border rounded px-4 py-3 d-flex align-items-center justify-content-between shadow-sm">
+  //           <i className="bi bi-cash-stack fs-4 text-gray-600 me-3"></i>
+  //           {formatColones(Number(value) || 0)}
+  //         </div>
+  //       ),
+  //     },
+  //   ];
   //#endregion
 
   return (
@@ -276,21 +321,41 @@ export const Proformas = () => {
         <LoadingPanel msj="Cargando Proformas, por favor espere..." />
       ) : (
         <GenericDataTable<DTO_Proforma>
+          ref={tableRef}
           title="Proformas"
           columnKeys={columnKeysProforma}
           labelMap={labelMapProforma}
-            data={proformas}
-            independent
+          data={proformas}
+          independent
           idField="iD_Proforma"
           onAdd={handleAddNew}
           onEdit={handleEdit}
           onDelete={handleDelete}
           onRowClick={setRowTableSelected}
           includeEstadoColumn
-            customRenderers={customRenderers}
-            nowrapColumns={["iD_Proforma", "totalCalculado", "cliente"]}
+          customRenderers={customRenderers}
+          nowrapColumns={[
+            "iD_Proforma",
+            "totalCalculado",
+            "cliente",
+            "montoDescuento",
+            "subTotal",
+            "baseImponible",
+            "montoImpuesto",
+          ]}
         />
       )}
+
+        <ProformaCrearModal
+        show={showCrearProforma}
+        onClose={()=>setShowCrearProforma(false)}
+        onRegistered={(nuevoProforma: DTO_Proforma)=> {
+          if (tableRef.current) {
+            tableRef.current.upsert(nuevoProforma);
+          }
+          setShowCrearProforma(false);
+        }}
+      />
 
       {/* <InfoModal
         show={!!rowTableSelected}
@@ -309,9 +374,9 @@ export const Proformas = () => {
         fields={proformaFormAddFields}
         erroresValidacion={erroresValidacion}
         onEliminarError={eliminarError}
-      />
+      /> */}
 
-      <GenericFormModal
+      {/* <GenericFormModal
         title="Editar Proforma"
         show={showEditForm}
         onHide={() => setShowEditForm(false)}
