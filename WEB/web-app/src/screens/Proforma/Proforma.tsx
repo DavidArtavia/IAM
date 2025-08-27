@@ -158,6 +158,8 @@ export const Proformas = () => {
   //#endregion
   
   const handleEdit = (proforma: DTO_Proforma) => {
+    console.log("Editando proforma:", proforma);
+    
     setEditData(proforma);
     setShowEditForm(true);
   };

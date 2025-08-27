@@ -28,4 +28,4 @@ export * from "./FinancialSummaryCard/FinancialSummaryCard";
 export * from "./Metrica/KPI";
 export * from "./AsyncTarifaSelect/AsyncTarifaSelect";
 export * from "./AsyncProformaSelect/AsyncProformaSelect";
-export * from "./Modals/ProformaCrearModal/ProformaCrearModal";
+export * from "./Modals/ProformaCrearEditarModal/ProformaCrearEditarModal";

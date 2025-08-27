@@ -1,4 +1,4 @@
-USE [IAMDB_QA];
+USE [IAMDB];
 GO -- Stub: si no existe, créalo para poder ALTER sin fallar
     IF NOT EXISTS (
         SELECT 1

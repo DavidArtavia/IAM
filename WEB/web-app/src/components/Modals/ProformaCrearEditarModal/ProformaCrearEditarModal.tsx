@@ -30,7 +30,7 @@ type ItemLocal = {
   cantidadItemProforma?: number;
 };
 
-export const ProformaCrearModal = (props: Props) => {
+export const ProformaCrearEditarModal = (props: Props) => {
   const { show, onClose, onRegistered } = props;
   const { state } = useApp();
   const negocio = state.negocio;
@@ -557,9 +557,7 @@ export const ProformaCrearModal = (props: Props) => {
         tabIndex={-1}
         onClick={(e) => {
           // Solo cerrar si el click es en el fondo, no en el contenido
-          if (e.target === e.currentTarget) {
-            onClose();
-          }
+          if (e.target === e.currentTarget) onClose();
         }}
       >
         {/* Fullscreen en sm-down para UX móvil */}
@@ -626,25 +624,21 @@ export const ProformaCrearModal = (props: Props) => {
                     </button>
                   </div>
 
-                  <div className="table-responsive">
+                  {/* === Vista DESKTOP (≥ md): tabla clásica === */}
+                  <div className="table-responsive d-none d-md-block">
                     <table className="table align-middle table-row-dashed gy-2">
                       <thead>
                         <tr className="fw-semibold text-muted">
                           <th style={{ width: 48 }}>#</th>
                           <th>Nombre</th>
-                          <th className="d-none d-md-table-cell">
-                            Descripción
-                          </th>
+                          <th className="">Descripción</th>
                           <th className="text-end" style={{ width: 140 }}>
                             P. Unit
                           </th>
                           <th className="text-end" style={{ width: 120 }}>
                             Cant.
                           </th>
-                          <th
-                            className="text-end d-none d-md-table-cell"
-                            style={{ width: 160 }}
-                          >
+                          <th className="text-end" style={{ width: 160 }}>
                             Importe
                           </th>
                           <th style={{ width: 60 }}></th>
@@ -670,9 +664,10 @@ export const ProformaCrearModal = (props: Props) => {
                                       nombreItemProforma: e.target.value,
                                     })
                                   }
+                                  placeholder="Nombre del ítem"
                                 />
                               </td>
-                              <td className="d-none d-md-table-cell">
+                              <td>
                                 <input
                                   className="form-control form-control-sm"
                                   value={it.descripcionItemProforma}
@@ -681,6 +676,7 @@ export const ProformaCrearModal = (props: Props) => {
                                       descripcionItemProforma: e.target.value,
                                     })
                                   }
+                                  placeholder="Descripción (opcional)"
                                 />
                               </td>
                               <td className="text-end">
@@ -792,7 +788,7 @@ export const ProformaCrearModal = (props: Props) => {
                                   }}
                                 />
                               </td>
-                              <td className="text-end d-none d-md-table-cell">
+                              <td className="text-end">
                                 <span className="fw-bold">
                                   {importe.toFixed(2)}
                                 </span>
@@ -810,6 +806,182 @@ export const ProformaCrearModal = (props: Props) => {
                         })}
                       </tbody>
                     </table>
+                  </div>
+
+                  {/* === Vista MÓVIL (< md): lista vertical con títulos === */}
+                  <div className="d-block d-md-none">
+                    {items.map((it, idx) => {
+                      const importe =
+                        Number(it.precioItemProforma ?? 0) *
+                        Number(it.cantidadItemProforma ?? 0);
+                      return (
+                        <div
+                          key={it.idTemp}
+                          className="border rounded-3 p-3 mb-3 bg-white shadow-sm"
+                        >
+                          <div className="d-flex justify-content-between align-items-center mb-2">
+                            <span className="badge bg-light text-dark">
+                              #{idx + 1}
+                            </span>
+                            <button
+                              className="btn btn-icon btn-light-danger btn-sm"
+                              onClick={() => removeItem(it.idTemp)}
+                              aria-label="Eliminar ítem"
+                            >
+                              <i className="bi bi-trash" />
+                            </button>
+                          </div>
+
+                          <div className="mb-2">
+                            <label className="form-label mb-1">Nombre</label>
+                            <input
+                              className="form-control form-control-sm"
+                              ref={(el) => {
+                                nombreRefs.current[it.idTemp] = el;
+                              }}
+                              value={it.nombreItemProforma}
+                              onChange={(e) =>
+                                patchItem(it.idTemp, {
+                                  nombreItemProforma: e.target.value,
+                                })
+                              }
+                              placeholder="Nombre del ítem"
+                            />
+                          </div>
+
+                          <div className="mb-2">
+                            <label className="form-label mb-1">
+                              Descripción
+                            </label>
+                            <input
+                              className="form-control form-control-sm"
+                              value={it.descripcionItemProforma}
+                              onChange={(e) =>
+                                patchItem(it.idTemp, {
+                                  descripcionItemProforma: e.target.value,
+                                })
+                              }
+                              placeholder="Descripción (opcional)"
+                            />
+                          </div>
+
+                          <div className="row g-2">
+                            <div className="col-6">
+                              <label className="form-label mb-1">P. Unit</label>
+                              <input
+                                type="number"
+                                step="1"
+                                min={0}
+                                className="form-control form-control-sm text-end"
+                                value={it.precioItemProforma ?? 0}
+                                onWheel={(e) => e.currentTarget.blur()}
+                                onKeyDown={(e) => {
+                                  const blocked = ["-", "+", "e", "E"];
+                                  if (
+                                    blocked.includes(e.key) ||
+                                    e.code === "NumpadSubtract"
+                                  )
+                                    e.preventDefault();
+                                }}
+                                onBeforeInput={(e: any) => {
+                                  if (e?.data && /[-+eE]/.test(e.data))
+                                    e.preventDefault();
+                                }}
+                                onPaste={(e) => {
+                                  const txt = e.clipboardData.getData("text");
+                                  const cleaned = txt
+                                    .replace(/[^0-9.,]/g, "")
+                                    .replace(",", ".");
+                                  let num = Number(cleaned);
+                                  if (Number.isNaN(num)) {
+                                    e.preventDefault();
+                                    return;
+                                  }
+                                  num = Math.max(0, num);
+                                  patchItem(it.idTemp, {
+                                    precioItemProforma: num,
+                                  });
+                                  e.preventDefault();
+                                }}
+                                onChange={(e) => {
+                                  const raw = e.target.value.replace(",", ".");
+                                  if (raw === "") {
+                                    patchItem(it.idTemp, {
+                                      precioItemProforma: 0,
+                                    });
+                                    return;
+                                  }
+                                  let val = Number(raw);
+                                  if (!Number.isFinite(val)) return;
+                                  if (val < 0) val = 0;
+                                  patchItem(it.idTemp, {
+                                    precioItemProforma: val,
+                                  });
+                                }}
+                              />
+                            </div>
+                            <div className="col-6">
+                              <label className="form-label mb-1">Cant.</label>
+                              <input
+                                type="number"
+                                step="1"
+                                min={1}
+                                className="form-control form-control-sm text-end"
+                                value={it.cantidadItemProforma ?? 1}
+                                onWheel={(e) => e.currentTarget.blur()}
+                                onKeyDown={(e) => {
+                                  const blocked = ["-", "+", "e", "E"];
+                                  if (
+                                    blocked.includes(e.key) ||
+                                    e.code === "NumpadSubtract"
+                                  )
+                                    e.preventDefault();
+                                }}
+                                onBeforeInput={(e: any) => {
+                                  if (e?.data && /[-+eE]/.test(e.data))
+                                    e.preventDefault();
+                                }}
+                                onPaste={(e) => {
+                                  const txt = e.clipboardData.getData("text");
+                                  const cleaned = txt.replace(/[^0-9]/g, "");
+                                  const num = Number(cleaned);
+                                  if (Number.isNaN(num) || num < 1) {
+                                    e.preventDefault();
+                                    return;
+                                  }
+                                  patchItem(it.idTemp, {
+                                    cantidadItemProforma: num,
+                                  });
+                                  e.preventDefault();
+                                }}
+                                onChange={(e) => {
+                                  const raw = e.target.value.replace(",", ".");
+                                  if (raw === "") {
+                                    patchItem(it.idTemp, {
+                                      cantidadItemProforma: 1,
+                                    });
+                                    return;
+                                  }
+                                  let val = Number(raw);
+                                  if (!Number.isFinite(val)) return;
+                                  if (val < 1) val = 1;
+                                  patchItem(it.idTemp, {
+                                    cantidadItemProforma: val,
+                                  });
+                                }}
+                              />
+                            </div>
+                          </div>
+
+                          <div className="d-flex justify-content-between align-items-center mt-2">
+                            <small className="text-muted">Importe</small>
+                            <span className="fw-bold">
+                              {importe.toFixed(2)}
+                            </span>
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
 
                   {/* Totales */}
