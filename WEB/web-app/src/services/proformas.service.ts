@@ -10,7 +10,7 @@ export class proformaService {
 
     static buscarProformas(busqueda: DTO_SolicitudDeBusqueda | null): Observable<DTO_Proforma[]> {
         // 1) Validación previa
-        if (!busqueda || !busqueda.term || busqueda.term.trim().length < 2) {
+        if (!busqueda || !busqueda.term) {
             return of([]);
         }
         // 2) Deferir la llamada hasta la subscripción
