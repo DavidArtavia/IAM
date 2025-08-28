@@ -77,7 +77,6 @@ export const ProformaCrearEditarModal = (props: Props) => {
   const [fechaV, setFechaV] = useState<string>(
     dayjs().add(15, "day").format("YYYY-MM-DD")
   );
-  const [logoDataUrl, setLogoDataUrl] = useState<string | null>(null);
 
   // refs para foco/scroll
   const nombreRefs = useRef<Record<string, HTMLInputElement | null>>({});
@@ -489,7 +488,7 @@ export const ProformaCrearEditarModal = (props: Props) => {
     delete nombreRefs.current[idTemp];
   }
 
-  // helper de reset 
+  // helper de reset
   function resetForm() {
     setClienteOpt(null);
     setDescuentoTipo("Monto");
@@ -498,7 +497,6 @@ export const ProformaCrearEditarModal = (props: Props) => {
     setObservaciones("");
     setFechaP(dayjs().format("YYYY-MM-DD"));
     setFechaV(dayjs().add(15, "day").format("YYYY-MM-DD"));
-    setLogoDataUrl(null);
     setTarifaSel(null);
     setItems([
       {
@@ -691,7 +689,6 @@ export const ProformaCrearEditarModal = (props: Props) => {
 
       notificationHelpers.successAlert("Proforma actualizada correctamente.");
       onUpdated?.(proformaActualizadaParaTabla);
-   
     } catch (err: any) {
       notificationHelpers.errorAlert(
         err?.message ?? "Ocurrió un error al guardar."
@@ -701,30 +698,60 @@ export const ProformaCrearEditarModal = (props: Props) => {
 
   // PDF
   const printRef = useRef<HTMLDivElement>(null);
+
   async function handlePdf() {
     try {
       const { jsPDF } = await import("jspdf");
       const html2canvas = (await import("html2canvas")).default;
+
       const el = printRef.current;
       if (!el) return;
+
+      // Asegura que el área offscreen esté pintada
       await new Promise((r) => requestAnimationFrame(r));
+
+      // Renderizamos el nodo a un canvas con buena definición
       const canvas = await html2canvas(el, {
         backgroundColor: "#ffffff",
-        scale: 2,
-        useCORS: true,
+        scale: 2, // calidad
+        useCORS: true, // por si hubiera recursos externos
+        scrollX: 0,
+        scrollY: 0,
       });
+
+      // Armamos el PDF en A4 (pt)
       const pdf = new jsPDF("p", "pt", "a4");
-      const pageW = pdf.internal.pageSize.getWidth();
-      const pageH = pdf.internal.pageSize.getHeight();
-      const ratio = Math.min(pageW / canvas.width, pageH / canvas.height);
-      const w = canvas.width * ratio;
-      const h = canvas.height * ratio;
-      pdf.addImage(canvas, "PNG", (pageW - w) / 2, 20, w, h);
-      pdf.save(`Proforma_${dayjs().format("YYYYMMDD_HHmm")}.pdf`);
+      const pageW = pdf.internal.pageSize.getWidth(); // 595.28 pt
+      const pageH = pdf.internal.pageSize.getHeight(); // 841.89 pt
+      const margin = 24; // margen interno
+
+      // Calculamos tamaño de la imagen dentro del PDF manteniendo proporción
+      const imgW = pageW - margin * 2;
+      const imgH = (canvas.height * imgW) / canvas.width;
+
+      const imgData = canvas.toDataURL("image/png");
+
+      // Primera página
+      let position = margin;
+      pdf.addImage(imgData, "PNG", margin, position, imgW, imgH);
+
+      // Si el contenido excede una página, agregamos más
+      let heightLeft = imgH - (pageH - margin * 2);
+      while (heightLeft > 0) {
+        pdf.addPage();
+        // Dibujamos la misma imagen pero desplazada hacia arriba;
+        // jsPDF recorta fuera de la página.
+        position = margin - (imgH - heightLeft);
+        pdf.addImage(imgData, "PNG", margin, position, imgW, imgH);
+        heightLeft -= pageH - margin * 2;
+      }
+
+      const nombreCliente = clienteOpt?.label.replace(/\s+/g, "_") ?? "Cliente";
+      pdf.save(`Proforma_${nombreCliente}_${dayjs().format("DD-MM-YYYY")}.pdf`);
     } catch (err) {
       console.error(err);
       notificationHelpers?.errorAlert?.(
-        "No se pudo generar el PDF. Verifica que el contenedor no esté oculto con display:none."
+        "No se pudo generar el PDF. Intenta nuevamente."
       );
     }
   }
@@ -1264,29 +1291,378 @@ export const ProformaCrearEditarModal = (props: Props) => {
               <div
                 aria-hidden="true"
                 style={{
-                  position: "absolute",
-                  left: "-10000px",
+                  position: "fixed",
+                  left: 0,
                   top: 0,
-                  overflow: "hidden",
+                  width: 0,
+                  height: 0,
+                  opacity: 0,
+                  pointerEvents: "none",
+                  overflow: "visible",
+                  zIndex: -1,
                 }}
               >
                 <div
                   ref={printRef}
-                  style={{ width: 794, background: "#fff", padding: 16 }}
+                  style={{
+                    width: 794, // ~A4 a 96dpi
+                    background: "#ffffff",
+                    padding: 32,
+                    fontFamily:
+                      "Inter, system-ui, -apple-system, Segoe UI, Roboto, 'Helvetica Neue', Arial, sans-serif",
+                    color: "#111827",
+                  }}
                 >
-                  <div className="d-flex justify-content-between align-items-center mb-3">
+                  {/* Banda superior */}
+                  <div
+                    style={{
+                      background: "#EEF6FF",
+                      border: "1px solid #DBEAFE",
+                      borderRadius: 8,
+                      padding: "16px 20px",
+                      marginBottom: 16,
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                    }}
+                  >
                     <div>
-                      <h3 className="mb-0">Proforma</h3>
-                      <small>{dayjs(fechaP).format("DD/MM/YYYY")}</small>
+                      <div
+                        style={{
+                          fontSize: 18,
+                          fontWeight: 800,
+                          letterSpacing: 0.4,
+                          color: "#1E3A8A",
+                          textTransform: "uppercase",
+                          marginBottom: 4,
+                        }}
+                      >
+                        {negocio?.nombreNegocio ?? ""}
+                      </div>
+                      {negocio?.direccion ? (
+                        <div style={{ fontSize: 12, color: "#374151" }}>
+                          {negocio.direccion}
+                        </div>
+                      ) : null}
+                      {negocio?.telefonoNegocio ? (
+                        <div style={{ fontSize: 12, color: "#374151" }}>
+                          Tel: {negocio.telefonoNegocio}
+                        </div>
+                      ) : null}
                     </div>
-                    {logoDataUrl && (
-                      <img src={logoDataUrl} style={{ height: 60 }} />
-                    )}
+
+                    <div style={{ textAlign: "right" }}>
+                      <div
+                        style={{
+                          fontSize: 18,
+                          fontWeight: 800,
+                          letterSpacing: 0.4,
+                          textTransform: "uppercase",
+                          marginBottom: 4,
+                        }}
+                        className="text-muted"
+                      >
+                        proforma
+                      </div>
+                      <div style={{ fontSize: 12, color: "#475569" }}>
+                        Fecha:{" "}
+                        <strong>{dayjs(fechaP).format("DD/MM/YYYY")}</strong>
+                      </div>
+                      <div style={{ fontSize: 12, color: "#475569" }}>
+                        Vence:{" "}
+                        <strong>{dayjs(fechaV).format("DD/MM/YYYY")}</strong>
+                      </div>
+                    </div>
                   </div>
-                  <div className="mb-2">
-                    <strong>Cliente:</strong> {clienteOpt?.label ?? "-"}
+
+                  {/* Bloque Cliente */}
+                  <div
+                    style={{
+                      border: "1px solid #E5E7EB",
+                      borderRadius: 8,
+                      padding: 12,
+                      marginBottom: 16,
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "flex-start",
+                      gap: 16,
+                    }}
+                  >
+                    <div>
+                      <div style={{ fontSize: 12, color: "#6B7280" }}>
+                        Cliente
+                      </div>
+                      <div style={{ fontWeight: 600 }}>
+                        {clienteOpt?.label ?? "-"}
+                      </div>
+                    </div>
+                    {observaciones ? (
+                      <div style={{ maxWidth: 420 }}>
+                        <div style={{ fontSize: 12, color: "#6B7280" }}>
+                          Observaciones
+                        </div>
+                        <div
+                          style={{
+                            fontSize: 12,
+                            color: "#111827",
+                            wordBreak: "break-word",
+                            whiteSpace: "pre-wrap",
+                          }}
+                        >
+                          {observaciones}
+                        </div>
+                      </div>
+                    ) : null}
                   </div>
-                  {/* Puedes reutilizar la tabla simple aquí si quieres exportar detalle */}
+
+                  {/* Tabla de Ítems */}
+                  <table
+                    style={{
+                      width: "100%",
+                      borderCollapse: "separate",
+                      borderSpacing: 0,
+                      fontSize: 12,
+                      marginTop: 8,
+                      border: "1px solid #E5E7EB",
+                      borderRadius: 8,
+                      overflow: "hidden",
+                    }}
+                  >
+                    <thead>
+                      <tr style={{ background: "#F9FAFB" }}>
+                        <th
+                          style={{
+                            textAlign: "left",
+                            borderBottom: "1px solid #E5E7EB",
+                            padding: "10px 8px",
+                            color: "#374151",
+                            fontWeight: 700,
+                          }}
+                        >
+                          Descripción
+                        </th>
+                        <th
+                          style={{
+                            textAlign: "right",
+                            borderBottom: "1px solid #E5E7EB",
+                            padding: "10px 8px",
+                            color: "#374151",
+                            fontWeight: 700,
+                            width: 120,
+                          }}
+                        >
+                          Precio unit.
+                        </th>
+                        <th
+                          style={{
+                            textAlign: "right",
+                            borderBottom: "1px solid #E5E7EB",
+                            padding: "10px 8px",
+                            color: "#374151",
+                            fontWeight: 700,
+                            width: 80,
+                          }}
+                        >
+                          Cantidad
+                        </th>
+                        <th
+                          style={{
+                            textAlign: "right",
+                            borderBottom: "1px solid #E5E7EB",
+                            padding: "10px 8px",
+                            color: "#374151",
+                            fontWeight: 700,
+                            width: 140,
+                          }}
+                        >
+                          Importe
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {items.map((it, idx) => {
+                        const unit = Number(it.precioItemProforma ?? 0);
+                        const qty = Number(it.cantidadItemProforma ?? 0);
+                        const imp = unit * qty;
+                        const zebra = idx % 2 === 1 ? "#FCFCFD" : "#FFFFFF";
+                        return (
+                          <tr key={it.idTemp} style={{ background: zebra }}>
+                            <td
+                              style={{
+                                padding: "8px 8px",
+                                borderBottom: "1px solid #F3F4F6",
+                                verticalAlign: "top",
+                              }}
+                            >
+                              <div
+                                style={{ fontWeight: 600, color: "#111827" }}
+                              >
+                                {it.nombreItemProforma || "-"}
+                              </div>
+                              {it.descripcionItemProforma ? (
+                                <div
+                                  style={{
+                                    color: "#6B7280",
+                                    marginTop: 2,
+                                    whiteSpace: "pre-wrap",
+                                    wordBreak: "break-word",
+                                  }}
+                                >
+                                  {it.descripcionItemProforma}
+                                </div>
+                              ) : null}
+                            </td>
+                            <td
+                              style={{
+                                textAlign: "right",
+                                padding: "8px",
+                                borderBottom: "1px solid #F3F4F6",
+                                whiteSpace: "nowrap",
+                              }}
+                            >
+                              {formatColones(unit)}
+                            </td>
+                            <td
+                              style={{
+                                textAlign: "right",
+                                padding: "8px",
+                                borderBottom: "1px solid #F3F4F6",
+                                whiteSpace: "nowrap",
+                              }}
+                            >
+                              {qty}
+                            </td>
+                            <td
+                              style={{
+                                textAlign: "right",
+                                padding: "8px",
+                                borderBottom: "1px solid #F3F4F6",
+                                whiteSpace: "nowrap",
+                                fontWeight: 600,
+                              }}
+                            >
+                              {formatColones(imp)}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+
+                  {/* Totales */}
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "flex-end",
+                      marginTop: 16,
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: 320,
+                        border: "1px solid #E5E7EB",
+                        borderRadius: 8,
+                        padding: 12,
+                        background: "#FAFAFA",
+                      }}
+                    >
+                      <div
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          marginBottom: 4,
+                          color: "#374151",
+                        }}
+                      >
+                        <span>Subtotal</span>
+                        <span style={{ fontWeight: 600 }}>
+                          {formatColones(Number(totales.subTotal ?? 0))}
+                        </span>
+                      </div>
+
+                      <div
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          marginBottom: 4,
+                          color: "#374151",
+                        }}
+                      >
+                        <span>
+                          Descuento
+                          {descuentoTipo === "Porcentaje" &&
+                          typeof descuentoValor === "number"
+                            ? ` (${descuentoValor}%)`
+                            : ""}
+                        </span>
+                        <span style={{ fontWeight: 600 }}>
+                          - {formatColones(Number(totales.montoDescuento ?? 0))}
+                        </span>
+                      </div>
+
+                      <div
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          marginBottom: 4,
+                          color: "#374151",
+                        }}
+                      >
+                        <span>Subtotal c/desc</span>
+                        <span style={{ fontWeight: 600 }}>
+                          {formatColones(Number(totales.baseImponible ?? 0))}
+                        </span>
+                      </div>
+
+                      <div
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          marginBottom: 8,
+                          color: "#374151",
+                        }}
+                      >
+                        <span>
+                          IVA {typeof impuesto === "number" ? impuesto : 0}%
+                        </span>
+                        <span style={{ fontWeight: 600 }}>
+                          {formatColones(Number(totales.montoImpuesto ?? 0))}
+                        </span>
+                      </div>
+
+                      <div
+                        style={{
+                          borderTop: "1px dashed #E5E7EB",
+                          margin: "8px 0",
+                        }}
+                      />
+
+                      <div
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          fontSize: 16,
+                        }}
+                      >
+                        <span style={{ fontWeight: 800 }}>TOTAL</span>
+                        <span style={{ fontWeight: 800 }}>
+                          {formatColones(Number(totales.totalCalculado ?? 0))}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Pie */}
+                  <div
+                    style={{
+                      marginTop: 24,
+                      fontSize: 11,
+                      color: "#6B7280",
+                      textAlign: "center",
+                    }}
+                  >
+                    Gracias por su preferencia.
+                  </div>
                 </div>
               </div>
             </div>
