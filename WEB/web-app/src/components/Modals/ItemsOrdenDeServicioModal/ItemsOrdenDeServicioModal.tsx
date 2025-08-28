@@ -1,6 +1,6 @@
 // ✅ RP-06: ItemsOrdenDeServicioModal adaptado con manejo local sin refetch y estructura organizada
 
-import { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { GenericDataTable } from "@/components/Tables/DataTable/GenericDataTable";
 import { LoadingPanel } from "@/components/Panel/LoadingPanel";
 import { CustomRange } from "@/components/Range/CustomRange";
@@ -139,6 +139,13 @@ export const ItemsOrdenDeServicioModal = ({
   }, [open, rowData]);
   //#endregion
 
+
+
+  const handleDeleteItemProforma = (id: any) => {
+    setItemsProformas((prevItems) => prevItems.filter((item) => item.iD_ProformaItem !== id));
+  };
+
+
   //#region 🧩 Agregar nuevo
   const handleAddNew = () => {
     setFormData(new DTO_ItemOrdenServicio());
@@ -178,7 +185,7 @@ export const ItemsOrdenDeServicioModal = ({
       next: (result: DTO_Respuesta) => {
         const nuevo = (result.resultado[0] as DTO_ProformaItem[]);
         console.log(nuevo);
-        
+
         if (nuevo) setItemsProformas(nuevo);
       },
       error: errorHelpers.serverError,
@@ -223,6 +230,14 @@ export const ItemsOrdenDeServicioModal = ({
     setItemOrderToDelete(item);
     setConfirmContext("delete");
     setIsConfirmOpen(true);
+  };
+
+  const handleChange = (index: any, field: any, value: any) => {
+    setItemsProformas((prev) => {
+      const newItems = [...prev];
+      newItems[index] = { ...newItems[index], [field]: value };
+      return newItems;
+    });
   };
 
   const handleConfirmDelete = (action: boolean | null) => {
@@ -417,14 +432,15 @@ export const ItemsOrdenDeServicioModal = ({
       tabIndex={-1}
       role="dialog"
       aria-modal="true"
+
     >
       <div
-        className="modal-dialog modal-fullscreen p-4"
-        style={{ maxWidth: "1200px" }}
+        className="modal-dialog modal-fullscreen p-4 p-lg-20 d-flex justify-content-center align-items-center"
+
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="modal-content resizable-metronic-modal">
-          <div className="modal-header cursor-move border-0 p-5 py-4 px-lg-17">
+        <div className="modal-content resizable-metronic-modal" style={{ borderRadius: "0.475rem", maxWidth: '1200px' }}>
+          <div className="modal-header cursor-move border-0 p-5 py-4 py-lg-8 px-lg-10">
             <h2 className="fw-light text-gray-400 fs-5">
               {title.charAt(0).toUpperCase() + title.slice(1).toLowerCase()}
             </h2>
@@ -443,7 +459,7 @@ export const ItemsOrdenDeServicioModal = ({
 
 
                 <div className="rounded border p-0">
-                  <ul className="nav nav-tabs nav-line-tabs fs-6 px-4 justify-content-end">
+                  <ul className="nav nav-tabs nav-line-tabs fs-6 px-4 justify-content-end px-lg-10 py-lg-5">
                     <li className="nav-item">
                       <a className="nav-link" data-bs-toggle="tab" href="#proformas">Proformas</a>
                     </li>
@@ -469,12 +485,18 @@ export const ItemsOrdenDeServicioModal = ({
                         nowrapColumns={["Monto", "ID"]}
                       /></div>
                     <div className="tab-pane fade" id="proformas" role="tabpanel">
-                      <div className="px-4 mt-10">
+
+
+
+                      <div className="px-4 mt-5 d-flex justify-content-between align-items-center pb-2 sticky-top bg-white border-0 shadow-sm-on-scroll" style={{ position: 'sticky', top: '0', background: 'white' }}>
+
+
+
+
                         <AsyncProformaSelect
                           value={proformaSeleccionada}
                           onChange={(op) => {
                             setProformaSeleccionada(op);
-
 
                             const proforma: DTO_Proforma = {
                               ...buscarProforma,
@@ -488,19 +510,26 @@ export const ItemsOrdenDeServicioModal = ({
                           reloadKey={reloadKey}
                           negocio={negocio}
                         />
+
+                        <button
+                          type="button"
+                          className="btn dt-button buttons-html5 btn btn-primary btn-sm mb-0 d-flex align-items-center justify-content-center gap-2 ms-auto"
+                          onClick={() => console.log("click")}
+                        >
+                          Guardar
+                        </button>
                       </div>
 
 
                       <div className="card-body p-4">
 
-                        <table className="table table-row-dashed table-row-gray-300 gy-4">
+                        <table className="table table-sm align-middle text-center table-hover dtr-inline" id="DataTables_Table_28" aria-describedby="DataTables_Table_28_info" data-zebra-custom="398bc2">
                           <thead>
                             <tr className="fs-7 text-gray-500">
-                              <th>Nombre</th>
-                              <th>Descripción</th>
-                              <th className="text-end">Precio</th>
-                              <th className="text-center">Cantidad</th>
-                              <th className="text-center">Acción</th>
+                              <th className="col-6">Nombre</th>
+                              <th className="text-start col-3">Precio</th>
+                              <th className="text-start col-2">Cant.</th>
+                              <th className="text-center col-1"></th>
                             </tr>
                           </thead>
                           <tbody>
@@ -509,31 +538,85 @@ export const ItemsOrdenDeServicioModal = ({
 
                               <tr className="no-hover-row">
                                 <td colSpan={5} className="dt-empty">
-                                <div className="dt-empty-state d-flex flex-column align-items-center justify-content-center py-10">
-                                  <i className="bi bi-inbox fs-1 text-muted" aria-hidden="true"></i>
-                                  <span className="text-muted mt-2">Sin datos</span>
-                                </div>
-                              </td>
+                                  <div className="dt-empty-state d-flex flex-column align-items-center justify-content-center py-10">
+                                    <i className="bi bi-inbox fs-1 text-muted" aria-hidden="true"></i>
+                                    <span className="text-muted mt-2">Sin datos</span>
+                                  </div>
+                                </td>
                               </tr>
                             )}
 
-                            {itemsProformas.map((it) => (
-                              <tr key={it.iD_ProformaItem}>
-                                <td className="align-middle">{it.nombreItemProforma}</td>
-                                <td className="align-middle">{it.descripcionItemProforma}</td>
-                                <td className="text-end align-middle">{it.precioItemProforma?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 3 })}</td>
-                                <td className="text-center align-middle">{it.cantidadItemProforma}</td>
-                                <td className="text-center align-middle">
+                            {itemsProformas.map((it, idx) => (
+                              <React.Fragment key={it.iD_ProformaItem}>
+                                {/* ======= Vista de ESCRITORIO (>= sm): tabla normal ======= */}
 
 
-                                  <button type="button" className="btn" title="Eliminar"
-                                  //onClick={() => handleDelete(it.iD_Proforma, idx)}
-                                  >
-                                    <i className="bi bi-trash"></i>
-                                  </button>
-                                </td>
-                              </tr>
+                                {/* ======= Vista MÓVIL (< sm): grid 8/2/1/1 ======= */}
+                                <tr className="d-table-row">
+                                  <td colSpan={4} className="p-2 py-4">
+                                    <div className="row g-1 align-items-center">
+                                      {/* Nombre: 8/12 */}
+                                      <div className="col-6">
+                                        <input
+                                          type="text"
+                                          className="form-control form-control-sm"
+                                          placeholder="Nombre"
+                                          value={it.nombreItemProforma}
+                                          onChange={(e) => handleChange(idx, "nombreItemProforma", e.target.value)}
+                                        />
+                                      </div>
+
+                                      {/* Precio: 2/12 */}
+                                      <div className="col-3">
+                                        <input
+                                          type="number"
+                                          className="form-control form-control-sm text-end"
+                                          placeholder="Precio"
+                                          value={it.precioItemProforma}
+                                          onChange={(e) => handleChange(idx, "precioItemProforma", e.target.value)}
+                                        />
+                                      </div>
+
+                                      {/* Cantidad: 1/12 */}
+                                      <div className="col-2">
+                                        <input
+                                          type="number"
+                                          className="form-control form-control-sm text-center"
+                                          placeholder="Cant."
+                                          value={it.cantidadItemProforma}
+                                          onChange={(e) => handleChange(idx, "cantidadItemProforma", e.target.value)}
+                                        />
+                                      </div>
+
+                                      {/* Acción: 1/12 */}
+                                      <div className="col-1 text-center">
+                                        <button
+                                          type="button"
+                                          className="btn btn-sm p-2"
+                                          title="Eliminar"
+                                          onClick={() => handleDeleteItemProforma(it.iD_ProformaItem)}
+                                        >
+                                          <i className="bi bi-trash"></i>
+                                        </button>
+                                      </div>
+
+                                      {/* Descripción a ancho completo */}
+                                      <div className="col-12">
+                                        <textarea
+                                          className="form-control form-control-sm my-2"
+                                          rows={2}
+                                          placeholder="Descripción"
+                                          value={it.descripcionItemProforma}
+                                          onChange={(e) => handleChange(idx, "descripcionItemProforma", e.target.value)}
+                                        />
+                                      </div>
+                                    </div>
+                                  </td>
+                                </tr>
+                              </React.Fragment>
                             ))}
+
+
                           </tbody>
                         </table>
                       </div>
