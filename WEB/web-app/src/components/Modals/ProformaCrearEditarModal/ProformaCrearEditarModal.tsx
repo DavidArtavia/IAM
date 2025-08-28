@@ -602,6 +602,7 @@ export const ProformaCrearEditarModal = (props: Props) => {
           totalCalculado: totales.totalCalculado,
           descuentoProforma: dtoCabecera.descuentoProforma,
           impuestoPorcentualProforma: dtoCabecera.impuestoPorcentualProforma,
+          descuentoPorcentualProforma: dtoCabecera.descuentoPorcentualProforma,
         };
         onRegistered?.(nuevaProforma);
         return;
