@@ -84,17 +84,17 @@ export const columnKeysTarifa: (keyof DTO_Tarifa)[] = [
 
 export const columnKeysProforma: (keyof DTO_Proforma)[] = [
     "iD_Proforma",                // ID principal
-    "fechaProforma",              // Fecha de creación
-    "fechaVencimiento",           // Fecha de vencimiento
     "cliente",                    // Cliente asociado
     "observacionProforma",        // Observaciones
+    "fechaProforma",              // Fecha de creación
+    "fechaVencimiento",           // Fecha de vencimiento
     "descuentoProforma",          // % Descuento aplicado
     "montoDescuento",             // Monto de descuento
     "impuestoPorcentualProforma", // % de impuesto
     "montoImpuesto",              // Monto de impuesto
     "subTotal",                   // Subtotal antes de descuentos/impuestos
     "baseImponible",              // Monto base después de descuento
-    "totalCalculado",             // Total final
+    "totalCalculado",
 ];
 
 export const columnKeysItemsProforma: (keyof DTO_ProformaItem)[] = [
@@ -537,6 +537,7 @@ export const labelMapProforma: Record<string, string> = {
     subTotal: "Subtotal",
     baseImponible: "Subtotal c/desc:",
     totalCalculado: "Total final",
+    estado: "Estado",
 };
 
 export const labelMapItemsProforma: Record<string, string> = {

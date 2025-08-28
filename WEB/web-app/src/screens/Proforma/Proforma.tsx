@@ -1,6 +1,7 @@
 // src/pages/Proformas.tsx
 import {
   ConfirmModal,
+  DynamicButtonConfig,
   FieldConfig,
   GenericDataTable,
   GenericDataTableHandle,
@@ -192,7 +193,7 @@ export const Proformas = () => {
   };
   //#endregion
 
-  //#region 🔧 Renderizadores
+  //#region 🔧 Renderizadores modificado para celdas de la tabla
   const customRenderers = {
     fechaProforma: (val: unknown) =>
       val ? new Date(String(val)).toLocaleDateString("es-CR") : "",
@@ -375,6 +376,100 @@ export const Proformas = () => {
   ];
   //#endregion
 
+  //#region Cambios de estados de proforma
+
+  const handleChangeEstado = ( nuevoEstadoId: number, row: DTO_Proforma, nombreEstado: string) => {
+
+    if (!row) return;
+
+    const dtoProforma: DTO_Proforma = {
+      ...row,
+      estado: {
+        iD_Estado: nuevoEstadoId,
+        nombre: nombreEstado,
+        tabla: "",
+      },
+    };
+
+    proformaService.actualizarProformas(dtoProforma).subscribe({
+      next: (res: DTO_Respuesta) => {
+      if (res?.tipoRespuesta) {
+        notificationHelpers.successAlert(`Estado Cambiado a ${nombreEstado}`);
+        tableRef.current?.upsert(dtoProforma);
+      } else {
+        notificationHelpers.warningAlert(
+          res?.mensaje || "No se pudo actualizar el estado"
+        );
+      }
+      },
+      error: (err) => {
+      errorHelpers.serverError(err);
+      },
+    });
+    
+  };
+
+  //#endregion
+
+  //#region botones de acción para la tabla
+const opcionesDropdown = (row: DTO_Proforma) => [
+  {
+    label: "Borrador",
+    icon: <i className="bi bi-file-earmark-text me-2 text-info" />,
+    onClick: () => handleChangeEstado(STATUS_TBL.PROFORMA.DRAFT, row, "borrador"),
+  },
+  {
+    label: "Anular",
+    icon: <i className="bi bi-x-circle me-2 text-danger" />,
+    danger: true,
+    onClick: () => handleChangeEstado(STATUS_TBL.PROFORMA.ANNULLED, row, "anulado"),
+  },
+  {
+    label: "Aprobar",
+    icon: <i className="bi bi-check2-circle me-2 text-success" />,
+    danger: false,
+    onClick: () => handleChangeEstado(STATUS_TBL.PROFORMA.APPROVED, row, "aprobado"),
+  },
+];
+
+  const dataTableButtons: DynamicButtonConfig[] = [
+    {
+      render: ({ row }) => (
+        <div className="dropdown" >
+          <button
+            type="button"
+            className="btn btn-icon btn-bg-light btn-active-color-primary btn-sm "
+            data-bs-toggle="dropdown"
+            aria-expanded="false"
+          >
+            <i className="dropdown-toggle fs-3"></i>
+          </button>
+
+          <ul className="dropdown-menu dropdown-menu-end">
+            {opcionesDropdown(row).map((it, i) => (
+              <li key={`opt-${i}`}>
+                <button
+                  type="button"
+                  className={`dropdown-item d-flex align-items-center ${
+                    it.danger ? "text-danger" : ""
+                  }`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    it.onClick?.();
+                  }}
+                >
+                  {it.icon}
+                  {it.label}
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ),
+    },
+  ];
+  //#endregion
+
   return (
     <div className="row p-4 gx-0">
       {loading ? (
@@ -385,17 +480,15 @@ export const Proformas = () => {
           title="Proformas"
           columnKeys={columnKeysProforma}
           labelMap={labelMapProforma}
+          dataTableButtons={dataTableButtons}
           data={proformas}
           independent
+          includeEstadoColumn
           idField="iD_Proforma"
           onAdd={handleAddNew}
           onEdit={handleEdit}
           onDelete={handleDelete}
-          onRowClick={(e) => {
-            console.log("Row clicked:", e);
-            setRowTableSelected(e);
-          }}
-          includeEstadoColumn
+          onRowClick={setRowTableSelected}
           customRenderers={customRenderers}
           nowrapColumns={[
             "iD_Proforma",
@@ -405,6 +498,7 @@ export const Proformas = () => {
             "subTotal",
             "baseImponible",
             "montoImpuesto",
+            "descuentoProforma",
           ]}
         />
       )}
@@ -429,30 +523,6 @@ export const Proformas = () => {
         data={rowTableSelected!}
         fields={infoModalFields}
       />
-
-      {/* <GenericFormModal
-        title="Registrar Proforma"
-        show={isRegisterFormOpen}
-        onHide={handleCancelAdd}
-        data={registerFormData}
-        setData={setRegisterFormData}
-        onSubmit={handleSave}
-        fields={proformaFormAddFields}
-        erroresValidacion={erroresValidacion}
-        onEliminarError={eliminarError}
-      /> */}
-
-      {/* <GenericFormModal
-        title="Editar Proforma"
-        show={showEditForm}
-        onHide={() => setShowEditForm(false)}
-        data={editData}
-        setData={setEditData}
-        onSubmit={handleSaveEdit}
-        fields={proformaFormEditFields}
-        erroresValidacion={erroresValidacion}
-        onEliminarError={eliminarError}
-      /> */}
 
       <ConfirmModal
         show={isConfirmOpen}

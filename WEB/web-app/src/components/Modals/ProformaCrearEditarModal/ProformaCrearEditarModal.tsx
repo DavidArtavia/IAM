@@ -261,7 +261,7 @@ export const ProformaCrearEditarModal = (props: Props) => {
       renderer: () => (
         <input
           type="date"
-          className="form-control "
+          className="form-control text-muted"
           value={fechaP}
           onChange={(e) => setFechaP(e.target.value)}
         />
@@ -274,7 +274,7 @@ export const ProformaCrearEditarModal = (props: Props) => {
       renderer: () => (
         <input
           type="date"
-          className="form-control"
+          className="form-control text-muted"
           value={fechaV}
           onChange={(e) => setFechaV(e.target.value)}
         />
@@ -286,7 +286,7 @@ export const ProformaCrearEditarModal = (props: Props) => {
       type: "custom",
       renderer: () => (
         <textarea
-          className="form-control"
+          className="form-control text-muted"
           rows={2}
           value={observaciones}
           onChange={(e) => setObservaciones(e.target.value)}
@@ -303,7 +303,7 @@ export const ProformaCrearEditarModal = (props: Props) => {
             <input
               type="number"
               placeholder={descuentoTipo === "Porcentaje" ? "%" : "₡0.00"}
-              className="form-control"
+              className="form-control text-muted"
               value={descuentoValor ?? ""}
               onWheel={(e) => e.currentTarget.blur()}
               onKeyDown={(e) => {
@@ -352,7 +352,9 @@ export const ProformaCrearEditarModal = (props: Props) => {
             <button
               type="button"
               className={`btn ${
-                descuentoTipo === "Porcentaje" ? "btn-primary" : "btn-secondary"
+                descuentoTipo === "Porcentaje"
+                  ? "btn-primary "
+                  : "btn-secondary pulse pulse-primary"
               } btn-icon pulse`}
               onClick={() => {
                 setDescuentoTipo((prev) =>
@@ -381,7 +383,7 @@ export const ProformaCrearEditarModal = (props: Props) => {
         <input
           type="number"
           placeholder="0.00"
-          className="form-control"
+          className="form-control text-muted"
           value={impuesto ?? ""}
           min={0}
           max={100}
@@ -769,10 +771,10 @@ export const ProformaCrearEditarModal = (props: Props) => {
 
               {/* Ítems */}
               <div className="card mt-6">
-                <div className="card-header pb-0">
-                  <div className="card-title text-muted">Ítems</div>
+                <div className="card-header p-1 pb-0 ">
+                  <div className="card-title text-muted ">Ítems</div>
                 </div>
-                <div className="card-body">
+                <div className="card-body p-0 pt-3">
                   {/* Tarifa + botón agregar (input izq, botón der pegado) */}
                   <div className="d-flex align-items-center gap-2 flex-wrap mb-4">
                     <div
@@ -813,10 +815,10 @@ export const ProformaCrearEditarModal = (props: Props) => {
                           <th>Nombre</th>
                           <th>Descripción</th>
                           <th className="text-end" style={{ width: 140 }}>
-                            P. Unit
+                            Precio
                           </th>
                           <th className="text-end" style={{ width: 120 }}>
-                            Cant.
+                            Cantidad
                           </th>
                           <th className="text-end" style={{ width: 160 }}>
                             Importe
@@ -837,7 +839,7 @@ export const ProformaCrearEditarModal = (props: Props) => {
                               <td>{idx + 1}</td>
                               <td>
                                 <input
-                                  className="form-control form-control-sm"
+                                  className="form-control text-muted form-control-sm"
                                   ref={(el) => {
                                     nombreRefs.current[it.idTemp] = el;
                                   }}
@@ -853,7 +855,7 @@ export const ProformaCrearEditarModal = (props: Props) => {
                               </td>
                               <td>
                                 <input
-                                  className="form-control form-control-sm"
+                                  className="form-control text-muted form-control-sm"
                                   value={it.descripcionItemProforma}
                                   onChange={(e) =>
                                     patchItem(it.idTemp, {
@@ -869,7 +871,7 @@ export const ProformaCrearEditarModal = (props: Props) => {
                                   type="number"
                                   step="1"
                                   min={0}
-                                  className="form-control form-control-sm text-end"
+                                  className="form-control text-muted form-control-sm text-end"
                                   value={it.precioItemProforma ?? 0}
                                   onWheel={(e) => e.currentTarget.blur()}
                                   onKeyDown={(e) => {
@@ -926,7 +928,7 @@ export const ProformaCrearEditarModal = (props: Props) => {
                                   type="number"
                                   step="1"
                                   min={1}
-                                  className="form-control form-control-sm text-end"
+                                  className="form-control text-muted form-control-sm text-end"
                                   value={it.cantidadItemProforma ?? 1}
                                   onWheel={(e) => e.currentTarget.blur()}
                                   onKeyDown={(e) => {
@@ -976,7 +978,7 @@ export const ProformaCrearEditarModal = (props: Props) => {
                                 />
                               </td>
                               <td className="text-end">
-                                <span className="fw-bold">
+                                <span className="text-muted">
                                   {formatColones(importe.toFixed(2))}
                                 </span>
                               </td>
@@ -1022,7 +1024,7 @@ export const ProformaCrearEditarModal = (props: Props) => {
                       return (
                         <div
                           key={it.idTemp}
-                          className={`border rounded-3 p-3 mb-3 bg-white shadow-sm ${cardCls}`}
+                          className={`border rounded-3 p-3 mb-3 w-100 ${cardCls}`}
                         >
                           <div className="d-flex justify-content-between align-items-center mb-2">
                             <span className="badge bg-light text-dark">
@@ -1053,11 +1055,10 @@ export const ProformaCrearEditarModal = (props: Props) => {
                               />
                             </button>
                           </div>
-
                           <div className="mb-2">
-                            <label className="form-label mb-1">Nombre</label>
+                            <label className="text-muted mb-1">Nombre</label>
                             <input
-                              className="form-control form-control-sm"
+                              className="form-control text-muted form-control-sm"
                               ref={(el) => {
                                 nombreRefs.current[it.idTemp] = el;
                               }}
@@ -1071,13 +1072,12 @@ export const ProformaCrearEditarModal = (props: Props) => {
                               disabled={it._deleted}
                             />
                           </div>
-
                           <div className="mb-2">
-                            <label className="form-label mb-1">
+                            <label className="text-muted mb-1">
                               Descripción
                             </label>
                             <input
-                              className="form-control form-control-sm"
+                              className="form-control text-muted form-control-sm"
                               value={it.descripcionItemProforma}
                               onChange={(e) =>
                                 patchItem(it.idTemp, {
@@ -1088,15 +1088,14 @@ export const ProformaCrearEditarModal = (props: Props) => {
                               disabled={it._deleted}
                             />
                           </div>
-
                           <div className="row g-2">
                             <div className="col-6">
-                              <label className="form-label mb-1">P. Unit</label>
+                              <label className="text-muted mb-1">Precio</label>
                               <input
                                 type="number"
                                 step="1"
                                 min={0}
-                                className="form-control form-control-sm text-end"
+                                className="form-control text-muted form-control-sm text-end"
                                 value={it.precioItemProforma ?? 0}
                                 onWheel={(e) => e.currentTarget.blur()}
                                 onKeyDown={(e) => {
@@ -1146,12 +1145,14 @@ export const ProformaCrearEditarModal = (props: Props) => {
                               />
                             </div>
                             <div className="col-6">
-                              <label className="form-label mb-1">Cant.</label>
+                              <label className="text-muted mb-1">
+                                Cantidad
+                              </label>
                               <input
                                 type="number"
                                 step="1"
                                 min={1}
-                                className="form-control form-control-sm text-end"
+                                className="form-control text-muted form-control-sm text-end"
                                 value={it.cantidadItemProforma ?? 1}
                                 onWheel={(e) => e.currentTarget.blur()}
                                 onKeyDown={(e) => {
@@ -1198,10 +1199,9 @@ export const ProformaCrearEditarModal = (props: Props) => {
                               />
                             </div>
                           </div>
-
                           <div className="d-flex justify-content-between align-items-center mt-2">
                             <small className="text-muted">Importe</small>
-                            <span className="fw-bold">
+                            <span className="text-muted">
                               {formatColones(importe.toFixed(2))}
                             </span>
                           </div>
@@ -1215,7 +1215,7 @@ export const ProformaCrearEditarModal = (props: Props) => {
                     <div className="w-100 w-md-50">
                       <div className="d-flex justify-content-between">
                         <span className="text-muted">Subtotal</span>
-                        <span className="fw-semibold">
+                        <span className="text-muted">
                           {formatColones(totales.subTotal ?? 0)}
                         </span>
                       </div>
@@ -1226,7 +1226,7 @@ export const ProformaCrearEditarModal = (props: Props) => {
                             ? `(${descuentoValor ?? 0}%)`
                             : ""}
                         </span>
-                        <span className="fw-semibold">
+                        <span className="text-muted">
                           - {formatColones(totales.montoDescuento ?? 0)}
                         </span>
                       </div>
@@ -1237,13 +1237,13 @@ export const ProformaCrearEditarModal = (props: Props) => {
                         >
                           Subtotal c/desc:
                         </span>
-                        <span className="fw-semibold">
+                        <span className="text-muted">
                           {formatColones(totales.baseImponible ?? 0)}
                         </span>
                       </div>
                       <div className="d-flex justify-content-between">
                         <span className="text-muted">IVA {impuesto ?? 0}%</span>
-                        <span className="fw-semibold">
+                        <span className="text-muted">
                           {formatColones(totales.montoImpuesto ?? 0)}
                         </span>
                       </div>
