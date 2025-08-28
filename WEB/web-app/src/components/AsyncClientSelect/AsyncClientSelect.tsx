@@ -65,6 +65,7 @@ export const AsyncClientSelect = ({ value, onChange, reloadKey = 0 }: Props) => 
 
   return (
     <AsyncSelect
+      classNamePrefix="text-muted"
       cacheOptions
       defaultOptions={recentOptions}
       loadOptions={debouncedPromiseLoad}
@@ -73,6 +74,20 @@ export const AsyncClientSelect = ({ value, onChange, reloadKey = 0 }: Props) => 
       placeholder="Buscar cliente..."
       noOptionsMessage={() => "Escribe al menos 3 caracteres"}
       isMulti={false}
+      styles={{
+        input: (base) => ({
+          ...base,
+          color: "#6c757d", // Bootstrap's text-muted color
+        }),
+        singleValue: (base) => ({
+          ...base,
+          color: "#6c757d",
+        }),
+        placeholder: (base) => ({
+          ...base,
+          color: "#6c757d",
+        }),
+      }}
     />
   );
 };

@@ -287,12 +287,47 @@ function GenericDataTableInner<T>(
 
           const key = keyStr as keyof T;
           if (customRenderers[key]) {
-            col.render = (val, _, row) => {
+            const renderer = customRenderers[key]!;
+
+            // 1) Para sorting/filter/export → devolver texto cuando sea posible
+            col.render = (dataValue, _type, rowData) => {
               try {
-                return customRenderers[key]!(val, row as T);
+                const out = renderer(dataValue, rowData as T);
+
+                // Si es JSX, devolvemos string vacío (el contenido se montará en createdCell)
+                if (React.isValidElement(out)) return "";
+
+                // Si es primitivo, devuélvelo tal cual
+                if (typeof out === "string" || typeof out === "number")
+                  return out;
+
+                // Cualquier otro caso
+                return out ?? "";
               } catch (error) {
                 console.warn(`Render error (${keyStr})`, error);
-                return val || "";
+                return dataValue ?? "";
+              }
+            };
+
+            // 2) Para display real en celdas → montar JSX si corresponde
+            col.createdCell = (cell, dataValue, rowData) => {
+              try {
+                const out = renderer(dataValue, rowData as T);
+                (cell as HTMLElement).innerHTML = ""; // limpia la celda
+
+                if (React.isValidElement(out)) {
+                  const container = document.createElement("span");
+                  cell.appendChild(container);
+                  const root = ReactDOM.createRoot(container);
+                  root.render(out);
+                } else {
+                  // Texto plano como fallback
+                  (cell as HTMLElement).textContent =
+                    out != null ? String(out) : "";
+                }
+              } catch (error) {
+                console.warn(`createdCell error (${keyStr})`, error);
+                (cell as HTMLElement).textContent = "";
               }
             };
           }

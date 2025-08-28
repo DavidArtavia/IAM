@@ -96,6 +96,7 @@ export const AsyncTarifaSelect = ({
       isMulti={false}
       getOptionValue={(opt) => String(opt.value)}
       getOptionLabel={(opt) => opt.label}
+      
     />
   );
 };

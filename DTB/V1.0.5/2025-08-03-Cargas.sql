@@ -17,9 +17,6 @@ INSERT INTO [UTIL].[TBL_ALERTAS] ([COD_ALERTA], [Nombre], [Mensaje], [Tipo]) VAL
 ('B048', N'Registrar Proforma Item', N'Ítems de proforma obtenidos correctamente', 'I'),
 ('B049', N'Buscar Proforma', N'Búsqueda de proformas realizada correctamente', 'I');
 
--- Descomentar la siguiente línea si se requiere insertar estados específicos ⬇️
--- SET IDENTITY_INSERT [UTIL].[TBL_ESTADOS] ON; -- activarlo si es necesario para insertar estados específicos
-
 INSERT INTO [UTIL].[TBL_ESTADOS] ([ID_Estado], [Nombre], [Tabla]) VALUES
 (23, 'Activo',    'TBL_TARIFAS'),
 (24, 'Inactivo',  'TBL_TARIFAS'),

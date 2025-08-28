@@ -1172,7 +1172,7 @@ export const OrdenDeServicio = () => {
                           orden de servicio.
                           <br />
                           <Link
-                            to={ROUTES.CLIENTES}
+                            to={ROUTES.CLIENTS}
                             className="fw-semibold d-inline-flex align-items-center gap-2 ms-1"
                             onClick={() => {
                               setShowNoClientsModal(false);
@@ -1200,7 +1200,7 @@ export const OrdenDeServicio = () => {
                       className="btn btn-primary"
                       onClick={() => {
                         setShowNoClientsModal(false);
-                        navigate(ROUTES.CLIENTES);
+                        navigate(ROUTES.CLIENTS);
                       }}
                     >
                       {" "}

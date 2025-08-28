@@ -2,9 +2,10 @@ import {
   ConfirmModal,
   FieldConfig,
   GenericDataTable,
+  GenericDataTableHandle,
   GenericFormModal,
   InfoModal,
-  LoadingPanel
+  LoadingPanel,
 } from "@/components";
 import { STATUS_TBL } from "@/constants";
 import { useApp } from "@/hooks/useApp";
@@ -22,12 +23,13 @@ import {
   tarifaFormEditFields,
 } from "@/utils";
 import { valida_DTO_Tarifas } from "@/validators/valida_DTO_Tarifas";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { catchError, finalize, map, of } from "rxjs";
 
 export const Tarifario = () => {
   // Estado del negocio disponible
   const { state } = useApp();
+  const tableRef = useRef<GenericDataTableHandle<DTO_Tarifa>>(null);
 
   // #region Validaciones en los formularios
   const [erroresValidacion, setErroresValidacion] = useState<DTO_Param[]>([]);
@@ -132,6 +134,7 @@ export const Tarifario = () => {
             Array.isArray(res.resultado) ? res.resultado[0] : res.resultado
           ) as DTO_Tarifa;
           setTarifas((prev) => [...prev, nuevo]);
+          tableRef.current?.upsert(nuevo);
           notificationHelpers.successAlert(
             res.mensaje || "Tarifa registrada correctamente"
           );
@@ -171,6 +174,7 @@ export const Tarifario = () => {
       tarifasService.actualizarTarifas(updated).subscribe({
         next: (res) => {
           setTarifas((prev) => updateItemById(prev, updated, "iD_Tarifa"));
+          tableRef.current?.upsert(updated);
           notificationHelpers.infoAlert(res.mensaje);
           setShowEditForm(false);
         },
@@ -202,29 +206,37 @@ export const Tarifario = () => {
   };
 
   const handleConfirmDelete = (action: boolean | null) => {
-    if (action && tarifaToDelete) {
-      const updated: DTO_Tarifa = {
-        ...tarifaToDelete,
-        estado: {
-          ...tarifaToDelete.estado!,
-          iD_Estado: STATUS_TBL.TARIFF.DELETED,
-          nombre: "Eliminado",
-        },
-      };
-      setTarifas((prev) =>
-        updateItemById(prev, updated, "iD_Tarifa").filter(
-          (c) => c.estado?.iD_Estado !== STATUS_TBL.TARIFF.DELETED
-        )
-      );
-      tarifasService.actualizarTarifas(updated).subscribe({
-        next: (res) =>
-          notificationHelpers.infoAlert(
-            //usamos B037 ya que este seria el cod de exito de actualizado
-            res.codigo === "B037" ? "Tarifa eliminada correctamente" : ""
-          ),
-        error: errorHelpers.serverError,
-      });
+    if (!action || !tarifaToDelete) {
+      setTarifaToDelete(null);
+      setIsConfirmOpen(false);
+      setConfirmContext(null);
+      return;
     }
+    tableRef.current?.removeById(tarifaToDelete.iD_Tarifa);
+
+    const updated: DTO_Tarifa = {
+      ...tarifaToDelete,
+      estado: {
+        ...tarifaToDelete.estado!,
+        iD_Estado: STATUS_TBL.TARIFF.DELETED,
+        nombre: "Eliminado",
+      },
+    };
+    tarifasService.actualizarTarifas(updated).subscribe({
+      next: (res: DTO_Respuesta) => {
+        if (res?.codigo === "B037") {
+          notificationHelpers.infoAlert("Tarifa eliminada correctamente");
+        } else {
+          notificationHelpers.warningAlert(
+            res?.mensaje || "No se pudo eliminar"
+          );
+        }
+      },
+      error: (err) => {
+        errorHelpers.serverError(err);
+      },
+    });
+
     setTarifaToDelete(null);
     setIsConfirmOpen(false);
     setConfirmContext(null);
@@ -287,16 +299,20 @@ export const Tarifario = () => {
         <LoadingPanel msj="Cargando Tarifario, por favor espere..." />
       ) : (
         <GenericDataTable<DTO_Tarifa>
+          ref={tableRef}
           title="Tarifario"
           columnKeys={columnKeysTarifa}
           labelMap={labelMapTarifa}
           data={tarifas}
+          independent
+          idField="iD_Tarifa"
           onAdd={handleAddNew}
           onEdit={handleEdit}
           onDelete={handleDelete}
           onRowClick={setRowTableSelected}
           includeEstadoColumn={false}
           customRenderers={customRenderers}
+          nowrapColumns={["precioTarifa"]}
         />
       )}
 
