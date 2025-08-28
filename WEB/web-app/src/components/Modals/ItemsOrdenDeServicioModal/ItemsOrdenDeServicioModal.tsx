@@ -492,7 +492,7 @@ export const ItemsOrdenDeServicioModal = ({
 
 
 
-                        <div className="col-lg-4 col-7">
+                        <div className="col-lg-4 col-9">
                           <AsyncProformaSelect
                             value={proformaSeleccionada}
                             onChange={(op) => {
