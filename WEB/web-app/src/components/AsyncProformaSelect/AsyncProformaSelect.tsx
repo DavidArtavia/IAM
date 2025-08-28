@@ -71,7 +71,6 @@ export const AsyncProformaSelect = ({
   const loadOptions = async (input: string): Promise<ProformaOption[]> => {
     //if (!input || input.trim().length < 3) return [];
     const solicitud: DTO_SolicitudDeBusqueda = { term: input.trim(), negocio };
-    console.log(solicitud);
 
     const respuesta = await proformaService.buscarProformas(solicitud).toPromise();
 

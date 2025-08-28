@@ -390,7 +390,6 @@ export const Proformas = () => {
         tabla: "",
       },
     };
-
     proformaService.actualizarProformas(dtoProforma).subscribe({
       next: (res: DTO_Respuesta) => {
       if (res?.tipoRespuesta) {

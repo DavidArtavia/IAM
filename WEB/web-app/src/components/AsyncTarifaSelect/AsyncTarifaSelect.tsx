@@ -67,7 +67,7 @@ export const AsyncTarifaSelect = ({
   );
 
   const loadOptions = async (input: string): Promise<TarifarioOption[]> => {
-    if (!input || input.trim().length < 3) return [];
+    // if (!input || input.trim().length < 3) return [];
     const solicitud: DTO_SolicitudDeBusqueda = { term: input.trim(), negocio };
 
     const list = await tarifasService.buscarTarifas(solicitud).toPromise();
@@ -92,7 +92,7 @@ export const AsyncTarifaSelect = ({
       onChange={onChange}
       value={value}
       placeholder="Buscar tarifa..."
-      noOptionsMessage={() => "Escribe al menos 3 caracteres"}
+      noOptionsMessage={() => "Sin resultados"}
       isMulti={false}
       getOptionValue={(opt) => String(opt.value)}
       getOptionLabel={(opt) => opt.label}
