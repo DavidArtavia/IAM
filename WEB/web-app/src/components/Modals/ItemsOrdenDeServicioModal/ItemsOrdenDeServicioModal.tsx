@@ -459,7 +459,7 @@ export const ItemsOrdenDeServicioModal = ({
 
 
                 <div className="rounded border p-0">
-                  <ul className="nav nav-tabs nav-line-tabs fs-6 px-4 justify-content-end px-lg-10 py-lg-5">
+                  <ul className="nav nav-tabs nav-line-tabs fs-6 px-4 justify-content-end px-lg-20 py-lg-5">
                     <li className="nav-item">
                       <a className="nav-link" data-bs-toggle="tab" href="#proformas">Proformas</a>
                     </li>
@@ -492,24 +492,26 @@ export const ItemsOrdenDeServicioModal = ({
 
 
 
+                        <div className="col-lg-4 col-9">
+                          <AsyncProformaSelect
+                            value={proformaSeleccionada}
+                            onChange={(op) => {
+                              setProformaSeleccionada(op);
 
-                        <AsyncProformaSelect
-                          value={proformaSeleccionada}
-                          onChange={(op) => {
-                            setProformaSeleccionada(op);
+                              const proforma: DTO_Proforma = {
+                                ...buscarProforma,
+                                totalCalculado: op?.proforma.totalCalculado || 0,
+                                cliente: op?.proforma.cliente || new DTO_Cliente()
+                              }
 
-                            const proforma: DTO_Proforma = {
-                              ...buscarProforma,
-                              totalCalculado: op?.proforma.totalCalculado || 0,
-                              cliente: op?.proforma.cliente || new DTO_Cliente()
-                            }
+                              setBuscarProforma(proforma);
+                              handleProformaOnchange(op?.proforma as DTO_Proforma)
+                            }}
+                            reloadKey={reloadKey}
+                            negocio={negocio}
 
-                            setBuscarProforma(proforma);
-                            handleProformaOnchange(op?.proforma as DTO_Proforma)
-                          }}
-                          reloadKey={reloadKey}
-                          negocio={negocio}
-                        />
+                          />
+                        </div>
 
                         <button
                           type="button"
@@ -523,12 +525,12 @@ export const ItemsOrdenDeServicioModal = ({
 
                       <div className="card-body p-4">
 
-                        <table className="table table-sm align-middle text-center table-hover dtr-inline" id="DataTables_Table_28" aria-describedby="DataTables_Table_28_info" data-zebra-custom="398bc2">
+                        <table className="table table-sm align-middle dtr-inline" id="DataTables_Table_28" aria-describedby="DataTables_Table_28_info" data-zebra-custom="398bc2">
                           <thead>
-                            <tr className="fs-7 text-gray-500">
-                              <th className="col-6">Nombre</th>
-                              <th className="text-start col-3">Precio</th>
-                              <th className="text-start col-2">Cant.</th>
+                            <tr className="fs-7 text-gray-600">
+                              <th className="col-6"></th>
+                              <th className="text-start col-3"></th>
+                              <th className="text-start col-2"></th>
                               <th className="text-center col-1"></th>
                             </tr>
                           </thead>
@@ -548,67 +550,97 @@ export const ItemsOrdenDeServicioModal = ({
 
                             {itemsProformas.map((it, idx) => (
                               <React.Fragment key={it.iD_ProformaItem}>
-                                {/* ======= Vista de ESCRITORIO (>= sm): tabla normal ======= */}
 
 
                                 {/* ======= Vista MÓVIL (< sm): grid 8/2/1/1 ======= */}
+
                                 <tr className="d-table-row">
-                                  <td colSpan={4} className="p-2 py-4">
-                                    <div className="row g-1 align-items-center">
-                                      {/* Nombre: 8/12 */}
-                                      <div className="col-6">
-                                        <input
-                                          type="text"
-                                          className="form-control form-control-sm"
-                                          placeholder="Nombre"
-                                          value={it.nombreItemProforma}
-                                          onChange={(e) => handleChange(idx, "nombreItemProforma", e.target.value)}
-                                        />
+                                  <td colSpan={4} className="pb-4">
+                                    <div className="p-2 py-4 pb-2 pt-1 border border-secoundary rounded-3 hoverElement">
+                                      <div className="row py-2 pb-5">
+                                        <div className="col-10"><span className="fs-7 text-gray-600 mt-2">{'#' + (idx + 1)}</span></div>
+                                        <div className="text-end col-2">
+
+
+                                          <button
+                                            type="button"
+                                            className="btn btn-sm p-0"
+                                            title="Eliminar"
+                                            onClick={() => handleDeleteItemProforma(it.iD_ProformaItem)}
+                                          >
+                                            <i className="bi bi-trash"></i>
+                                          </button>
+
+
+
+                                        </div>
+
+
+
                                       </div>
 
-                                      {/* Precio: 2/12 */}
-                                      <div className="col-3">
-                                        <input
-                                          type="number"
-                                          className="form-control form-control-sm text-end"
-                                          placeholder="Precio"
-                                          value={it.precioItemProforma}
-                                          onChange={(e) => handleChange(idx, "precioItemProforma", e.target.value)}
-                                        />
-                                      </div>
+                                      <div className="row g-1">
 
-                                      {/* Cantidad: 1/12 */}
-                                      <div className="col-2">
-                                        <input
-                                          type="number"
-                                          className="form-control form-control-sm text-center"
-                                          placeholder="Cant."
-                                          value={it.cantidadItemProforma}
-                                          onChange={(e) => handleChange(idx, "cantidadItemProforma", e.target.value)}
-                                        />
-                                      </div>
+                                        <div className="col-6">
+                                          <label htmlFor={'txtNombre' + idx.toString()} className="fs-7 text-gray-600">Nombre</label>
+                                          <input
+                                            type="text"
+                                            className="form-control form-control-sm"
+                                            placeholder="Nombre"
+                                            value={it.nombreItemProforma}
+                                            onChange={(e) => handleChange(idx, "nombreItemProforma", e.target.value)}
+                                            key={'txtNombre' + idx.toString()}
+                                          />
+                                        </div>
 
-                                      {/* Acción: 1/12 */}
-                                      <div className="col-1 text-center">
-                                        <button
-                                          type="button"
-                                          className="btn btn-sm p-2"
-                                          title="Eliminar"
-                                          onClick={() => handleDeleteItemProforma(it.iD_ProformaItem)}
-                                        >
-                                          <i className="bi bi-trash"></i>
-                                        </button>
-                                      </div>
+                                        <div className="col-3">
+                                          <label htmlFor={'txtPrecio' + idx.toString()} className="fs-7 text-gray-600">Precio</label>
+                                          <input
+                                            type="number"
+                                            className="form-control form-control-sm"
+                                            placeholder="Precio"
+                                            value={it.precioItemProforma}
+                                            onChange={(e) => handleChange(idx, "precioItemProforma", e.target.value)}
+                                            key={'txtPrecio' + idx.toString()}
+                                          />
+                                        </div>
 
-                                      {/* Descripción a ancho completo */}
-                                      <div className="col-12">
-                                        <textarea
-                                          className="form-control form-control-sm my-2"
-                                          rows={2}
-                                          placeholder="Descripción"
-                                          value={it.descripcionItemProforma}
-                                          onChange={(e) => handleChange(idx, "descripcionItemProforma", e.target.value)}
-                                        />
+
+                                        <div className="col-3">
+                                          <label htmlFor={'txtCantidad' + idx.toString()} className="fs-7 text-gray-600">Cantidad</label>
+                                          <input
+                                            type="number"
+                                            className="form-control form-control-sm"
+                                            placeholder="Cant."
+                                            value={it.cantidadItemProforma}
+                                            onChange={(e) => handleChange(idx, "cantidadItemProforma", e.target.value)}
+                                            key={'txtCantidad' + idx.toString()}
+                                          />
+                                        </div>
+
+
+
+
+                                        {/* Descripción a ancho completo */}
+                                        <div className="col-12">
+                                          <label htmlFor={'txtDesc' + idx.toString()} className="fs-7 text-gray-600 mt-2">Descripción</label>
+                                          <textarea
+                                            className="form-control form-control-sm mb-2"
+                                            rows={2}
+                                            placeholder="Descripción"
+                                            value={it.descripcionItemProforma}
+                                            onChange={(e) => handleChange(idx, "descripcionItemProforma", e.target.value)}
+                                            key={'txtDesc' + idx.toString()}
+                                          />
+                                        </div>
+
+                                        <div className="row p-0">
+                                          <div className="text-start col-6"></div>
+                                          <div className="text-end col-6"><span className="fs-7 text-gray-600 mt-2">Importe</span> <span className="fs-7 text-gray-600 mt-2 ">{formatColones((it.cantidadItemProforma || 0) * (it.precioItemProforma || 0))}</span></div>
+
+
+
+                                        </div>
                                       </div>
                                     </div>
                                   </td>
@@ -670,7 +702,7 @@ export const ItemsOrdenDeServicioModal = ({
             />
           </div>
           <div className="modal-footer flex-center">
-            <button type="button" className="btn btn-primary" onClick={onHide}>
+            <button type="button" className="btn btn-light" onClick={onHide}>
               Cerrar
             </button>
           </div>
