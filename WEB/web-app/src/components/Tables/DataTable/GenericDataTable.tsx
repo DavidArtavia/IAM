@@ -461,7 +461,7 @@ function GenericDataTableInner<T>(
               inactivo: "badge-light-light",
               borrador: "badge-light-info",
               anulado: "badge-light-danger",
-              aprobado: "badge-light-success",
+              aprovado: "badge-light-success",
               default: "badge badge-dark",
             };
             const badgeClass =
@@ -1717,6 +1717,9 @@ table.table-hover.dataTable tbody tr.no-hover-row:hover > * {
           completado: "badge-light-success",
           eliminado: "badge-light-danger",
           inactivo: "badge-light-light",
+          borrador: "badge-light-info",
+          anulado: "badge-light-danger",
+          aprovado: "badge-light-success",
           default: "badge badge-dark",
         };
         const badgeClass = badgeClassMap[estado] || badgeClassMap["default"];

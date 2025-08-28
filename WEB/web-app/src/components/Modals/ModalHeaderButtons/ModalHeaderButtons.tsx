@@ -1,10 +1,11 @@
 
-export type DynamicButtonConfig = {
+export type DynamicButtonConfig<T = any> = {
   titulo?: string;
   className?: string;
   icon?: React.ReactNode;
   disabled?: boolean;
-  onClick: (data?: any) => void;
+  onClick?: (data?: T) => void;
+  render?: (ctx: { row: T; index: number }) => React.ReactNode;
 };
 
 interface Props {
