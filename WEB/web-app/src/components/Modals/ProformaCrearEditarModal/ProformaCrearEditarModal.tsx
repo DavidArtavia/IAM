@@ -9,29 +9,61 @@ import {
 import { useApp } from "@/hooks/useApp";
 import dayjs from "dayjs";
 import { v4 as uuid } from "uuid";
-import { DTO_Proforma, DTO_ProformaItem, DTO_Respuesta } from "@/models";
+import {
+  DTO_Proforma,
+  DTO_ProformaItem,
+  DTO_Respuesta,
+  DTO_Estado,
+} from "@/models";
 import { calcularTotales, TipoDescuento } from "@/utils/profromasHelpers";
-import { notificationHelpers, procesarRespuesta } from "@/utils";
+import { formatColones, notificationHelpers, procesarRespuesta } from "@/utils";
 import { proformaService } from "@/services/proformas.service";
 import { items_proformaService } from "@/services";
 
+// CONSTANTE de soft-delete para items
+const PROFORMA_ITEM_DELETED = 30;
+
+type Mode = "create" | "edit";
+
 type Props = {
   show: boolean;
+  mode: Mode;
   onClose: () => void;
+
+  /** Solo para edición: suficiente pasar la fila de proforma */
+  proforma?: DTO_Proforma | null;
+
+  /** Opcional en edición: si ya tienes los items cargados en el padre, pásalos y se evita el fetch */
+  itemsIniciales?: DTO_ProformaItem[] | null;
+
+  /** Callbacks */
   onRegistered?: (nuevaProforma: DTO_Proforma) => void;
+  onUpdated?: (proformaActualizada: DTO_Proforma) => void;
 };
 
 type ItemLocal = {
   idTemp: string;
+  iD_ProformaItem?: number;
   iD_Tarifa?: number | null;
   nombreItemProforma: string;
   descripcionItemProforma: string;
   precioItemProforma?: number;
   cantidadItemProforma?: number;
+  _isNew?: boolean;
+  _dirty?: boolean;
+  _deleted?: boolean;
 };
 
 export const ProformaCrearEditarModal = (props: Props) => {
-  const { show, onClose, onRegistered } = props;
+  const {
+    show,
+    mode,
+    onClose,
+    proforma,
+    itemsIniciales,
+    onRegistered,
+    onUpdated,
+  } = props;
   const { state } = useApp();
   const negocio = state.negocio;
 
@@ -47,13 +79,9 @@ export const ProformaCrearEditarModal = (props: Props) => {
   );
   const [logoDataUrl, setLogoDataUrl] = useState<string | null>(null);
 
-  // contenedor de inputs "Nombre" por fila (clave = idTemp)
+  // refs para foco/scroll
   const nombreRefs = useRef<Record<string, HTMLInputElement | null>>({});
-
-  // guarda el idTemp del último ítem agregado
   const [lastAddedId, setLastAddedId] = useState<string | null>(null);
-
-  // referencia al body del modal (para scroll al agregar ítem)
   const modalBodyRef = useRef<HTMLDivElement>(null);
 
   // Ítems
@@ -64,23 +92,122 @@ export const ProformaCrearEditarModal = (props: Props) => {
       descripcionItemProforma: "",
       precioItemProforma: 0,
       cantidadItemProforma: 1,
+      _isNew: true,
     },
   ]);
+  const [tarifaSel, setTarifaSel] = useState<TarifarioOption | null>(null);
 
-  //#region 🧩 Efecto para foco y scroll al agregar ítem
+  // === Hidratación en modo edición (carga cabecera + ítems si no vienen) ===
+  useEffect(() => {
+    if (mode !== "edit" || !proforma) return;
+
+    // Cabecera
+    setClienteOpt(
+      proforma.cliente
+        ? {
+            value: Number(proforma.iD_Cliente),
+            label:
+              `${(proforma.cliente as any)?.nombreCliente ?? ""} ${
+                (proforma.cliente as any)?.apellidoCliente ?? ""
+              }`.trim() || String(proforma.iD_Cliente),
+          }
+        : {
+            value: Number(proforma.iD_Cliente),
+            label: String(proforma.iD_Cliente),
+          }
+    );
+    setFechaP(dayjs(proforma.fechaProforma ?? new Date()).format("YYYY-MM-DD"));
+    setFechaV(
+      dayjs(proforma.fechaVencimiento ?? dayjs().add(15, "day")).format(
+        "YYYY-MM-DD"
+      )
+    );
+    setObservaciones(proforma.observacionProforma ?? "");
+    setDescuentoTipo(
+      proforma.descuentoPorcentualProforma ? "Porcentaje" : "Monto"
+    );
+    setDescuentoValor(proforma.descuentoProforma ?? undefined);
+    setImpuesto(proforma.impuestoPorcentualProforma ?? undefined);
+
+    // Ítems
+    if (!itemsIniciales || !itemsIniciales.length) {
+      const sub = items_proformaService
+        .obtenerItemsProformas({
+          iD_Proforma: proforma.iD_Proforma,
+        } as DTO_Proforma)
+        .subscribe({
+          next: (r: DTO_Respuesta) => {
+            const list =
+              (procesarRespuesta(r) as unknown as DTO_ProformaItem[]) || [];
+            const mapped: ItemLocal[] = list.map((x) => ({
+              idTemp: uuid(),
+              iD_ProformaItem: x.iD_ProformaItem,
+              iD_Tarifa: undefined,
+              nombreItemProforma: x.nombreItemProforma,
+              descripcionItemProforma: x.descripcionItemProforma ?? "",
+              precioItemProforma: Number(x.precioItemProforma ?? 0),
+              cantidadItemProforma: Number(x.cantidadItemProforma ?? 1),
+              _isNew: false,
+              _dirty: false,
+              _deleted: x.estado?.iD_Estado === PROFORMA_ITEM_DELETED,
+            }));
+            setItems(
+              mapped.length
+                ? mapped
+                : [
+                    {
+                      idTemp: uuid(),
+                      nombreItemProforma: "",
+                      descripcionItemProforma: "",
+                      precioItemProforma: 0,
+                      cantidadItemProforma: 1,
+                      _isNew: true,
+                    },
+                  ]
+            );
+          },
+          error: () => {
+            setItems([
+              {
+                idTemp: uuid(),
+                nombreItemProforma: "",
+                descripcionItemProforma: "",
+                precioItemProforma: 0,
+                cantidadItemProforma: 1,
+                _isNew: true,
+              },
+            ]);
+          },
+        });
+      return () => sub.unsubscribe?.();
+    } else {
+      const mapped = itemsIniciales.map((x) => ({
+        idTemp: uuid(),
+        iD_ProformaItem: x.iD_ProformaItem,
+        iD_Tarifa: undefined,
+        nombreItemProforma: x.nombreItemProforma,
+        descripcionItemProforma: x.descripcionItemProforma ?? "",
+        precioItemProforma: Number(x.precioItemProforma ?? 0),
+        cantidadItemProforma: Number(x.cantidadItemProforma ?? 1),
+        _isNew: false,
+        _dirty: false,
+        _deleted: false,
+      }));
+      setItems(mapped);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mode, proforma?.iD_Proforma]);
+
+  // foco al agregar item
   useEffect(() => {
     if (!lastAddedId) return;
-    // esperamos un frame para que React pinte la nueva fila
     const id = lastAddedId;
     const t = requestAnimationFrame(() => {
       const input = nombreRefs.current[id];
       if (input) {
-        // foco sin salto brusco
         input.focus({ preventScroll: true });
-        // colocar el cursor al final
         const len = input.value.length;
         input.setSelectionRange?.(len, len);
-        // desplazar el contenedor hasta el input
         input.scrollIntoView({
           behavior: "smooth",
           block: "center",
@@ -88,27 +215,27 @@ export const ProformaCrearEditarModal = (props: Props) => {
         });
       }
     });
-    //#endregion
-    // limpiamos para no re-disparar
     setLastAddedId(null);
     return () => cancelAnimationFrame(t);
   }, [items, lastAddedId]);
 
-  const [tarifaSel, setTarifaSel] = useState<TarifarioOption | null>(null);
-
-  // Totales
+  // Totales (solo ítems no eliminados)
+  const itemsVigentes = useMemo(
+    () => items.filter((i) => !i._deleted),
+    [items]
+  );
   const totales = useMemo(
     () =>
       calcularTotales(
-        items,
+        itemsVigentes,
         descuentoTipo,
         typeof descuentoValor === "number" ? descuentoValor : 0,
         typeof impuesto === "number" ? impuesto : 0
       ),
-    [items, descuentoTipo, descuentoValor, impuesto]
+    [itemsVigentes, descuentoTipo, descuentoValor, impuesto]
   );
 
-  // Fields cabecera
+  // Fields cabecera (mantenemos tu patrón)
   const headerFields: FieldConfig<DTO_Proforma>[] = [
     {
       key: "iD_Cliente",
@@ -134,7 +261,7 @@ export const ProformaCrearEditarModal = (props: Props) => {
       renderer: () => (
         <input
           type="date"
-          className="form-control"
+          className="form-control "
           value={fechaP}
           onChange={(e) => setFechaP(e.target.value)}
         />
@@ -181,9 +308,8 @@ export const ProformaCrearEditarModal = (props: Props) => {
               onWheel={(e) => e.currentTarget.blur()}
               onKeyDown={(e) => {
                 const blocked = ["-", "+", "e", "E"];
-                if (blocked.includes(e.key) || e.code === "NumpadSubtract") {
+                if (blocked.includes(e.key) || e.code === "NumpadSubtract")
                   e.preventDefault();
-                }
               }}
               onBeforeInput={(e: any) => {
                 if (e?.data && /[-+eE]/.test(e.data)) e.preventDefault();
@@ -264,9 +390,8 @@ export const ProformaCrearEditarModal = (props: Props) => {
           onWheel={(e) => e.currentTarget.blur()}
           onKeyDown={(e) => {
             const blocked = ["-", "+", "e", "E"];
-            if (blocked.includes(e.key) || e.code === "NumpadSubtract") {
+            if (blocked.includes(e.key) || e.code === "NumpadSubtract")
               e.preventDefault();
-            }
           }}
           onBeforeInput={(e: any) => {
             if (e?.data && /[-+eE]/.test(e.data)) e.preventDefault();
@@ -298,61 +423,9 @@ export const ProformaCrearEditarModal = (props: Props) => {
         />
       ),
     },
-    {
-      key: "cliente",
-      label: "Logo",
-      type: "custom",
-      renderer: () => (
-        <div className="d-flex align-items-center gap-3">
-          <label
-            htmlFor="logo-upload"
-            className="btn btn-outline-primary btn-sm d-flex align-items-center gap-2"
-            style={{ cursor: "pointer" }}
-          >
-            <i className="bi bi-upload" />
-            {logoDataUrl ? "Cambiar logo" : "Subir logo"}
-            <input
-              id="logo-upload"
-              type="file"
-              accept="image/*"
-              style={{ display: "none" }}
-              onChange={async (e) => {
-                const f = e.target.files?.[0];
-                if (!f) return;
-                const b64 = await toDataUrl(f);
-                setLogoDataUrl(b64);
-              }}
-            />
-          </label>
-          {logoDataUrl && (
-            <div className="border rounded shadow-sm p-1 bg-white">
-              <img
-                src={logoDataUrl}
-                alt="Logo"
-                style={{
-                  height: 40,
-                  maxWidth: 120,
-                  objectFit: "contain",
-                  display: "block",
-                }}
-              />
-              <button
-                type="button"
-                className="btn btn-link btn-sm text-danger mt-1 w-100"
-                style={{ fontSize: 13 }}
-                onClick={() => setLogoDataUrl(null)}
-                title="Quitar logo"
-              >
-                <i className="bi bi-trash" /> Quitar
-              </button>
-            </div>
-          )}
-        </div>
-      ),
-    },
   ];
 
-  // Ítems handlers
+  // Handlers de ítems
   function addItemVacio() {
     const id = uuid();
     setItems((prev) => [
@@ -363,6 +436,7 @@ export const ProformaCrearEditarModal = (props: Props) => {
         descripcionItemProforma: "",
         precioItemProforma: 0,
         cantidadItemProforma: 1,
+        _isNew: true,
       },
     ]);
     setLastAddedId(id);
@@ -382,6 +456,7 @@ export const ProformaCrearEditarModal = (props: Props) => {
         descripcionItemProforma: t.descripcionTarifa ?? "",
         precioItemProforma: Number(t.precioTarifa ?? 0),
         cantidadItemProforma: 1,
+        _isNew: true,
       },
     ]);
     setLastAddedId(id);
@@ -389,27 +464,74 @@ export const ProformaCrearEditarModal = (props: Props) => {
 
   function patchItem(idTemp: string, patch: Partial<ItemLocal>) {
     setItems((prev) =>
-      prev.map((i) => (i.idTemp === idTemp ? { ...i, ...patch } : i))
+      prev.map((i) =>
+        i.idTemp === idTemp ? { ...i, ...patch, _dirty: true } : i
+      )
     );
   }
 
-  function removeItem(idTemp: string) {
+  /** En edición se hace soft-delete (toggle); en creación se remueve */
+  function removeOrToggleDelete(idTemp: string) {
+    setItems(
+      (prev) =>
+        prev
+          .map((i) => {
+            if (i.idTemp !== idTemp) return i;
+            if (mode === "edit" && i.iD_ProformaItem) {
+              return { ...i, _deleted: !i._deleted, _dirty: true };
+            }
+            return null; // en create se elimina realmente
+          })
+          .filter(Boolean) as ItemLocal[]
+    );
     delete nombreRefs.current[idTemp];
-    setItems((prev) => prev.filter((i) => i.idTemp !== idTemp));
   }
 
+  // helper de reset 
+  function resetForm() {
+    setClienteOpt(null);
+    setDescuentoTipo("Monto");
+    setDescuentoValor(undefined);
+    setImpuesto(undefined);
+    setObservaciones("");
+    setFechaP(dayjs().format("YYYY-MM-DD"));
+    setFechaV(dayjs().add(15, "day").format("YYYY-MM-DD"));
+    setLogoDataUrl(null);
+    setTarifaSel(null);
+    setItems([
+      {
+        idTemp: uuid(),
+        nombreItemProforma: "",
+        descripcionItemProforma: "",
+        precioItemProforma: 0,
+        cantidadItemProforma: 1,
+        _isNew: true,
+      },
+    ]);
+  }
+
+  // resetea al abrir (solo en create)
+  const prevShowRef = useRef(false);
+  useEffect(() => {
+    if (mode === "create" && show && !prevShowRef.current) {
+      resetForm();
+    }
+    prevShowRef.current = show;
+  }, [show, mode]);
+
   // Guardar
-  function handleGuardar() {
+  //Esta validación es básica, se mejorará usando las validaciones que ya tenemos con el dto_validator
+  async function handleGuardar() {
     if (!clienteOpt?.value) {
       notificationHelpers.warningAlert("Seleccione un cliente.");
       return;
     }
-    if (!items.length) {
+    if (!itemsVigentes.length) {
       notificationHelpers.warningAlert("Agregue al menos un ítem.");
       return;
     }
     if (
-      items.some(
+      itemsVigentes.some(
         (i) => !i.nombreItemProforma || Number(i.cantidadItemProforma ?? 0) <= 0
       )
     ) {
@@ -419,8 +541,8 @@ export const ProformaCrearEditarModal = (props: Props) => {
       return;
     }
 
-    const dto: DTO_Proforma = {
-      iD_Proforma: 0,
+    const dtoCabecera: DTO_Proforma = {
+      iD_Proforma: mode === "edit" ? Number(proforma?.iD_Proforma ?? 0) : 0,
       iD_Negocio: Number(negocio?.iD_Negocio ?? 0),
       iD_Cliente: Number(clienteOpt.value),
       estado: undefined as any,
@@ -439,15 +561,18 @@ export const ProformaCrearEditarModal = (props: Props) => {
       cliente: undefined,
     };
 
-    const sub = proformaService.registrarProformas(dto).subscribe({
-      next: async (r: DTO_Respuesta) => {
-        const parsed = procesarRespuesta(r) as unknown as DTO_Proforma;
+    try {
+      if (mode === "create") {
+        const r = await proformaService
+          .registrarProformas(dtoCabecera)
+          .toPromise();
+        if (!r)
+          throw new Error("No se obtuvo respuesta del registro de proforma.");
+        const parsed = procesarRespuesta(r as DTO_Respuesta) as DTO_Proforma;
         const idProforma = parsed.iD_Proforma;
-        if (!idProforma || Number.isNaN(idProforma)) {
-          notificationHelpers.errorAlert("No se obtuvo el ID de la proforma.");
-          return;
-        }
-        for (const it of items) {
+        if (!idProforma) throw new Error("No se obtuvo el ID de la proforma.");
+
+        for (const it of itemsVigentes) {
           const dti: DTO_ProformaItem = {
             iD_ProformaItem: 0,
             iD_Proforma: idProforma,
@@ -456,23 +581,16 @@ export const ProformaCrearEditarModal = (props: Props) => {
             descripcionItemProforma: it.descripcionItemProforma,
             precioItemProforma: Number(it.precioItemProforma ?? 0),
             cantidadItemProforma: Number(it.cantidadItemProforma ?? 0),
-            fechaCreacion: undefined,
-            fechaModificacion: undefined,
           };
           const r2 = await items_proformaService
             .registrarItemProforma(dti)
             .toPromise();
-          if (!r2?.tipoRespuesta) {
-            notificationHelpers.errorAlert(
-              r2?.mensaje ?? "Error al registrar item."
-            );
-            return;
-          }
+          if (!r2?.tipoRespuesta)
+            throw new Error(r2?.mensaje ?? "Error al registrar item.");
         }
-        notificationHelpers.successAlert("Proforma registrada correctamente.");
 
-        // preparar objeto proforma completo para retornar al padre
-        const nuevaProformaParaLaTabla = {
+        notificationHelpers.successAlert("Proforma registrada correctamente.");
+        const nuevaProforma = {
           ...parsed,
           cliente: { nombreCliente: clienteOpt.label } as any,
           subTotal: totales.subTotal,
@@ -480,41 +598,102 @@ export const ProformaCrearEditarModal = (props: Props) => {
           baseImponible: totales.baseImponible,
           montoImpuesto: totales.montoImpuesto,
           totalCalculado: totales.totalCalculado,
-          descuentoProforma: dto.descuentoProforma,
-          impuestoPorcentualProforma: dto.impuestoPorcentualProforma,
+          descuentoProforma: dtoCabecera.descuentoProforma,
+          impuestoPorcentualProforma: dtoCabecera.impuestoPorcentualProforma,
         };
+        onRegistered?.(nuevaProforma);
+        return;
+      }
 
-        onRegistered?.(nuevaProformaParaLaTabla);
+      // ===== EDITAR =====
+      const r0 = await proformaService
+        .actualizarProformas(dtoCabecera)
+        .toPromise();
+      if (!r0?.tipoRespuesta)
+        throw new Error(r0?.mensaje ?? "Error al actualizar proforma.");
+      const nuevos = items.filter((i) => i._isNew && !i._deleted);
+      const modificados = items.filter(
+        (i) => !i._isNew && i._dirty && !i._deleted && i.iD_ProformaItem
+      );
+      const eliminados = items.filter(
+        (i) => !i._isNew && i._deleted && i.iD_ProformaItem
+      );
 
-        // resetear todo
-        setClienteOpt(null);
-        setDescuentoTipo("Monto");
-        setDescuentoValor(undefined);
-        setImpuesto(undefined);
-        setObservaciones("");
-        setFechaP(dayjs().format("YYYY-MM-DD"));
-        setFechaV(dayjs().add(15, "day").format("YYYY-MM-DD"));
-        setLogoDataUrl(null);
-        setTarifaSel(null);
-        setItems([
-          {
-            idTemp: uuid(),
-            nombreItemProforma: "",
-            descripcionItemProforma: "",
-            precioItemProforma: 0,
-            cantidadItemProforma: 1,
-          },
-        ]);
-        nombreRefs.current = {};
-        setLastAddedId(null);
-        onClose();
-      },
-      error: (err) =>
-        notificationHelpers.errorAlert(
-          err?.message ?? "Error al registrar proforma"
-        ),
-      complete: () => sub?.unsubscribe?.(),
-    });
+      // crear nuevos
+      for (const it of nuevos) {
+        const dti: DTO_ProformaItem = {
+          iD_ProformaItem: 0,
+          iD_Proforma: Number(proforma?.iD_Proforma),
+          estado: undefined as any,
+          nombreItemProforma: it.nombreItemProforma,
+          descripcionItemProforma: it.descripcionItemProforma,
+          precioItemProforma: Number(it.precioItemProforma ?? 0),
+          cantidadItemProforma: Number(it.cantidadItemProforma ?? 0),
+        };
+        const rN = await items_proformaService
+          .registrarItemProforma(dti)
+          .toPromise();
+        if (!rN?.tipoRespuesta)
+          throw new Error(rN?.mensaje ?? "Error al crear ítem.");
+      }
+
+      // actualizar modificados
+      for (const it of modificados) {
+        const dti: DTO_ProformaItem = {
+          iD_ProformaItem: Number(it.iD_ProformaItem),
+          iD_Proforma: Number(proforma?.iD_Proforma),
+          estado: undefined as any,
+          nombreItemProforma: it.nombreItemProforma,
+          descripcionItemProforma: it.descripcionItemProforma,
+          precioItemProforma: Number(it.precioItemProforma ?? 0),
+          cantidadItemProforma: Number(it.cantidadItemProforma ?? 0),
+        };
+        const rU = await items_proformaService
+          .actualizarItemProforma(dti)
+          .toPromise();
+        if (!rU?.tipoRespuesta)
+          throw new Error(rU?.mensaje ?? "Error al actualizar ítem.");
+      }
+
+      // soft-delete (estado = 30) usando actualizarItemProforma
+      for (const it of eliminados) {
+        const dti: DTO_ProformaItem = {
+          iD_ProformaItem: Number(it.iD_ProformaItem),
+          iD_Proforma: Number(proforma?.iD_Proforma),
+          estado: { iD_Estado: PROFORMA_ITEM_DELETED } as DTO_Estado,
+          nombreItemProforma: it.nombreItemProforma,
+          descripcionItemProforma: it.descripcionItemProforma,
+          precioItemProforma: Number(it.precioItemProforma ?? 0),
+          cantidadItemProforma: Number(it.cantidadItemProforma ?? 0),
+        };
+        const rD = await items_proformaService
+          .actualizarItemProforma(dti)
+          .toPromise();
+        if (!rD?.tipoRespuesta)
+          throw new Error(rD?.mensaje ?? "Error al eliminar ítem.");
+      }
+      //preparamos una respuesta coerente para el padre, con los totales actualizados
+      const proformaActualizadaParaTabla: DTO_Proforma = {
+        ...(proforma as DTO_Proforma),
+        ...dtoCabecera,
+        subTotal: totales.subTotal,
+        montoDescuento: totales.montoDescuento,
+        baseImponible: totales.baseImponible,
+        montoImpuesto: totales.montoImpuesto,
+        totalCalculado: totales.totalCalculado,
+        descuentoProforma: dtoCabecera.descuentoProforma,
+        impuestoPorcentualProforma: dtoCabecera.impuestoPorcentualProforma,
+        cliente: { nombreCliente: clienteOpt?.label ?? "" } as any,
+      };
+
+      notificationHelpers.successAlert("Proforma actualizada correctamente.");
+      onUpdated?.(proformaActualizadaParaTabla);
+   
+    } catch (err: any) {
+      notificationHelpers.errorAlert(
+        err?.message ?? "Ocurrió un error al guardar."
+      );
+    }
   }
 
   // PDF
@@ -556,7 +735,6 @@ export const ProformaCrearEditarModal = (props: Props) => {
         role="dialog"
         tabIndex={-1}
         onClick={(e) => {
-          // Solo cerrar si el click es en el fondo, no en el contenido
           if (e.target === e.currentTarget) onClose();
         }}
       >
@@ -564,7 +742,11 @@ export const ProformaCrearEditarModal = (props: Props) => {
         <div className="modal-dialog modal-fullscreen-sm-down modal-xl">
           <div className="modal-content">
             <div className="modal-header">
-              <h5 className="modal-title">Nueva Proforma</h5>
+              <h5 className="modal-title">
+                {mode === "edit"
+                  ? `Editar Proforma : #${proforma?.iD_Proforma}`
+                  : "Nueva Proforma"}
+              </h5>
               <button
                 className="btn btn-sm btn-icon btn-light"
                 onClick={onClose}
@@ -579,9 +761,7 @@ export const ProformaCrearEditarModal = (props: Props) => {
               <div className="row g-4">
                 {headerFields.map((f, i) => (
                   <div key={i} className="col-12 col-md-6">
-                    <label className="form-label fw-semibold mb-1">
-                      {f.label}
-                    </label>
+                    <label className="text-muted fs-5 mb-1">{f.label}</label>
                     {f.renderer?.({ value: null, onChange: () => {} })}
                   </div>
                 ))}
@@ -590,10 +770,10 @@ export const ProformaCrearEditarModal = (props: Props) => {
               {/* Ítems */}
               <div className="card mt-6">
                 <div className="card-header pb-0">
-                  <div className="card-title fw-bold">Ítems</div>
+                  <div className="card-title text-muted">Ítems</div>
                 </div>
                 <div className="card-body">
-                  {/* Selección de tarifa (input izq) + botón (der pegado) */}
+                  {/* Tarifa + botón agregar (input izq, botón der pegado) */}
                   <div className="d-flex align-items-center gap-2 flex-wrap mb-4">
                     <div
                       className="flex-grow-1 min-w-0"
@@ -624,14 +804,14 @@ export const ProformaCrearEditarModal = (props: Props) => {
                     </button>
                   </div>
 
-                  {/* === Vista DESKTOP (≥ md): tabla clásica === */}
+                  {/* === Desktop (≥ md): tabla clásica === */}
                   <div className="table-responsive d-none d-md-block">
                     <table className="table align-middle table-row-dashed gy-2">
                       <thead>
                         <tr className="fw-semibold text-muted">
                           <th style={{ width: 48 }}>#</th>
                           <th>Nombre</th>
-                          <th className="">Descripción</th>
+                          <th>Descripción</th>
                           <th className="text-end" style={{ width: 140 }}>
                             P. Unit
                           </th>
@@ -649,8 +829,11 @@ export const ProformaCrearEditarModal = (props: Props) => {
                           const importe =
                             Number(it.precioItemProforma ?? 0) *
                             Number(it.cantidadItemProforma ?? 0);
+                          const rowClass = it._deleted
+                            ? "opacity-50 text-decoration-line-through"
+                            : "";
                           return (
-                            <tr key={it.idTemp}>
+                            <tr key={it.idTemp} className={rowClass}>
                               <td>{idx + 1}</td>
                               <td>
                                 <input
@@ -665,6 +848,7 @@ export const ProformaCrearEditarModal = (props: Props) => {
                                     })
                                   }
                                   placeholder="Nombre del ítem"
+                                  disabled={it._deleted}
                                 />
                               </td>
                               <td>
@@ -677,6 +861,7 @@ export const ProformaCrearEditarModal = (props: Props) => {
                                     })
                                   }
                                   placeholder="Descripción (opcional)"
+                                  disabled={it._deleted}
                                 />
                               </td>
                               <td className="text-end">
@@ -733,6 +918,7 @@ export const ProformaCrearEditarModal = (props: Props) => {
                                       precioItemProforma: val,
                                     });
                                   }}
+                                  disabled={it._deleted}
                                 />
                               </td>
                               <td className="text-end">
@@ -786,19 +972,37 @@ export const ProformaCrearEditarModal = (props: Props) => {
                                       cantidadItemProforma: val,
                                     });
                                   }}
+                                  disabled={it._deleted}
                                 />
                               </td>
                               <td className="text-end">
                                 <span className="fw-bold">
-                                  {importe.toFixed(2)}
+                                  {formatColones(importe.toFixed(2))}
                                 </span>
                               </td>
                               <td className="text-center">
                                 <button
-                                  className="btn btn-icon btn-light-danger btn-sm"
-                                  onClick={() => removeItem(it.idTemp)}
+                                  className={`btn btn-icon btn-sm ${
+                                    it._deleted
+                                      ? "btn-light-warning"
+                                      : "btn-light-danger"
+                                  }`}
+                                  onClick={() =>
+                                    removeOrToggleDelete(it.idTemp)
+                                  }
+                                  title={
+                                    it._deleted
+                                      ? "Restaurar ítem"
+                                      : "Eliminar ítem"
+                                  }
                                 >
-                                  <i className="bi bi-trash" />
+                                  <i
+                                    className={`bi ${
+                                      it._deleted
+                                        ? "bi-arrow-counterclockwise"
+                                        : "bi-trash"
+                                    }`}
+                                  />
                                 </button>
                               </td>
                             </tr>
@@ -808,27 +1012,45 @@ export const ProformaCrearEditarModal = (props: Props) => {
                     </table>
                   </div>
 
-                  {/* === Vista MÓVIL (< md): lista vertical con títulos === */}
+                  {/* === Móvil (< md): tarjetas === */}
                   <div className="d-block d-md-none">
                     {items.map((it, idx) => {
                       const importe =
                         Number(it.precioItemProforma ?? 0) *
                         Number(it.cantidadItemProforma ?? 0);
+                      const cardCls = it._deleted ? "opacity-50" : "";
                       return (
                         <div
                           key={it.idTemp}
-                          className="border rounded-3 p-3 mb-3 bg-white shadow-sm"
+                          className={`border rounded-3 p-3 mb-3 bg-white shadow-sm ${cardCls}`}
                         >
                           <div className="d-flex justify-content-between align-items-center mb-2">
                             <span className="badge bg-light text-dark">
                               #{idx + 1}
                             </span>
+                            {it._deleted && (
+                              <span className="badge bg-warning text-dark me-2">
+                                Eliminado
+                              </span>
+                            )}
                             <button
-                              className="btn btn-icon btn-light-danger btn-sm"
-                              onClick={() => removeItem(it.idTemp)}
-                              aria-label="Eliminar ítem"
+                              className={`btn btn-icon btn-sm ${
+                                it._deleted
+                                  ? "btn-light-warning"
+                                  : "btn-light-danger"
+                              }`}
+                              onClick={() => removeOrToggleDelete(it.idTemp)}
+                              aria-label={
+                                it._deleted ? "Restaurar ítem" : "Eliminar ítem"
+                              }
                             >
-                              <i className="bi bi-trash" />
+                              <i
+                                className={`bi ${
+                                  it._deleted
+                                    ? "bi-arrow-counterclockwise"
+                                    : "bi-trash"
+                                }`}
+                              />
                             </button>
                           </div>
 
@@ -846,6 +1068,7 @@ export const ProformaCrearEditarModal = (props: Props) => {
                                 })
                               }
                               placeholder="Nombre del ítem"
+                              disabled={it._deleted}
                             />
                           </div>
 
@@ -862,6 +1085,7 @@ export const ProformaCrearEditarModal = (props: Props) => {
                                 })
                               }
                               placeholder="Descripción (opcional)"
+                              disabled={it._deleted}
                             />
                           </div>
 
@@ -918,6 +1142,7 @@ export const ProformaCrearEditarModal = (props: Props) => {
                                     precioItemProforma: val,
                                   });
                                 }}
+                                disabled={it._deleted}
                               />
                             </div>
                             <div className="col-6">
@@ -969,6 +1194,7 @@ export const ProformaCrearEditarModal = (props: Props) => {
                                     cantidadItemProforma: val,
                                   });
                                 }}
+                                disabled={it._deleted}
                               />
                             </div>
                           </div>
@@ -976,7 +1202,7 @@ export const ProformaCrearEditarModal = (props: Props) => {
                           <div className="d-flex justify-content-between align-items-center mt-2">
                             <small className="text-muted">Importe</small>
                             <span className="fw-bold">
-                              {importe.toFixed(2)}
+                              {formatColones(importe.toFixed(2))}
                             </span>
                           </div>
                         </div>
@@ -990,7 +1216,7 @@ export const ProformaCrearEditarModal = (props: Props) => {
                       <div className="d-flex justify-content-between">
                         <span className="text-muted">Subtotal</span>
                         <span className="fw-semibold">
-                          {(totales.subTotal ?? 0).toFixed(2)}
+                          {formatColones(totales.subTotal ?? 0)}
                         </span>
                       </div>
                       <div className="d-flex justify-content-between">
@@ -1001,7 +1227,7 @@ export const ProformaCrearEditarModal = (props: Props) => {
                             : ""}
                         </span>
                         <span className="fw-semibold">
-                          - {(totales.montoDescuento ?? 0).toFixed(2)}
+                          - {formatColones(totales.montoDescuento ?? 0)}
                         </span>
                       </div>
                       <div className="d-flex justify-content-between">
@@ -1012,20 +1238,20 @@ export const ProformaCrearEditarModal = (props: Props) => {
                           Subtotal c/desc:
                         </span>
                         <span className="fw-semibold">
-                          {(totales.baseImponible ?? 0).toFixed(2)}
+                          {formatColones(totales.baseImponible ?? 0)}
                         </span>
                       </div>
                       <div className="d-flex justify-content-between">
                         <span className="text-muted">IVA {impuesto ?? 0}%</span>
                         <span className="fw-semibold">
-                          {(totales.montoImpuesto ?? 0).toFixed(2)}
+                          {formatColones(totales.montoImpuesto ?? 0)}
                         </span>
                       </div>
                       <hr />
                       <div className="d-flex justify-content-between fs-4">
                         <span className="fw-bold">TOTAL</span>
                         <span className="fw-bold">
-                          {(totales.totalCalculado ?? 0).toFixed(2)}
+                          {formatColones(totales.totalCalculado ?? 0)}
                         </span>
                       </div>
                     </div>
@@ -1059,82 +1285,7 @@ export const ProformaCrearEditarModal = (props: Props) => {
                   <div className="mb-2">
                     <strong>Cliente:</strong> {clienteOpt?.label ?? "-"}
                   </div>
-                  <table style={{ width: "100%", borderCollapse: "collapse" }}>
-                    <thead>
-                      <tr>
-                        <th
-                          style={{
-                            textAlign: "left",
-                            borderBottom: "1px solid #ccc",
-                          }}
-                        >
-                          Descripción
-                        </th>
-                        <th
-                          style={{
-                            textAlign: "right",
-                            borderBottom: "1px solid #ccc",
-                          }}
-                        >
-                          P. Unit
-                        </th>
-                        <th
-                          style={{
-                            textAlign: "right",
-                            borderBottom: "1px solid #ccc",
-                          }}
-                        >
-                          Cant.
-                        </th>
-                        <th
-                          style={{
-                            textAlign: "right",
-                            borderBottom: "1px solid #ccc",
-                          }}
-                        >
-                          Importe
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {items.map((it) => (
-                        <tr key={it.idTemp}>
-                          <td>{it.nombreItemProforma}</td>
-                          <td style={{ textAlign: "right" }}>
-                            {Number(it.precioItemProforma ?? 0).toFixed(2)}
-                          </td>
-                          <td style={{ textAlign: "right" }}>
-                            {Number(it.cantidadItemProforma ?? 0)}
-                          </td>
-                          <td style={{ textAlign: "right" }}>
-                            {(
-                              Number(it.precioItemProforma ?? 0) *
-                              Number(it.cantidadItemProforma ?? 0)
-                            ).toFixed(2)}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                  <div style={{ marginTop: 8, marginLeft: "auto", width: 260 }}>
-                    <div className="d-flex justify-content-between">
-                      <span>Subtotal</span>
-                      <span>{(totales.subTotal ?? 0).toFixed(2)}</span>
-                    </div>
-                    <div className="d-flex justify-content-between">
-                      <span>Descuento</span>
-                      <span>- {(totales.montoDescuento ?? 0).toFixed(2)}</span>
-                    </div>
-                    <div className="d-flex justify-content-between">
-                      <span>IVA</span>
-                      <span>{(totales.montoImpuesto ?? 0).toFixed(2)}</span>
-                    </div>
-                    <hr />
-                    <div className="d-flex justify-content-between fw-bold">
-                      <span>Total</span>
-                      <span>{(totales.totalCalculado ?? 0).toFixed(2)}</span>
-                    </div>
-                  </div>
+                  {/* Puedes reutilizar la tabla simple aquí si quieres exportar detalle */}
                 </div>
               </div>
             </div>
@@ -1150,9 +1301,13 @@ export const ProformaCrearEditarModal = (props: Props) => {
                   <i className="bi bi-filetype-pdf me-2" />
                   Generar PDF
                 </button>
-                <button className="btn btn-primary" onClick={handleGuardar}>
+                <button
+                  type="button"
+                  className="btn btn-primary"
+                  onClick={handleGuardar}
+                >
                   <i className="bi bi-save2 me-2" />
-                  Guardar proforma
+                  {mode === "edit" ? "Actualizar proforma" : "Guardar proforma"}
                 </button>
               </div>
             </div>
@@ -1162,13 +1317,3 @@ export const ProformaCrearEditarModal = (props: Props) => {
     </>
   );
 };
-
-// util local
-async function toDataUrl(f: File): Promise<string> {
-  return await new Promise<string>((resolve, reject) => {
-    const r = new FileReader();
-    r.onload = () => resolve(String(r.result));
-    r.onerror = reject;
-    r.readAsDataURL(f);
-  });
-}

@@ -9,7 +9,7 @@ import { DTO_Tarifa } from "@/models/DTO_Tarifa";
 //  Define configuraciones de campos de formulario (FieldConfig) para construir formularios dinámicos relacionados con estos modelos.
 // Los label maps permiten mostrar nombres amigables en la UI, y los arreglos de campos de formulario se usan para generar formularios de manera flexible.
 export const columnKeysCuenta: (keyof DTO_Cuenta)[] = [
-    
+
     "iD_Cuenta",
     "monto",
     "montoAbonado",
@@ -19,7 +19,7 @@ export const columnKeysCuenta: (keyof DTO_Cuenta)[] = [
     "fechaLimite",
     "fechaInicial",
     "concepto",
-  
+
 ];
 export const columnKeysNegocio: (keyof DTO_Negocio)[] = [
     "iD_Negocio",
@@ -49,7 +49,7 @@ export const columnKeysItemsOrdenServicio: (keyof DTO_ItemOrdenServicio)[] = [
     "monto",
     "nombreItemOrdenServicio",
     "descripcion",
-    
+
 ];
 
 export const columnKeysTransacciones: (keyof DTO_Transacciones)[] = [
@@ -421,6 +421,19 @@ export const keysInfoModalTarifa: FieldConfig<DTO_Tarifa>[] = [
         order: 8,
     },
 ];
+
+export const keysInfoModalProforma: FieldConfig<DTO_Proforma>[] = [
+    { key: "iD_Proforma", label: "ID", type: "text", order: 1 },
+    { key: "fechaProforma", label: "Creación", type: "date", order: 2 },
+    { key: "fechaVencimiento", label: "Vencimiento", type: "date", order: 3 },
+    {
+        key: "estado",
+        label: "Estado",
+        type: "text",
+        order: 6,
+    },
+
+];
 //#endregion
 
 //#region tablas
@@ -435,7 +448,7 @@ export const labelMapCuenta: Record<string, string> = {
     fechaInicial: "Creación",
     fechaLimite: "Límite",
     tipoCuenta: "Tipo",
-    
+
     fechaModificacion: "Fecha de Modificación",
     detalleJSON: "Detalles",
     montoAbonado: "Abonado",
@@ -558,7 +571,7 @@ export const negocioFormEditFields: Array<FieldConfig<DTO_Negocio>> =
                 type: "text" as any,
             }))
 
-];
+    ];
 
 export const cuentasFormEditFields: FieldConfig<DTO_Cuenta>[] = [
     {
@@ -787,41 +800,4 @@ export const tarifaFormAddFields: Array<FieldConfig<DTO_Tarifa>> = [
     },
 ];
 
-export const proformaFormAddFields: FieldConfig<DTO_Proforma>[] = [
-    // {debe ser un select 
-    //     key: "cliente",
-    //     label: labelMapProforma["cliente"] ?? "Cliente asociado",
-    //     type: "text",
-    //     required: false,
-    //     order: 1,
-    // },
-    {
-        key: "observacionProforma",
-        label: labelMapProforma["observacionProforma"] ?? "Observaciones",
-        type: "textarea",
-        required: false,
-        order: 3,
-    },
-    {
-        key: "descuentoProforma",
-        label: labelMapProforma["descuentoProforma"] ?? "Descuento",
-        type: "number",
-        required: false,
-        order: 4,
-    },
-    {
-        key: "impuestoPorcentualProforma",
-        label: labelMapProforma["impuestoPorcentualProforma"] ?? "% de impuesto",
-        type: "number",
-        required: false,
-        order: 5,
-    },
-    {
-        key: "fechaVencimiento",
-        label: labelMapProforma["fechaVencimiento"] ?? "Vencimiento",
-        type: "date",
-        required: true,
-        order: 2,
-    },
-];
 //#endregion

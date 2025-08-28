@@ -20,5 +20,10 @@ export class items_proformaService {
             api.post<DTO_Respuesta>(API_ENDPOINTS.PROFORMA_ITEMS.ADD_ITEMS, item)
         ).pipe(map((r: AxiosResponse<DTO_Respuesta>) => r.data));
     }
+    static actualizarItemProforma(item: DTO_ProformaItem): Observable<DTO_Respuesta> {
+        return defer(() =>
+            api.post<DTO_Respuesta>(API_ENDPOINTS.PROFORMA_ITEMS.UPDATE_ITEMS, item)
+        ).pipe(map((r: AxiosResponse<DTO_Respuesta>) => r.data));
+    }
 
 }

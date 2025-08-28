@@ -74,6 +74,10 @@ namespace DAL
                     (object?)proforma.ObservacionProforma ?? DBNull.Value;
                 sqlcmd.Parameters.Add("@FechaVencimiento", SqlDbType.DateTime).Value =
                     (object?)proforma.FechaVencimiento ?? DBNull.Value;
+                sqlcmd.Parameters.Add("@DescuentoProforma", SqlDbType.Decimal).Value = proforma.DescuentoProforma;
+                sqlcmd.Parameters.Add("@DescuentoPorcentualProforma", SqlDbType.Bit).Value = proforma.DescuentoPorcentualProforma;
+                sqlcmd.Parameters.Add("@ImpuestoPorcentualProforma", SqlDbType.Decimal).Value = proforma.ImpuestoPorcentualProforma;
+
 
                 Open();
                 using var reader = await sqlcmd.ExecuteReaderAsync();
@@ -93,6 +97,11 @@ namespace DAL
                     updated.FechaVencimiento = UTL_DBHelper.ReadNullSafeDateTime(reader["FechaVencimiento"]);
                     updated.ObservacionProforma = UTL_DBHelper.ReadNullSafeString(reader["ObservacionProforma"]);
                     updated.FechaModificacion = UTL_DBHelper.ReadNullSafeDateTime(reader["FechaModificacion"]);
+                    updated.DescuentoProforma = UTL_DBHelper.ReadNullSafeDecimal(reader["DescuentoProforma"]);
+                    updated.DescuentoProforma = UTL_DBHelper.ReadNullSafeDecimal(reader["DescuentoProforma"]);
+                    updated.DescuentoPorcentualProforma = UTL_DBHelper.ReadNullSafeBoolean(reader["DescuentoPorcentualProforma"]);
+                    updated.ImpuestoPorcentualProforma = UTL_DBHelper.ReadNullSafeDecimal(reader["ImpuestoPorcentualProforma"]);
+
                 }
 
                 if (reader.NextResult())
