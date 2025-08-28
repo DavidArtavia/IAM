@@ -289,3 +289,10 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   pointer-events: auto;
 }
 
+
+/*Hover para elementos*/
+
+
+.hoverElement:hover {
+background-color: #fbfbfb;
+}
