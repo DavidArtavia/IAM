@@ -96,6 +96,9 @@ export const ProformaCrearEditarModal = (props: Props) => {
   ]);
   const [tarifaSel, setTarifaSel] = useState<TarifarioOption | null>(null);
 
+  // PDF
+  const [loadingPDF, setLoadingPDF] = useState(false);
+
   // === Hidratación en modo edición (carga cabecera + ítems si no vienen) ===
   useEffect(() => {
     if (mode !== "edit" || !proforma) return;
@@ -700,18 +703,20 @@ export const ProformaCrearEditarModal = (props: Props) => {
   const printRef = useRef<HTMLDivElement>(null);
 
   async function handlePdf() {
+    setLoadingPDF(true);
     try {
+      // Carga dinámica para evitar que entre en el bundle principal
       const { jsPDF } = await import("jspdf");
       const html2canvas = (await import("html2canvas")).default;
 
-      const el = printRef.current;
-      if (!el) return;
+      const pdfElementHTML = printRef.current;
+      if (!pdfElementHTML) return;
 
-      // Asegura que el área offscreen esté pintada
+      // Asegura que el contenido oculto (printRef) ya esté completamente renderizado
       await new Promise((r) => requestAnimationFrame(r));
 
-      // Renderizamos el nodo a un canvas con buena definición
-      const canvas = await html2canvas(el, {
+      // Renderizamos el nodo a un canvas
+      const canvas = await html2canvas(pdfElementHTML, {
         backgroundColor: "#ffffff",
         scale: 2, // calidad
         useCORS: true, // por si hubiera recursos externos
@@ -719,37 +724,67 @@ export const ProformaCrearEditarModal = (props: Props) => {
         scrollY: 0,
       });
 
-      // Armamos el PDF en A4 (pt)
+      // Armamos el PDF
       const pdf = new jsPDF("p", "pt", "a4");
-      const pageW = pdf.internal.pageSize.getWidth(); // 595.28 pt
-      const pageH = pdf.internal.pageSize.getHeight(); // 841.89 pt
-      const margin = 24; // margen interno
+      const pageW = pdf.internal.pageSize.getWidth();
+      const pageH = pdf.internal.pageSize.getHeight();
+      const margin = 24;
 
-      // Calculamos tamaño de la imagen dentro del PDF manteniendo proporción
+      // Escala y relación px/pt
       const imgW = pageW - margin * 2;
-      const imgH = (canvas.height * imgW) / canvas.width;
+      const scale = imgW / canvas.width;
+      const innerH = pageH - margin * 2;
+      const sliceHeightPx = Math.floor(innerH / scale);
+      const totalPages = Math.ceil(canvas.height / sliceHeightPx);
 
-      const imgData = canvas.toDataURL("image/png");
+      // Canvas auxiliar para cortar cada rebanada
+      const sliceCanvas = document.createElement("canvas");
+      sliceCanvas.width = canvas.width;
 
-      // Primera página
-      let position = margin;
-      pdf.addImage(imgData, "PNG", margin, position, imgW, imgH);
+      for (let i = 0; i < totalPages; i++) {
+        const startY = i * sliceHeightPx;
+        const sliceHeight = Math.min(sliceHeightPx, canvas.height - startY);
+        sliceCanvas.height = sliceHeight;
 
-      // Si el contenido excede una página, agregamos más
-      let heightLeft = imgH - (pageH - margin * 2);
-      while (heightLeft > 0) {
-        pdf.addPage();
-        // Dibujamos la misma imagen pero desplazada hacia arriba;
-        // jsPDF recorta fuera de la página.
-        position = margin - (imgH - heightLeft);
-        pdf.addImage(imgData, "PNG", margin, position, imgW, imgH);
-        heightLeft -= pageH - margin * 2;
+        const ctx = sliceCanvas.getContext("2d")!;
+        ctx.clearRect(0, 0, sliceCanvas.width, sliceCanvas.height);
+        ctx.drawImage(
+          canvas,
+          0,
+          startY,
+          canvas.width,
+          sliceHeight,
+          0,
+          0,
+          sliceCanvas.width,
+          sliceHeight
+        );
+
+        const sliceData = sliceCanvas.toDataURL("image/png");
+        if (i > 0) pdf.addPage();
+
+        // altura de la rebanada en puntos (pt)
+        const sliceHeightPt = sliceHeight * scale;
+        pdf.addImage(sliceData, "PNG", margin, margin, imgW, sliceHeightPt);
+
+        // numeración
+        pdf.setFontSize(9);
+        pdf.text(
+          `Página ${i + 1} de ${totalPages}`,
+          pageW - margin,
+          pageH - 10,
+          { align: "right" }
+        );
       }
 
+      // Guardar
       const nombreCliente = clienteOpt?.label.replace(/\s+/g, "_") ?? "Cliente";
       pdf.save(`Proforma_${nombreCliente}_${dayjs().format("DD-MM-YYYY")}.pdf`);
+
+      setLoadingPDF(false);
     } catch (err) {
       console.error(err);
+      setLoadingPDF(false);
       notificationHelpers?.errorAlert?.(
         "No se pudo generar el PDF. Intenta nuevamente."
       );
@@ -1042,7 +1077,7 @@ export const ProformaCrearEditarModal = (props: Props) => {
                     </table>
                   </div>
 
-                  {/* === Móvil (< md): tarjetas === */}
+                  {/* === Movil (< md): tarjetas === */}
                   <div className="d-block d-md-none">
                     {items.map((it, idx) => {
                       const importe =
@@ -1121,11 +1156,8 @@ export const ProformaCrearEditarModal = (props: Props) => {
                               <label className="text-muted mb-1">Precio</label>
                               <input
                                 type="number"
-                                step="1"
-                                min={0}
                                 className="form-control text-muted form-control-sm text-end"
-                                value={it.precioItemProforma ?? 0}
-                                onWheel={(e) => e.currentTarget.blur()}
+                                value={String(it.precioItemProforma ?? "")}
                                 onKeyDown={(e) => {
                                   const blocked = ["-", "+", "e", "E"];
                                   if (
@@ -1140,34 +1172,41 @@ export const ProformaCrearEditarModal = (props: Props) => {
                                 }}
                                 onPaste={(e) => {
                                   const txt = e.clipboardData.getData("text");
-                                  const cleaned = txt
-                                    .replace(/[^0-9.,]/g, "")
-                                    .replace(",", ".");
-                                  let num = Number(cleaned);
-                                  if (Number.isNaN(num)) {
+                                  const cleaned = txt.replace(/[^0-9]/g, "");
+                                  const num = Number(cleaned);
+                                  if (Number.isNaN(num) || num < 1) {
                                     e.preventDefault();
                                     return;
                                   }
-                                  num = Math.max(0, num);
                                   patchItem(it.idTemp, {
-                                    precioItemProforma: num,
+                                    cantidadItemProforma: num,
                                   });
                                   e.preventDefault();
                                 }}
                                 onChange={(e) => {
-                                  const raw = e.target.value.replace(",", ".");
+                                  const raw = e.target.value
+                                    .replace(/^0+(\d)/, "$1")
+                                    .replace(",", ".");
+                                  // Si está vacío, dejamos string vacío (no forzamos 0 todavía)
                                   if (raw === "") {
                                     patchItem(it.idTemp, {
-                                      precioItemProforma: 0,
+                                      precioItemProforma: undefined,
                                     });
                                     return;
                                   }
                                   let val = Number(raw);
-                                  if (!Number.isFinite(val)) return;
-                                  if (val < 0) val = 0;
+                                  if (!Number.isFinite(val) || val < 0) val = 0;
                                   patchItem(it.idTemp, {
                                     precioItemProforma: val,
                                   });
+                                }}
+                                onBlur={(e) => {
+                                  // En blur, si quedó vacío => forzamos 0
+                                  if (e.target.value.trim() === "") {
+                                    patchItem(it.idTemp, {
+                                      precioItemProforma: 0,
+                                    });
+                                  }
                                 }}
                                 disabled={it._deleted}
                               />
@@ -1178,11 +1217,8 @@ export const ProformaCrearEditarModal = (props: Props) => {
                               </label>
                               <input
                                 type="number"
-                                step="1"
-                                min={1}
                                 className="form-control text-muted form-control-sm text-end"
-                                value={it.cantidadItemProforma ?? 1}
-                                onWheel={(e) => e.currentTarget.blur()}
+                                value={String(it.cantidadItemProforma ?? "")}
                                 onKeyDown={(e) => {
                                   const blocked = ["-", "+", "e", "E"];
                                   if (
@@ -1212,16 +1248,24 @@ export const ProformaCrearEditarModal = (props: Props) => {
                                   const raw = e.target.value.replace(",", ".");
                                   if (raw === "") {
                                     patchItem(it.idTemp, {
-                                      cantidadItemProforma: 1,
+                                      cantidadItemProforma: undefined,
                                     });
                                     return;
                                   }
-                                  let val = Number(raw);
+                                  const val = Number(raw);
                                   if (!Number.isFinite(val)) return;
-                                  if (val < 1) val = 1;
                                   patchItem(it.idTemp, {
                                     cantidadItemProforma: val,
                                   });
+                                }}
+                                onBlur={(e) => {
+                                  // En blur, si quedó vacío o < 1 => forzamos 1
+                                  const val = Number(e.target.value);
+                                  if (!Number.isFinite(val) || val < 1) {
+                                    patchItem(it.idTemp, {
+                                      cantidadItemProforma: 1,
+                                    });
+                                  }
                                 }}
                                 disabled={it._deleted}
                               />
@@ -1674,9 +1718,27 @@ export const ProformaCrearEditarModal = (props: Props) => {
                 Los valores se recalculan automáticamente.
               </div>
               <div className="d-flex gap-2">
-                <button className="btn btn-light" onClick={handlePdf}>
-                  <i className="bi bi-filetype-pdf me-2" />
-                  Generar PDF
+                <button
+                  className="btn btn-light"
+                  onClick={handlePdf}
+                  disabled={loadingPDF}
+                >
+                  {loadingPDF ? (
+                    <span
+                      className="spinner-border spinner-border-sm me-2"
+                      role="status"
+                      aria-hidden="true"
+                    />
+                  ) : (
+                    <i className="bi bi-filetype-pdf me-2" />
+                  )}
+                    {loadingPDF ? (
+                    <span className="d-inline-block" style={{ minWidth: 80 }}>
+                      <span className="dot-typing">Generando</span>
+                    </span>
+                    ) : (
+                    "Descargar PDF"
+                    )}
                 </button>
                 <button
                   type="button"
