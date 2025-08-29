@@ -1,4 +1,4 @@
-USE [IAMDB_QA]
+USE [IAMDB]
 GO
  IF NOT EXISTS (
         SELECT 1
