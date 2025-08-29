@@ -48,6 +48,7 @@ export const ItemsOrdenDeServicioModal = ({
   //#region Scroll del body
   //Ajustes para el croll del body, para bloquearlo en cuando se abren los modales
   const modalRef = useRef<HTMLDivElement>(null);
+  const rowRefs = useRef<(HTMLTableRowElement | null)[]>([]);
 
   useScrollLockSmart(open, {
     rootRef: modalRef,
@@ -69,7 +70,7 @@ export const ItemsOrdenDeServicioModal = ({
 
   //#region 🔄 Estados generales
   const [itemsOrdenes, setItemsOrdenes] = useState<DTO_ItemOrdenServicio[]>([]);
-  const [itemsProformas, setItemsProformas] = useState<DTO_ProformaItem[]>([]);
+  const [itemsProformas, setItemsProformas] = useState<DTO_ItemOrdenServicio[]>([]);
   const [loading, setLoading] = useState(false);
   const [tarifaSeleccionada, setTarifaSeleccionada] = useState<TarifarioOption | null>(null);
   const [proformaSeleccionada, setProformaSeleccionada] = useState<ProformaOption | null>(null);
@@ -142,7 +143,7 @@ export const ItemsOrdenDeServicioModal = ({
 
 
   const handleDeleteItemProforma = (id: any) => {
-    setItemsProformas((prevItems) => prevItems.filter((item) => item.iD_ProformaItem !== id));
+    setItemsProformas((prevItems) => prevItems.filter((item) => item.iD_ItemOrdenServicio !== id));
   };
 
 
@@ -183,10 +184,21 @@ export const ItemsOrdenDeServicioModal = ({
   const handleProformaOnchange = (proforma: DTO_Proforma) => {
     items_proformaService.obtenerItemsProformas(proforma).subscribe({
       next: (result: DTO_Respuesta) => {
-        const nuevo = (result.resultado[0] as DTO_ProformaItem[]);
-        console.log(nuevo);
+        const itemsProformas = (result.resultado[0] as DTO_ProformaItem[]);
 
-        if (nuevo) setItemsProformas(nuevo);
+        itemsProformas.forEach(itemP => {
+          const itemO: DTO_ItemOrdenServicio = new DTO_ItemOrdenServicio();
+
+          itemO.avance = 0;
+          itemO.cantidad = itemP.cantidadItemProforma || 1;
+          itemO.descripcion = itemP.descripcionItemProforma;
+          itemO.iD_OrdenServicio = rowData.iD_OrdenServicio;
+          itemO.iD_ItemOrdenServicio = itemP.iD_ProformaItem;
+          itemO.monto = itemP.precioItemProforma || 0;
+          itemO.nombreItemOrdenServicio = itemP.nombreItemProforma;
+          setItemsProformas((prev) => [...prev, itemO]);
+        });
+
       },
       error: errorHelpers.serverError,
     });
@@ -220,6 +232,46 @@ export const ItemsOrdenDeServicioModal = ({
       );
     }
   };
+
+
+  const handleSaveItenmsDesdeProforma = () => {
+
+
+    let cont = 0;
+    validacion = []
+    itemsProformas.some(item => {
+      cont++
+      validacion = valida_DTO_ItemOrdenServicio.validar(item, "C");
+      if (validacion.length > 0) {
+        notificationHelpers.warningAlert(
+          "Revisa la el registro #" + cont + " " + validacion[0].valor
+        );
+
+        const el = rowRefs.current[cont];
+
+        if (el) {
+          el.scrollIntoView({ behavior: "smooth", block: "end" });
+        }
+
+
+        return true;
+      }
+
+
+    });
+
+    if (validacion.length === 0) {
+      itemsOrdenesService.guardarItemsDesdeProforma(itemsProformas).subscribe({
+        next: (result: DTO_Respuesta) => {
+          setItemsOrdenes(itemsProformas);
+          notificationHelpers.successAlert(result.mensaje);
+        },
+        error: errorHelpers.serverError,
+      });
+    }
+  };
+
+
   //#endregion
 
   //#region 🗑 Eliminar
@@ -516,7 +568,7 @@ export const ItemsOrdenDeServicioModal = ({
                         <button
                           type="button"
                           className="btn dt-button buttons-html5 btn btn-primary btn-sm mb-0 d-flex align-items-center justify-content-center gap-2 ms-auto"
-                          onClick={() => console.log("click")}
+                          onClick={handleSaveItenmsDesdeProforma}
                         >
                           Guardar
                         </button>
@@ -549,12 +601,12 @@ export const ItemsOrdenDeServicioModal = ({
                             )}
 
                             {itemsProformas.map((it, idx) => (
-                              <React.Fragment key={it.iD_ProformaItem}>
+                              <React.Fragment key={'CardItemProforma' + idx}>
 
 
                                 {/* ======= Vista MÓVIL (< sm): grid 8/2/1/1 ======= */}
 
-                                <tr className="d-table-row">
+                                <tr ref={(el) => (rowRefs.current[idx] = el)} className="d-table-row">
                                   <td colSpan={4} className="pb-4">
                                     <div className="p-2 py-4 pb-2 pt-1 border border-secoundary rounded-3 hoverElement">
                                       <div className="row py-2 pb-5">
@@ -566,7 +618,7 @@ export const ItemsOrdenDeServicioModal = ({
                                             type="button"
                                             className="btn btn-sm p-0"
                                             title="Eliminar"
-                                            onClick={() => handleDeleteItemProforma(it.iD_ProformaItem)}
+                                            onClick={() => handleDeleteItemProforma(it.iD_ItemOrdenServicio)}
                                           >
                                             <i className="bi bi-trash"></i>
                                           </button>
@@ -585,22 +637,25 @@ export const ItemsOrdenDeServicioModal = ({
                                           <label htmlFor={'txtNombre' + idx.toString()} className="fs-7 text-gray-600">Nombre</label>
                                           <input
                                             type="text"
-                                            className="form-control form-control-sm"
+                                            className={`form-control form-control-sm 
+                                            ${valida_DTO_ItemOrdenServicio.validar(it, "C").filter(error => error.nombre === String('nombreItemOrdenServicio')).length > 0 ? "border-danger" : ""}`}
                                             placeholder="Nombre"
-                                            value={it.nombreItemProforma}
-                                            onChange={(e) => handleChange(idx, "nombreItemProforma", e.target.value)}
+                                            value={it.nombreItemOrdenServicio}
+                                            onChange={(e) => handleChange(idx, "nombreItemOrdenServicio", e.target.value)}
                                             key={'txtNombre' + idx.toString()}
                                           />
+
                                         </div>
 
                                         <div className="col-3">
-                                          <label htmlFor={'txtPrecio' + idx.toString()} className="fs-7 text-gray-600">Precio</label>
+                                          <label htmlFor={'txtPrecio' + idx.toString()} className="fs-7 text-gray-600">Monto</label>
                                           <input
                                             type="number"
-                                            className="form-control form-control-sm"
-                                            placeholder="Precio"
-                                            value={it.precioItemProforma}
-                                            onChange={(e) => handleChange(idx, "precioItemProforma", e.target.value)}
+                                            className={`form-control form-control-sm 
+                                            ${valida_DTO_ItemOrdenServicio.validar(it, "C").filter(error => error.nombre === String('monto')).length > 0 ? "border-danger" : ""}`}
+                                            placeholder="0.00"
+                                            value={it.monto}
+                                            onChange={(e) => handleChange(idx, "monto", e.target.value)}
                                             key={'txtPrecio' + idx.toString()}
                                           />
                                         </div>
@@ -610,12 +665,14 @@ export const ItemsOrdenDeServicioModal = ({
                                           <label htmlFor={'txtCantidad' + idx.toString()} className="fs-7 text-gray-600">Cantidad</label>
                                           <input
                                             type="number"
-                                            className="form-control form-control-sm"
+                                            className={`form-control form-control-sm 
+                                            ${valida_DTO_ItemOrdenServicio.validar(it, "C").filter(error => error.nombre === String('cantidad')).length > 0 ? "border-danger" : ""}`}
                                             placeholder="Cant."
-                                            value={it.cantidadItemProforma}
-                                            onChange={(e) => handleChange(idx, "cantidadItemProforma", e.target.value)}
+                                            value={it.cantidad}
+                                            onChange={(e) => handleChange(idx, "cantidad", e.target.value)}
                                             key={'txtCantidad' + idx.toString()}
                                           />
+
                                         </div>
 
 
@@ -625,18 +682,21 @@ export const ItemsOrdenDeServicioModal = ({
                                         <div className="col-12">
                                           <label htmlFor={'txtDesc' + idx.toString()} className="fs-7 text-gray-600 mt-2">Descripción</label>
                                           <textarea
-                                            className="form-control form-control-sm mb-2"
+                                            className={`form-control form-control-sm mb-2 
+                                            ${valida_DTO_ItemOrdenServicio.validar(it, "C").filter(error => error.nombre === String('descripcion')).length > 0 ? "border-danger" : ""}`}
+
                                             rows={2}
                                             placeholder="Descripción"
-                                            value={it.descripcionItemProforma}
-                                            onChange={(e) => handleChange(idx, "descripcionItemProforma", e.target.value)}
+                                            value={it.descripcion}
+                                            onChange={(e) => handleChange(idx, "descripcion", e.target.value)}
                                             key={'txtDesc' + idx.toString()}
                                           />
+
                                         </div>
 
                                         <div className="row p-0">
                                           <div className="text-start col-6"></div>
-                                          <div className="text-end col-6"><span className="fs-7 text-gray-600 mt-2">Importe</span> <span className="fs-7 text-gray-600 mt-2 ">{formatColones((it.cantidadItemProforma || 0) * (it.precioItemProforma || 0))}</span></div>
+                                          <div className="text-end col-6"><span className="fs-7 text-gray-600 mt-2">Importe</span> <span className="fs-7 text-gray-600 mt-2 ">{formatColones((it.cantidad || 0) * (it.monto || 0))}</span></div>
 
 
 

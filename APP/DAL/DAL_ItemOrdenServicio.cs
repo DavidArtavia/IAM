@@ -1,4 +1,5 @@
 ﻿using DTO;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
 using Newtonsoft.Json;
 using System;
@@ -56,6 +57,78 @@ namespace DAL
                     }
 
                     respuesta.Resultado.Add(itemOrdenServicio);
+                    return respuesta;
+                }
+            }
+            catch (Exception e)
+            {
+                this.Close();
+                throw e;
+            }
+            finally
+            {
+                this.Close();
+            }
+        }
+        public async Task<DTO_Respuesta> guardarItemsDesdeProforma([FromBody] List<DTO_ItemOrdenServicio> items)
+        {
+            try
+            {
+                string query = "CORE.SP_guardarItemsDesdeProforma";
+
+                //Se crea la tabla para que coincida con el type de la base de datos
+                var dt = new DataTable();
+                dt.Columns.Add("NombreItemOrdenServicio", typeof(string));
+                dt.Columns.Add("Descripcion", typeof(string));
+                dt.Columns.Add("Monto", typeof(decimal));
+                dt.Columns.Add("Cantidad", typeof(decimal));
+                dt.Columns.Add("Avance", typeof(int));
+
+
+                // cargamos la tabla con los valores
+                foreach (var it in items)
+                {
+                    // Mapeos desde tu DTO:
+         
+                    string nombre = it.NombreItemOrdenServicio ?? string.Empty;
+                    string desc = it.Descripcion ?? string.Empty;
+                    decimal monto = it.Monto?? 0;
+                    decimal cantidad = it.Cantidad ?? 1;
+                    int? avance = null; // si en tu UI hay avance, mapéalo
+
+                    dt.Rows.Add(nombre, desc, monto, cantidad, (object?)avance ?? DBNull.Value);
+                }
+
+
+
+
+                using (SqlCommand sqlcmd = new(query, this.GetObjConexion()))
+                {
+                    sqlcmd.CommandType = System.Data.CommandType.StoredProcedure;
+                    sqlcmd.Parameters.AddWithValue("@Items", dt);
+                    sqlcmd.Parameters.AddWithValue("@ID_OrdenServicio", items[0].ID_OrdenServicio);
+               
+
+
+
+                    foreach (SqlParameter param in sqlcmd.Parameters)
+                    {
+                        param.Direction = ParameterDirection.Input;
+                    }
+
+                    this.Open();
+
+                    using (SqlDataReader reader = await sqlcmd.ExecuteReaderAsync())
+                    {
+
+           
+                            while (reader.Read())
+                            {
+                                respuesta = manejarRespuesta(reader);
+                            }
+                        
+                    }
+
                     return respuesta;
                 }
             }
