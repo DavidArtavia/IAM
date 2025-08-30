@@ -237,7 +237,7 @@ export const ItemsOrdenDeServicioModal = ({
   const handleSaveItenmsDesdeProforma = () => {
 
 
-    let cont = 0;
+    let cont = 1;
     validacion = []
     itemsProformas.some(item => {
       cont++
@@ -263,7 +263,10 @@ export const ItemsOrdenDeServicioModal = ({
     if (validacion.length === 0) {
       itemsOrdenesService.guardarItemsDesdeProforma(itemsProformas).subscribe({
         next: (result: DTO_Respuesta) => {
-          setItemsOrdenes(itemsProformas);
+          setItemsOrdenes((prev) => [...prev, ...itemsProformas]);
+          //@ts-expect-error --eer
+          document.querySelector('a[href="#items"]').click();
+          setItemsProformas(new Array<DTO_ItemOrdenServicio>())
           notificationHelpers.successAlert(result.mensaje);
         },
         error: errorHelpers.serverError,
