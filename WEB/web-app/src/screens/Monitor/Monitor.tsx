@@ -424,6 +424,10 @@ export const Monitor = () => {
                   typeof item.monto === "string"
                     ? item.monto
                     : item.monto?.toString() || "0.00",
+                cantidad:
+                  typeof item.cantidad === "string"
+                    ? item.cantidad
+                    : item.cantidad?.toString() || "0.00",
               })),
               descuento: { nombre: "Monto", valor: "0" },
               impuesto: { nombre: "Impuesto", valor: "0" },
