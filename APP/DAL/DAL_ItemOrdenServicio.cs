@@ -29,6 +29,7 @@ namespace DAL
                     sqlcmd.Parameters.AddWithValue("@Descripcion", itemOrdenServicio.Descripcion);
                     sqlcmd.Parameters.AddWithValue("@Monto", itemOrdenServicio.Monto);
                     sqlcmd.Parameters.AddWithValue("@Avance", itemOrdenServicio.Avance);
+                    sqlcmd.Parameters.AddWithValue("@Cantidad", itemOrdenServicio.Cantidad);
 
 
 
@@ -158,6 +159,7 @@ namespace DAL
                     sqlcmd.Parameters.AddWithValue("@Descripcion", itemOrdenServicio.Descripcion);
                     sqlcmd.Parameters.AddWithValue("@Monto", itemOrdenServicio.Monto);
                     sqlcmd.Parameters.AddWithValue("@Avance", itemOrdenServicio.Avance);
+                    sqlcmd.Parameters.AddWithValue("@Cantidad", itemOrdenServicio.Cantidad);
 
 
 
@@ -228,7 +230,8 @@ namespace DAL
                                 },
                                 Descripcion = UTL_DBHelper.ReadNullSafeString(reader["Descripcion"]),
                                 Monto = UTL_DBHelper.ReadNullSafeDecimal(reader["Monto"]),
-                                Avance = UTL_DBHelper.ReadNullSafeInt(reader["Avance"])
+                                Avance = UTL_DBHelper.ReadNullSafeInt(reader["Avance"]),
+                                Cantidad = UTL_DBHelper.ReadNullSafeInt(reader["Cantidad"])
                             };
 
                             lista.Add(itemOrdenServicio);

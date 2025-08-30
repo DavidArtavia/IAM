@@ -497,6 +497,7 @@ export const labelMapItemsOrdenServicio: Record<string, string> = {
     nombreItemOrdenServicio: "Nombre",
     descripcion: "Descripción",
     monto: "Monto",
+    cantidad: "Cantidad",
     avance: "Avance",
     estado: "Estado",
 };
