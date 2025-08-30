@@ -296,3 +296,12 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 .hoverElement:hover {
 background-color: #fbfbfb;
 }
+
+
+
+/*Deshabilita el hover de la tabla secundarya en dispositivos mobiles, la que se despliega*/
+/* Desactiva el sombreado en hover de DataTables */
+table.table.dataTable.table-hover > tbody > tr:hover > * {
+  box-shadow: inset 0 0 0 9999px rgba(var(--dt-row-hover), 0) !important;
+  color: white !important;
+}

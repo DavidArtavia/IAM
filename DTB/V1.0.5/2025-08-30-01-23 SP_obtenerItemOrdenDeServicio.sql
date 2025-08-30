@@ -30,7 +30,7 @@ BEGIN
 	  FROM [CORE].[TBL_ITEMS_ORDEN_SERVICIO] ITEM
 	  INNER JOIN [UTIL].[TBL_ESTADOS] ESTADO ON ITEM.ID_Estado = ESTADO.ID_Estado
 
-	  WHERE ID_OrdenServicio = @ID_OrdenServicio
+	  WHERE ID_OrdenServicio = @ID_OrdenServicio and ITEM.ID_Estado != 19 
 
 	-- Alerta de �xito
 	SELECT [COD_ALERTA], [Nombre], [Mensaje], [Tipo]
