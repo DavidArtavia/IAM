@@ -1,5 +1,5 @@
 // src/pages/Cuentas.tsx
-import { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   DTO_Negocio,
   DTO_Respuesta,
@@ -673,44 +673,103 @@ export const Cuentas = () => {
 
 
         return (
-          <div className="d-flex flex-column gap-4 pt-6">
+          <div className="d-flex flex-column gap-4">
 
             {filas.length > 0 && (
-              <div className="table-responsive bg-white border rounded p-0">
-                <table className="table table-borderless table-sm align-middle w-100 mb-0">
+              <div>
+
+
+                <table className="table table-sm align-middle dtr-inline" id="DataTables_Table_28" aria-describedby="DataTables_Table_28_info" data-zebra-custom="398bc2">
                   <thead className="text-muted fs-8 fw-bold">
                     <tr>
-                      <th className="text-center w-60">Fila</th>
-                      <th className="text-center w-60">Nombre</th>
-                      <th className="text-center w-60">Valor</th>
+                      <th className="text-center w-60"></th>
+                      <th className="text-center w-60"></th>
+                      <th className="text-center w-60"></th>
+                      <th className="text-center w-60"></th>
+                      <th className="text-center w-60"></th>
                     </tr>
                   </thead>
+
                   <tbody>
-                    {filas.map((fila, idx) => (
-                      <tr key={idx} className="border-bottom text-center border-gray-200">
-                        <td className="text-center">
-                          <div className="text-center gap-3">
-                            <span className="text-dark fs-6 px-2 py-1">{idx + 1}</span>
+                    {filas.length === 0 && (
 
-                          </div>
-                        </td>
-                        <td className="text-center">
-                          <div className="text-center gap-3">
 
-                            <span className="text-dark text-center fs-5">
-                              {fila.nombre}
-                            </span>
+                      <tr className="no-hover-row">
+                        <td colSpan={5} className="dt-empty">
+                          <div className="dt-empty-state d-flex flex-column align-items-center justify-content-center py-10">
+                            <i className="bi bi-inbox fs-1 text-muted" aria-hidden="true"></i>
+                            <span className="text-muted mt-2">Sin datos</span>
                           </div>
-                        </td>
-                        <td className="text-center">
-                          <span className="fw-bold text-dark fs-6">
-                            {formatColones(fila.valor)}
-                          </span>
                         </td>
                       </tr>
+                    )}
+
+                    {filas.map((it, idx) => (
+                      <React.Fragment key={'CardItemProforma' + idx}>
+
+
+                        {/* ======= Vista MÓVIL (< sm): grid 8/2/1/1 ======= */}
+
+                        <tr className="d-table-row">
+                          <td colSpan={4} className="pb-4">
+                            <div className="p-2 py-4 pb-2 pt-1 border border-secoundary rounded-3 hoverElement">
+                              <div className="row py-2 pb-5">
+                                <div className="col-10"><span className="fs-7 text-gray-600 mt-2">{'#' + (idx + 1)}</span></div>
+                                <div className="text-end col-2">
+
+
+              
+
+
+
+                                </div>
+
+
+
+                              </div>
+
+                              <div className="row g-1">
+
+                                <div className="col-6">
+                                  <label htmlFor={'txtNombre' + idx.toString()} className="fs-7 text-gray-600">Nombre</label>
+                                  <p>{it.nombre}</p>
+                                </div>
+
+                                <div className="col-3">
+                                  <label htmlFor={'txtPrecio' + idx.toString()} className="fs-7 text-gray-600">Monto</label>
+                                  <p>{formatColones(it.valor)}</p>
+                                </div>
+
+
+                                <div className="col-3">
+                                  <label htmlFor={'txtCantidad' + idx.toString()} className="fs-7 text-gray-600">Cantidad</label>
+                                  <p>{it.cantidad || 1}</p>
+
+                                </div>
+
+
+              
+                                <div className="row p-0">
+                                  <div className="text-start col-6"></div>
+                                  <div className="text-end col-6"><span className="fs-7 text-gray-600 mt-2">Importe</span> <span className="fs-7 text-gray-600 mt-2 ">{formatColones((+it.cantidad || 1) * (+it.valor || 0))}</span></div>
+
+
+
+                                </div>
+                              </div>
+                            </div>
+                          </td>
+                        </tr>
+                      </React.Fragment>
                     ))}
+
+
                   </tbody>
+
                 </table>
+
+
+
               </div>
             )}
             <div className="d-flex flex-wrap gap-4 pt-5">

@@ -610,7 +610,7 @@ export const ItemsOrdenDeServicioModal = ({
                                 {/* ======= Vista MÓVIL (< sm): grid 8/2/1/1 ======= */}
 
                                 <tr ref={(el) => (rowRefs.current[idx] = el)} className="d-table-row">
-                                  <td colSpan={4} className="pb-4">
+                                  <td colSpan={5} className="pb-4">
                                     <div className="p-2 py-4 pb-2 pt-1 border border-secoundary rounded-3 hoverElement">
                                       <div className="row py-2 pb-5">
                                         <div className="col-10"><span className="fs-7 text-gray-600 mt-2">{'#' + (idx + 1)}</span></div>
