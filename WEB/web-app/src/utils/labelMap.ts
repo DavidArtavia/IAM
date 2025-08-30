@@ -45,8 +45,8 @@ export const columnKeysCliente: (keyof DTO_Cliente)[] = [
 ];
 export const columnKeysItemsOrdenServicio: (keyof DTO_ItemOrdenServicio)[] = [
     "iD_ItemOrdenServicio",
-    "iD_OrdenServicio",
     "monto",
+    "cantidad",
     "nombreItemOrdenServicio",
     "descripcion",
 
@@ -494,10 +494,10 @@ export const labelMapCliente: Record<string, string> = {
 
 export const labelMapItemsOrdenServicio: Record<string, string> = {
     iD_ItemOrdenServicio: "ID",
-    iD_OrdenServicio: "Orden",
     nombreItemOrdenServicio: "Nombre",
     descripcion: "Descripción",
     monto: "Monto",
+    cantidad: "Cantidad",
     avance: "Avance",
     estado: "Estado",
 };
