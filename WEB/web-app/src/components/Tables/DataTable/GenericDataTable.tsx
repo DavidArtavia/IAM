@@ -616,7 +616,7 @@ function GenericDataTableInner<T>(
 
                     return `
               <tr data-dt-row="${rowIdx}" data-dt-column="${cIdx}">
-                <td class="fw-semibold text-muted pe-3">${col.title}</td>
+                <td class="fw-semibold pe-3">${col.title}</td>
                 <td class="text-wrap">${cellHtml}</td>
               </tr>
             `;
@@ -1776,7 +1776,7 @@ table.table-hover.dataTable tbody tr.no-hover-row:hover > * {
 
       return `
       <tr data-dt-row="${rowIdx}" data-dt-column="${cIdx}">
-        <td class="fw-semibold text-muted pe-3">${title}</td>
+        <td class="fw-semibold pe-3">${title}</td>
         <td class="text-wrap">${cellHtml}</td>
       </tr>
     `;
@@ -1957,9 +1957,9 @@ table.table-hover.dataTable tbody tr.no-hover-row:hover > * {
           // (A) Una vez en pág. 1, subir al tope del scroller y luego insertar
           const afterPagedAndScrolled = () => {
             dt.columns.adjust();
-            // @ts-expect-error
+            // @ts-expect-error --er
             dt.responsive.recalc();
-            // @ts-expect-error
+            // @ts-expect-error --er
             dt.fixedHeader?.adjust?.();
 
             const scroller = getScrollRoot();
@@ -1971,7 +1971,7 @@ table.table-hover.dataTable tbody tr.no-hover-row:hover > * {
             } else {
               smoothScrollToY(scroller, 0, 1000).then(() => {
                 // Ajuste por si el header fijo cambió algo al terminar el scroll
-                // @ts-expect-error
+                // @ts-expect-error --er
                 dt.fixedHeader?.adjust?.();
                 doInsertAndFlash();
               });
@@ -2063,9 +2063,9 @@ if (tr) {
           dt.page("first").draw(false);
 
           dt.columns.adjust();
-          // @ts-expect-error
+          // @ts-expect-error --er
           dt.responsive.recalc();
-          // @ts-expect-error
+          // @ts-expect-error --er
           dt.fixedHeader?.adjust?.();
 
           // Highlight a la primera fila recién visible
