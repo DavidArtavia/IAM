@@ -74,6 +74,19 @@ export const ProformaCrearEditarModal = (props: Props) => {
   const negocio = state.negocio;
   //#endregion
 
+  //#region Scroll del body
+  //Ajustes para el croll del body, para bloquearlo en cuando se abren los modales
+  const modalRef = useRef<HTMLDivElement>(null);
+
+  useScrollLockSmart(show, {
+    rootRef: modalRef,
+    fallbackSelector: ".app-scroll",
+  });
+
+  useEffect(() => {
+    if (show) modalRef.current?.focus();
+  }, [show]);
+  //#endregion
 
   // Cabecera
   const [clienteOpt, setClienteOpt] = useState<ClientOption | null>(null);
@@ -229,26 +242,149 @@ export const ProformaCrearEditarModal = (props: Props) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mode, proforma?.iD_Proforma]);
 
-  // foco al agregar item
+  //#region foco al agregar item
+  const ensureFlashStyles = () => {
+    const id = "dt-flash-row-style";
+    if (document.getElementById(id)) return;
+    const s = document.createElement("style");
+    s.id = id;
+    // dentro de ensureFlashStyles()
+    s.textContent = `
+@keyframes flashBorder { from { opacity: 1 } to { opacity: 0 } }
+
+.flash-blue-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 30;
+  border-radius: .5rem;
+}
+.flash-blue-overlay::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  padding: 2px;
+  border-radius: inherit;
+  background: var(--bs-primary, #3e96d2);
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  -webkit-mask-composite: xor;
+  animation: flashBorder 2s ease-out forwards;
+}
+.dt-flash-rel { position: relative !important; }
+
+/* 👇 overlay absoluto para desktop, posicionado por JS */
+.flash-row-abs {
+  position: absolute;
+  pointer-events: none;
+  z-index: 35;
+  border-radius: .5rem;
+}
+.flash-row-abs::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  padding: 2px;
+  border-radius: inherit;
+  background: var(--bs-primary, #3e96d2);
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  -webkit-mask-composite: xor;
+  animation: flashBorder 2s ease-out forwards;
+}
+/* Overlay fijo para desktop (viewport coords) */
+.flash-row-fixed {
+  position: fixed;
+  pointer-events: none;
+  z-index: 2000;           /* por encima del modal */
+  border-radius: .5rem;
+}
+.flash-row-fixed::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  padding: 2px;
+  border-radius: inherit;
+  background: var(--bs-primary, #3e96d2);
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  -webkit-mask-composite: xor;
+  animation: flashBorder 2s ease-out forwards;
+}
+
+`;
+
+    document.head.appendChild(s);
+  };
+
+  const rowRefs = useRef<
+    Record<string, HTMLTableRowElement | HTMLDivElement | null>
+  >({});
+
   useEffect(() => {
     if (!lastAddedId) return;
-    const id = lastAddedId;
-    const t = requestAnimationFrame(() => {
-      const input = nombreRefs.current[id];
-      if (input) {
-        input.focus({ preventScroll: true });
-        const len = input.value.length;
-        input.setSelectionRange?.(len, len);
-        input.scrollIntoView({
+    ensureFlashStyles();
+
+    let cancelled = false; // evita correr si el efecto se desmonta
+    // usamos doble rAF para asegurarnos que el <tr>/<div> ya está en el DOM y medido
+    const raf1 = requestAnimationFrame(() => {
+      const raf2 = requestAnimationFrame(() => {
+        if (cancelled) return;
+
+        const row = rowRefs.current[lastAddedId];
+        if (!row) return;
+
+        // 1) scroll
+        row.scrollIntoView({
           behavior: "smooth",
           block: "center",
           inline: "nearest",
         });
-      }
+
+        // 2) highlight (dos ramas: móvil = <div>, desktop = <tr>)
+        if (row instanceof HTMLDivElement) {
+          row.classList.add("dt-flash-rel");
+          const overlay = document.createElement("div");
+          overlay.className = "flash-blue-overlay";
+          row.appendChild(overlay);
+
+          setTimeout(() => {
+            overlay.remove();
+            row.classList.remove("dt-flash-rel");
+            // ✅ reseteamos el flag DESPUÉS del flash
+            setLastAddedId(null);
+          }, 2200);
+        } else if (row instanceof HTMLTableRowElement) {
+          // opción A: overlay fijo al viewport (no depende de contenedores)
+          const rect = row.getBoundingClientRect();
+          if (rect.width === 0 || rect.height === 0) {
+            // reintenta una vez si aún no mide
+            requestAnimationFrame(() => setLastAddedId(lastAddedId));
+            return;
+          }
+          const overlay = document.createElement("div");
+          overlay.className = "flash-row-fixed"; // clase que ya te pasé
+          overlay.style.top = `${rect.top}px`;
+          overlay.style.left = `${rect.left}px`;
+          overlay.style.width = `${rect.width}px`;
+          overlay.style.height = `${rect.height}px`;
+          document.body.appendChild(overlay);
+
+          setTimeout(() => {
+            overlay.remove();
+            // ✅ reseteo al final
+            setLastAddedId(null);
+          }, 2200);
+        }
+      });
     });
-    setLastAddedId(null);
-    return () => cancelAnimationFrame(t);
-  }, [items, lastAddedId]);
+    return () => {
+      cancelled = true;
+      cancelAnimationFrame(raf1);
+    };
+  }, [lastAddedId, items.length]);
+
+  //#endregion
 
   // Totales (solo ítems no eliminados)
   const itemsVigentes = useMemo(
@@ -868,6 +1004,7 @@ export const ProformaCrearEditarModal = (props: Props) => {
       <div
         className="modal shadowClearBackground fade show d-block "
         role="dialog"
+        ref={modalRef}
         tabIndex={-1}
         onClick={(e) => {
           if (e.target === e.currentTarget) onClose();
@@ -975,7 +1112,13 @@ export const ProformaCrearEditarModal = (props: Props) => {
                             ? "opacity-50 text-decoration-line-through"
                             : "";
                           return (
-                            <tr key={it.idTemp} className={rowClass}>
+                            <tr
+                              key={it.idTemp}
+                              ref={(el) => {
+                                rowRefs.current[it.idTemp] = el;
+                              }}
+                              className={rowClass}
+                            >
                               {/* Forzamos align-top en TODOS los td */}
                               <td className="align-top">{idx + 1}</td>
 
@@ -1227,6 +1370,9 @@ export const ProformaCrearEditarModal = (props: Props) => {
                       return (
                         <div
                           key={it.idTemp}
+                          ref={(el) => {
+                            rowRefs.current[it.idTemp] = el;
+                          }}
                           className={`border rounded-3 p-3 mb-3 w-100 ${cardCls}`}
                         >
                           <div className="d-flex justify-content-between align-items-center mb-2">
