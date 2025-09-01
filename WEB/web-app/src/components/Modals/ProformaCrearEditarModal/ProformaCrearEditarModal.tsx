@@ -243,12 +243,12 @@ export const ProformaCrearEditarModal = (props: Props) => {
   }, [mode, proforma?.iD_Proforma]);
 
   //#region foco al agregar item
+
   const ensureFlashStyles = () => {
     const id = "dt-flash-row-style";
     if (document.getElementById(id)) return;
     const s = document.createElement("style");
     s.id = id;
-    // dentro de ensureFlashStyles()
     s.textContent = `
 @keyframes flashBorder { from { opacity: 1 } to { opacity: 0 } }
 
@@ -273,30 +273,11 @@ export const ProformaCrearEditarModal = (props: Props) => {
 }
 .dt-flash-rel { position: relative !important; }
 
-/* 👇 overlay absoluto para desktop, posicionado por JS */
-.flash-row-abs {
-  position: absolute;
-  pointer-events: none;
-  z-index: 35;
-  border-radius: .5rem;
-}
-.flash-row-abs::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  padding: 2px;
-  border-radius: inherit;
-  background: var(--bs-primary, #3e96d2);
-  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  mask-composite: exclude;
-  -webkit-mask-composite: xor;
-  animation: flashBorder 2s ease-out forwards;
-}
-/* Overlay fijo para desktop (viewport coords) */
+/* Desktop: overlay fijo al viewport */
 .flash-row-fixed {
   position: fixed;
   pointer-events: none;
-  z-index: 2000;           /* por encima del modal */
+  z-index: 2000;
   border-radius: .5rem;
 }
 .flash-row-fixed::before {
@@ -311,7 +292,6 @@ export const ProformaCrearEditarModal = (props: Props) => {
   -webkit-mask-composite: xor;
   animation: flashBorder 2s ease-out forwards;
 }
-
 `;
 
     document.head.appendChild(s);
@@ -321,68 +301,105 @@ export const ProformaCrearEditarModal = (props: Props) => {
     Record<string, HTMLTableRowElement | HTMLDivElement | null>
   >({});
 
-  useEffect(() => {
-    if (!lastAddedId) return;
-    ensureFlashStyles();
-
-    let cancelled = false; // evita correr si el efecto se desmonta
-    // usamos doble rAF para asegurarnos que el <tr>/<div> ya está en el DOM y medido
-    const raf1 = requestAnimationFrame(() => {
-      const raf2 = requestAnimationFrame(() => {
-        if (cancelled) return;
-
-        const row = rowRefs.current[lastAddedId];
-        if (!row) return;
-
-        // 1) scroll
-        row.scrollIntoView({
-          behavior: "smooth",
-          block: "center",
-          inline: "nearest",
-        });
-
-        // 2) highlight (dos ramas: móvil = <div>, desktop = <tr>)
-        if (row instanceof HTMLDivElement) {
-          row.classList.add("dt-flash-rel");
-          const overlay = document.createElement("div");
-          overlay.className = "flash-blue-overlay";
-          row.appendChild(overlay);
-
-          setTimeout(() => {
-            overlay.remove();
-            row.classList.remove("dt-flash-rel");
-            // ✅ reseteamos el flag DESPUÉS del flash
-            setLastAddedId(null);
-          }, 2200);
-        } else if (row instanceof HTMLTableRowElement) {
-          // opción A: overlay fijo al viewport (no depende de contenedores)
-          const rect = row.getBoundingClientRect();
-          if (rect.width === 0 || rect.height === 0) {
-            // reintenta una vez si aún no mide
-            requestAnimationFrame(() => setLastAddedId(lastAddedId));
-            return;
-          }
-          const overlay = document.createElement("div");
-          overlay.className = "flash-row-fixed"; // clase que ya te pasé
-          overlay.style.top = `${rect.top}px`;
-          overlay.style.left = `${rect.left}px`;
-          overlay.style.width = `${rect.width}px`;
-          overlay.style.height = `${rect.height}px`;
-          document.body.appendChild(overlay);
-
-          setTimeout(() => {
-            overlay.remove();
-            // ✅ reseteo al final
-            setLastAddedId(null);
-          }, 2200);
-        }
-      });
-    });
-    return () => {
-      cancelled = true;
-      cancelAnimationFrame(raf1);
+  const setRowRefVisibleOnly =
+    (id: string) => (el: HTMLTableRowElement | HTMLDivElement | null) => {
+      if (!el) return;
+      try {
+        const cs = getComputedStyle(el);
+        const isHidden = cs.display === "none" || cs.visibility === "hidden";
+        if (isHidden) return; // no guardar clones ocultos (d-none)
+      } catch {
+        // si getComputedStyle falla, igualmente guardamos
+      }
+      rowRefs.current[id] = el;
     };
-  }, [lastAddedId, items.length]);
+  
+useEffect(() => {
+  if (!lastAddedId) return;
+  ensureFlashStyles();
+
+  let cancelled = false;
+
+  const raf1 = requestAnimationFrame(() => {
+    if (cancelled) return;
+
+    // 1) consigue el nodo visible
+    let row = rowRefs.current[lastAddedId] as
+      | HTMLDivElement
+      | HTMLTableRowElement
+      | null;
+
+    if (!row) {
+      row = document.querySelector(`[data-rowid="${lastAddedId}"]`) as
+        | HTMLDivElement
+        | HTMLTableRowElement
+        | null;
+    }
+    if (!row) return;
+
+    // 2) scroll primario hacia la fila
+    row.scrollIntoView({
+      behavior: "smooth",
+      block: "center",
+      inline: "nearest",
+    });
+
+    // 2.b) scroll de respaldo dentro del contenedor del modal
+    const container = modalBodyRef.current;
+    if (container) {
+      const rowRect = row.getBoundingClientRect();
+      const contRect = container.getBoundingClientRect();
+      const desiredTop =
+        rowRect.top -
+        contRect.top +
+        container.scrollTop -
+        Math.max(0, container.clientHeight / 2 - rowRect.height / 2);
+
+      container.scrollTo({ top: Math.max(0, desiredTop), behavior: "smooth" });
+    }
+
+    // 3) highlight
+    if (row instanceof HTMLDivElement) {
+      // móvil: overlay interno
+      row.classList.add("dt-flash-rel");
+      const overlay = document.createElement("div");
+      overlay.className = "flash-blue-overlay";
+      row.appendChild(overlay);
+
+      setTimeout(() => {
+        overlay.remove();
+        row.classList.remove("dt-flash-rel");
+        setLastAddedId(null);
+      }, 2200);
+    } else if (row instanceof HTMLTableRowElement) {
+      // desktop: overlay fijo al viewport
+      const rect = row.getBoundingClientRect();
+      if (rect.width === 0 || rect.height === 0) {
+        // si aún no se midió, reintenta una vez
+        requestAnimationFrame(() => setLastAddedId(lastAddedId));
+        return;
+      }
+      const overlay = document.createElement("div");
+      overlay.className = "flash-row-fixed";
+      overlay.style.top = `${rect.top}px`;
+      overlay.style.left = `${rect.left}px`;
+      overlay.style.width = `${rect.width}px`;
+      overlay.style.height = `${rect.height}px`;
+      document.body.appendChild(overlay);
+
+      setTimeout(() => {
+        overlay.remove();
+        setLastAddedId(null);
+      }, 2200);
+    }
+  });
+
+  return () => {
+    cancelled = true;
+    cancelAnimationFrame(raf1);
+  };
+}, [lastAddedId, items.length]);
+
 
   //#endregion
 
@@ -1114,9 +1131,8 @@ export const ProformaCrearEditarModal = (props: Props) => {
                           return (
                             <tr
                               key={it.idTemp}
-                              ref={(el) => {
-                                rowRefs.current[it.idTemp] = el;
-                              }}
+                              data-rowid={it.idTemp}
+                              ref={setRowRefVisibleOnly(it.idTemp)}
                               className={rowClass}
                             >
                               {/* Forzamos align-top en TODOS los td */}
@@ -1370,9 +1386,8 @@ export const ProformaCrearEditarModal = (props: Props) => {
                       return (
                         <div
                           key={it.idTemp}
-                          ref={(el) => {
-                            rowRefs.current[it.idTemp] = el;
-                          }}
+                          data-rowid={it.idTemp}
+                          ref={setRowRefVisibleOnly(it.idTemp)}
                           className={`border rounded-3 p-3 mb-3 w-100 ${cardCls}`}
                         >
                           <div className="d-flex justify-content-between align-items-center mb-2">
@@ -1481,52 +1496,45 @@ export const ProformaCrearEditarModal = (props: Props) => {
                               <label className="text-muted mb-1">Precio</label>
                               <input
                                 type="number"
+                                inputMode="decimal"
+                                step="1"
+                                min={0}
+                                placeholder="0" // 👈 solo se ve cuando el campo está vacío
                                 className={`form-control text-muted form-control-sm text-end ${
                                   getErrors(`${it.idTemp}.precioItemProforma`)
                                     .length
                                     ? "is-invalid"
                                     : ""
                                 }`}
-                                value={String(it.precioItemProforma ?? "")}
+                                value={
+                                  it.precioItemProforma === undefined ||
+                                  it.precioItemProforma === null
+                                    ? "" // 👈 vacío, muestra el placeholder
+                                    : String(it.precioItemProforma)
+                                }
                                 data-err={`${it.idTemp}.precioItemProforma`}
-                                onKeyDown={(e) => {
-                                  const blocked = ["-", "+", "e", "E"];
-                                  if (
-                                    blocked.includes(e.key) ||
-                                    e.code === "NumpadSubtract"
-                                  )
-                                    e.preventDefault();
-                                }}
-                                onBeforeInput={(e: any) => {
-                                  if (e?.data && /[-+eE]/.test(e.data))
-                                    e.preventDefault();
-                                }}
                                 onChange={(e) => {
-                                  const raw = e.target.value
-                                    .replace(/^0+(\d)/, "$1")
-                                    .replace(",", ".");
-                                  if (raw === "") {
-                                    eliminarError(
-                                      `${it.idTemp}.precioItemProforma`
-                                    );
+                                  const valStr = e.target.value
+                                    .replace(/[^\d.]/g, "")
+                                    .replace(",", ".")
+                                    .replace(/(\..*?)\..*/g, "$1")
+                                    .replace(/^0+(?=\d)/, "");
+
+                                  eliminarError(
+                                    `${it.idTemp}.precioItemProforma`
+                                  );
+
+                                  if (valStr === "") {
                                     patchItem(it.idTemp, {
                                       precioItemProforma: undefined,
                                     });
                                     return;
                                   }
-                                  let val = Number(raw);
-                                  if (!Number.isFinite(val) || val < 0) val = 0;
-                                  eliminarError(
-                                    `${it.idTemp}.precioItemProforma`
-                                  );
-                                  patchItem(it.idTemp, {
-                                    precioItemProforma: val,
-                                  });
-                                }}
-                                onBlur={(e) => {
-                                  if (e.target.value.trim() === "") {
+
+                                  const valNum = parseFloat(valStr);
+                                  if (!isNaN(valNum) && valNum >= 0) {
                                     patchItem(it.idTemp, {
-                                      precioItemProforma: 0,
+                                      precioItemProforma: valNum,
                                     });
                                   }
                                 }}
@@ -1550,28 +1558,41 @@ export const ProformaCrearEditarModal = (props: Props) => {
                               </label>
                               <input
                                 type="number"
+                                step="1"
+                                min={1}
                                 className={`form-control text-muted form-control-sm text-end ${
                                   getErrors(`${it.idTemp}.cantidadItemProforma`)
                                     .length
                                     ? "is-invalid"
                                     : ""
                                 }`}
-                                value={String(it.cantidadItemProforma ?? "")}
+                                value={
+                                  it.cantidadItemProforma === undefined
+                                    ? "" // deja borrar
+                                    : String(it.cantidadItemProforma)
+                                }
                                 data-err={`${it.idTemp}.cantidadItemProforma`}
                                 onChange={(e) => {
-                                  const val = Number(e.target.value);
+                                  const valStr = e.target.value
+                                    .replace(/[^\d.]/g, "")
+                                    .replace(",", ".")
+                                    .replace(/(\..*?)\..*/g, "$1")
+                                    .replace(/^0+(?=\d)/, "");
+
                                   eliminarError(
                                     `${it.idTemp}.cantidadItemProforma`
                                   );
-                                  patchItem(it.idTemp, {
-                                    cantidadItemProforma: val,
-                                  });
-                                }}
-                                onBlur={(e) => {
-                                  const val = Number(e.target.value);
-                                  if (!Number.isFinite(val) || val < 1) {
+                                  if (valStr === "") {
                                     patchItem(it.idTemp, {
-                                      cantidadItemProforma: 1,
+                                      cantidadItemProforma: undefined,
+                                    });
+                                    return;
+                                  }
+
+                                  const valNum = parseInt(valStr, 10);
+                                  if (!isNaN(valNum) && valNum >= 1) {
+                                    patchItem(it.idTemp, {
+                                      cantidadItemProforma: valNum,
                                     });
                                   }
                                 }}
