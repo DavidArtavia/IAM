@@ -8,6 +8,7 @@ import {
   InfoModal,
   LoadingPanel,
   ProformaCrearEditarModal,
+  InfoPanel,
 } from "@/components";
 import { STATUS_TBL } from "@/constants";
 import { useApp } from "@/hooks/useApp";
@@ -378,8 +379,11 @@ export const Proformas = () => {
 
   //#region Cambios de estados de proforma
 
-  const handleChangeEstado = ( nuevoEstadoId: number, row: DTO_Proforma, nombreEstado: string) => {
-
+  const handleChangeEstado = (
+    nuevoEstadoId: number,
+    row: DTO_Proforma,
+    nombreEstado: string
+  ) => {
     if (!row) return;
 
     const dtoProforma: DTO_Proforma = {
@@ -392,49 +396,51 @@ export const Proformas = () => {
     };
     proformaService.actualizarProformas(dtoProforma).subscribe({
       next: (res: DTO_Respuesta) => {
-      if (res?.tipoRespuesta) {
-        notificationHelpers.successAlert(`Estado Cambiado a ${nombreEstado}`);
-        tableRef.current?.upsert(dtoProforma);
-      } else {
-        notificationHelpers.warningAlert(
-          res?.mensaje || "No se pudo actualizar el estado"
-        );
-      }
+        if (res?.tipoRespuesta) {
+          notificationHelpers.successAlert(`Estado Cambiado a ${nombreEstado}`);
+          tableRef.current?.upsert(dtoProforma);
+        } else {
+          notificationHelpers.warningAlert(
+            res?.mensaje || "No se pudo actualizar el estado"
+          );
+        }
       },
       error: (err) => {
-      errorHelpers.serverError(err);
+        errorHelpers.serverError(err);
       },
     });
-    
   };
 
   //#endregion
 
   //#region botones de acción para la tabla
-const opcionesDropdown = (row: DTO_Proforma) => [
-  {
-    label: "Borrador",
-    icon: <i className="bi bi-file-earmark-text me-2 text-info" />,
-    onClick: () => handleChangeEstado(STATUS_TBL.PROFORMA.DRAFT, row, "borrador"),
-  },
-  {
-    label: "Anular",
-    icon: <i className="bi bi-x-circle me-2 text-danger" />,
-    danger: true,
-    onClick: () => handleChangeEstado(STATUS_TBL.PROFORMA.ANNULLED, row, "anulado"),
-  },
-  {
-    label: "Aprobar",
-    icon: <i className="bi bi-check2-circle me-2 text-success" />,
-    danger: false,
-    onClick: () => handleChangeEstado(STATUS_TBL.PROFORMA.APPROVED, row, "aprobado"),
-  },
-];
+  const opcionesDropdown = (row: DTO_Proforma) => [
+    {
+      label: "Borrador",
+      icon: <i className="bi bi-file-earmark-text me-2 text-info" />,
+      onClick: () =>
+        handleChangeEstado(STATUS_TBL.PROFORMA.DRAFT, row, "borrador"),
+    },
+    {
+      label: "Anular",
+      icon: <i className="bi bi-x-circle me-2 text-danger" />,
+      danger: true,
+      onClick: () =>
+        handleChangeEstado(STATUS_TBL.PROFORMA.ANNULLED, row, "anulado"),
+    },
+    {
+      label: "Aprobar",
+      icon: <i className="bi bi-check2-circle me-2 text-success" />,
+      danger: false,
+      onClick: () =>
+        handleChangeEstado(STATUS_TBL.PROFORMA.APPROVED, row, "aprobado"),
+    },
+  ];
 
   const dataTableButtons: DynamicButtonConfig[] = [
     {
       render: ({ row }) => (
-        <div className="dropdown" >
+        <div className="dropdown">
           <button
             type="button"
             className="btn btn-icon btn-bg-light btn-active-color-primary btn-sm "
@@ -470,64 +476,72 @@ const opcionesDropdown = (row: DTO_Proforma) => [
   //#endregion
 
   return (
-    <div className="row p-4 gx-0">
-      {loading ? (
-        <LoadingPanel msj="Cargando Proformas, por favor espere..." />
-      ) : (
-        <GenericDataTable<DTO_Proforma>
-          ref={tableRef}
-          title="Proformas"
-          columnKeys={columnKeysProforma}
-          labelMap={labelMapProforma}
-          dataTableButtons={dataTableButtons}
-          data={proformas}
-          independent
-          includeEstadoColumn
-          idField="iD_Proforma"
-          onAdd={handleAddNew}
-          onEdit={handleEdit}
-          onDelete={handleDelete}
-          onRowClick={setRowTableSelected}
-          customRenderers={customRenderers}
-          nowrapColumns={[
-            "iD_Proforma",
-            "totalCalculado",
-            "cliente",
-            "montoDescuento",
-            "subTotal",
-            "baseImponible",
-            "montoImpuesto",
-            "descuentoProforma",
-          ]}
-        />
-      )}
+    <>
+      <div className="row p-4 gx-0">
+        {state.negocio == null ? (
+          <InfoPanel msj="Seleccione un negocio para ver sus proformas." />
+        ) : (
+          <>
+            {loading ? (
+              <LoadingPanel msj="Cargando Proformas, por favor espere..." />
+            ) : (
+              <GenericDataTable<DTO_Proforma>
+                ref={tableRef}
+                title="Proformas"
+                columnKeys={columnKeysProforma}
+                labelMap={labelMapProforma}
+                dataTableButtons={dataTableButtons}
+                data={proformas}
+                independent
+                includeEstadoColumn
+                idField="iD_Proforma"
+                onAdd={handleAddNew}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
+                onRowClick={setRowTableSelected}
+                customRenderers={customRenderers}
+                nowrapColumns={[
+                  "iD_Proforma",
+                  "totalCalculado",
+                  "cliente",
+                  "montoDescuento",
+                  "subTotal",
+                  "baseImponible",
+                  "montoImpuesto",
+                  "descuentoProforma",
+                ]}
+              />
+            )}
 
-      <ProformaCrearEditarModal
-        mode="create"
-        show={showRegisterProforma}
-        onClose={handleCancelAdd}
-        onRegistered={handleSave}
-      />
-      <ProformaCrearEditarModal
-        mode="edit"
-        show={showEditProforma}
-        proforma={editData}
-        onUpdated={handleSaveEdit}
-        onClose={() => setShowEditProforma(false)}
-      />
+            <ProformaCrearEditarModal
+              mode="create"
+              show={showRegisterProforma}
+              onClose={handleCancelAdd}
+              onRegistered={handleSave}
+            />
+            <ProformaCrearEditarModal
+              mode="edit"
+              show={showEditProforma}
+              proforma={editData}
+              onUpdated={handleSaveEdit}
+              onClose={() => setShowEditProforma(false)}
+            />
 
-      <InfoModal
-        show={!!rowTableSelected}
-        onHide={() => setRowTableSelected(undefined)}
-        data={rowTableSelected!}
-        fields={infoModalFields}
-      />
+            <InfoModal
+              show={!!rowTableSelected}
+              onHide={() => setRowTableSelected(undefined)}
+              data={rowTableSelected!}
+              fields={infoModalFields}
+            />
 
-      <ConfirmModal
-        show={isConfirmOpen}
-        confirmMessage={confirmModalMessage}
-        onAction={confirmModalAction}
-      />
-    </div>
+            <ConfirmModal
+              show={isConfirmOpen}
+              confirmMessage={confirmModalMessage}
+              onAction={confirmModalAction}
+            />
+          </>
+        )}
+      </div>
+    </>
   );
 };
