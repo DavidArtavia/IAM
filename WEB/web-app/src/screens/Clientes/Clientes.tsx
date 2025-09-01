@@ -101,7 +101,12 @@ useEffect(() => {
     if (result.resultado) {
       const msg = result.mensaje || "Operación realizada correctamente";
       if (type === "succes") notificationHelpers.successAlert(msg);
-      else if (type === "info") notificationHelpers.infoAlert(msg);
+      else if (type === "info"){
+        if(confirmContext == 'delete')
+        notificationHelpers.infoAlert(msg.replace("actualizados", "eliminados"));
+      else
+        notificationHelpers.infoAlert(msg);
+      } 
       else notificationHelpers.warningAlert(msg);
     } else {
       notificationHelpers.errorAlert(

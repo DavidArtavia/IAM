@@ -366,34 +366,48 @@ export const DetalleCuentaInput = ({
             {/* Fila 2: Monto + Cantidad + Botones (misma línea, sin scroll) */}
             <div className="row g-2 align-items-end mt-1">
               {/* XS: 5/12 — SM: 4/12 — MD: 3/12 */}
-              <div className="col-5 col-sm-4 col-md-3">
+              <div className="col-5 col-sm-4 col-md-4">
                 <input
-                  type="number"
+                  type="text"
                   className="form-control"
                   placeholder="Monto"
                   value={valorFila}
-                  onChange={(e) => setValorFila(e.target.value)}
-                  min="0"
-                  step="any"
+                  onChange={(e) => {
+                    const v = e.target.value
+                      .replace(/[^\d.,]/g, "")     // deja dígitos y . ,
+                      .replace(",", ".")           // normaliza coma a punto
+                      .replace(/(\..*)\./g, "$1"); // solo un punto decimal
+                    setValorFila(v);
+                  }}
+                  inputMode="numeric"
+                  pattern="^\d+$"
+                  
                 />
               </div>
 
               {/* XS: 3/12 — SM: 2/12 — MD: 2/12 */}
-              <div className="col-3 col-sm-2 col-md-2">
+              <div className="col-3 col-sm-2 col-md-4">
                 {/* Solo visual; no toca tu lógica */}
                 <input
-                  type="number"
+                  type="text"
                   className="form-control"
                   placeholder="Cantidad"
                   value={cantidadFila}
-                  onChange={(e) => setCantidadFila(e.target.value)}
-                  min="1"
-                  step="1"
+                  onChange={(e) => {
+                    const v = e.target.value
+                      .replace(/[^\d.,]/g, "")     // deja dígitos y . ,
+                      .replace(",", ".")           // normaliza coma a punto
+                      .replace(/(\..*)\./g, "$1"); // solo un punto decimal
+                    setCantidadFila(v);
+                  }}
+                  inputMode="numeric"
+                  pattern="^\d+$"
+                  
                 />
               </div>
 
               {/* XS: 4/12 — SM: 6/12 — MD: 7/12 (botones a la derecha, juntos) */}
-              <div className="col-4 col-sm-6 col-md-7 d-flex justify-content-end gap-2">
+              <div className="col-4 col-sm-6 col-md-4 d-flex justify-content-end gap-2">
                 <button
                   type="button"
                   className="btn btn-secondary btn-sm btn-icon"
@@ -472,7 +486,7 @@ export const DetalleCuentaInput = ({
                 />
               </div>
             </div>
-          
+
           </div>
 
 

@@ -1832,7 +1832,8 @@ const refreshResponsiveDetailsForRow = (dt: DataTables.Api, rowIdx: number) => {
     });
     mo.observe(td, { childList: true, subtree: true });
     // Timeout de seguridad por si el render ya terminó pero no hubo mutación detectable
-    setTimeout(() => { try { mo.disconnect(); } catch {} ; resolve(); }, 800);
+
+    setTimeout(() => { try { mo.disconnect(); } catch { /* empty */ } ; resolve(); }, 800);
   })));
 
   waitAll.then(() => {
