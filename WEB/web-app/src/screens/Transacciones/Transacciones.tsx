@@ -263,11 +263,10 @@ export const Transacciones = () => {
 
   const editFormFields: FieldConfig<DTO_Transacciones>[] =
     transaccionesFormEditFields.map((field) => {
-      const esCuenta =
-        editData?.tipoNumReferencia?.trim().toLowerCase() === "cuenta";
+      const esCuenta = editData?.tipoNumReferencia?.trim().toLowerCase() === "cuenta";
       if (
         esCuenta &&
-        (field.key === "tipoNumReferencia" || field.key === "numReferencia")
+        (field.key === "tipoNumReferencia" || field.key === "numReferencia" || field.key === "tipo")
       ) {
         return {
           ...field,
