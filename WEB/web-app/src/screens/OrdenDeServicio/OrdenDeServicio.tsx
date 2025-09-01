@@ -752,6 +752,7 @@ export const OrdenDeServicio = () => {
                   typeof item.monto === "string"
                     ? item.monto
                     : item.monto?.toString() || "0.00",
+                cantidad: item.cantidad?.toString() ?? "1",
               })),
               descuento: { nombre: "Monto", valor: "0" },
               impuesto: { nombre: "Impuesto", valor: "0" },

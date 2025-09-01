@@ -33,6 +33,7 @@ export class validadorGenerico {
         return regex.test(value);
     }
 
+    //true si ambas cadenas son iguales.
     static matches(value: string, compare: string): boolean {
         return value === compare;
     }
@@ -61,6 +62,49 @@ export class validadorGenerico {
 
     static isNonNegative(value: number | null | undefined): boolean {
         return value !== null && value !== undefined && value >= 0;
+    }
+    /**
+ * Solo permite dígitos y un único separador decimal (.,).
+ * Ej: "10", "10.5", "0.25" => válidos. "1-1-1", "10..5", "1e3" => inválidos.
+ */
+    static isNumericStrict(value: any, opts?: { allowDecimal?: boolean; maxDecimals?: number }) {
+        const allowDecimal = opts?.allowDecimal ?? true;
+        const maxDecimals = opts?.maxDecimals ?? undefined;
+
+        if (typeof value === "number") return Number.isFinite(value);
+        if (typeof value !== "string") return false;
+
+        const s = value.trim().replace(",", "."); // normalizamos
+        const base = allowDecimal
+            ? "^[0-9]+(?:\\.[0-9]+)?$"
+            : "^[0-9]+$";
+
+        const re = new RegExp(base);
+        if (!re.test(s)) return false;
+
+        if (allowDecimal && maxDecimals != null && s.includes(".")) {
+            const [, dec] = s.split(".");
+            if ((dec ?? "").length > maxDecimals) return false;
+        }
+        return true;
+    }
+
+    /**
+     * Detecta patrones raros tipo "1-1-1", "10/5", múltiples símbolos, etc.
+     * Útil para dar un mensaje claro de "formato inválido".
+     */
+    static hasWeirdNumericPattern(value: any) {
+        if (typeof value !== "string") return false;
+        const s = value.trim();
+
+        // grupos numéricos separados por "-" o "/" => 1-1-1, 10/5
+        if (/^\d+(?:[-/]\d+)+$/.test(s)) return true;
+
+        // más de un punto decimal o símbolos no permitidos
+        if (/[^0-9.,\s]/.test(s)) return true;            // letras u otros símbolos
+        if ((s.match(/[.,]/g) || []).length > 1) return true; // dos decimales
+
+        return false;
     }
 
 }
