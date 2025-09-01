@@ -288,17 +288,21 @@ export const ProformaCrearEditarModal = (props: Props) => {
       order: 2,
       renderer: () => (
         <>
-          <input
-            type="date"
-            className="form-control text-muted"
-            data-err="fechaVencimiento"
-            title="Fecha de vencimiento"
-            value={fechaV}
-            onChange={(e) => {
-              setFechaV(e.target.value);
-              eliminarError("fechaVencimiento");
-            }}
-          />
+          <div className="input-group">
+            <span className="input-group-text bg-light border-0">
+              <i className="bi bi-hourglass-split fs-5 text-gray-600" />
+            </span>
+            <input
+              data-err="fechaVencimiento"
+              type="date"
+              className="form-control  text-muted"
+              value={fechaV}
+              onChange={(e) => {
+                setFechaV(e.target.value);
+                eliminarError("fechaVencimiento");
+              }}
+            />
+          </div>
           {getErrors("fechaVencimiento").map((e, i) => (
             <div key={i} className="invalid-feedback d-block">
               {e.valor}
@@ -314,16 +318,21 @@ export const ProformaCrearEditarModal = (props: Props) => {
       order: 5,
       renderer: () => (
         <>
-          <textarea
-            className="form-control text-muted"
-            rows={2}
-            data-err="observacionProforma"
-            value={observaciones}
-            onChange={(e) => {
-              setObservaciones(e.target.value);
-              eliminarError("observacionProforma");
-            }}
-          />
+          <div className="input-group">
+            <span className="input-group-text bg-light border-0">
+              <i className="bi bi-chat-left-text fs-5 text-gray-600" />
+            </span>
+            <textarea
+              className="form-control text-muted"
+              rows={1}
+              data-err="observacionProforma"
+              value={observaciones}
+              onChange={(e) => {
+                setObservaciones(e.target.value);
+                eliminarError("observacionProforma");
+              }}
+            />
+          </div>
           {getErrors("observacionProforma").map((e, i) => (
             <div key={i} className="invalid-feedback d-block">
               {e.valor}
@@ -339,25 +348,30 @@ export const ProformaCrearEditarModal = (props: Props) => {
       order: 4,
       renderer: () => (
         <>
-          <input
-            type="number"
-            placeholder="0.00"
-            className="form-control text-muted"
-            data-err="montoImpuesto"
-            value={impuesto ?? ""}
-            min={0}
-            max={100}
-            step="0.5"
-            inputMode="decimal"
-            onChange={(e) => {
-              let val = e.target.valueAsNumber;
-              if (!Number.isFinite(val)) return;
-              if (val < 0) val = 0;
-              if (val > 100) val = 100;
-              setImpuesto(val);
-              eliminarError("montoImpuesto");
-            }}
-          />
+          <div className="input-group">
+            <span className="input-group-text bg-light border-0">
+              <i className="bi bi-receipt fs-5 text-gray-600" />
+            </span>
+            <input
+              type="number"
+              placeholder="0.00"
+              className="form-control text-muted"
+              data-err="montoImpuesto"
+              value={impuesto ?? ""}
+              min={0}
+              max={100}
+              step="0.5"
+              inputMode="decimal"
+              onChange={(e) => {
+                let val = e.target.valueAsNumber;
+                if (!Number.isFinite(val)) return;
+                if (val < 0) val = 0;
+                if (val > 100) val = 100;
+                setImpuesto(val);
+                eliminarError("montoImpuesto");
+              }}
+            />
+          </div>
           {getErrors("montoImpuesto").map((e, i) => (
             <div key={i} className="invalid-feedback d-block">
               {e.valor}
@@ -374,6 +388,13 @@ export const ProformaCrearEditarModal = (props: Props) => {
       renderer: () => (
         <div className="col-12">
           <div className="input-group" data-err="montoDescuento">
+            <span className="input-group-text bg-light border-0">
+              {descuentoTipo === "Porcentaje" ? (
+                <i className="bi bi-percent fs-5 text-gray-600" />
+              ) : (
+                <i className="bi bi-cash-coin fs-5 text-gray-600" />
+              )}
+            </span>
             <input
               type="number"
               placeholder={descuentoTipo === "Porcentaje" ? "%" : "₡0.00"}
@@ -396,8 +417,8 @@ export const ProformaCrearEditarModal = (props: Props) => {
               type="button"
               className={`btn ${
                 descuentoTipo === "Porcentaje"
-                  ? "btn-primary "
-                  : "btn-secondary pulse pulse-primary"
+                  ? "btn-primary"
+                  : "btn-light pulse pulse-primary"
               } btn-icon pulse`}
               onClick={() => {
                 setDescuentoTipo((prev) =>
@@ -427,7 +448,9 @@ export const ProformaCrearEditarModal = (props: Props) => {
   ];
 
   // Usamos sort por order antes del map
-  const sortedHeaderFields = headerFields.slice().sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+  const sortedHeaderFields = headerFields
+    .slice()
+    .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
 
   // Handlers de ítems
   function addItemVacio() {
@@ -838,7 +861,7 @@ export const ProformaCrearEditarModal = (props: Props) => {
   return (
     <>
       <div
-        className="modal shadowClearBackground fade show d-block"
+        className="modal shadowClearBackground fade show d-block "
         role="dialog"
         tabIndex={-1}
         onClick={(e) => {
@@ -846,7 +869,13 @@ export const ProformaCrearEditarModal = (props: Props) => {
         }}
       >
         {/* Fullscreen en sm-down para UX móvil */}
-        <div className="modal-dialog modal-fullscreen-sm-down modal-xl">
+        <div
+          className="modal-dialog modal-fullscreen-sm-down modal-xl"
+          style={{
+            maxWidth: "900px", // Expande el modal en pantallas ≥768px
+            width: "100%",
+          }}
+        >
           <div className="modal-content">
             <div className="modal-header">
               <h5 className="modal-title">
@@ -913,16 +942,17 @@ export const ProformaCrearEditarModal = (props: Props) => {
 
                   {/* === Desktop (≥ md) === */}
                   <div className="table-responsive d-none d-md-block">
-                    <table className="table align-middle table-row-dashed gy-2">
+                    {/* Quitamos align-middle */}
+                    <table className="table table-row-dashed gy-2">
                       <thead>
                         <tr className="fw-semibold text-muted">
                           <th style={{ width: 48 }}>#</th>
-                          <th>Nombre</th>
-                          <th>Descripción</th>
-                          <th className="text-end" style={{ width: 140 }}>
+                          <th style={{ width: 200 }}>Nombre</th>
+                          <th style={{ width: 250 }}>Descripción</th>
+                          <th className="text-end" style={{ width: 150 }}>
                             Precio
                           </th>
-                          <th className="text-end" style={{ width: 120 }}>
+                          <th className="text-end" style={{ width: 50 }}>
                             Cantidad
                           </th>
                           <th className="text-end" style={{ width: 160 }}>
@@ -941,196 +971,223 @@ export const ProformaCrearEditarModal = (props: Props) => {
                             : "";
                           return (
                             <tr key={it.idTemp} className={rowClass}>
-                              <td>{idx + 1}</td>
-                              <td>
-                                <input
-                                  className={`form-control text-muted form-control-sm ${
-                                    getErrors(`${it.idTemp}.nombreItemProforma`)
-                                      .length
-                                      ? "is-invalid"
-                                      : ""
-                                  }`}
-                                  ref={(el) => {
-                                    nombreRefs.current[it.idTemp] = el;
-                                  }}
-                                  value={it.nombreItemProforma}
-                                  data-err={`${it.idTemp}.nombreItemProforma`}
-                                  onChange={(e) => {
-                                    eliminarError(
-                                      `${it.idTemp}.nombreItemProforma`
-                                    );
-                                    patchItem(it.idTemp, {
-                                      nombreItemProforma: e.target.value,
-                                    });
-                                  }}
-                                  placeholder="Nombre del ítem"
-                                  disabled={it._deleted}
-                                />
-                                {getErrors(
-                                  `${it.idTemp}.nombreItemProforma`
-                                ).map((e, i) => (
-                                  <div
-                                    key={i}
-                                    className="invalid-feedback d-block"
-                                  >
-                                    {e.valor}
-                                  </div>
-                                ))}
+                              {/* Forzamos align-top en TODOS los td */}
+                              <td className="align-top">{idx + 1}</td>
+
+                              {/* Nombre */}
+                              <td className="align-top">
+                                <div className="text-start">
+                                  <input
+                                    className={`form-control text-muted form-control-sm ${
+                                      getErrors(
+                                        `${it.idTemp}.nombreItemProforma`
+                                      ).length
+                                        ? "is-invalid"
+                                        : ""
+                                    }`}
+                                    ref={(el) => {
+                                      nombreRefs.current[it.idTemp] = el;
+                                    }}
+                                    value={it.nombreItemProforma}
+                                    data-err={`${it.idTemp}.nombreItemProforma`}
+                                    onChange={(e) => {
+                                      eliminarError(
+                                        `${it.idTemp}.nombreItemProforma`
+                                      );
+                                      patchItem(it.idTemp, {
+                                        nombreItemProforma: e.target.value,
+                                      });
+                                    }}
+                                    placeholder="Nombre del ítem"
+                                    disabled={it._deleted}
+                                  />
+                                  {getErrors(
+                                    `${it.idTemp}.nombreItemProforma`
+                                  ).map((e, i) => (
+                                    <div
+                                      key={i}
+                                      className="invalid-feedback d-block text-start"
+                                    >
+                                      {e.valor}
+                                    </div>
+                                  ))}
+                                </div>
                               </td>
-                              <td>
-                                <input
-                                  className={`form-control text-muted form-control-sm ${
-                                    getErrors(
-                                      `${it.idTemp}.descripcionItemProforma`
-                                    ).length
-                                      ? "is-invalid"
-                                      : ""
-                                  }`}
-                                  value={it.descripcionItemProforma}
-                                  data-err={`${it.idTemp}.descripcionItemProforma`}
-                                  onChange={(e) => {
-                                    eliminarError(
-                                      `${it.idTemp}.descripcionItemProforma`
-                                    );
-                                    patchItem(it.idTemp, {
-                                      descripcionItemProforma: e.target.value,
-                                    });
-                                  }}
-                                  placeholder="Descripción (opcional)"
-                                  disabled={it._deleted}
-                                />
-                                {getErrors(
-                                  `${it.idTemp}.descripcionItemProforma`
-                                ).map((e, i) => (
-                                  <div
-                                    key={i}
-                                    className="invalid-feedback d-block"
-                                  >
-                                    {e.valor}
-                                  </div>
-                                ))}
+
+                              {/* Descripción */}
+                              <td className="align-top">
+                                <div className="text-start">
+                                  <input
+                                    className={`form-control text-muted form-control-sm ${
+                                      getErrors(
+                                        `${it.idTemp}.descripcionItemProforma`
+                                      ).length
+                                        ? "is-invalid"
+                                        : ""
+                                    }`}
+                                    value={it.descripcionItemProforma}
+                                    data-err={`${it.idTemp}.descripcionItemProforma`}
+                                    onChange={(e) => {
+                                      eliminarError(
+                                        `${it.idTemp}.descripcionItemProforma`
+                                      );
+                                      patchItem(it.idTemp, {
+                                        descripcionItemProforma: e.target.value,
+                                      });
+                                    }}
+                                    placeholder="Descripción (opcional)"
+                                    disabled={it._deleted}
+                                  />
+                                  {getErrors(
+                                    `${it.idTemp}.descripcionItemProforma`
+                                  ).map((e, i) => (
+                                    <div
+                                      key={i}
+                                      className="invalid-feedback d-block text-start"
+                                    >
+                                      {e.valor}
+                                    </div>
+                                  ))}
+                                </div>
                               </td>
-                              <td className="text-end">
-                                <input
-                                  type="number"
-                                  step="1"
-                                  min={0}
-                                  className={`form-control text-muted form-control-sm text-end ${
-                                    getErrors(`${it.idTemp}.precioItemProforma`)
-                                      .length
-                                      ? "is-invalid"
-                                      : ""
-                                  }`}
-                                  value={it.precioItemProforma}
-                                  data-err={`${it.idTemp}.precioItemProforma`}
-                                  onChange={(e) => {
-                                    const val = Number(e.target.value);
-                                    eliminarError(
-                                      `${it.idTemp}.precioItemProforma`
-                                    );
-                                    patchItem(it.idTemp, {
-                                      precioItemProforma: val,
-                                    });
-                                  }}
-                                  disabled={it._deleted}
-                                />
-                                {getErrors(
-                                  `${it.idTemp}.precioItemProforma`
-                                ).map((e, i) => (
-                                  <div
-                                    key={i}
-                                    className="invalid-feedback d-block"
-                                  >
-                                    {e.valor}
-                                  </div>
-                                ))}
+
+                              {/* Precio */}
+                              <td className="text-end align-top">
+                                <div className="text-start">
+                                  <input
+                                    type="number"
+                                    step="1"
+                                    min={0}
+                                    className={`form-control text-muted form-control-sm text-end ${
+                                      getErrors(
+                                        `${it.idTemp}.precioItemProforma`
+                                      ).length
+                                        ? "is-invalid"
+                                        : ""
+                                    }`}
+                                    value={it.precioItemProforma}
+                                    data-err={`${it.idTemp}.precioItemProforma`}
+                                    onChange={(e) => {
+                                      const val = Number(e.target.value);
+                                      eliminarError(
+                                        `${it.idTemp}.precioItemProforma`
+                                      );
+                                      patchItem(it.idTemp, {
+                                        precioItemProforma: val,
+                                      });
+                                    }}
+                                    disabled={it._deleted}
+                                  />
+                                  {getErrors(
+                                    `${it.idTemp}.precioItemProforma`
+                                  ).map((e, i) => (
+                                    <div
+                                      key={i}
+                                      className="invalid-feedback d-block text-start"
+                                    >
+                                      {e.valor}
+                                    </div>
+                                  ))}
+                                </div>
                               </td>
-                              <td className="text-end">
-                                <input
-                                  type="number"
-                                  step="1"
-                                  min={1}
-                                  className={`form-control text-muted form-control-sm text-end ${
-                                    getErrors(
-                                      `${it.idTemp}.cantidadItemProforma`
-                                    ).length
-                                      ? "is-invalid"
-                                      : ""
-                                  }`}
-                                  value={it.cantidadItemProforma ?? 1}
-                                  data-err={`${it.idTemp}.cantidadItemProforma`}
-                                  onWheel={(e) => e.currentTarget.blur()}
-                                  onKeyDown={(e) => {
-                                    const blocked = ["-", "+", "e", "E"];
-                                    if (
-                                      blocked.includes(e.key) ||
-                                      e.code === "NumpadSubtract"
-                                    )
-                                      e.preventDefault();
-                                  }}
-                                  onBeforeInput={(e: any) => {
-                                    if (e?.data && /[-+eE]/.test(e.data))
-                                      e.preventDefault();
-                                  }}
-                                  onPaste={(e) => {
-                                    const txt = e.clipboardData.getData("text");
-                                    const cleaned = txt.replace(/[^0-9]/g, "");
-                                    const num = Number(cleaned);
-                                    if (Number.isNaN(num) || num < 1) {
-                                      e.preventDefault();
-                                      return;
-                                    }
-                                    eliminarError(
-                                      `${it.idTemp}.cantidadItemProforma`
-                                    );
-                                    patchItem(it.idTemp, {
-                                      cantidadItemProforma: num,
-                                    });
-                                    e.preventDefault();
-                                  }}
-                                  onChange={(e) => {
-                                    const raw = e.target.value.replace(
-                                      ",",
-                                      "."
-                                    );
-                                    if (raw === "") {
+
+                              {/* Cantidad */}
+                              <td className="text-end align-top">
+                                <div className="text-start">
+                                  <input
+                                    type="number"
+                                    step="1"
+                                    min={1}
+                                    className={`form-control text-muted form-control-sm text-end ${
+                                      getErrors(
+                                        `${it.idTemp}.cantidadItemProforma`
+                                      ).length
+                                        ? "is-invalid"
+                                        : ""
+                                    }`}
+                                    value={it.cantidadItemProforma ?? 1}
+                                    data-err={`${it.idTemp}.cantidadItemProforma`}
+                                    onWheel={(e) => e.currentTarget.blur()}
+                                    onKeyDown={(e) => {
+                                      const blocked = ["-", "+", "e", "E"];
+                                      if (
+                                        blocked.includes(e.key) ||
+                                        e.code === "NumpadSubtract"
+                                      )
+                                        e.preventDefault();
+                                    }}
+                                    onBeforeInput={(e: any) => {
+                                      if (e?.data && /[-+eE]/.test(e.data))
+                                        e.preventDefault();
+                                    }}
+                                    onPaste={(e) => {
+                                      const txt =
+                                        e.clipboardData.getData("text");
+                                      const cleaned = txt.replace(
+                                        /[^0-9]/g,
+                                        ""
+                                      );
+                                      const num = Number(cleaned);
+                                      if (Number.isNaN(num) || num < 1) {
+                                        e.preventDefault();
+                                        return;
+                                      }
                                       eliminarError(
                                         `${it.idTemp}.cantidadItemProforma`
                                       );
                                       patchItem(it.idTemp, {
-                                        cantidadItemProforma: 1,
+                                        cantidadItemProforma: num,
                                       });
-                                      return;
-                                    }
-                                    let val = Number(raw);
-                                    if (!Number.isFinite(val)) return;
-                                    if (val < 1) val = 1;
-                                    eliminarError(
-                                      `${it.idTemp}.cantidadItemProforma`
-                                    );
-                                    patchItem(it.idTemp, {
-                                      cantidadItemProforma: val,
-                                    });
-                                  }}
-                                  disabled={it._deleted}
-                                />
-                                {getErrors(
-                                  `${it.idTemp}.cantidadItemProforma`
-                                ).map((e, i) => (
-                                  <div
-                                    key={i}
-                                    className="invalid-feedback d-block"
-                                  >
-                                    {e.valor}
-                                  </div>
-                                ))}
+                                      e.preventDefault();
+                                    }}
+                                    onChange={(e) => {
+                                      const raw = e.target.value.replace(
+                                        ",",
+                                        "."
+                                      );
+                                      if (raw === "") {
+                                        eliminarError(
+                                          `${it.idTemp}.cantidadItemProforma`
+                                        );
+                                        patchItem(it.idTemp, {
+                                          cantidadItemProforma: 1,
+                                        });
+                                        return;
+                                      }
+                                      let val = Number(raw);
+                                      if (!Number.isFinite(val)) return;
+                                      if (val < 1) val = 1;
+                                      eliminarError(
+                                        `${it.idTemp}.cantidadItemProforma`
+                                      );
+                                      patchItem(it.idTemp, {
+                                        cantidadItemProforma: val,
+                                      });
+                                    }}
+                                    disabled={it._deleted}
+                                  />
+                                  {getErrors(
+                                    `${it.idTemp}.cantidadItemProforma`
+                                  ).map((e, i) => (
+                                    <div
+                                      key={i}
+                                      className="invalid-feedback d-block text-start"
+                                    >
+                                      {e.valor}
+                                    </div>
+                                  ))}
+                                </div>
                               </td>
-                              <td className="text-end">
+
+                              {/* Importe */}
+                              <td className="text-end align-top">
                                 <span className="text-muted">
                                   {formatColones(importe.toFixed(2))}
                                 </span>
                               </td>
-                              <td className="text-center">
+
+                              {/* Acciones */}
+                              <td className="text-center align-top">
                                 <button
                                   className={`btn btn-icon btn-sm ${
                                     it._deleted
@@ -1161,7 +1218,6 @@ export const ProformaCrearEditarModal = (props: Props) => {
                       </tbody>
                     </table>
                   </div>
-
                   {/* === Movil (< md) === */}
                   <div className="d-block d-md-none">
                     {items.map((it, idx) => {
@@ -1834,7 +1890,7 @@ export const ProformaCrearEditarModal = (props: Props) => {
                 <i className="bi bi-info-circle me-2" />
                 Los valores se recalculan automáticamente.
               </div>
-              {/* Botones: en desktop igual, en móvil se apilan y expanden */}
+              {/* Botones: en desktop*/}
               <div className="d-none d-md-flex gap-2">
                 <button
                   className="btn btn-light"
@@ -1867,7 +1923,8 @@ export const ProformaCrearEditarModal = (props: Props) => {
                   {mode === "edit" ? "Actualizar proforma" : "Guardar proforma"}
                 </button>
               </div>
-              {/* Botones Version movil */}
+
+              {/* Botones footer Version movil */}
               <div className="d-flex d-md-none flex-row gap-2 w-100 justify-content-start">
                 <button
                   className="btn btn-light w-50"
@@ -1897,9 +1954,9 @@ export const ProformaCrearEditarModal = (props: Props) => {
                   onClick={handleGuardar}
                 >
                   <i className="bi bi-save2 me-2" />
-                  {mode === "edit" ? "Actualizar proforma" : "Guardar proforma"}
+                  {mode === "edit" ? "Actualizar" : "Guardar"}
                 </button>
-                </div>
+              </div>
             </div>
           </div>
         </div>
