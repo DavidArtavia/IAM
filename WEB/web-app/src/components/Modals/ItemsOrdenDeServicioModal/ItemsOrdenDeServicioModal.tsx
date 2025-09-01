@@ -149,8 +149,14 @@ export const ItemsOrdenDeServicioModal = ({
 
   //#region 🧩 Agregar nuevo
   const handleAddNew = () => {
-    setFormData(new DTO_ItemOrdenServicio());
-    setIsModalFormOpen(true);
+    if (rowData.estado.iD_Estado == 22) {
+      notificationHelpers.infoAlert("Orden archivada, no se pueden crear nuevos ítems");
+    } else {
+      setFormData(new DTO_ItemOrdenServicio());
+      setIsModalFormOpen(true);
+    }
+
+
   };
 
   const handleSave = () => {

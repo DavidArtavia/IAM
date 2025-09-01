@@ -565,7 +565,14 @@ export const OrdenDeServicio = () => {
       );
 
       ordenesService.actualizarOrdensDeServicio(sanitized).subscribe({
-        next: (res) => notificationHelpers.infoAlert(res?.mensaje),
+        next: (res) => {
+          if(res.resultado){
+            notificationHelpers.infoAlert(res?.mensaje.replace("actualizó", "eliminó"))
+          }else{
+           notificationHelpers.infoAlert(res?.mensaje)
+          }
+         
+        },
         error: errorHelpers.serverError,
       });
     }
@@ -584,6 +591,7 @@ export const OrdenDeServicio = () => {
         setErroresValidacion([]);
       } else if (confirmContext === "delete") {
         handleConfirmDelete(true);
+        setRowTableSelected(undefined)
       }
     }
     setIsConfirmOpen(false);

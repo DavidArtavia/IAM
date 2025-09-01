@@ -288,7 +288,7 @@ export const Cuentas = () => {
     setAccountToDelete(rowData);
     setConfirmContext("delete");
     setIsConfirmOpen(true);
-    tableRef.current?.removeById(rowData.iD_Cuenta);
+    
   };
 
   const handleConfirmDelete = (action: boolean | null) => {
@@ -306,6 +306,7 @@ export const Cuentas = () => {
         next: (result: DTO_Respuesta) => {
           if (result.codigo !== "B012") {
             notificationHelpers.successAlert("Cuenta eliminada correctamente");
+            tableRef.current?.removeById(updatedData.iD_Cuenta);
             setAccountsPayable((prev) =>
               prev.filter((c) => c.iD_Cuenta !== accountToDelete.iD_Cuenta)
             );
