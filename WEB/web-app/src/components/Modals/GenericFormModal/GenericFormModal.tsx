@@ -81,12 +81,12 @@ export const GenericFormModal = <T,>({
     const wrapperClass =
       type === "custom"
         ? idx < 2
-          ? "col-md-6 fv-row"
+          ? " fv-row"
           : "d-flex flex-column mb-5 fv-row"
         : type === "date"
           ? "d-flex flex-column mb-5 fv-row"
           : idx < 2
-            ? "col-md-6 fv-row"
+            ? " fv-row"
             : "d-flex flex-column mb-5 fv-row";
 
     const labelClass =
@@ -302,7 +302,7 @@ export const GenericFormModal = <T,>({
   //#region RENDER MODAL
   return (
     <div
-      className="modal fade show d-block shadowDarkBackground"
+      className="modal fade show d-block shadowDarkBackground p2"
       onClick={onHide}
       ref={modalRef}
       tabIndex={-1}
@@ -314,13 +314,17 @@ export const GenericFormModal = <T,>({
         onClick={(e) => e.stopPropagation()}
       >
         <div className="modal-content card card-custom example example-compact">
-          <div className="card-header px-5">
+          <div className="card-header px-5 py-lg-5">
+            <div className="col-11">
             <h3 className="card-title">{title}</h3>
-            <div className="card-toolbar">
+            </div>
+            <div className="col-1">
+            <div className="card-toolbar justify-content-end">
               {headerButtons && headerButtons.length > 0 && (
                 <ModalHeaderButtons buttons={headerButtons} />
               )}
               <button type="button" className="btn-close" onClick={onHide} />
+              </div>
             </div>
           </div>
 
@@ -331,17 +335,17 @@ export const GenericFormModal = <T,>({
             }}
             className="form"
           >
-            <div className="card-body p-4">
+            <div className="card-body p-4 row">
               {[...fields]
                 .sort((a, b) => (a.order ?? 999) - (b.order ?? 999))
                 .map((field, idx) => (
-                  <div key={String(field.key)} className="col-12 mb-4">
+                  <div key={String(field.key)} className="col-md-6 mb-2">
                     {renderField(field, idx)}
                   </div>
                 ))}
             </div>
 
-            <div className="card-footer d-flex justify-content-end gap-2">
+            <div className="card-footer d-flex justify-content-end gap-2 px-4">
               <button type="button" className="btn btn-secondary" onClick={onHide}>
                 Cancelar
               </button>

@@ -143,6 +143,7 @@ export const Transacciones = () => {
           // ✅ Filtramos si no es eliminado antes de agregar
           if (nueva.estado?.iD_Estado !== STATUS_TBL.TRANSACTION.DELETED) {
             setTransacciones((prev) => [nueva, ...prev]);
+            tableRef.current?.upsert(nueva);
           }
           notificationHelpers.successAlert(result.mensaje);
           setIsModalFormOpen(false);
@@ -233,7 +234,10 @@ export const Transacciones = () => {
         prev.filter((t) => t.iD_Transaccion !== updated.iD_Transaccion)
       );
       transaccionesService.actualizarTransaccion(updated).subscribe({
-        next: () => notificationHelpers.infoAlert("Transacción eliminada"),
+        next: () => {
+          notificationHelpers.infoAlert("Transacción eliminada")
+        tableRef.current?.removeById(updated.iD_Transaccion);
+        },
         error: errorHelpers.serverError,
       });
     }
