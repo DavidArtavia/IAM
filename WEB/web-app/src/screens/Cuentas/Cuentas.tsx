@@ -611,6 +611,7 @@ export const Cuentas = () => {
       required: !isCuentaPorCobrarOS,
       errorMessage: "Seleccione un tipo de cuenta",
       order: 9,
+      readOnly: editData?.tipoCuenta == "Cuenta",
       renderer: ({ value, onChange }) => (
         <Select
           isDisabled={isCuentaPorCobrarOS}

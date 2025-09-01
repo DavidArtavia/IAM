@@ -381,7 +381,7 @@ export const DetalleCuentaInput = ({
                   }}
                   inputMode="numeric"
                   pattern="^\d+$"
-                  required
+                  
                 />
               </div>
 
@@ -402,7 +402,7 @@ export const DetalleCuentaInput = ({
                   }}
                   inputMode="numeric"
                   pattern="^\d+$"
-                  required
+                  
                 />
               </div>
 
