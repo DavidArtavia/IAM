@@ -216,6 +216,7 @@ WHERE
 	 AND ORDEN.[FechaOrdenServicio] >= @FechaFin
 	 AND NEGOCIO.ID_Negocio = @ID_Negocio
 	 AND NEGOCIO.ID_Usuario = @ID_Usuario
+	 AND ORDEN.ID_Estado != 10
 --#END KPI Ordenes de Servicio
 
 --#START KPI Clientes Nuevos
@@ -224,6 +225,7 @@ SELECT 'Nuevos' AS TituloRegular, 'Clientes' AS TituloNegrita, 'NR' AS OrdenTitu
 FROM [CORE].[TBL_CLIENTES] CLIENTES
 WHERE CLIENTES.[FechaCreacion] BETWEEN CAST(@FechaInicio AS DATETIME)  AND DATEADD(DAY, 1, CAST(@FechaFin AS DATETIME))
 	 AND CLIENTES.ID_Usuario = @ID_Usuario
+	 AND CLIENTES.ID_Estado != 17
 --#END KPI Clientes Nuevos
 
 
