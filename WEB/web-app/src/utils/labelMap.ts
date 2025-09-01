@@ -673,12 +673,20 @@ export const ItemsOrdenServicioFormEditFields: Array<FieldConfig<DTO_ItemOrdenSe
 ];
 
 export const ordenServicioFormEditFields: Array<FieldConfig<DTO_OrdenServicio>> = [
+
+    {
+        key: "fechaEstimadaEntrega",
+        label: "Estimación de Entrega",
+        type: "date",
+        required: false,
+        order: 1, //4
+    },
     {
         key: "fechaInicio",
         label: labelMapOrdenDeServicio["fechaInicio"] ?? "Fecha de Inicio",
         type: "date",
         required: false,
-        order: 1,
+        order: 2, //1
         errorMessage: "La fecha de inicio es obligatoria",
     },
     {
@@ -686,7 +694,7 @@ export const ordenServicioFormEditFields: Array<FieldConfig<DTO_OrdenServicio>> 
         label: labelMapOrdenDeServicio["fechaFinal"] ?? "Fecha Final",
         type: "date",
         required: false,
-        order: 2,
+        order: 3, //2
         errorMessage: "La fecha final es obligatoria",
     },
     {
@@ -694,15 +702,9 @@ export const ordenServicioFormEditFields: Array<FieldConfig<DTO_OrdenServicio>> 
         label: labelMapOrdenDeServicio["fechaEntrega"] ?? "Fecha de Entrega",
         type: "date",
         required: false,
-        order: 3,
+        order: 4, //3
     },
-    {
-        key: "fechaEstimadaEntrega",
-        label: labelMapOrdenDeServicio["fechaEstimadaEntrega"] ?? "Entrega Estimada",
-        type: "date",
-        required: false,
-        order: 4,
-    },
+
     {
         key: "notaOrdenServicio",
         label: labelMapOrdenDeServicio["notaOrdenServicio"] ?? "Nota",
