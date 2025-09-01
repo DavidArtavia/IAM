@@ -161,14 +161,19 @@ const modalRef = useRef<HTMLDivElement>(null);
       >
         <div className="modal-content card card-custom example example-compact">
           {/* Título */}
-          <div className="card-header p-4">
-              <h3 className="card-title">{title}</h3>
-            <div className="card-toolbar">
-              {headerButtons && headerButtons.length > 0 && (
+          <div className="card-header px-5 py-lg-5">
+            <div className="col-11">
+            <h3 className="card-title">{title}</h3>
+            </div>
+            <div className="col-1">
+            <div className="card-toolbar justify-content-end">
+              <button type="button" className="btn-close" onClick={onHide} />
+              </div>
+            </div>
+
+                    {headerButtons && headerButtons.length > 0 && (
                 <ModalHeaderButtons buttons={headerButtons} />
               )}
-              <button type="button" className="btn-close" onClick={onHide} />
-            </div>
           </div>
 
           {/* Cuerpo */}

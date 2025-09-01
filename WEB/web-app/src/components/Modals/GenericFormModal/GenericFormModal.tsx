@@ -320,12 +320,13 @@ export const GenericFormModal = <T,>({
             </div>
             <div className="col-1">
             <div className="card-toolbar justify-content-end">
-              {headerButtons && headerButtons.length > 0 && (
-                <ModalHeaderButtons buttons={headerButtons} />
-              )}
               <button type="button" className="btn-close" onClick={onHide} />
               </div>
             </div>
+
+                    {headerButtons && headerButtons.length > 0 && (
+                <ModalHeaderButtons buttons={headerButtons} />
+              )}
           </div>
 
           <form

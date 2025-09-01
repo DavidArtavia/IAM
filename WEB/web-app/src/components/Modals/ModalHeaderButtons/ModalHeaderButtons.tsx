@@ -15,7 +15,7 @@ interface Props {
 
 export const ModalHeaderButtons = ({
   buttons,
-  containerClassName = "ms-auto d-flex",
+  containerClassName = "ms-auto d-flex px-0 gap-2 py-2",
 }: Props) => {
   return (
     <div className={containerClassName}>
@@ -23,7 +23,7 @@ export const ModalHeaderButtons = ({
         <button
           key={`dynamic-btn-${index}`}
           onClick={btn.onClick}
-          className={`btn btn-sm me-2 ${
+          className={`btn btn-sm ${
             btn.className ? btn.className : "btn-primary"
           }`}
           disabled={btn.disabled}

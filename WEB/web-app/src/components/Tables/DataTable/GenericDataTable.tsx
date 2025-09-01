@@ -461,7 +461,7 @@ function GenericDataTableInner<T>(
               inactivo: "badge-light-light",
               borrador: "badge-light-info",
               anulado: "badge-light-danger",
-              aprovado: "badge-light-success",
+              aprobado: "badge-light-success",
               default: "badge badge-dark",
             };
             const badgeClass =
@@ -1719,7 +1719,7 @@ table.table-hover.dataTable tbody tr.no-hover-row:hover > * {
           inactivo: "badge-light-light",
           borrador: "badge-light-info",
           anulado: "badge-light-danger",
-          aprovado: "badge-light-success",
+          aprobado: "badge-light-success",
           default: "badge badge-dark",
         };
         const badgeClass = badgeClassMap[estado] || badgeClassMap["default"];
@@ -1737,55 +1737,110 @@ table.table-hover.dataTable tbody tr.no-hover-row:hover > * {
 
   // 🔄 Reconstruye el panel responsive (child) de ESA fila usando el HTML actual de los TDs
   // 🔄 Reconstruye el panel responsive (child) mostrando SOLO las columnas que ya estaba mostrando
-  const refreshResponsiveDetailsForRow = (dt: DataTables.Api, rowIdx: number) => {
-    const tr = dt.row(rowIdx).node() as HTMLTableRowElement | null;
-    if (!tr) return;
+const refreshResponsiveDetailsForRow = (dt: DataTables.Api, rowIdx: number) => {
+  const tr = dt.row(rowIdx).node() as HTMLTableRowElement | null;
+  if (!tr) return;
 
-    const child = tr.nextElementSibling as HTMLElement | null;
-    if (!child || !child.classList.contains("child")) return;
+  const child = tr.nextElementSibling as HTMLElement | null;
+  if (!child || !child.classList.contains("child")) return;
 
-    const detailsTable = child.querySelector("table.dtr-details") as HTMLTableElement | null;
-    if (!detailsTable) return;
+  const detailsTable = child.querySelector("table.dtr-details") as HTMLTableElement | null;
+  if (!detailsTable) return;
 
-    // 1) 🔍 Lee qué columnas estaba mostrando el detalle (según nuestro renderer)
-    const currentIdxs: number[] = Array
-      .from(detailsTable.querySelectorAll('tr[data-dt-column]'))
-      .map(el => parseInt((el as HTMLElement).getAttribute('data-dt-column') || '', 10))
-      .filter(n => Number.isFinite(n));
+  // Lee qué columnas estaba mostrando el detalle
+  const currentIdxs: number[] = Array
+    .from(detailsTable.querySelectorAll('tr[data-dt-column]'))
+    .map(el => parseInt((el as HTMLElement).getAttribute('data-dt-column') || '', 10))
+    .filter(n => Number.isFinite(n));
 
-    // 2) Fallback (raro): si por algún motivo no hay marcadores, usa ocultas globales como última opción
-    const targetIdxs: number[] = currentIdxs.length
-      ? currentIdxs
-      : (dt.columns({ visible: false }).indexes().toArray() as number[]);
+  // Fallback: columnas ocultas si no hay marcadores
+  const targetIdxs: number[] = currentIdxs.length
+    ? currentIdxs
+    : (dt.columns({ visible: false }).indexes().toArray() as number[]);
 
-    // 3) Reconstruye SÓLO esas columnas
-    const rowsHtml = targetIdxs.map((cIdx) => {
+  // Heurística: ¿el <td> está "pendiente" (aún sin hijos reales)?
+  const looksPending = (td: HTMLTableCellElement | null) => {
+    if (!td) return false;
+    if (td.childNodes.length === 0) return true;
+    if (td.childNodes.length === 1) {
+      const n = td.childNodes[0] as Node;
+      if (n.nodeType === Node.ELEMENT_NODE) {
+        const el = n as HTMLElement;
+        if (el.innerHTML.trim() === "") return true; // típico: <span></span> del contenedor
+      }
+    }
+    return false;
+  };
+
+  // Construye el HTML de filas del detalle tomando TODO el DOM del <td> principal
+  const buildRowsHtml = () => {
+    return targetIdxs.map((cIdx) => {
       const header = dt.column(cIdx).header() as HTMLElement | null;
       const title = String(header?.textContent ?? "").trim();
 
-      // Saltar columna interna __seq por título
+      // Saltar columna interna __seq
       if (title.toLowerCase() === "__seq") return "";
 
-      // HTML actual del <td> de la tabla principal
-      const node = dt.cell(rowIdx, cIdx).node() as HTMLTableCellElement | null;
-      let cellHtml = node ? node.innerHTML : String(dt.cell(rowIdx, cIdx).data() ?? "");
+      const tdNode = dt.cell(rowIdx, cIdx).node() as HTMLTableCellElement | null;
+      let cellHtml = "";
 
-      if (!cellHtml || String(cellHtml).trim() === "") {
+      if (tdNode) {
+        // Concatena outerHTML de todos los hijos (incluye anidación profunda)
+        cellHtml = Array.from(tdNode.childNodes).map((n) => {
+          if (n.nodeType === Node.ELEMENT_NODE) return (n as HTMLElement).outerHTML;
+          return n.textContent ?? "";
+        }).join("").trim();
+
+        // Fallback si el td no tenía hijos (texto plano, etc.)
+        if (!cellHtml) cellHtml = tdNode.innerHTML;
+      } else {
+        cellHtml = String(dt.cell(rowIdx, cIdx).data() ?? "");
+      }
+
+      if (!cellHtml || cellHtml.trim() === "") {
         cellHtml = '<span aria-hidden="true" class="text-muted">—</span>';
       }
 
       return `
-      <tr data-dt-row="${rowIdx}" data-dt-column="${cIdx}">
-        <td class="fw-semibold pe-3">${title}</td>
-        <td class="text-wrap">${cellHtml}</td>
-      </tr>
-    `;
+        <tr data-dt-row="${rowIdx}" data-dt-column="${cIdx}">
+          <td class="fw-semibold pe-3">${title}</td>
+          <td class="text-wrap">${cellHtml}</td>
+        </tr>
+      `;
     }).join("");
-
-    if (rowsHtml) {
-      detailsTable.innerHTML = rowsHtml; // 🔁 reemplaza sin duplicar columnas visibles
-    }
   };
+
+  // Si alguna de las celdas objetivo está "pendiente", esperamos a que React termine
+  const tds = targetIdxs
+    .map(cIdx => dt.cell(rowIdx, cIdx).node() as HTMLTableCellElement | null)
+    .filter(Boolean) as HTMLTableCellElement[];
+
+  const somePending = tds.some(looksPending);
+  if (!somePending) {
+    detailsTable.innerHTML = buildRowsHtml();
+    // Rellena guiones en detalle si procede (ya la tienes definida arriba)
+    try { ensureDashInDetailsForRow(tr); } catch { /* opcional */ }
+    return;
+  }
+
+  // Espera por mutaciones (o timeout) y luego reconstruye
+  const waitAll = Promise.all(tds.map(td => new Promise<void>((resolve) => {
+    if (!looksPending(td)) return resolve();
+    const mo = new MutationObserver(() => {
+      mo.disconnect();
+      resolve();
+    });
+    mo.observe(td, { childList: true, subtree: true });
+    // Timeout de seguridad por si el render ya terminó pero no hubo mutación detectable
+    setTimeout(() => { try { mo.disconnect(); } catch {} ; resolve(); }, 800);
+  })));
+
+  waitAll.then(() => {
+    detailsTable.innerHTML = buildRowsHtml();
+    try { ensureDashInDetailsForRow(tr); } catch { /* opcional */ }
+  });
+};
+
 
   // 🔎 Detecta el root que realmente scrollea (window o contenedor con overflow)
   const getScrollRoot = (): Window | HTMLElement => {
@@ -1913,6 +1968,7 @@ table.table-hover.dataTable tbody tr.no-hover-row:hover > * {
               rerenderRichCellsForRow(dt, idx, updated);
               refreshResponsiveDetailsForRow(dt, idx);
 
+              
 
               if (tr) {
                 ensureDashForRow(tr);
