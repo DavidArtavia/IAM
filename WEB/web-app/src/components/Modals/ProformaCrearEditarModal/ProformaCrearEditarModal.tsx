@@ -22,6 +22,7 @@ import { formatColones, notificationHelpers, procesarRespuesta } from "@/utils";
 import { proformaService } from "@/services/proformas.service";
 import { items_proformaService } from "@/services";
 import { valida_DTO_Items_y_Proformas } from "@/validators/valida_DTO_Items_y_Proformas";
+import { useScrollLockSmart } from "@/hooks";
 
 // CONSTANTE de soft-delete para items
 const PROFORMA_ITEM_DELETED = 30;
@@ -67,8 +68,12 @@ export const ProformaCrearEditarModal = (props: Props) => {
     onRegistered,
     onUpdated,
   } = props;
+
+  //#region App state negocio
   const { state } = useApp();
   const negocio = state.negocio;
+  //#endregion
+
 
   // Cabecera
   const [clienteOpt, setClienteOpt] = useState<ClientOption | null>(null);
@@ -946,16 +951,16 @@ export const ProformaCrearEditarModal = (props: Props) => {
                     <table className="table table-row-dashed gy-2">
                       <thead>
                         <tr className="fw-semibold text-muted">
-                          <th style={{ width: 48 }}>#</th>
-                          <th style={{ width: 200 }}>Nombre</th>
+                          <th style={{ width: 20 }}>#</th>
+                          <th style={{ width: 210 }}>Nombre</th>
                           <th style={{ width: 250 }}>Descripción</th>
-                          <th className="text-end" style={{ width: 150 }}>
+                          <th className="text-end" style={{ width: 160 }}>
                             Precio
                           </th>
-                          <th className="text-end" style={{ width: 50 }}>
+                          <th className="text-end" style={{ width: 130 }}>
                             Cantidad
                           </th>
-                          <th className="text-end" style={{ width: 160 }}>
+                          <th className="text-end" style={{ width: 90 }}>
                             Importe
                           </th>
                           <th style={{ width: 60 }}></th>
@@ -1056,8 +1061,10 @@ export const ProformaCrearEditarModal = (props: Props) => {
                                 <div className="text-start">
                                   <input
                                     type="number"
+                                    inputMode="decimal"
                                     step="1"
                                     min={0}
+                                    placeholder="0" // 👈 solo se ve cuando el campo está vacío
                                     className={`form-control text-muted form-control-sm text-end ${
                                       getErrors(
                                         `${it.idTemp}.precioItemProforma`
@@ -1065,16 +1072,37 @@ export const ProformaCrearEditarModal = (props: Props) => {
                                         ? "is-invalid"
                                         : ""
                                     }`}
-                                    value={it.precioItemProforma}
+                                    value={
+                                      it.precioItemProforma === undefined ||
+                                      it.precioItemProforma === null
+                                        ? "" // 👈 vacío, muestra el placeholder
+                                        : String(it.precioItemProforma)
+                                    }
                                     data-err={`${it.idTemp}.precioItemProforma`}
                                     onChange={(e) => {
-                                      const val = Number(e.target.value);
+                                      const valStr = e.target.value
+                                        .replace(/[^\d.]/g, "")
+                                        .replace(",", ".")
+                                        .replace(/(\..*?)\..*/g, "$1")
+                                        .replace(/^0+(?=\d)/, "");
+
                                       eliminarError(
                                         `${it.idTemp}.precioItemProforma`
                                       );
-                                      patchItem(it.idTemp, {
-                                        precioItemProforma: val,
-                                      });
+
+                                      if (valStr === "") {
+                                        patchItem(it.idTemp, {
+                                          precioItemProforma: undefined,
+                                        });
+                                        return;
+                                      }
+
+                                      const valNum = parseFloat(valStr);
+                                      if (!isNaN(valNum) && valNum >= 0) {
+                                        patchItem(it.idTemp, {
+                                          precioItemProforma: valNum,
+                                        });
+                                      }
                                     }}
                                     disabled={it._deleted}
                                   />
@@ -1105,64 +1133,35 @@ export const ProformaCrearEditarModal = (props: Props) => {
                                         ? "is-invalid"
                                         : ""
                                     }`}
-                                    value={it.cantidadItemProforma ?? 1}
+                                    value={
+                                      it.cantidadItemProforma === undefined
+                                        ? "" // deja borrar
+                                        : String(it.cantidadItemProforma)
+                                    }
                                     data-err={`${it.idTemp}.cantidadItemProforma`}
-                                    onWheel={(e) => e.currentTarget.blur()}
-                                    onKeyDown={(e) => {
-                                      const blocked = ["-", "+", "e", "E"];
-                                      if (
-                                        blocked.includes(e.key) ||
-                                        e.code === "NumpadSubtract"
-                                      )
-                                        e.preventDefault();
-                                    }}
-                                    onBeforeInput={(e: any) => {
-                                      if (e?.data && /[-+eE]/.test(e.data))
-                                        e.preventDefault();
-                                    }}
-                                    onPaste={(e) => {
-                                      const txt =
-                                        e.clipboardData.getData("text");
-                                      const cleaned = txt.replace(
-                                        /[^0-9]/g,
-                                        ""
-                                      );
-                                      const num = Number(cleaned);
-                                      if (Number.isNaN(num) || num < 1) {
-                                        e.preventDefault();
-                                        return;
-                                      }
+                                    onChange={(e) => {
+                                      const valStr = e.target.value
+                                        .replace(/[^\d.]/g, "")
+                                        .replace(",", ".")
+                                        .replace(/(\..*?)\..*/g, "$1")
+                                        .replace(/^0+(?=\d)/, "");
+
                                       eliminarError(
                                         `${it.idTemp}.cantidadItemProforma`
                                       );
-                                      patchItem(it.idTemp, {
-                                        cantidadItemProforma: num,
-                                      });
-                                      e.preventDefault();
-                                    }}
-                                    onChange={(e) => {
-                                      const raw = e.target.value.replace(
-                                        ",",
-                                        "."
-                                      );
-                                      if (raw === "") {
-                                        eliminarError(
-                                          `${it.idTemp}.cantidadItemProforma`
-                                        );
+                                      if (valStr === "") {
                                         patchItem(it.idTemp, {
-                                          cantidadItemProforma: 1,
+                                          cantidadItemProforma: undefined,
                                         });
                                         return;
                                       }
-                                      let val = Number(raw);
-                                      if (!Number.isFinite(val)) return;
-                                      if (val < 1) val = 1;
-                                      eliminarError(
-                                        `${it.idTemp}.cantidadItemProforma`
-                                      );
-                                      patchItem(it.idTemp, {
-                                        cantidadItemProforma: val,
-                                      });
+
+                                      const valNum = parseInt(valStr, 10);
+                                      if (!isNaN(valNum) && valNum >= 1) {
+                                        patchItem(it.idTemp, {
+                                          cantidadItemProforma: valNum,
+                                        });
+                                      }
                                     }}
                                     disabled={it._deleted}
                                   />
