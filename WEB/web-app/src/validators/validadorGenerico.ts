@@ -28,6 +28,23 @@ export class validadorGenerico {
         return !isNaN(new Date(String(value)).getTime());
     }
 
+    static isValidDate(value: any): boolean {
+        if (typeof value === 'string' || value instanceof Date) {
+            const date = new Date(value);
+            if (isNaN(date.getTime())) return false;
+            // Verifica que no sea 1/1/1
+            if (
+                date.getFullYear() === 1 &&
+                date.getMonth() === 0 &&
+                date.getDate() === 1
+            ) {
+                return false;
+            }
+            return true;
+        }
+        return false;
+    }
+
     static isPhoneNumber(value: string): boolean {
         const regex = /^\+?\d{1,4}?[-.\s]?(\d{1,3}?[-.\s]?){1,4}\d{1,4}$/;
         return regex.test(value);

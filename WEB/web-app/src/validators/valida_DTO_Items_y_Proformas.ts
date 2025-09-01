@@ -14,7 +14,6 @@ export class valida_DTO_Items_y_Proformas{
                 valor: "El nombre del ítem es obligatorio."
             });
         }
-
         // Descripción (opcional, máx 255)
         if (!validadorGenerico.hasMaxLength(item.descripcionItemProforma ?? "", 255)) {
             errores.push({
@@ -89,6 +88,15 @@ export class valida_DTO_Items_y_Proformas{
                 });
             }
 
+        }
+        // Facha de vencimiento (opcional, si existe debe ser válida)
+        if (proforma.fechaVencimiento) {
+            if (!validadorGenerico.isValidDate(proforma.fechaVencimiento)) {
+                errores.push({
+                    nombre: "fechaVencimiento",
+                    valor: "La fecha de vencimiento debe ser una fecha válida."
+                });
+            }
         }
 
         // Descuento (obligatorio, numérico)

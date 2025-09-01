@@ -528,7 +528,7 @@ export const labelMapProforma: Record<string, string> = {
     iD_Proforma: "ID",
     fechaProforma: "Creación",
     fechaVencimiento: "Vencimiento",
-    cliente: "Cliente asociado",
+    cliente: "Cliente",
     observacionProforma: "Observaciones",
     descuentoProforma: "Descuento",
     montoDescuento: "Monto de descuento",
