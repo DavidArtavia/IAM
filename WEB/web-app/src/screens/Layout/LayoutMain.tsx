@@ -122,7 +122,6 @@ export const LayoutMain = () => {
     popover.innerHTML = `
                     <div style="display:flex;align-items:center;">
                     <div>
-                      <span style="font-weight:500;">Próximamente</span><br/>
                       <span style="font-size:13px;">Esta opción estará disponible en <span style="font-weight:600; color:#0a1">próximas actualizaciones</span>.</span>
                     </div>
                     </div>
@@ -297,22 +296,6 @@ export const LayoutMain = () => {
 
                      
 
-              <div className="menu-item py-2">
-                <Link
-                  to={ROUTES.BUSINESS}
-                  className={`menu-link menu-center${
-                    pathname === ROUTES.BUSINESS ? " active" : ""
-                  }`}
-                  data-bs-trigger="hover"
-                  data-bs-dismiss="click"
-                  data-bs-placement="right"
-                >
-                  <span className="menu-icon me-0">
-                    <i className="bi bi-briefcase fs-2" />
-                  </span>
-                  <span className="menu-title">Negocio</span>
-                </Link>
-              </div>
               
               <div className="menu-item py-2">
                 <Link
@@ -346,6 +329,23 @@ export const LayoutMain = () => {
                 </Link>
               </div>
 
+                  <div className="menu-item py-2">
+                <Link
+                  to={ROUTES.BUSINESS}
+                  className={`menu-link menu-center${
+                    pathname === ROUTES.BUSINESS ? " active" : ""
+                  }`}
+                  data-bs-trigger="hover"
+                  data-bs-dismiss="click"
+                  data-bs-placement="right"
+                >
+                  <span className="menu-icon me-0">
+                    <i className="bi bi-briefcase fs-2" />
+                  </span>
+                  <span className="menu-title">Negocio</span>
+                </Link>
+              </div>
+
                <div className="menu-item py-2">
                 {/* <Link
                   to={ROUTES.CHAT_AI}
@@ -361,6 +361,10 @@ export const LayoutMain = () => {
                   </span>
                   <span className="menu-title">Chat</span>
                 </Link> */}
+
+                
+          
+
                 <div
                   className="menu-link menu-center disabled"
                   style={{
@@ -377,6 +381,7 @@ export const LayoutMain = () => {
                   </span>
                   <span className="menu-title">IA</span>
                 </div>
+
               </div>
 
               <div className="menu-item py-2">
