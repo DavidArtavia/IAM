@@ -131,7 +131,7 @@ export const ProformaCrearEditarModal = (props: Props) => {
       idTemp: uuid(),
       nombreItemProforma: "",
       descripcionItemProforma: "",
-      precioItemProforma: 0,
+      precioItemProforma: undefined,
       cantidadItemProforma: 1,
       _isNew: true,
     },
@@ -429,14 +429,16 @@ useEffect(() => {
       required: true,
       order: 1,
       renderer: ({ onChange }) => (
-        <AsyncClientSelect
-          value={clienteOpt}
-          onChange={(opt) => {
-            setClienteOpt(opt);
-            onChange(opt?.value ?? 0);
-            eliminarError("iD_Cliente");
-          }}
-        />
+        <div style={{ position: 'relative', zIndex: 1061 }}>
+          <AsyncClientSelect
+            value={clienteOpt}
+            onChange={(opt) => {
+              setClienteOpt(opt);
+              onChange(opt?.value ?? 0);
+              eliminarError("iD_Cliente");
+            }}
+          />
+        </div>
       ),
     },
     {
@@ -545,7 +547,7 @@ useEffect(() => {
       order: 3,
       renderer: () => (
         <div className="col-12">
-          <div className="input-group" data-err="montoDescuento">
+          <div className="input-group" data-err="montoDescuento" >
             <span className="input-group-text bg-light border-0">
               {descuentoTipo === "Porcentaje" ? (
                 <i className="bi bi-percent fs-5 text-gray-600" />
@@ -619,7 +621,7 @@ useEffect(() => {
         idTemp: id,
         nombreItemProforma: "",
         descripcionItemProforma: "",
-        precioItemProforma: 0,
+        precioItemProforma: undefined,
         cantidadItemProforma: 1,
         _isNew: true,
       },
@@ -692,7 +694,7 @@ useEffect(() => {
         idTemp: uuid(),
         nombreItemProforma: "",
         descripcionItemProforma: "",
-        precioItemProforma: 0,
+        precioItemProforma: undefined,
         cantidadItemProforma: 1,
         _isNew: true,
       },
@@ -849,6 +851,8 @@ useEffect(() => {
         (i) => !i._isNew && i._deleted && i.iD_ProformaItem
       );
 
+     const respuestaActualizar = procesarRespuesta(r0);
+
       // crear nuevos
       for (const it of nuevos) {
         const dti: DTO_ProformaItem = {
@@ -905,16 +909,17 @@ useEffect(() => {
 
       const proformaActualizadaParaTabla: DTO_Proforma = {
         ...(proforma as DTO_Proforma),
-        ...dtoCabecera,
+        ...respuestaActualizar,
         subTotal: totales.subTotal,
         montoDescuento: totales.montoDescuento,
         baseImponible: totales.baseImponible,
         montoImpuesto: totales.montoImpuesto,
         totalCalculado: totales.totalCalculado,
-        descuentoProforma: dtoCabecera.descuentoProforma,
-        impuestoPorcentualProforma: dtoCabecera.impuestoPorcentualProforma,
         cliente: { nombreCliente: clienteOpt?.label ?? "" } as any,
       };
+
+      console.log({ proformaActualizadaParaTabla });
+      
 
       notificationHelpers.successAlert("Proforma actualizada correctamente.");
       onUpdated?.(proformaActualizadaParaTabla);
