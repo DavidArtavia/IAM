@@ -591,7 +591,8 @@ export const OrdenDeServicio = () => {
         setErroresValidacion([]);
       } else if (confirmContext === "delete") {
         handleConfirmDelete(true);
-        setRowTableSelected(undefined)
+        setRowTableSelected(undefined);
+        setShowEditForm(false);
       }
     }
     setIsConfirmOpen(false);

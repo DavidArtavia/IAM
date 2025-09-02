@@ -41,7 +41,7 @@ export class valida_DTO_Items_y_Proformas{
         } else if (item.precioItemProforma !== undefined && validadorGenerico.isCero(item.precioItemProforma)) {
             errores.push({
                 nombre: "precioItemProforma",
-                valor: "El precio no puede ser cero."
+                valor: "Debe ingresar un precio válido."
             });
         } else if (validadorGenerico.hasWeirdNumericPattern(item.precioItemProforma)) {
             errores.push({
@@ -65,6 +65,21 @@ export class valida_DTO_Items_y_Proformas{
             errores.push({
                 nombre: "cantidadItemProforma",
                 valor: "La cantidad debe ser numérica."
+            });
+        } else if (!validadorGenerico.isNonNegative(item.cantidadItemProforma)) {
+            errores.push({
+                nombre: "cantidadItemProforma",
+                valor: "La cantidad debe ser un valor positivo."
+            });
+        } else if (item.cantidadItemProforma !== undefined && validadorGenerico.isCero(item.cantidadItemProforma)) {
+            errores.push({
+                nombre: "cantidadItemProforma",
+                valor: "Debe ingresar una cantidad válida."
+            });
+        } else if (validadorGenerico.hasWeirdNumericPattern(item.cantidadItemProforma)) {
+            errores.push({
+                nombre: "cantidadItemProforma",
+                valor: "El formato de la cantidad es inválido."
             });
         }
 
