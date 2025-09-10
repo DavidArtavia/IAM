@@ -28,13 +28,8 @@ import "@/assets/js/custom/documentation/forms/daterangepicker.js"
 
 import { App } from '@/App';
 
-
-//import { StrictMode } from 'react';
 interface AppRuntimeConfig {
   BASE_URL: string;
-  // Agrega aquí más campos si los usas
-  // ASSET_CDN: string;
-  // AUTH_DOMAIN: string;
 }
 
 // Extiende el objeto Window
@@ -45,7 +40,6 @@ declare global {
         __APP_CONFIG__?: AppRuntimeConfig;
     }
 }
-
 
 window.$ = $;
 window.jQuery = $;

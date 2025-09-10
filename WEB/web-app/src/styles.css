@@ -294,51 +294,162 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 
 
 .hoverElement:hover {
-background-color: #fbfbfb;
+  background-color: #fbfbfb;
 }
 
 
 
 /*Deshabilita el hover de la tabla secundarya en dispositivos mobiles, la que se despliega*/
 /* Desactiva el sombreado en hover de DataTables */
-table.table.dataTable.table-hover > tbody > tr:hover > * {
+table.table.dataTable.table-hover>tbody>tr:hover>* {
   box-shadow: inset 0 0 0 9999px rgba(var(--dt-row-hover), 0) !important;
   color: white !important;
 }
 
 
 /*Para que las alertas no se metan debajo de modales*/
-#toast-container { z-index: 2000 !important; }
-@media (max-width: 576px){
-  #toast-container { top: auto !important; bottom: .75rem !important; }
+#toast-container {
+  z-index: 2000 !important;
+}
+
+@media (max-width: 576px) {
+  #toast-container {
+    top: auto !important;
+    bottom: .75rem !important;
+  }
 }
 
 /*Ajuste del tamaño del a alerta*/
 /* Anchura mayor para cada toast (reduce alto al envolver menos) */
-#toast-container > .toast {
+#toast-container>.toast {
   width: 420px !important;
 }
 
 /* Un poco más ancho en pantallas medianas y grandes */
 @media (min-width: 768px) {
-  #toast-container > .toast {
+  #toast-container>.toast {
     width: 480px !important;
   }
 }
+
 @media (min-width: 1200px) {
-  #toast-container > .toast {
+  #toast-container>.toast {
     width: 560px !important;
   }
 }
 
 /* En móvil: ocupar casi todo el ancho sin overflow */
 @media (max-width: 575.98px) {
-  #toast-container > .toast {
+  #toast-container>.toast {
     width: calc(100vw - 2rem) !important;
   }
+
   /* Ajusta el contenedor para que respete el margen lateral */
   #toast-container.toast-top-right,
-  #toast-container.toast-bottom-right { right: 1rem !important; }
+  #toast-container.toast-bottom-right {
+    right: 1rem !important;
+  }
+
   #toast-container.toast-top-left,
-  #toast-container.toast-bottom-left { left: 1rem !important; }
+  #toast-container.toast-bottom-left {
+    left: 1rem !important;
+  }
+}
+
+/* Ajustes para el stepper en móviles */
+@media (max-width: 600px) {
+  .stepper-nav {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}
+
+@media (min-width: 601px) {
+  .stepper-nav {
+    grid-template-columns: repeat(4, 1fr) !important;
+  }
+}
+
+.custom-stepper {
+  font-family: Inter, Helvetica, sans-serif;
+  width: 100%;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.stepper-nav {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  justify-content: center;
+  margin-bottom: 2rem;
+  padding: 0 1rem;
+}
+
+.stepper-item {
+  display: flex;
+  align-items: flex-start;
+  padding: 1rem;
+  transition: all 0.2s ease;
+
+}
+
+.stepper-check {
+  color: #1B84FF;
+}
+
+.stepper-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  margin-right: 12px;
+  font-size: 1rem;
+  color: inherit;
+  color: #1B84FF;
+  background: #e9f3ff;
+}
+
+.stepper-item.current .stepper-icon {
+  color: white;
+  background: #1B84FF;
+}
+
+.stepper-item.completed .stepper-icon {
+  color: #1B84FF;
+  background: #e9f3ff;
+}
+
+.stepper-number {
+  font-weight: bold;
+}
+
+.stepper-content {
+  min-height: 300px;
+  padding: 1.5rem;
+  background: #f8f9fa00;
+  margin-bottom: 1.5rem;
+}
+
+.stepper-label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+}
+
+.stepper-title {
+  margin: 0;
+  text-align: center;
+  font-weight: 500;
+  font-size: 1.25rem;
+}
+
+.stepper-actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
 }

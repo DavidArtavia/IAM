@@ -9,7 +9,6 @@ import { FieldConfig } from "../GenericFormModal/types";
 import { DynamicButtonConfig, ModalHeaderButtons } from "@/components";
 import { useScrollLockSmart } from "@/hooks";
 
-
 interface InfoModalProps<T> {
   show: boolean;
   onHide: () => void;
@@ -18,11 +17,6 @@ interface InfoModalProps<T> {
   title?: string;
   headerButtons?: DynamicButtonConfig[];
 }
-
-
-
-
-
 
 /**
  * Formatea fechas válidas si están después del año 1753.
@@ -57,10 +51,10 @@ function renderValue<T>(
     if (value === "0001-01-01T00:00:00") {
       return (
         <>
-            <span className="px-3 py-2 fs-7 d-inline-flex align-items-center">
-              <i className="bi bi-exclamation-circle me-2"></i>
-              Fecha pendiente de definición
-            </span>
+          <span className="px-3 py-2 fs-7 d-inline-flex align-items-center">
+            <i className="bi bi-exclamation-circle me-2"></i>
+            Fecha pendiente de definición
+          </span>
         </>
       );
     }
@@ -101,11 +95,7 @@ function renderValue<T>(
   }
 
   if (value === null || value === undefined || value === "") {
-   return (
-     <span className="px-3 py-2 fs-7">
-       ---
-     </span>
-   );
+    return <span className="px-3 py-2 fs-7">---</span>;
   }
 
   return <span>{String(value)}</span>;
@@ -122,24 +112,23 @@ export const InfoModal = <T,>({
   title = "Detalles",
   headerButtons,
 }: InfoModalProps<T>) => {
+  //#region Scroll del body
+  //Ajustes para el croll del body, para bloquearlo en cuando se abren los modales
+  const modalRef = useRef<HTMLDivElement>(null);
 
-//#region Scroll del body
-    //Ajustes para el croll del body, para bloquearlo en cuando se abren los modales
-const modalRef = useRef<HTMLDivElement>(null);
-
- useScrollLockSmart(show, { rootRef: modalRef, fallbackSelector: ".app-scroll" });
-
+  useScrollLockSmart(show, {
+    rootRef: modalRef,
+    fallbackSelector: ".app-scroll",
+  });
 
   useEffect(() => {
     if (show) modalRef.current?.focus();
   }, [show]);
-//#endregion Scroll del body
-
-
-
+  //#endregion Scroll del body
 
   if (!show) return null;
 
+  
   const sortedFields = [...fields].sort(
     (a, b) => (a.order ?? 0) - (b.order ?? 0)
   );
@@ -150,10 +139,10 @@ const modalRef = useRef<HTMLDivElement>(null);
     <div
       className="modal fade show d-block shadowClearBackground"
       onClick={onHide}
-      ref={modalRef}           
-      tabIndex={-1}  
-      role="dialog"          
-      aria-modal="true" 
+      ref={modalRef}
+      tabIndex={-1}
+      role="dialog"
+      aria-modal="true"
     >
       <div
         className="modal-dialog modal-dialog-centered mw-750px"
@@ -163,17 +152,17 @@ const modalRef = useRef<HTMLDivElement>(null);
           {/* Título */}
           <div className="card-header px-5 py-lg-5">
             <div className="col-11">
-            <h3 className="card-title">{title}</h3>
+              <h3 className="card-title">{title}</h3>
             </div>
             <div className="col-1">
-            <div className="card-toolbar justify-content-end">
-              <button type="button" className="btn-close" onClick={onHide} />
+              <div className="card-toolbar justify-content-end">
+                <button type="button" className="btn-close" onClick={onHide} />
               </div>
             </div>
 
-                    {headerButtons && headerButtons.length > 0 && (
-                <ModalHeaderButtons buttons={headerButtons} />
-              )}
+            {headerButtons && headerButtons.length > 0 && (
+              <ModalHeaderButtons buttons={headerButtons} />
+            )}
           </div>
 
           {/* Cuerpo */}
@@ -185,9 +174,11 @@ const modalRef = useRef<HTMLDivElement>(null);
                   <div key={String(field.key)} className="col-12 col-md-6">
                     <div className="h-100">
                       <div className="text-muted fs-5 mb-1">
-                        {field.label}: <span className="text-dark">{renderValue(field, value)}</span>
+                        {field.label}:{" "}
+                        <span className="text-dark">
+                          {renderValue(field, value)}
+                        </span>
                       </div>
-                
                     </div>
                   </div>
                 );

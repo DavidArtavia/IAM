@@ -1,10 +1,11 @@
 // src/components/ProformaCrearEditarModal.tsx
-import { useEffect, useMemo, useRef, useState } from "react";
+import { Children, useEffect, useMemo, useRef, useState } from "react";
 import {
   AsyncClientSelect,
   AsyncTarifaSelect,
   ClientOption,
   FieldConfig,
+  Stepper,
   TarifarioOption,
 } from "@/components";
 import { useApp } from "@/hooks/useApp";
@@ -90,6 +91,7 @@ export const ProformaCrearEditarModal = (props: Props) => {
 
   // Cabecera
   const [clienteOpt, setClienteOpt] = useState<ClientOption | null>(null);
+  const [tabActive, setTabActive] = useState<"manual" | "tarifa">("manual");
   const [descuentoTipo, setDescuentoTipo] = useState<TipoDescuento>("Monto");
   const [descuentoValor, setDescuentoValor] = useState<number>();
   const [impuesto, setImpuesto] = useState<number>();
@@ -313,93 +315,95 @@ export const ProformaCrearEditarModal = (props: Props) => {
       }
       rowRefs.current[id] = el;
     };
-  
-useEffect(() => {
-  if (!lastAddedId) return;
-  ensureFlashStyles();
 
-  let cancelled = false;
+  useEffect(() => {
+    if (!lastAddedId) return;
+    ensureFlashStyles();
 
-  const raf1 = requestAnimationFrame(() => {
-    if (cancelled) return;
+    let cancelled = false;
 
-    // 1) consigue el nodo visible
-    let row = rowRefs.current[lastAddedId] as
-      | HTMLDivElement
-      | HTMLTableRowElement
-      | null;
+    const raf1 = requestAnimationFrame(() => {
+      if (cancelled) return;
 
-    if (!row) {
-      row = document.querySelector(`[data-rowid="${lastAddedId}"]`) as
+      // 1) consigue el nodo visible
+      let row = rowRefs.current[lastAddedId] as
         | HTMLDivElement
         | HTMLTableRowElement
         | null;
-    }
-    if (!row) return;
 
-    // 2) scroll primario hacia la fila
-    row.scrollIntoView({
-      behavior: "smooth",
-      block: "center",
-      inline: "nearest",
+      if (!row) {
+        row = document.querySelector(`[data-rowid="${lastAddedId}"]`) as
+          | HTMLDivElement
+          | HTMLTableRowElement
+          | null;
+      }
+      if (!row) return;
+
+      // 2) scroll primario hacia la fila
+      row.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+        inline: "nearest",
+      });
+
+      // 2.b) scroll de respaldo dentro del contenedor del modal
+      const container = modalBodyRef.current;
+      if (container) {
+        const rowRect = row.getBoundingClientRect();
+        const contRect = container.getBoundingClientRect();
+        const desiredTop =
+          rowRect.top -
+          contRect.top +
+          container.scrollTop -
+          Math.max(0, container.clientHeight / 2 - rowRect.height / 2);
+
+        container.scrollTo({
+          top: Math.max(0, desiredTop),
+          behavior: "smooth",
+        });
+      }
+
+      // 3) highlight
+      if (row instanceof HTMLDivElement) {
+        // móvil: overlay interno
+        row.classList.add("dt-flash-rel");
+        const overlay = document.createElement("div");
+        overlay.className = "flash-blue-overlay";
+        row.appendChild(overlay);
+
+        setTimeout(() => {
+          overlay.remove();
+          row.classList.remove("dt-flash-rel");
+          setLastAddedId(null);
+        }, 2200);
+      } else if (row instanceof HTMLTableRowElement) {
+        // desktop: overlay fijo al viewport
+        const rect = row.getBoundingClientRect();
+        if (rect.width === 0 || rect.height === 0) {
+          // si aún no se midió, reintenta una vez
+          requestAnimationFrame(() => setLastAddedId(lastAddedId));
+          return;
+        }
+        const overlay = document.createElement("div");
+        overlay.className = "flash-row-fixed";
+        overlay.style.top = `${rect.top}px`;
+        overlay.style.left = `${rect.left}px`;
+        overlay.style.width = `${rect.width}px`;
+        overlay.style.height = `${rect.height}px`;
+        document.body.appendChild(overlay);
+
+        setTimeout(() => {
+          overlay.remove();
+          setLastAddedId(null);
+        }, 2200);
+      }
     });
 
-    // 2.b) scroll de respaldo dentro del contenedor del modal
-    const container = modalBodyRef.current;
-    if (container) {
-      const rowRect = row.getBoundingClientRect();
-      const contRect = container.getBoundingClientRect();
-      const desiredTop =
-        rowRect.top -
-        contRect.top +
-        container.scrollTop -
-        Math.max(0, container.clientHeight / 2 - rowRect.height / 2);
-
-      container.scrollTo({ top: Math.max(0, desiredTop), behavior: "smooth" });
-    }
-
-    // 3) highlight
-    if (row instanceof HTMLDivElement) {
-      // móvil: overlay interno
-      row.classList.add("dt-flash-rel");
-      const overlay = document.createElement("div");
-      overlay.className = "flash-blue-overlay";
-      row.appendChild(overlay);
-
-      setTimeout(() => {
-        overlay.remove();
-        row.classList.remove("dt-flash-rel");
-        setLastAddedId(null);
-      }, 2200);
-    } else if (row instanceof HTMLTableRowElement) {
-      // desktop: overlay fijo al viewport
-      const rect = row.getBoundingClientRect();
-      if (rect.width === 0 || rect.height === 0) {
-        // si aún no se midió, reintenta una vez
-        requestAnimationFrame(() => setLastAddedId(lastAddedId));
-        return;
-      }
-      const overlay = document.createElement("div");
-      overlay.className = "flash-row-fixed";
-      overlay.style.top = `${rect.top}px`;
-      overlay.style.left = `${rect.left}px`;
-      overlay.style.width = `${rect.width}px`;
-      overlay.style.height = `${rect.height}px`;
-      document.body.appendChild(overlay);
-
-      setTimeout(() => {
-        overlay.remove();
-        setLastAddedId(null);
-      }, 2200);
-    }
-  });
-
-  return () => {
-    cancelled = true;
-    cancelAnimationFrame(raf1);
-  };
-}, [lastAddedId, items.length]);
-
+    return () => {
+      cancelled = true;
+      cancelAnimationFrame(raf1);
+    };
+  }, [lastAddedId, items.length]);
 
   //#endregion
 
@@ -429,7 +433,7 @@ useEffect(() => {
       required: true,
       order: 1,
       renderer: ({ onChange }) => (
-        <div style={{ position: 'relative', zIndex: 1061 }}>
+        <div style={{ position: "relative", zIndex: 1061 }}>
           <AsyncClientSelect
             value={clienteOpt}
             onChange={(opt) => {
@@ -547,7 +551,7 @@ useEffect(() => {
       order: 3,
       renderer: () => (
         <div className="col-12">
-          <div className="input-group" data-err="montoDescuento" >
+          <div className="input-group" data-err="montoDescuento">
             <span className="input-group-text bg-light border-0">
               {descuentoTipo === "Porcentaje" ? (
                 <i className="bi bi-percent fs-5 text-gray-600" />
@@ -606,11 +610,6 @@ useEffect(() => {
       ),
     },
   ];
-
-  // Usamos sort por order antes del map
-  const sortedHeaderFields = headerFields
-    .slice()
-    .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
 
   // Handlers de ítems
   function addItemVacio() {
@@ -689,17 +688,20 @@ useEffect(() => {
     setFechaP(dayjs().format("YYYY-MM-DD"));
     setFechaV(dayjs().add(15, "day").format("YYYY-MM-DD"));
     setTarifaSel(null);
-    setItems([
-      {
-        idTemp: uuid(),
-        nombreItemProforma: "",
-        descripcionItemProforma: "",
-        precioItemProforma: undefined,
-        cantidadItemProforma: 1,
-        _isNew: true,
-      },
-    ]);
+    setItems([]);
     setErroresValidacion([]);
+    //desactivamos la creacion de un item vacío al abrir, se coloca un array vacio
+    // si se necesita un item por defecto al aabrir colocar:
+    // setItems([
+    //   {
+    //     idTemp: uuid(),
+    //     nombreItemProforma: "",
+    //     descripcionItemProforma: "",
+    //     precioItemProforma: undefined,
+    //     cantidadItemProforma: 1,
+    //     _isNew: true,
+    //   },
+    // ]);
   }
 
   // resetea al abrir (solo en create)
@@ -851,7 +853,7 @@ useEffect(() => {
         (i) => !i._isNew && i._deleted && i.iD_ProformaItem
       );
 
-     const respuestaActualizar = procesarRespuesta(r0);
+      const respuestaActualizar = procesarRespuesta(r0);
 
       // crear nuevos
       for (const it of nuevos) {
@@ -919,7 +921,6 @@ useEffect(() => {
       };
 
       console.log({ proformaActualizadaParaTabla });
-      
 
       notificationHelpers.successAlert("Proforma actualizada correctamente.");
       onUpdated?.(proformaActualizadaParaTabla);
@@ -1016,15 +1017,881 @@ useEffect(() => {
     }
   }
 
+  // nombre seguro para archivos
   const NombreSeguro = (name: string) =>
     name.replace(/[\\/:*?"<>|]+/g, "").slice(0, 80);
+
+  // Steps (
+  const steps = [
+    {
+      title: "Encabezado",
+      renderer: (
+        <>
+          {/* Cliente */}
+          <div className="fv-row mb-5">
+            <label className="form-label">Cliente</label>
+            {negocio && (
+              <div style={{ position: "relative", zIndex: 1061 }}>
+                <AsyncClientSelect
+                  value={clienteOpt}
+                  onChange={(opt) => {
+                    setClienteOpt(opt);
+                    eliminarError("iD_Cliente");
+                  }}
+                />
+              </div>
+            )}
+          </div>
+
+          {/* Fecha vencimiento */}
+          <label className="form-label">Fecha de vencimiento</label>
+          <div className="input-group">
+            <input
+              data-err="fechaVencimiento"
+              type="date"
+              className="form-control  text-muted"
+              value={fechaV}
+              onChange={(e) => {
+                setFechaV(e.target.value);
+                eliminarError("fechaVencimiento");
+              }}
+            />
+          </div>
+          {getErrors("fechaVencimiento").map((e, i) => (
+            <div key={i} className="invalid-feedback d-block">
+              {e.valor}
+            </div>
+          ))}
+        </>
+      ),
+    },
+    {
+      title: "Detalle",
+      children: (
+        <>
+          <div
+            className="d-flex justify-content-between align-items-center mb-2"
+            style={{ gap: 16 }}
+          >
+            <span className="fw-bold">Subtotal</span>
+            <span className="fw-bold">
+              {formatColones(Number(totales.subTotal ?? 0))}
+            </span>
+          </div>
+        </>
+      ),
+      renderer: (
+        <>
+          <div className="row g-3 align-items-end">
+            {/* Ítems */}
+            <div className="card mt-6"></div>
+
+            <div className="card-body p-0 pt-3">
+              {/* Tabs  */}
+              <div className="rounded border pb-4 mb-5">
+                <ul className="nav nav-tabs nav-line-tabs fs-6 px-4 justify-content-end px-lg-20  py-lg-5">
+                  <li className="nav-item">
+                    <a
+                      className={`nav-link ${
+                        tabActive === "tarifa" ? "active" : ""
+                      }`}
+                      data-bs-toggle="tab"
+                      href="#Tarifario"
+                      onClick={() => setTabActive("tarifa")}
+                    >
+                      Tarifario
+                    </a>
+                  </li>
+                  <li className="nav-item">
+                    <a
+                      className={`nav-link ${
+                        tabActive === "manual" ? "active" : ""
+                      }`}
+                      data-bs-toggle="tab"
+                      href="#Agregaritems"
+                      onClick={() => setTabActive("manual")}
+                    >
+                      Agregar Ítems
+                    </a>
+                  </li>
+                </ul>
+                <div className="tab-content" id="myTabContent">
+                  {/* Pestaña: Agregar Ítems */}
+                  <div
+                    className={`tab-pane fade ${
+                      tabActive === "manual" ? "active show" : ""
+                    }`}
+                    id="Agregaritems"
+                    role="tabpanel"
+                  >
+                    <div
+                      className="px-4 mt-5 d-flex justify-content-between align-items-center pb-2 sticky-top bg-white border-0 shadow-sm-on-scroll"
+                      style={{
+                        position: "sticky",
+                        top: "0",
+                        background: "white",
+                      }}
+                    >
+                      <button
+                        className="btn btn-light-primary ms-auto"
+                        onClick={addItemVacio}
+                      >
+                        Agregar ítem
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Pestaña: Tarifario */}
+                  <div
+                    className={`tab-pane fade ${
+                      tabActive === "tarifa" ? "active show" : ""
+                    }`}
+                    id="Tarifario"
+                    role="tabpanel"
+                  >
+                    <div
+                      className="px-4 mt-5 d-flex justify-content-between align-items-center pb-2 sticky-top bg-white border-0 shadow-sm-on-scroll"
+                      style={{
+                        position: "sticky",
+                        top: "0",
+                        background: "white",
+                      }}
+                    >
+                      <div
+                        className="flex-grow-1 min-w-0"
+                        style={{ zIndex: 1061 }}
+                      >
+                        {negocio && (
+                          <div
+                            style={{
+                              minWidth: 220,
+                              maxWidth: 320,
+                              width: "100%",
+                            }}
+                          >
+                            <label className="form-label">
+                              Seleccionar Tarifa
+                            </label>
+                            <AsyncTarifaSelect
+                              value={tarifaSel}
+                              onChange={addItemDesdeTarifa}
+                              reloadKey={0}
+                              negocio={negocio}
+                            />
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* === Desktop (≥ md) === */}
+              <div className="table-responsive d-none d-md-block">
+                {/* Quitamos align-middle */}
+                <table className="table table-row-dashed gy-2">
+                  <thead>
+                    <tr className="fw-semibold text-muted">
+                      <th style={{ width: 20 }}>#</th>
+                      <th style={{ width: 210 }}>Nombre</th>
+                      <th style={{ width: 250 }}>Descripción</th>
+                      <th className="text-end" style={{ width: 160 }}>
+                        Precio
+                      </th>
+                      <th className="text-end" style={{ width: 130 }}>
+                        Cantidad
+                      </th>
+                      <th className="text-end" style={{ width: 90 }}>
+                        Importe
+                      </th>
+                      <th style={{ width: 60 }}></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {items.length === 0 ? (
+                      <tr>
+                        <td colSpan={7} className="text-center py-5 text-muted">
+                          <i className="bi bi-inbox fs-1 mb-2 d-block" />
+                          <div className="fw-semibold">Sin datos</div>
+                          <div className="small">No hay ítems agregados</div>
+                        </td>
+                      </tr>
+                    ) : (
+                      items.map((it, idx) => {
+                        const importe =
+                          Number(it.precioItemProforma ?? 0) *
+                          Number(it.cantidadItemProforma ?? 0);
+                        const rowClass = it._deleted
+                          ? "opacity-50 text-decoration-line-through"
+                          : "";
+                        return (
+                          <tr
+                            key={it.idTemp}
+                            data-rowid={it.idTemp}
+                            ref={setRowRefVisibleOnly(it.idTemp)}
+                            className={rowClass}
+                          >
+                            {/* Forzamos align-top en TODOS los td */}
+                            <td className="align-top">{idx + 1}</td>
+
+                            {/* Nombre */}
+                            <td className="align-top">
+                              <div className="text-start">
+                                <input
+                                  className={`form-control text-muted form-control-sm ${
+                                    getErrors(`${it.idTemp}.nombreItemProforma`)
+                                      .length
+                                      ? "is-invalid"
+                                      : ""
+                                  }`}
+                                  ref={(el) => {
+                                    nombreRefs.current[it.idTemp] = el;
+                                  }}
+                                  value={it.nombreItemProforma}
+                                  data-err={`${it.idTemp}.nombreItemProforma`}
+                                  onChange={(e) => {
+                                    eliminarError(
+                                      `${it.idTemp}.nombreItemProforma`
+                                    );
+                                    patchItem(it.idTemp, {
+                                      nombreItemProforma: e.target.value,
+                                    });
+                                  }}
+                                  placeholder="Nombre del ítem"
+                                  disabled={it._deleted}
+                                />
+                                {getErrors(
+                                  `${it.idTemp}.nombreItemProforma`
+                                ).map((e, i) => (
+                                  <div
+                                    key={i}
+                                    className="invalid-feedback d-block text-start"
+                                  >
+                                    {e.valor}
+                                  </div>
+                                ))}
+                              </div>
+                            </td>
+
+                            {/* Descripción */}
+                            <td className="align-top">
+                              <div className="text-start">
+                                <input
+                                  className={`form-control text-muted form-control-sm ${
+                                    getErrors(
+                                      `${it.idTemp}.descripcionItemProforma`
+                                    ).length
+                                      ? "is-invalid"
+                                      : ""
+                                  }`}
+                                  value={it.descripcionItemProforma}
+                                  data-err={`${it.idTemp}.descripcionItemProforma`}
+                                  onChange={(e) => {
+                                    eliminarError(
+                                      `${it.idTemp}.descripcionItemProforma`
+                                    );
+                                    patchItem(it.idTemp, {
+                                      descripcionItemProforma: e.target.value,
+                                    });
+                                  }}
+                                  placeholder="Descripción (opcional)"
+                                  disabled={it._deleted}
+                                />
+                                {getErrors(
+                                  `${it.idTemp}.descripcionItemProforma`
+                                ).map((e, i) => (
+                                  <div
+                                    key={i}
+                                    className="invalid-feedback d-block text-start"
+                                  >
+                                    {e.valor}
+                                  </div>
+                                ))}
+                              </div>
+                            </td>
+
+                            {/* Precio */}
+                            <td className="text-end align-top">
+                              <div className="text-start">
+                                <input
+                                  type="number"
+                                  inputMode="decimal"
+                                  step="1"
+                                  min={0}
+                                  placeholder="0" // 👈 solo se ve cuando el campo está vacío
+                                  className={`form-control text-muted form-control-sm text-end ${
+                                    getErrors(`${it.idTemp}.precioItemProforma`)
+                                      .length
+                                      ? "is-invalid"
+                                      : ""
+                                  }`}
+                                  value={
+                                    it.precioItemProforma === undefined ||
+                                    it.precioItemProforma === null
+                                      ? "" // 👈 vacío, muestra el placeholder
+                                      : String(it.precioItemProforma)
+                                  }
+                                  data-err={`${it.idTemp}.precioItemProforma`}
+                                  onChange={(e) => {
+                                    const valStr = e.target.value
+                                      .replace(/[^\d.]/g, "")
+                                      .replace(",", ".")
+                                      .replace(/(\..*?)\..*/g, "$1")
+                                      .replace(/^0+(?=\d)/, "");
+
+                                    eliminarError(
+                                      `${it.idTemp}.precioItemProforma`
+                                    );
+
+                                    if (valStr === "") {
+                                      patchItem(it.idTemp, {
+                                        precioItemProforma: undefined,
+                                      });
+                                      return;
+                                    }
+
+                                    const valNum = parseFloat(valStr);
+                                    if (!isNaN(valNum) && valNum >= 0) {
+                                      patchItem(it.idTemp, {
+                                        precioItemProforma: valNum,
+                                      });
+                                    }
+                                  }}
+                                  disabled={it._deleted}
+                                />
+                                {getErrors(
+                                  `${it.idTemp}.precioItemProforma`
+                                ).map((e, i) => (
+                                  <div
+                                    key={i}
+                                    className="invalid-feedback d-block text-start"
+                                  >
+                                    {e.valor}
+                                  </div>
+                                ))}
+                              </div>
+                            </td>
+
+                            {/* Cantidad */}
+                            <td className="text-end align-top">
+                              <div className="text-start">
+                                <input
+                                  type="number"
+                                  step="1"
+                                  min={1}
+                                  className={`form-control text-muted form-control-sm text-end ${
+                                    getErrors(
+                                      `${it.idTemp}.cantidadItemProforma`
+                                    ).length
+                                      ? "is-invalid"
+                                      : ""
+                                  }`}
+                                  value={
+                                    it.cantidadItemProforma === undefined
+                                      ? "" // deja borrar
+                                      : String(it.cantidadItemProforma)
+                                  }
+                                  data-err={`${it.idTemp}.cantidadItemProforma`}
+                                  onChange={(e) => {
+                                    const valStr = e.target.value
+                                      .replace(/[^\d.]/g, "")
+                                      .replace(",", ".")
+                                      .replace(/(\..*?)\..*/g, "$1")
+                                      .replace(/^0+(?=\d)/, "");
+
+                                    eliminarError(
+                                      `${it.idTemp}.cantidadItemProforma`
+                                    );
+                                    if (valStr === "") {
+                                      patchItem(it.idTemp, {
+                                        cantidadItemProforma: undefined,
+                                      });
+                                      return;
+                                    }
+
+                                    const valNum = parseInt(valStr, 10);
+                                    if (!isNaN(valNum) && valNum >= 1) {
+                                      patchItem(it.idTemp, {
+                                        cantidadItemProforma: valNum,
+                                      });
+                                    }
+                                  }}
+                                  disabled={it._deleted}
+                                />
+                                {getErrors(
+                                  `${it.idTemp}.cantidadItemProforma`
+                                ).map((e, i) => (
+                                  <div
+                                    key={i}
+                                    className="invalid-feedback d-block text-start"
+                                  >
+                                    {e.valor}
+                                  </div>
+                                ))}
+                              </div>
+                            </td>
+
+                            {/* Importe */}
+                            <td
+                              className="text-end align-top"
+                              style={{ whiteSpace: "nowrap" }}
+                            >
+                              <span className="text-muted">
+                                {formatColones(importe.toFixed(2))}
+                              </span>
+                            </td>
+
+                            {/* Acciones */}
+                            <td className="text-center align-top">
+                              <button
+                                className={`btn btn-icon btn-sm ${
+                                  it._deleted
+                                    ? "btn-light-warning"
+                                    : "btn-light-danger"
+                                }`}
+                                onClick={() => removeOrToggleDelete(it.idTemp)}
+                                title={
+                                  it._deleted
+                                    ? "Restaurar ítem"
+                                    : "Eliminar ítem"
+                                }
+                              >
+                                <i
+                                  className={`bi ${
+                                    it._deleted
+                                      ? "bi-arrow-counterclockwise"
+                                      : "bi-trash"
+                                  }`}
+                                />
+                              </button>
+                            </td>
+                          </tr>
+                        );
+                      })
+                    )}
+                  </tbody>
+                </table>
+              </div>
+              {/* === Movil (< md) === */}
+              <div className="d-block d-md-none">
+                {items.map((it, idx) => {
+                  const importe =
+                    Number(it.precioItemProforma ?? 0) *
+                    Number(it.cantidadItemProforma ?? 0);
+                  const cardCls = it._deleted ? "opacity-50" : "";
+                  return (
+                    <div
+                      key={it.idTemp}
+                      data-rowid={it.idTemp}
+                      ref={setRowRefVisibleOnly(it.idTemp)}
+                      className={`border rounded-3 p-3 mb-3 w-100 ${cardCls}`}
+                    >
+                      <div className="d-flex justify-content-between align-items-center mb-2">
+                        <span className="badge bg-light text-dark">
+                          #{idx + 1}
+                        </span>
+                        {it._deleted && (
+                          <span className="badge bg-warning text-dark me-2">
+                            Eliminado
+                          </span>
+                        )}
+                        <button
+                          className={`btn btn-icon btn-sm ${
+                            it._deleted
+                              ? "btn-light-warning"
+                              : "btn-light-danger"
+                          }`}
+                          onClick={() => removeOrToggleDelete(it.idTemp)}
+                          aria-label={
+                            it._deleted ? "Restaurar ítem" : "Eliminar ítem"
+                          }
+                        >
+                          <i
+                            className={`bi ${
+                              it._deleted
+                                ? "bi-arrow-counterclockwise"
+                                : "bi-trash"
+                            }`}
+                          />
+                        </button>
+                      </div>
+
+                      <div className="mb-2">
+                        <label className="text-muted mb-1">Nombre</label>
+                        <input
+                          className={`form-control text-muted form-control-sm ${
+                            getErrors(`${it.idTemp}.nombreItemProforma`).length
+                              ? "is-invalid"
+                              : ""
+                          }`}
+                          ref={(el) => {
+                            nombreRefs.current[it.idTemp] = el;
+                          }}
+                          value={it.nombreItemProforma}
+                          data-err={`${it.idTemp}.nombreItemProforma`}
+                          onChange={(e) => {
+                            eliminarError(`${it.idTemp}.nombreItemProforma`);
+                            patchItem(it.idTemp, {
+                              nombreItemProforma: e.target.value,
+                            });
+                          }}
+                          placeholder="Nombre del ítem"
+                          disabled={it._deleted}
+                        />
+                        {getErrors(`${it.idTemp}.nombreItemProforma`).map(
+                          (e, i) => (
+                            <div key={i} className="invalid-feedback d-block">
+                              {e.valor}
+                            </div>
+                          )
+                        )}
+                      </div>
+
+                      <div className="mb-2">
+                        <label className="text-muted mb-1">Descripción</label>
+                        <input
+                          className={`form-control text-muted form-control-sm ${
+                            getErrors(`${it.idTemp}.descripcionItemProforma`)
+                              .length
+                              ? "is-invalid"
+                              : ""
+                          }`}
+                          value={it.descripcionItemProforma}
+                          data-err={`${it.idTemp}.descripcionItemProforma`}
+                          onChange={(e) => {
+                            eliminarError(
+                              `${it.idTemp}.descripcionItemProforma`
+                            );
+                            patchItem(it.idTemp, {
+                              descripcionItemProforma: e.target.value,
+                            });
+                          }}
+                          placeholder="Descripción (opcional)"
+                          disabled={it._deleted}
+                        />
+                        {getErrors(`${it.idTemp}.descripcionItemProforma`).map(
+                          (e, i) => (
+                            <div key={i} className="invalid-feedback d-block">
+                              {e.valor}
+                            </div>
+                          )
+                        )}
+                      </div>
+
+                      <div className="row g-2">
+                        <div className="col-6">
+                          <label className="text-muted mb-1">Precio</label>
+                          <input
+                            type="number"
+                            inputMode="decimal"
+                            step="1"
+                            min={0}
+                            placeholder="0" // 👈 solo se ve cuando el campo está vacío
+                            className={`form-control text-muted form-control-sm text-end ${
+                              getErrors(`${it.idTemp}.precioItemProforma`)
+                                .length
+                                ? "is-invalid"
+                                : ""
+                            }`}
+                            value={
+                              it.precioItemProforma === undefined ||
+                              it.precioItemProforma === null
+                                ? "" // 👈 vacío, muestra el placeholder
+                                : String(it.precioItemProforma)
+                            }
+                            data-err={`${it.idTemp}.precioItemProforma`}
+                            onChange={(e) => {
+                              const valStr = e.target.value
+                                .replace(/[^\d.]/g, "")
+                                .replace(",", ".")
+                                .replace(/(\..*?)\..*/g, "$1")
+                                .replace(/^0+(?=\d)/, "");
+
+                              eliminarError(`${it.idTemp}.precioItemProforma`);
+
+                              if (valStr === "") {
+                                patchItem(it.idTemp, {
+                                  precioItemProforma: undefined,
+                                });
+                                return;
+                              }
+
+                              const valNum = parseFloat(valStr);
+                              if (!isNaN(valNum) && valNum >= 0) {
+                                patchItem(it.idTemp, {
+                                  precioItemProforma: valNum,
+                                });
+                              }
+                            }}
+                            disabled={it._deleted}
+                          />
+                          {getErrors(`${it.idTemp}.precioItemProforma`).map(
+                            (e, i) => (
+                              <div key={i} className="invalid-feedback d-block">
+                                {e.valor}
+                              </div>
+                            )
+                          )}
+                        </div>
+
+                        <div className="col-6">
+                          <label className="text-muted mb-1">Cantidad</label>
+                          <input
+                            type="number"
+                            step="1"
+                            min={1}
+                            className={`form-control text-muted form-control-sm text-end ${
+                              getErrors(`${it.idTemp}.cantidadItemProforma`)
+                                .length
+                                ? "is-invalid"
+                                : ""
+                            }`}
+                            value={
+                              it.cantidadItemProforma === undefined
+                                ? "" // deja borrar
+                                : String(it.cantidadItemProforma)
+                            }
+                            data-err={`${it.idTemp}.cantidadItemProforma`}
+                            onChange={(e) => {
+                              const valStr = e.target.value
+                                .replace(/[^\d.]/g, "")
+                                .replace(",", ".")
+                                .replace(/(\..*?)\..*/g, "$1")
+                                .replace(/^0+(?=\d)/, "");
+
+                              eliminarError(
+                                `${it.idTemp}.cantidadItemProforma`
+                              );
+                              if (valStr === "") {
+                                patchItem(it.idTemp, {
+                                  cantidadItemProforma: undefined,
+                                });
+                                return;
+                              }
+
+                              const valNum = parseInt(valStr, 10);
+                              if (!isNaN(valNum) && valNum >= 1) {
+                                patchItem(it.idTemp, {
+                                  cantidadItemProforma: valNum,
+                                });
+                              }
+                            }}
+                            disabled={it._deleted}
+                          />
+                          {getErrors(`${it.idTemp}.cantidadItemProforma`).map(
+                            (e, i) => (
+                              <div key={i} className="invalid-feedback d-block">
+                                {e.valor}
+                              </div>
+                            )
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="d-flex justify-content-between align-items-center mt-2">
+                        <small className="text-muted">Importe</small>
+                        <span className="text-muted">
+                          {formatColones(importe.toFixed(2))}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        </>
+      ),
+    },
+    {
+      title: "Resumen",
+      children: (
+        <button
+          className="btn btn-light"
+          onClick={handlePdf}
+          disabled={loadingPDF}
+        >
+          {loadingPDF ? (
+            <span
+              className="spinner-border spinner-border-sm me-2"
+              role="status"
+              aria-hidden="true"
+            />
+          ) : (
+            <i className="bi bi-filetype-pdf me-2" />
+          )}
+          {loadingPDF ? (
+            <span className="d-inline-block" style={{ minWidth: 80 }}>
+              <span className="dot-typing">Generando</span>
+            </span>
+          ) : (
+            "Descargar PDF"
+          )}
+        </button>
+      ),
+      renderer: (
+        <div className="row g-4">
+          {/* Descuento */}
+          <div className="col-12 col-md-6">
+            <label className="form-label">Descuento</label>
+            <div className="input-group" data-err="montoDescuento">
+              <input
+                type="number"
+                placeholder={descuentoTipo === "Porcentaje" ? "0%" : "0.00"}
+                className="form-control text-muted"
+                value={descuentoValor ?? ""}
+                onChange={(e) => {
+                  const valStr = e.target.value;
+                  let valNum = Number(valStr);
+                  if (descuentoTipo === "Porcentaje") {
+                    if (valNum < 0) valNum = 0;
+                    if (valNum > 100) valNum = 100;
+                  }
+                  setDescuentoValor(valStr === "" ? undefined : valNum);
+                  eliminarError("montoDescuento");
+                }}
+                min={0}
+                max={descuentoTipo === "Porcentaje" ? 100 : undefined}
+              />
+              <button
+                type="button"
+                className={`btn ${
+                  descuentoTipo === "Porcentaje"
+                    ? "btn-primary"
+                    : "btn-light pulse pulse-primary"
+                } btn-icon pulse`}
+                onClick={() => {
+                  setDescuentoTipo((prev) =>
+                    prev === "Porcentaje" ? "Monto" : "Porcentaje"
+                  );
+                  setDescuentoValor(undefined);
+                  eliminarError("montoDescuento");
+                }}
+                title="Cambiar tipo"
+                aria-label="Cambiar tipo de descuento"
+              >
+                {descuentoTipo === "Porcentaje" ? "%" : "₡"}
+                <span className="pulse-ring" />
+              </button>
+            </div>
+            {getErrors("montoDescuento").map((e, i) => (
+              <div key={i} className="invalid-feedback d-block">
+                {e.valor}
+              </div>
+            ))}
+            <small className="text-muted">
+              Tipo: {descuentoTipo === "Porcentaje" ? "Porcentaje" : "Monto"}
+            </small>
+          </div>
+
+          {/* IVA */}
+          <div className="col-12 col-md-6">
+            <label className="form-label">IVA (%)</label>
+            <div className="input-group">
+              <input
+                type="number"
+                placeholder="0%"
+                className="form-control text-muted"
+                data-err="montoImpuesto"
+                value={impuesto ?? ""}
+                min={0}
+                max={100}
+                step="0.5"
+                inputMode="decimal"
+                onChange={(e) => {
+                  let val = e.target.valueAsNumber;
+                  if (!Number.isFinite(val)) return;
+                  if (val < 0) val = 0;
+                  if (val > 100) val = 100;
+                  setImpuesto(val);
+                  eliminarError("montoImpuesto");
+                }}
+              />
+            </div>
+            {getErrors("montoImpuesto").map((e, i) => (
+              <div key={i} className="invalid-feedback d-block">
+                {e.valor}
+              </div>
+            ))}
+            <small className="text-muted">Tipo: Porcentaje</small>
+          </div>
+
+          {/* Observaciones */}
+          <div className="col-12 col-md-6">
+            <label className="form-label">Observaciones</label>
+            <div className="input-group">
+              <textarea
+                className="form-control text-muted"
+                rows={4}
+                data-err="observacionProforma"
+                value={observaciones}
+                onChange={(e) => {
+                  setObservaciones(e.target.value);
+                  eliminarError("observacionProforma");
+                }}
+              />
+            </div>
+            {getErrors("observacionProforma").map((e, i) => (
+              <div key={i} className="invalid-feedback d-block">
+                {e.valor}
+              </div>
+            ))}
+          </div>
+
+          {/* Totales */}
+          <div className="col-12 col-md-6 d-flex align-items-end justify-content-md-end">
+            <div className="w-100" style={{ maxWidth: 340 }}>
+              <div className="d-flex justify-content-between">
+                <span className="text-muted">Subtotal</span>
+                <span className="text-muted">
+                  {formatColones(totales.subTotal ?? 0)}
+                </span>
+              </div>
+              <div className="d-flex justify-content-between">
+                <span className="text-muted">
+                  Descuento{" "}
+                  {descuentoTipo === "Porcentaje"
+                    ? `(${descuentoValor ?? 0}%)`
+                    : ""}
+                </span>
+                <span className="text-muted">
+                  - {formatColones(totales.montoDescuento ?? 0)}
+                </span>
+              </div>
+              <div className="d-flex justify-content-between">
+                <span title="Subtotal con descuento" className="text-muted">
+                  Subtotal c/desc:
+                </span>
+                <span className="text-muted">
+                  {formatColones(totales.baseImponible ?? 0)}
+                </span>
+              </div>
+              <div className="d-flex justify-content-between">
+                <span className="text-muted">IVA {impuesto ?? 0}%</span>
+                <span className="text-muted">
+                  {formatColones(totales.montoImpuesto ?? 0)}
+                </span>
+              </div>
+              <hr />
+              <div className="d-flex justify-content-between fs-4">
+                <span className="fw-bold">TOTAL</span>
+                <span className="fw-bold">
+                  {formatColones(totales.totalCalculado ?? 0)}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      ),
+    },
+  ];
 
   if (!show) return null;
 
   return (
     <>
       <div
-        className="modal shadowClearBackground fade show d-block "
+        className="modal shadowClearBackground show d-block"
         role="dialog"
         ref={modalRef}
         tabIndex={-1}
@@ -1058,623 +1925,7 @@ useEffect(() => {
 
             <div className="modal-body" ref={modalBodyRef}>
               {/* Cabecera */}
-              <div className="row g-4">
-                {sortedHeaderFields.map((f, i) => (
-                  <div key={i} className="col-12 col-md-6">
-                    <label className="text-muted fs-5 mb-1">{f.label}</label>
-                    {f.renderer?.({ value: null, onChange: () => {} })}
-                  </div>
-                ))}
-              </div>
-
-              {/* Ítems */}
-              <div className="card mt-6">
-                <div className="card-header p-1 pb-0 ">
-                  <div className="card-title text-muted ">Ítems</div>
-                </div>
-                <div className="card-body p-0 pt-3">
-                  {/* Tarifa + botón agregar */}
-                  <div className="d-flex align-items-center gap-2 flex-wrap mb-4">
-                    <div
-                      className="flex-grow-1 min-w-0"
-                      style={{ zIndex: 1061 }}
-                    >
-                      {negocio && (
-                        <div
-                          style={{
-                            minWidth: 220,
-                            maxWidth: 320,
-                            width: "100%",
-                          }}
-                        >
-                          <AsyncTarifaSelect
-                            value={tarifaSel}
-                            onChange={addItemDesdeTarifa}
-                            reloadKey={0}
-                            negocio={negocio}
-                          />
-                        </div>
-                      )}
-                    </div>
-                    <button
-                      className="btn btn-light-primary ms-auto"
-                      onClick={addItemVacio}
-                    >
-                      Agregar ítem
-                    </button>
-                  </div>
-
-                  {/* === Desktop (≥ md) === */}
-                  <div className="table-responsive d-none d-md-block">
-                    {/* Quitamos align-middle */}
-                    <table className="table table-row-dashed gy-2">
-                      <thead>
-                        <tr className="fw-semibold text-muted">
-                          <th style={{ width: 20 }}>#</th>
-                          <th style={{ width: 210 }}>Nombre</th>
-                          <th style={{ width: 250 }}>Descripción</th>
-                          <th className="text-end" style={{ width: 160 }}>
-                            Precio
-                          </th>
-                          <th className="text-end" style={{ width: 130 }}>
-                            Cantidad
-                          </th>
-                          <th className="text-end" style={{ width: 90 }}>
-                            Importe
-                          </th>
-                          <th style={{ width: 60 }}></th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {items.map((it, idx) => {
-                          const importe =
-                            Number(it.precioItemProforma ?? 0) *
-                            Number(it.cantidadItemProforma ?? 0);
-                          const rowClass = it._deleted
-                            ? "opacity-50 text-decoration-line-through"
-                            : "";
-                          return (
-                            <tr
-                              key={it.idTemp}
-                              data-rowid={it.idTemp}
-                              ref={setRowRefVisibleOnly(it.idTemp)}
-                              className={rowClass}
-                            >
-                              {/* Forzamos align-top en TODOS los td */}
-                              <td className="align-top">{idx + 1}</td>
-
-                              {/* Nombre */}
-                              <td className="align-top">
-                                <div className="text-start">
-                                  <input
-                                    className={`form-control text-muted form-control-sm ${
-                                      getErrors(
-                                        `${it.idTemp}.nombreItemProforma`
-                                      ).length
-                                        ? "is-invalid"
-                                        : ""
-                                    }`}
-                                    ref={(el) => {
-                                      nombreRefs.current[it.idTemp] = el;
-                                    }}
-                                    value={it.nombreItemProforma}
-                                    data-err={`${it.idTemp}.nombreItemProforma`}
-                                    onChange={(e) => {
-                                      eliminarError(
-                                        `${it.idTemp}.nombreItemProforma`
-                                      );
-                                      patchItem(it.idTemp, {
-                                        nombreItemProforma: e.target.value,
-                                      });
-                                    }}
-                                    placeholder="Nombre del ítem"
-                                    disabled={it._deleted}
-                                  />
-                                  {getErrors(
-                                    `${it.idTemp}.nombreItemProforma`
-                                  ).map((e, i) => (
-                                    <div
-                                      key={i}
-                                      className="invalid-feedback d-block text-start"
-                                    >
-                                      {e.valor}
-                                    </div>
-                                  ))}
-                                </div>
-                              </td>
-
-                              {/* Descripción */}
-                              <td className="align-top">
-                                <div className="text-start">
-                                  <input
-                                    className={`form-control text-muted form-control-sm ${
-                                      getErrors(
-                                        `${it.idTemp}.descripcionItemProforma`
-                                      ).length
-                                        ? "is-invalid"
-                                        : ""
-                                    }`}
-                                    value={it.descripcionItemProforma}
-                                    data-err={`${it.idTemp}.descripcionItemProforma`}
-                                    onChange={(e) => {
-                                      eliminarError(
-                                        `${it.idTemp}.descripcionItemProforma`
-                                      );
-                                      patchItem(it.idTemp, {
-                                        descripcionItemProforma: e.target.value,
-                                      });
-                                    }}
-                                    placeholder="Descripción (opcional)"
-                                    disabled={it._deleted}
-                                  />
-                                  {getErrors(
-                                    `${it.idTemp}.descripcionItemProforma`
-                                  ).map((e, i) => (
-                                    <div
-                                      key={i}
-                                      className="invalid-feedback d-block text-start"
-                                    >
-                                      {e.valor}
-                                    </div>
-                                  ))}
-                                </div>
-                              </td>
-
-                              {/* Precio */}
-                              <td className="text-end align-top">
-                                <div className="text-start">
-                                  <input
-                                    type="number"
-                                    inputMode="decimal"
-                                    step="1"
-                                    min={0}
-                                    placeholder="0" // 👈 solo se ve cuando el campo está vacío
-                                    className={`form-control text-muted form-control-sm text-end ${
-                                      getErrors(
-                                        `${it.idTemp}.precioItemProforma`
-                                      ).length
-                                        ? "is-invalid"
-                                        : ""
-                                    }`}
-                                    value={
-                                      it.precioItemProforma === undefined ||
-                                      it.precioItemProforma === null
-                                        ? "" // 👈 vacío, muestra el placeholder
-                                        : String(it.precioItemProforma)
-                                    }
-                                    data-err={`${it.idTemp}.precioItemProforma`}
-                                    onChange={(e) => {
-                                      const valStr = e.target.value
-                                        .replace(/[^\d.]/g, "")
-                                        .replace(",", ".")
-                                        .replace(/(\..*?)\..*/g, "$1")
-                                        .replace(/^0+(?=\d)/, "");
-
-                                      eliminarError(
-                                        `${it.idTemp}.precioItemProforma`
-                                      );
-
-                                      if (valStr === "") {
-                                        patchItem(it.idTemp, {
-                                          precioItemProforma: undefined,
-                                        });
-                                        return;
-                                      }
-
-                                      const valNum = parseFloat(valStr);
-                                      if (!isNaN(valNum) && valNum >= 0) {
-                                        patchItem(it.idTemp, {
-                                          precioItemProforma: valNum,
-                                        });
-                                      }
-                                    }}
-                                    disabled={it._deleted}
-                                  />
-                                  {getErrors(
-                                    `${it.idTemp}.precioItemProforma`
-                                  ).map((e, i) => (
-                                    <div
-                                      key={i}
-                                      className="invalid-feedback d-block text-start"
-                                    >
-                                      {e.valor}
-                                    </div>
-                                  ))}
-                                </div>
-                              </td>
-
-                              {/* Cantidad */}
-                              <td className="text-end align-top">
-                                <div className="text-start">
-                                  <input
-                                    type="number"
-                                    step="1"
-                                    min={1}
-                                    className={`form-control text-muted form-control-sm text-end ${
-                                      getErrors(
-                                        `${it.idTemp}.cantidadItemProforma`
-                                      ).length
-                                        ? "is-invalid"
-                                        : ""
-                                    }`}
-                                    value={
-                                      it.cantidadItemProforma === undefined
-                                        ? "" // deja borrar
-                                        : String(it.cantidadItemProforma)
-                                    }
-                                    data-err={`${it.idTemp}.cantidadItemProforma`}
-                                    onChange={(e) => {
-                                      const valStr = e.target.value
-                                        .replace(/[^\d.]/g, "")
-                                        .replace(",", ".")
-                                        .replace(/(\..*?)\..*/g, "$1")
-                                        .replace(/^0+(?=\d)/, "");
-
-                                      eliminarError(
-                                        `${it.idTemp}.cantidadItemProforma`
-                                      );
-                                      if (valStr === "") {
-                                        patchItem(it.idTemp, {
-                                          cantidadItemProforma: undefined,
-                                        });
-                                        return;
-                                      }
-
-                                      const valNum = parseInt(valStr, 10);
-                                      if (!isNaN(valNum) && valNum >= 1) {
-                                        patchItem(it.idTemp, {
-                                          cantidadItemProforma: valNum,
-                                        });
-                                      }
-                                    }}
-                                    disabled={it._deleted}
-                                  />
-                                  {getErrors(
-                                    `${it.idTemp}.cantidadItemProforma`
-                                  ).map((e, i) => (
-                                    <div
-                                      key={i}
-                                      className="invalid-feedback d-block text-start"
-                                    >
-                                      {e.valor}
-                                    </div>
-                                  ))}
-                                </div>
-                              </td>
-
-                              {/* Importe */}
-                              <td className="text-end align-top">
-                                <span className="text-muted">
-                                  {formatColones(importe.toFixed(2))}
-                                </span>
-                              </td>
-
-                              {/* Acciones */}
-                              <td className="text-center align-top">
-                                <button
-                                  className={`btn btn-icon btn-sm ${
-                                    it._deleted
-                                      ? "btn-light-warning"
-                                      : "btn-light-danger"
-                                  }`}
-                                  onClick={() =>
-                                    removeOrToggleDelete(it.idTemp)
-                                  }
-                                  title={
-                                    it._deleted
-                                      ? "Restaurar ítem"
-                                      : "Eliminar ítem"
-                                  }
-                                >
-                                  <i
-                                    className={`bi ${
-                                      it._deleted
-                                        ? "bi-arrow-counterclockwise"
-                                        : "bi-trash"
-                                    }`}
-                                  />
-                                </button>
-                              </td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
-                  </div>
-                  {/* === Movil (< md) === */}
-                  <div className="d-block d-md-none">
-                    {items.map((it, idx) => {
-                      const importe =
-                        Number(it.precioItemProforma ?? 0) *
-                        Number(it.cantidadItemProforma ?? 0);
-                      const cardCls = it._deleted ? "opacity-50" : "";
-                      return (
-                        <div
-                          key={it.idTemp}
-                          data-rowid={it.idTemp}
-                          ref={setRowRefVisibleOnly(it.idTemp)}
-                          className={`border rounded-3 p-3 mb-3 w-100 ${cardCls}`}
-                        >
-                          <div className="d-flex justify-content-between align-items-center mb-2">
-                            <span className="badge bg-light text-dark">
-                              #{idx + 1}
-                            </span>
-                            {it._deleted && (
-                              <span className="badge bg-warning text-dark me-2">
-                                Eliminado
-                              </span>
-                            )}
-                            <button
-                              className={`btn btn-icon btn-sm ${
-                                it._deleted
-                                  ? "btn-light-warning"
-                                  : "btn-light-danger"
-                              }`}
-                              onClick={() => removeOrToggleDelete(it.idTemp)}
-                              aria-label={
-                                it._deleted ? "Restaurar ítem" : "Eliminar ítem"
-                              }
-                            >
-                              <i
-                                className={`bi ${
-                                  it._deleted
-                                    ? "bi-arrow-counterclockwise"
-                                    : "bi-trash"
-                                }`}
-                              />
-                            </button>
-                          </div>
-
-                          <div className="mb-2">
-                            <label className="text-muted mb-1">Nombre</label>
-                            <input
-                              className={`form-control text-muted form-control-sm ${
-                                getErrors(`${it.idTemp}.nombreItemProforma`)
-                                  .length
-                                  ? "is-invalid"
-                                  : ""
-                              }`}
-                              ref={(el) => {
-                                nombreRefs.current[it.idTemp] = el;
-                              }}
-                              value={it.nombreItemProforma}
-                              data-err={`${it.idTemp}.nombreItemProforma`}
-                              onChange={(e) => {
-                                eliminarError(
-                                  `${it.idTemp}.nombreItemProforma`
-                                );
-                                patchItem(it.idTemp, {
-                                  nombreItemProforma: e.target.value,
-                                });
-                              }}
-                              placeholder="Nombre del ítem"
-                              disabled={it._deleted}
-                            />
-                            {getErrors(`${it.idTemp}.nombreItemProforma`).map(
-                              (e, i) => (
-                                <div
-                                  key={i}
-                                  className="invalid-feedback d-block"
-                                >
-                                  {e.valor}
-                                </div>
-                              )
-                            )}
-                          </div>
-
-                          <div className="mb-2">
-                            <label className="text-muted mb-1">
-                              Descripción
-                            </label>
-                            <input
-                              className={`form-control text-muted form-control-sm ${
-                                getErrors(
-                                  `${it.idTemp}.descripcionItemProforma`
-                                ).length
-                                  ? "is-invalid"
-                                  : ""
-                              }`}
-                              value={it.descripcionItemProforma}
-                              data-err={`${it.idTemp}.descripcionItemProforma`}
-                              onChange={(e) => {
-                                eliminarError(
-                                  `${it.idTemp}.descripcionItemProforma`
-                                );
-                                patchItem(it.idTemp, {
-                                  descripcionItemProforma: e.target.value,
-                                });
-                              }}
-                              placeholder="Descripción (opcional)"
-                              disabled={it._deleted}
-                            />
-                            {getErrors(
-                              `${it.idTemp}.descripcionItemProforma`
-                            ).map((e, i) => (
-                              <div key={i} className="invalid-feedback d-block">
-                                {e.valor}
-                              </div>
-                            ))}
-                          </div>
-
-                          <div className="row g-2">
-                            <div className="col-6">
-                              <label className="text-muted mb-1">Precio</label>
-                              <input
-                                type="number"
-                                inputMode="decimal"
-                                step="1"
-                                min={0}
-                                placeholder="0" // 👈 solo se ve cuando el campo está vacío
-                                className={`form-control text-muted form-control-sm text-end ${
-                                  getErrors(`${it.idTemp}.precioItemProforma`)
-                                    .length
-                                    ? "is-invalid"
-                                    : ""
-                                }`}
-                                value={
-                                  it.precioItemProforma === undefined ||
-                                  it.precioItemProforma === null
-                                    ? "" // 👈 vacío, muestra el placeholder
-                                    : String(it.precioItemProforma)
-                                }
-                                data-err={`${it.idTemp}.precioItemProforma`}
-                                onChange={(e) => {
-                                  const valStr = e.target.value
-                                    .replace(/[^\d.]/g, "")
-                                    .replace(",", ".")
-                                    .replace(/(\..*?)\..*/g, "$1")
-                                    .replace(/^0+(?=\d)/, "");
-
-                                  eliminarError(
-                                    `${it.idTemp}.precioItemProforma`
-                                  );
-
-                                  if (valStr === "") {
-                                    patchItem(it.idTemp, {
-                                      precioItemProforma: undefined,
-                                    });
-                                    return;
-                                  }
-
-                                  const valNum = parseFloat(valStr);
-                                  if (!isNaN(valNum) && valNum >= 0) {
-                                    patchItem(it.idTemp, {
-                                      precioItemProforma: valNum,
-                                    });
-                                  }
-                                }}
-                                disabled={it._deleted}
-                              />
-                              {getErrors(`${it.idTemp}.precioItemProforma`).map(
-                                (e, i) => (
-                                  <div
-                                    key={i}
-                                    className="invalid-feedback d-block"
-                                  >
-                                    {e.valor}
-                                  </div>
-                                )
-                              )}
-                            </div>
-
-                            <div className="col-6">
-                              <label className="text-muted mb-1">
-                                Cantidad
-                              </label>
-                              <input
-                                type="number"
-                                step="1"
-                                min={1}
-                                className={`form-control text-muted form-control-sm text-end ${
-                                  getErrors(`${it.idTemp}.cantidadItemProforma`)
-                                    .length
-                                    ? "is-invalid"
-                                    : ""
-                                }`}
-                                value={
-                                  it.cantidadItemProforma === undefined
-                                    ? "" // deja borrar
-                                    : String(it.cantidadItemProforma)
-                                }
-                                data-err={`${it.idTemp}.cantidadItemProforma`}
-                                onChange={(e) => {
-                                  const valStr = e.target.value
-                                    .replace(/[^\d.]/g, "")
-                                    .replace(",", ".")
-                                    .replace(/(\..*?)\..*/g, "$1")
-                                    .replace(/^0+(?=\d)/, "");
-
-                                  eliminarError(
-                                    `${it.idTemp}.cantidadItemProforma`
-                                  );
-                                  if (valStr === "") {
-                                    patchItem(it.idTemp, {
-                                      cantidadItemProforma: undefined,
-                                    });
-                                    return;
-                                  }
-
-                                  const valNum = parseInt(valStr, 10);
-                                  if (!isNaN(valNum) && valNum >= 1) {
-                                    patchItem(it.idTemp, {
-                                      cantidadItemProforma: valNum,
-                                    });
-                                  }
-                                }}
-                                disabled={it._deleted}
-                              />
-                              {getErrors(
-                                `${it.idTemp}.cantidadItemProforma`
-                              ).map((e, i) => (
-                                <div
-                                  key={i}
-                                  className="invalid-feedback d-block"
-                                >
-                                  {e.valor}
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-
-                          <div className="d-flex justify-content-between align-items-center mt-2">
-                            <small className="text-muted">Importe</small>
-                            <span className="text-muted">
-                              {formatColones(importe.toFixed(2))}
-                            </span>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-
-                  {/* Totales */}
-                  <div className="d-flex flex-column align-items-end mt-4">
-                    <div className="w-100 w-md-50">
-                      <div className="d-flex justify-content-between">
-                        <span className="text-muted">Subtotal</span>
-                        <span className="text-muted">
-                          {formatColones(totales.subTotal ?? 0)}
-                        </span>
-                      </div>
-                      <div className="d-flex justify-content-between">
-                        <span className="text-muted">
-                          Descuento{" "}
-                          {descuentoTipo === "Porcentaje"
-                            ? `(${descuentoValor ?? 0}%)`
-                            : ""}
-                        </span>
-                        <span className="text-muted">
-                          - {formatColones(totales.montoDescuento ?? 0)}
-                        </span>
-                      </div>
-                      <div className="d-flex justify-content-between">
-                        <span
-                          title="Subtotal con descuento"
-                          className="text-muted"
-                        >
-                          Subtotal c/desc:
-                        </span>
-                        <span className="text-muted">
-                          {formatColones(totales.baseImponible ?? 0)}
-                        </span>
-                      </div>
-                      <div className="d-flex justify-content-between">
-                        <span className="text-muted">IVA {impuesto ?? 0}%</span>
-                        <span className="text-muted">
-                          {formatColones(totales.montoImpuesto ?? 0)}
-                        </span>
-                      </div>
-                      <hr />
-                      <div className="d-flex justify-content-between fs-4">
-                        <span className="fw-bold">TOTAL</span>
-                        <span className="fw-bold">
-                          {formatColones(totales.totalCalculado ?? 0)}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
+              <Stepper steps={steps} onSubmit={handleGuardar} />
 
               {/* Área PDF (offscreen, no display:none) */}
               <div
@@ -2056,12 +2307,12 @@ useEffect(() => {
             </div>
 
             {/* Footer */}
-            <div className="modal-footer justify-content-between">
+            {/* <div className="modal-footer justify-content-between">
               <div className="text-muted d-none d-md-block">
                 <i className="bi bi-info-circle me-2" />
                 Los valores se recalculan automáticamente.
               </div>
-              {/* Botones: en desktop*/}
+              Botones: en desktop
               <div className="d-none d-md-flex gap-2">
                 <button
                   className="btn btn-light"
@@ -2093,10 +2344,10 @@ useEffect(() => {
                   <i className="bi bi-save2 me-2" />
                   {mode === "edit" ? "Actualizar proforma" : "Guardar proforma"}
                 </button>
-              </div>
+              </div> */}
 
-              {/* Botones footer Version movil */}
-              <div className="d-flex d-md-none flex-row gap-2 w-100 justify-content-start">
+            {/* Botones footer Version movil */}
+            {/* <div className="d-flex d-md-none flex-row gap-2 w-100 justify-content-start">
                 <button
                   className="btn btn-light w-50"
                   onClick={handlePdf}
@@ -2127,8 +2378,7 @@ useEffect(() => {
                   <i className="bi bi-save2 me-2" />
                   {mode === "edit" ? "Actualizar" : "Guardar"}
                 </button>
-              </div>
-            </div>
+              </div> */}
           </div>
         </div>
       </div>

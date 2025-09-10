@@ -77,10 +77,7 @@ export const AsyncClientSelect = ({
 
   return (
     <>
-      <div className="input-group" >
-        <span className="input-group-text bg-light border-0">
-          <i className="bi bi-person fs-4" />
-        </span>
+      <div className="input-group">
         <div style={{ flex: 1, minWidth: 0 }}>
           <AsyncSelect
             classNamePrefix="text-muted"
