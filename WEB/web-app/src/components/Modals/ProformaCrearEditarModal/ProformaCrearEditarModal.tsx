@@ -1,10 +1,9 @@
 // src/components/ProformaCrearEditarModal.tsx
-import { Children, useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   AsyncClientSelect,
   AsyncTarifaSelect,
   ClientOption,
-  FieldConfig,
   Stepper,
   TarifarioOption,
 } from "@/components";
@@ -423,199 +422,10 @@ export const ProformaCrearEditarModal = (props: Props) => {
     [itemsVigentes, descuentoTipo, descuentoValor, impuesto]
   );
 
-  // Fields cabecera (mantenemos tu patrón) + errores por campo
-  // Añadimos order a cada FieldConfig
-  const headerFields: FieldConfig<DTO_Proforma>[] = [
-    {
-      key: "iD_Cliente",
-      label: "Cliente",
-      type: "custom",
-      required: true,
-      order: 1,
-      renderer: ({ onChange }) => (
-        <div style={{ position: "relative", zIndex: 1061 }}>
-          <AsyncClientSelect
-            value={clienteOpt}
-            onChange={(opt) => {
-              setClienteOpt(opt);
-              onChange(opt?.value ?? 0);
-              eliminarError("iD_Cliente");
-            }}
-          />
-        </div>
-      ),
-    },
-    {
-      key: "fechaVencimiento",
-      label: "Vence",
-      type: "custom",
-      order: 2,
-      renderer: () => (
-        <>
-          <div className="input-group">
-            <span className="input-group-text bg-light border-0">
-              <i className="bi bi-hourglass-split fs-5 text-gray-600" />
-            </span>
-            <input
-              data-err="fechaVencimiento"
-              type="date"
-              className="form-control  text-muted"
-              value={fechaV}
-              onChange={(e) => {
-                setFechaV(e.target.value);
-                eliminarError("fechaVencimiento");
-              }}
-            />
-          </div>
-          {getErrors("fechaVencimiento").map((e, i) => (
-            <div key={i} className="invalid-feedback d-block">
-              {e.valor}
-            </div>
-          ))}
-        </>
-      ),
-    },
-    {
-      key: "observacionProforma",
-      label: "Observaciones",
-      type: "custom",
-      order: 5,
-      renderer: () => (
-        <>
-          <div className="input-group">
-            <span className="input-group-text bg-light border-0">
-              <i className="bi bi-chat-left-text fs-5 text-gray-600" />
-            </span>
-            <textarea
-              className="form-control text-muted"
-              rows={1}
-              data-err="observacionProforma"
-              value={observaciones}
-              onChange={(e) => {
-                setObservaciones(e.target.value);
-                eliminarError("observacionProforma");
-              }}
-            />
-          </div>
-          {getErrors("observacionProforma").map((e, i) => (
-            <div key={i} className="invalid-feedback d-block">
-              {e.valor}
-            </div>
-          ))}
-        </>
-      ),
-    },
-    {
-      key: "impuestoPorcentualProforma",
-      label: "IVA (%)",
-      type: "custom",
-      order: 4,
-      renderer: () => (
-        <>
-          <div className="input-group">
-            <span className="input-group-text bg-light border-0">
-              <i className="bi bi-receipt fs-5 text-gray-600" />
-            </span>
-            <input
-              type="number"
-              placeholder="0.00"
-              className="form-control text-muted"
-              data-err="montoImpuesto"
-              value={impuesto ?? ""}
-              min={0}
-              max={100}
-              step="0.5"
-              inputMode="decimal"
-              onChange={(e) => {
-                let val = e.target.valueAsNumber;
-                if (!Number.isFinite(val)) return;
-                if (val < 0) val = 0;
-                if (val > 100) val = 100;
-                setImpuesto(val);
-                eliminarError("montoImpuesto");
-              }}
-            />
-          </div>
-          {getErrors("montoImpuesto").map((e, i) => (
-            <div key={i} className="invalid-feedback d-block">
-              {e.valor}
-            </div>
-          ))}
-        </>
-      ),
-    },
-    {
-      key: "descuentoProforma",
-      label: "Descuento",
-      type: "custom",
-      order: 3,
-      renderer: () => (
-        <div className="col-12">
-          <div className="input-group" data-err="montoDescuento">
-            <span className="input-group-text bg-light border-0">
-              {descuentoTipo === "Porcentaje" ? (
-                <i className="bi bi-percent fs-5 text-gray-600" />
-              ) : (
-                <i className="bi bi-cash-coin fs-5 text-gray-600" />
-              )}
-            </span>
-            <input
-              type="number"
-              placeholder={descuentoTipo === "Porcentaje" ? "%" : "₡0.00"}
-              className="form-control text-muted"
-              value={descuentoValor ?? ""}
-              onChange={(e) => {
-                const valStr = e.target.value;
-                let valNum = Number(valStr);
-                if (descuentoTipo === "Porcentaje") {
-                  if (valNum < 0) valNum = 0;
-                  if (valNum > 100) valNum = 100;
-                }
-                setDescuentoValor(valStr === "" ? undefined : valNum);
-                eliminarError("montoDescuento");
-              }}
-              min={0}
-              max={descuentoTipo === "Porcentaje" ? 100 : undefined}
-            />
-            <button
-              type="button"
-              className={`btn ${
-                descuentoTipo === "Porcentaje"
-                  ? "btn-primary"
-                  : "btn-light pulse pulse-primary"
-              } btn-icon pulse`}
-              onClick={() => {
-                setDescuentoTipo((prev) =>
-                  prev === "Porcentaje" ? "Monto" : "Porcentaje"
-                );
-                setDescuentoValor(undefined);
-                eliminarError("montoDescuento");
-              }}
-              title="Cambiar tipo"
-              aria-label="Cambiar tipo de descuento"
-            >
-              {descuentoTipo === "Porcentaje" ? "%" : "₡"}
-              <span className="pulse-ring" />
-            </button>
-          </div>
-          {getErrors("montoDescuento").map((e, i) => (
-            <div key={i} className="invalid-feedback d-block">
-              {e.valor}
-            </div>
-          ))}
-          <small className="text-muted">
-            Tipo: {descuentoTipo === "Porcentaje" ? "Porcentaje" : "Monto"}
-          </small>
-        </div>
-      ),
-    },
-  ];
-
   // Handlers de ítems
   function addItemVacio() {
     const id = uuid();
     setItems((prev) => [
-      ...prev,
       {
         idTemp: id,
         nombreItemProforma: "",
@@ -624,6 +434,7 @@ export const ProformaCrearEditarModal = (props: Props) => {
         cantidadItemProforma: 1,
         _isNew: true,
       },
+      ...prev,
     ]);
     setLastAddedId(id);
   }
@@ -634,7 +445,6 @@ export const ProformaCrearEditarModal = (props: Props) => {
     if (!opt) return;
     const t = opt.tarifa;
     setItems((prev) => [
-      ...prev,
       {
         idTemp: id,
         iD_Tarifa: t.iD_Tarifa,
@@ -644,6 +454,7 @@ export const ProformaCrearEditarModal = (props: Props) => {
         cantidadItemProforma: 1,
         _isNew: true,
       },
+      ...prev,
     ]);
     setLastAddedId(id);
   }
@@ -920,8 +731,6 @@ export const ProformaCrearEditarModal = (props: Props) => {
         cliente: { nombreCliente: clienteOpt?.label ?? "" } as any,
       };
 
-      console.log({ proformaActualizadaParaTabla });
-
       notificationHelpers.successAlert("Proforma actualizada correctamente.");
       onUpdated?.(proformaActualizadaParaTabla);
     } catch (err: any) {
@@ -1067,6 +876,42 @@ export const ProformaCrearEditarModal = (props: Props) => {
     },
     {
       title: "Detalle",
+      validator: (): DTO_Param[] => {
+        const errs: DTO_Param[] = [];
+        // Valida que haya al menos un ítem no eliminado
+        if (itemsVigentes.length === 0) {
+          errs.push({
+            nombre: "items",
+            valor: "Debe agregar al menos un ítem",
+          });
+          return errs; // Si no hay ítems, no tiene sentido validar cada uno
+        }
+
+        // Valida cada ítem vigente usando tu validador existente
+        for (const it of itemsVigentes) {
+          const dtoItem: DTO_ProformaItem = {
+            iD_ProformaItem: Number(it.iD_ProformaItem ?? 0),
+            iD_Proforma: 0, // No relevante para validación de campos
+            estado: undefined as any,
+            nombreItemProforma: it.nombreItemProforma,
+            descripcionItemProforma: it.descripcionItemProforma,
+            precioItemProforma: Number(it.precioItemProforma ?? 0),
+            cantidadItemProforma: Number(it.cantidadItemProforma ?? 0),
+            fechaCreacion: new Date(), // No relevante
+            fechaModificacion: undefined,
+          } as any;
+
+          const errsIt = valida_DTO_Items_y_Proformas.validarItems(dtoItem);
+          for (const e of errsIt) {
+            errs.push({
+              nombre: `${it.idTemp}.${e.nombre}`,
+              valor: e.valor,
+            });
+          }
+        }
+
+        return errs;
+      },
       children: (
         <>
           <div
@@ -1132,12 +977,34 @@ export const ProformaCrearEditarModal = (props: Props) => {
                         background: "white",
                       }}
                     >
-                      <button
-                        className="btn btn-light-primary ms-auto"
-                        onClick={addItemVacio}
+                      <div
+                        className="d-flex align-items-center justify-content-between gap-2 text-muted small flex-wrap"
+                        style={{ width: "100%" }}
                       >
-                        Agregar ítem
-                      </button>
+                        <div
+                          className="d-flex align-items-center gap-2 flex-grow-1"
+                          style={{ minWidth: 0 }}
+                        >
+                          <i className="fa fa-info-circle" />
+                          <span
+                            style={{ textAlign: "justify", display: "block" }}
+                          >
+                            El botón <strong>Agregar ítem</strong> crea filas
+                            vacías para que puedas llenarlas manualmente. Si
+                            deseas agregar ítems automáticamente, utiliza la
+                            pestaña <strong>Tarifario</strong>.
+                          </span>
+                        </div>
+                        <div>
+                          <button
+                            className="btn btn-light-primary btn-sm"
+                            onClick={addItemVacio}
+                            style={{ whiteSpace: "nowrap" }}
+                          >
+                            Agregar ítem
+                          </button>
+                        </div>
+                      </div>
                     </div>
                   </div>
 
@@ -1499,7 +1366,7 @@ export const ProformaCrearEditarModal = (props: Props) => {
                           className={`btn btn-icon btn-sm ${
                             it._deleted
                               ? "btn-light-warning"
-                              : "btn-light-danger"
+                              : "btn-light-secondary"
                           }`}
                           onClick={() => removeOrToggleDelete(it.idTemp)}
                           aria-label={
@@ -1925,7 +1792,12 @@ export const ProformaCrearEditarModal = (props: Props) => {
 
             <div className="modal-body" ref={modalBodyRef}>
               {/* Cabecera */}
-              <Stepper steps={steps} onSubmit={handleGuardar} />
+              <Stepper
+                steps={steps}
+                onSubmit={handleGuardar}
+                setErroresValidacion={setErroresValidacion}
+                focusByErrKey={focusByErrKey}
+              />
 
               {/* Área PDF (offscreen, no display:none) */}
               <div
