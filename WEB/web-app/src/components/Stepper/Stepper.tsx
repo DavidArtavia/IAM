@@ -29,17 +29,15 @@ export const Stepper = ({ steps, onSubmit, setErroresValidacion, focusByErrKey }
     const errors = currentValidator();
 
     if (errors.length > 0) {
-      // Hay errores, no avanzamos
-      // Aquí debes pasar los errores al formulario para que se muestren
-      // Si tu Stepper no tiene acceso a `setErroresValidacion`, debes pasarlo como prop
+      console.log("Errores de validación:", errors);
+      
       if (setErroresValidacion) {
         setErroresValidacion(errors);
       }
-      notificationHelpers.warningAlert("Por favor corrige los errores antes de continuar.");
-      
-      // Opcional: Hacer scroll al primer error
+      notificationHelpers.warningAlert(errors[0]?.valor ||"Por favor corrige los errores antes de continuar.");
+
       if (errors[0] && focusByErrKey) {
-        focusByErrKey(errors[0].nombre); // Asegúrate de que `focusByErrKey` esté disponible
+        focusByErrKey(errors[0].nombre); 
       }
 
       return; // Detenemos la ejecución aquí

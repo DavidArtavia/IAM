@@ -887,17 +887,17 @@ export const ProformaCrearEditarModal = (props: Props) => {
           return errs; // Si no hay ítems, no tiene sentido validar cada uno
         }
 
-        // Valida cada ítem vigente usando tu validador existente
+       
         for (const it of itemsVigentes) {
           const dtoItem: DTO_ProformaItem = {
             iD_ProformaItem: Number(it.iD_ProformaItem ?? 0),
-            iD_Proforma: 0, // No relevante para validación de campos
+            iD_Proforma: 0,
             estado: undefined as any,
             nombreItemProforma: it.nombreItemProforma,
             descripcionItemProforma: it.descripcionItemProforma,
             precioItemProforma: Number(it.precioItemProforma ?? 0),
             cantidadItemProforma: Number(it.cantidadItemProforma ?? 0),
-            fechaCreacion: new Date(), // No relevante
+            fechaCreacion: new Date(),
             fechaModificacion: undefined,
           } as any;
 
@@ -2177,80 +2177,6 @@ export const ProformaCrearEditarModal = (props: Props) => {
                 </div>
               </div>
             </div>
-
-            {/* Footer */}
-            {/* <div className="modal-footer justify-content-between">
-              <div className="text-muted d-none d-md-block">
-                <i className="bi bi-info-circle me-2" />
-                Los valores se recalculan automáticamente.
-              </div>
-              Botones: en desktop
-              <div className="d-none d-md-flex gap-2">
-                <button
-                  className="btn btn-light"
-                  onClick={handlePdf}
-                  disabled={loadingPDF}
-                >
-                  {loadingPDF ? (
-                    <span
-                      className="spinner-border spinner-border-sm me-2"
-                      role="status"
-                      aria-hidden="true"
-                    />
-                  ) : (
-                    <i className="bi bi-filetype-pdf me-2" />
-                  )}
-                  {loadingPDF ? (
-                    <span className="d-inline-block" style={{ minWidth: 80 }}>
-                      <span className="dot-typing">Generando</span>
-                    </span>
-                  ) : (
-                    "Descargar PDF"
-                  )}
-                </button>
-                <button
-                  type="button"
-                  className="btn btn-primary"
-                  onClick={handleGuardar}
-                >
-                  <i className="bi bi-save2 me-2" />
-                  {mode === "edit" ? "Actualizar proforma" : "Guardar proforma"}
-                </button>
-              </div> */}
-
-            {/* Botones footer Version movil */}
-            {/* <div className="d-flex d-md-none flex-row gap-2 w-100 justify-content-start">
-                <button
-                  className="btn btn-light w-50"
-                  onClick={handlePdf}
-                  disabled={loadingPDF}
-                >
-                  {loadingPDF ? (
-                    <span
-                      className="spinner-border spinner-border-sm me-2"
-                      role="status"
-                      aria-hidden="true"
-                    />
-                  ) : (
-                    <i className="bi bi-filetype-pdf me-2" />
-                  )}
-                  {loadingPDF ? (
-                    <span className="d-inline-block" style={{ minWidth: 80 }}>
-                      <span className="dot-typing">Generando</span>
-                    </span>
-                  ) : (
-                    "Descargar PDF"
-                  )}
-                </button>
-                <button
-                  type="button"
-                  className="btn btn-primary w-50"
-                  onClick={handleGuardar}
-                >
-                  <i className="bi bi-save2 me-2" />
-                  {mode === "edit" ? "Actualizar" : "Guardar"}
-                </button>
-              </div> */}
           </div>
         </div>
       </div>
