@@ -13,7 +13,7 @@ import {
   Tarifario,
   Transacciones,
 } from "@/screens";
-import { Login, SignUp } from "@/auth";
+import { Login, SignUp } from "@/screens/auth";
 // import { ChatAi} from "@/components";
 import { RedirectIfAuth, RequireAuth } from "@/utils";
 import { useEffect } from "react";

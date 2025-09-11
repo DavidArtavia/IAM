@@ -1,6 +1,5 @@
-
 import { DTO_ItemOrdenServicio, DTO_OrdenServicio } from "@/models";
-import { OrdenServicioCard } from "./OrdenServicioCard";
+import { OrdenServicioCard } from "../cards/OrdenServicioCard";
 
 interface Props {
   titulo: string;
@@ -48,7 +47,7 @@ export const OrdenesSeccion = ({
           )}
           onAvanceChange={onAvanceChange}
           onEstadoChange={onEstadoChange}
-          onClickCreateCount={onClickCreateCount} 
+          onClickCreateCount={onClickCreateCount}
         />
       ))}
     </div>

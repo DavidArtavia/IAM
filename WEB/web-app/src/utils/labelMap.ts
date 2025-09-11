@@ -1,4 +1,4 @@
-import { FieldConfig } from "@/components/Modals/GenericFormModal/types";
+import { FieldConfig } from "@/types/types";
 import { DTO_Cliente, DTO_Cuenta, DTO_ItemOrdenServicio, DTO_Negocio, DTO_OrdenServicio, DTO_Transacciones } from "@/models";
 import { DTO_Proforma } from "@/models/DTO_Proforma";
 import { DTO_ProformaItem } from "@/models/DTO_ProformaItem";
