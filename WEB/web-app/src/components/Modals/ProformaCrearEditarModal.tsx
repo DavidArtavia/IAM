@@ -4,6 +4,7 @@ import {
   AsyncClientSelect,
   AsyncTarifaSelect,
   ClientOption,
+  DecimalInput,
   Stepper,
   TarifarioOption,
 } from "@/components";
@@ -112,6 +113,7 @@ export const ProformaCrearEditarModal = (props: Props) => {
   };
   const getErrors = (campo: string) =>
     erroresValidacion.filter((e) => e.nombre === campo);
+
   const focusByErrKey = (key: string) => {
     const el = document.querySelector<HTMLElement>(`[data-err="${key}"]`);
     if (el) {
@@ -830,7 +832,7 @@ export const ProformaCrearEditarModal = (props: Props) => {
   const NombreSeguro = (name: string) =>
     name.replace(/[\\/:*?"<>|]+/g, "").slice(0, 80);
 
-  // Steps (
+  //#region Steps (
   const steps = [
     {
       title: "Encabezado",
@@ -1180,52 +1182,28 @@ export const ProformaCrearEditarModal = (props: Props) => {
                             {/* Precio */}
                             <td className="text-end align-top">
                               <div className="text-start">
-                                <input
-                                  type="number"
-                                  inputMode="decimal"
-                                  step="1"
+                                <DecimalInput
+                                  required
+                                  value={
+                                    it.precioItemProforma === undefined || it.precioItemProforma === null
+                                      ? ""
+                                      : String(it.precioItemProforma)
+                                  }
                                   min={0}
-                                  placeholder="0" // 👈 solo se ve cuando el campo está vacío
-                                  className={`form-control text-muted form-control-sm text-end ${
+                                  max={1000000}
+                                  onChange={(num) => {
+                                    patchItem(it.idTemp, {
+                                      precioItemProforma: typeof num === "string" ? parseFloat(num) : num,
+                                    });
+                                  }}
+                                  className={
                                     getErrors(`${it.idTemp}.precioItemProforma`)
                                       .length
                                       ? "is-invalid"
                                       : ""
-                                  }`}
-                                  value={
-                                    it.precioItemProforma === undefined ||
-                                    it.precioItemProforma === null
-                                      ? "" // 👈 vacío, muestra el placeholder
-                                      : String(it.precioItemProforma)
                                   }
-                                  data-err={`${it.idTemp}.precioItemProforma`}
-                                  onChange={(e) => {
-                                    const valStr = e.target.value
-                                      .replace(/[^\d.]/g, "")
-                                      .replace(",", ".")
-                                      .replace(/(\..*?)\..*/g, "$1")
-                                      .replace(/^0+(?=\d)/, "");
-
-                                    eliminarError(
-                                      `${it.idTemp}.precioItemProforma`
-                                    );
-
-                                    if (valStr === "") {
-                                      patchItem(it.idTemp, {
-                                        precioItemProforma: undefined,
-                                      });
-                                      return;
-                                    }
-
-                                    const valNum = parseFloat(valStr);
-                                    if (!isNaN(valNum) && valNum >= 0) {
-                                      patchItem(it.idTemp, {
-                                        precioItemProforma: valNum,
-                                      });
-                                    }
-                                  }}
-                                  disabled={it._deleted}
                                 />
+
                                 {getErrors(
                                   `${it.idTemp}.precioItemProforma`
                                 ).map((e, i) => (
@@ -1752,7 +1730,7 @@ export const ProformaCrearEditarModal = (props: Props) => {
       ),
     },
   ];
-
+ //#endregion
   if (!show) return null;
 
   return (
