@@ -13,6 +13,7 @@ type Props = {
   disabled?: boolean;
   readOnly?: boolean;
   onBlur?: () => void;
+  percentage?: boolean; // 👈 nuevo: activa validación 0–100
 };
 
 export const DecimalInput = ({
@@ -28,25 +29,10 @@ export const DecimalInput = ({
   disabled = false,
   readOnly = false,
   onBlur,
+  percentage = false, // por defecto no es porcentaje
 }: Props) => {
   const ref = useRef<HTMLInputElement>(null);
   const [raw, setRaw] = useState("");
-
-  useEffect(() => {
-    // normaliza null, undefined y number
-    let normalizedValue = "";
-    if (value !== null && value !== undefined && value !== "") {
-      const num = typeof value === "number" ? value : parseFloat(String(value));
-      if (!isNaN(num)) {
-        let clamped = num;
-        if (min !== undefined && num < min) clamped = min;
-        if (max !== undefined && num > max) clamped = max;
-        normalizedValue = String(clamped);
-      }
-    }
-    setRaw(normalize(normalizedValue));
-  }, [value, min, max]);
-
 
   // Normaliza: quita espacios, convierte coma a punto, elimina duplicados de punto
   const normalize = (s: string | number | null | undefined) => {
@@ -70,24 +56,49 @@ export const DecimalInput = ({
       : intFormatted;
   };
 
+  useEffect(() => {
+    let normalizedValue = "";
+    if (value !== null && value !== undefined && value !== "") {
+      let num = typeof value === "number" ? value : parseFloat(String(value));
+      if (!isNaN(num)) {
+        // si es porcentaje, fuerza a rango 0–100
+        if (percentage) {
+          if (num < 0) num = 0;
+          if (num > 100) num = 100;
+        } else {
+          if (min !== undefined && num < min) num = min;
+          if (max !== undefined && num > max) num = max;
+        }
+        normalizedValue = String(num);
+      }
+    }
+    setRaw(normalize(normalizedValue));
+  }, [value, min, max, percentage]);
+
   const handleInput = (e: React.FormEvent<HTMLInputElement>) => {
-    const el = e.currentTarget;    
+    const el = e.currentTarget;
     const caret = el.selectionStart ?? el.value.length;
 
-    // 👉 aquí sí obtenemos lo que el usuario escribió (incluyendo espacios temporales)
     const normalized = normalize(el.value);
-
     setRaw(normalized);
-    onChange(normalized);
+
+    // cuando es porcentaje, validamos antes de pasar onChange
+    let num = parseFloat(normalized);
+    if (percentage && !isNaN(num)) {
+      if (num < 0) num = 0;
+      if (num > 100) num = 100;
+      onChange(String(num));
+      setRaw(String(num));
+    } else {
+      onChange(normalized);
+    }
 
     const newDisplay = format(normalized);
 
-    // Restaurar cursor en la posición correcta
     requestAnimationFrame(() => {
       if (!ref.current) return;
       ref.current.value = newDisplay;
 
-      // mapear la posición cruda a formateada
       const rawIndex = Math.min(normalized.length, caret);
       let pos = 0,
         seen = 0;
@@ -107,17 +118,18 @@ export const DecimalInput = ({
     onBlur?.();
     let num = parseFloat(raw);
     if (!isNaN(num)) {
-      if (min !== undefined && num < min) num = min;
-      if (max !== undefined && num > max) num = max;
+      if (percentage) {
+        if (num < 0) num = 0;
+        if (num > 100) num = 100;
+      } else {
+        if (min !== undefined && num < min) num = min;
+        if (max !== undefined && num > max) num = max;
+      }
       const normalized = String(num);
       setRaw(normalized);
       onChange(normalized);
     }
   };
-
-  useEffect(() => {
-    setRaw(normalize(value));
-  }, [value]);
 
   return (
     <input
@@ -129,7 +141,7 @@ export const DecimalInput = ({
       readOnly={readOnly}
       required={required}
       disabled={disabled}
-      placeholder={placeholder || "0.00"}
+      placeholder={placeholder || (percentage ? "0% - 100%" : "0.00")}
       className={`form-control text-muted ${className || ""}`}
       value={format(raw)}
       onInput={handleInput}

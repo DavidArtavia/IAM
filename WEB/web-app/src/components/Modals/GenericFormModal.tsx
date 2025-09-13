@@ -17,6 +17,7 @@ interface GenericFormModalProps<T> {
   headerButtons?: DynamicButtonConfig[];
   erroresValidacion?: Array<DTO_Param>;
   onEliminarError: (key: string) => void;
+  loading?: boolean;
 }
 //#endregion
 
@@ -31,6 +32,7 @@ export const GenericFormModal = <T,>({
   fields,
   headerButtons,
   erroresValidacion = [],
+  loading = false,
   onEliminarError,
 }: GenericFormModalProps<T>) => {
   //#region HOOKS
@@ -52,7 +54,7 @@ export const GenericFormModal = <T,>({
   });
 
   useEffect(() => {
-    if (show) modalRef.current?.focus();
+    if (show) modalRef.current?.focus();    
   }, [show]);
   //#endregion
 
@@ -363,13 +365,19 @@ export const GenericFormModal = <T,>({
             <div className="card-footer d-flex justify-content-end gap-2 px-4">
               <button
                 type="button"
+                disabled={loading}
                 className="btn btn-secondary"
                 onClick={onHide}
               >
                 Cancelar
               </button>
-              <button type="submit" className="btn btn-primary">
-                Guardar
+              <button
+                type="submit"
+                className="btn btn-primary"
+                disabled={loading}
+              >
+                {loading && <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>}
+                {loading ? "Guardando..." : "Guardar"}
               </button>
             </div>
           </form>

@@ -1,4 +1,3 @@
-
 import { errorHelpers, notificationHelpers } from "@/utils";
 import { Link, useNavigate } from "react-router-dom";
 import { DTO_Param, DTO_Respuesta, DTO_Usuario } from "@/models";
@@ -12,8 +11,6 @@ import { AuthContext } from "@/context";
 import { usuarioValidator } from "@/validators/usuarioValidator";
 import { valida_DTO_Usuario } from "@/validators/valida_DTO_Usuario";
 import { usuarioService } from "@/services";
-
-     
 
 export const Login = () => {
   // #region Validaciones en los formularios
@@ -75,7 +72,8 @@ export const Login = () => {
           user.nombreUsuario + " " + user.apellido
         }, bienvenido de nuevo 👋`
       );
-      const lastPath = localStorage.getItem(`lastPath:${user?.correoUsuario}`) || ROUTES.HOME;
+      const lastPath =
+        localStorage.getItem(`lastPath:${user?.correoUsuario}`) || ROUTES.HOME;
       setTimeout(() => {
         navigate(lastPath, { replace: true });
       }, 200);
@@ -89,21 +87,21 @@ export const Login = () => {
     <div className="d-flex flex-column flex-root">
       <div
         className="d-flex flex-column flex-column-fluid bgi-position-y-bottom position-x-center bgi-no-repeat bgi-size-contain bgi-attachment-fixed"
-      style={{ backgroundImage: `url(${imgBG})` }}
+        style={{ backgroundImage: `url(${imgBG})` }}
       >
         <div className="d-flex flex-center flex-column flex-column-fluid p-10 pb-lg-20">
           <a className="mb-12">
-            <img
-              alt="Logo"
-              src={imgLogo}
-              className="h-40px"
-            />
+            <img alt="Logo" src={imgLogo} className="h-40px" />
           </a>
 
           <div className="w-lg-500px bg-body rounded shadow-sm p-10 p-lg-15 mx-auto">
             <form
               className="form w-100 fv-plugins-bootstrap5 fv-plugins-framework"
               noValidate
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleOnClick();
+              }}
               id="kt_sign_in_form"
             >
               <div className="text-center mb-10">
@@ -187,19 +185,21 @@ export const Login = () => {
               </div>
 
               <div className="text-center"></div>
+              <button
+                id="kt_sign_in_submit"
+                className="btn btn-lg btn-primary w-100 mb-5"
+                type="submit"
+                onClick={handleOnClick}
+                disabled={cargando}
+                data-kt-indicator={cargando ? "on" : "off"}
+              >
+                <span className="indicator-label">Continuar</span>
+                <span className="indicator-progress">
+                  Por favor espere…
+                  <span className="spinner-border spinner-border-sm align-middle ms-2" />
+                </span>
+              </button>
             </form>
-            <button
-              id="kt_sign_in_submit"
-              className="btn btn-lg btn-primary w-100 mb-5"
-              onClick={handleOnClick}
-              data-kt-indicator={cargando ? "on" : "off"}
-            >
-              <span className="indicator-label">Continuar</span>
-              <span className="indicator-progress">
-                Por favor espere…
-                <span className="spinner-border spinner-border-sm align-middle ms-2" />
-              </span>
-            </button>
           </div>
         </div>
 

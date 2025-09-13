@@ -115,9 +115,13 @@ export const DetalleCuentaInput = ({
     if (nombreFila && valorFila && !isNaN(parseFloat(valorFila))) {
       setFilas([
         ...filas,
-        { nombre: nombreFila, valor: valorFila, cantidad: (cantidadFila || "1").toString() },
+        {
+          nombre: nombreFila,
+          valor: valorFila,
+          cantidad: (cantidadFila || "1").toString(),
+        },
       ]);
-     limpiarCampos();
+      limpiarCampos();
     }
   };
   const limpiarCampos = () => {
@@ -353,16 +357,16 @@ export const DetalleCuentaInput = ({
             {/* Fila 2: Monto + Cantidad + Botones (misma línea, sin scroll) */}
             <div className="row g-2 align-items-end mt-1">
               {/* XS: 5/12 — SM: 4/12 — MD: 3/12 */}
-                <div className="col-5 col-sm-4 col-md-4">
+              <div className="col-5 col-sm-4 col-md-4">
                 <DecimalInput
                   className="form-control"
                   placeholder="Monto"
                   value={valorFila}
-                  onChange={(v: string) => {                    
-                    setValorFila(v)
+                  onChange={(v: string) => {
+                    setValorFila(v);
                   }}
                 />
-                </div>
+              </div>
 
               {/* XS: 3/12 — SM: 2/12 — MD: 2/12 */}
               <div className="col-3 col-sm-2 col-md-4">
@@ -416,52 +420,42 @@ export const DetalleCuentaInput = ({
                 </label>
                 <div className="input-group">
                   <DecimalInput
-                  placeholder="0.00"
-                  className="form-control"
-                  value={descuento.valor}
-                  onChange={(val: string) => {
-                    let v = val;
-                    // Limitar a 100 si es porcentaje
-                    if (descuento.nombre === "Porcentaje") {
-                    // Eliminar caracteres no numéricos excepto punto
-                    v = v.replace(/[^\d.]/g, "");
-                    // Solo un punto decimal
-                    v = v.replace(/(\..*)\./g, "$1");
-                    // Limitar a 100
-                    if (parseFloat(v) > 100) v = "100";
-                    if (parseFloat(v) < 0) v = "0";
-                    // Si hay más de 3 dígitos antes del punto, limitar a 100
-                    if (v.length > 0 && parseFloat(v) > 100) v = "100";
-                    // Si empieza con 0 y no es decimal, limpiar
-                    if (v.startsWith("0") && v.length > 1 && !v.startsWith("0.")) v = v.replace(/^0+/, "");
-                    } else {
-                    if (parseFloat(v) < 0) v = "0";
-                    }
-                    setDescuento({ ...descuento, valor: v });
-                  }}
-                  min={0}
-                  max={descuento.nombre === "Porcentaje" ? 100 : undefined}
+                    value={descuento.valor}
+                    onChange={(val: string) => {
+                      setDescuento({ ...descuento, valor: val });
+                    }}
+                    percentage={descuento.nombre === "Porcentaje"}
                   />
                   <button
-                  type="button"
-                  className={`btn ${
-                    descuento.nombre === "Porcentaje"
-                    ? "btn-primary"
-                    : "btn-secondary"
-                  } btn-icon pulse`}
-                  onClick={() =>
-                    setDescuento((prev) => ({
-                    nombre:
-                      prev.nombre === "Porcentaje" ? "Monto" : "Porcentaje",
-                    valor: "",
-                    }))
-                  }
-                  title="Cambiar tipo"
+                    type="button"
+                    className={`btn ${
+                      descuento.nombre === "Porcentaje"
+                        ? "btn-primary"
+                        : "btn-secondary"
+                    } btn-icon pulse`}
+                    onClick={() =>
+                      setDescuento((prev) => ({
+                        nombre:
+                          prev.nombre === "Porcentaje" ? "Monto" : "Porcentaje",
+                        valor: "",
+                      }))
+                    }
+                    title="Cambiar tipo"
                   >
-                  {descuento.nombre === "Porcentaje" ? "%" : "₡"}
-                  <span className="pulse-ring" />
+                    {descuento.nombre === "Porcentaje" ? "%" : "₡"}
+                    <span
+                      className={
+                        descuento.nombre === "Porcentaje"
+                          ? "pulse-ring border-5"
+                          : "pulse-ring border-5"
+                      }
+                    />
                   </button>
                 </div>
+                <span className="text-muted small">
+                  Tipo:{" "}
+                  {descuento.nombre === "Porcentaje" ? "Porcentaje" : "Monto"}
+                </span>
               </div>
 
               <div className="col-12 col-md-6">

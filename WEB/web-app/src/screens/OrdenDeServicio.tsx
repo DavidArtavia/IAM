@@ -100,6 +100,8 @@ export const OrdenDeServicio = () => {
   );
   const [clientReloadKey, setClientReloadKey] = useState(0);
 
+  const [loadingForm, setLoadingForm] = useState(false);
+
   const [hasRegisteredClients, setHasRegisteredClients] =
     useState<boolean>(false);
 
@@ -194,6 +196,7 @@ export const OrdenDeServicio = () => {
 
   const handleSave = () => {
     if (!selectedBusiness) return;
+    setLoadingForm(true);
     const toSave: any = { ...formData };
     toSave.iD_Negocio = selectedBusiness.iD_Negocio;
     toSave.fechaOrdenServicio = new Date();
@@ -226,8 +229,10 @@ export const OrdenDeServicio = () => {
           ]);
         },
         error: errorHelpers.serverError,
+        complete: () => setLoadingForm(false),
       });
     } else {
+      setLoadingForm(false);
       notificationHelpers.warningAlert(
         "Por favor valida los datos ingresados nuevamente"
       );
@@ -250,7 +255,7 @@ export const OrdenDeServicio = () => {
 
   const handleSaveNewClient = () => {
     if (!newClientData) return;
-
+    setLoadingForm(true);
     validacion = valida_DTO_Cliente.validar(newClientData, "C");
     setErroresValidacion(validacion);
 
@@ -287,6 +292,7 @@ export const OrdenDeServicio = () => {
         },
         complete: () => {
           setNewClientData(new DTO_Cliente());
+          setLoadingForm(false);
         },
         error: errorHelpers.serverError,
       });
@@ -463,6 +469,7 @@ export const OrdenDeServicio = () => {
 
   const handleSaveEdit = () => {
     if (!selectedBusiness) return;
+    setLoadingForm(true);
     const sanitized: any = { ...editData };
     sanitized.iD_Negocio = selectedBusiness.iD_Negocio;
 
@@ -487,8 +494,10 @@ export const OrdenDeServicio = () => {
           setShowEditForm(false);
         },
         error: errorHelpers.serverError,
+        complete: () => setLoadingForm(false),
       });
     } else {
+      setLoadingForm(false);
       notificationHelpers.warningAlert(
         "Por favor valida los datos ingresados nuevamente"
       );
@@ -533,6 +542,7 @@ export const OrdenDeServicio = () => {
 
   const handleConfirmDelete = (action: boolean | null) => {
     if (action && orderToDelete) {
+      setLoadingForm(true);
       const updated: DTO_OrdenServicio = {
         ...orderToDelete,
         estado: {
@@ -574,6 +584,7 @@ export const OrdenDeServicio = () => {
          
         },
         error: errorHelpers.serverError,
+        complete: () => setLoadingForm(false),
       });
     }
     setOrderToDelete(null);
@@ -891,6 +902,7 @@ export const OrdenDeServicio = () => {
       return;
     }
 
+    setLoadingForm(true);
     validacion = valida_DTO_Cuenta.validar(cuenta, "C");
     setErroresValidacion(validacion);
     if (validacion.length === 0) {
@@ -948,6 +960,7 @@ export const OrdenDeServicio = () => {
           });
         },
         error: errorHelpers.serverError,
+        complete: () => setLoadingForm(false),
       });
     } else {
       notificationHelpers.warningAlert(
@@ -1085,7 +1098,8 @@ export const OrdenDeServicio = () => {
           <GenericFormModal<DTO_OrdenServicio>
             title="Registrar orden"
             show={isFormOpen}
-            onHide={handleCancelAdd}
+              onHide={handleCancelAdd}
+              loading={loadingForm}
             data={formData}
             setData={setFormData}
             onSubmit={handleSave}
@@ -1098,7 +1112,8 @@ export const OrdenDeServicio = () => {
           <GenericFormModal
             title="Registrar cliente"
             show={isModalRegisterClientOpen}
-            onHide={() => setIsModalRegisterClientOpen(false)}
+              onHide={() => setIsModalRegisterClientOpen(false)}
+              loading={loadingForm}
             data={newClientData}
             setData={setNewClientData}
             onSubmit={handleSaveNewClient}
@@ -1111,7 +1126,8 @@ export const OrdenDeServicio = () => {
           <GenericFormModal<DTO_OrdenServicio>
             title="Editar orden de servicio"
             show={showEditForm}
-            onHide={() => setShowEditForm(false)}
+              onHide={() => setShowEditForm(false)}
+              loading={loadingForm}
             data={editData}
             setData={setEditData}
             onSubmit={handleSaveEdit}
@@ -1125,7 +1141,8 @@ export const OrdenDeServicio = () => {
           <GenericFormModal<DTO_Cuenta>
             title="Crear cuenta"
             show={showCreateAccount}
-            onHide={() => setShowCreateAccount(false)}
+              onHide={() => setShowCreateAccount(false)}
+              loading={loadingForm}
             data={account!}
             setData={(x) => setAccount(x as DTO_Cuenta)}
             onSubmit={() => {

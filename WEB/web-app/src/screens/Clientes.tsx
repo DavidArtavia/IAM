@@ -27,14 +27,14 @@ export const Clientes = () => {
   const [erroresValidacion, setErroresValidacion] = useState<DTO_Param[]>([]);
   let validacion: Array<DTO_Param>;
   const eliminarError = (campo: string) => {
-    setErroresValidacion(prev => prev.filter(e => e.nombre !== campo));
+    setErroresValidacion((prev) => prev.filter((e) => e.nombre !== campo));
   };
   // #endregion
 
-
   //#region 🔄 Estado general
   const [clientes, setClientes] = useState<DTO_Cliente[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loadingTable, setLoadingTable] = useState(false);
+  const [loadingForm, setLoadingForm] = useState(false);
   //#endregion
 
   //#region ℹ️ info Modal estados;
@@ -67,29 +67,32 @@ export const Clientes = () => {
   //#endregion
 
   //#region 🚀 Carga inicial
-useEffect(() => {
-  setLoading(true);
+  useEffect(() => {
+    setLoadingTable(true);
 
-  const sub = clientesService
-    .obtenerClientes()
-    .pipe(
-      // transforma la respuesta
-      map(result => procesarRespuesta(result as DTO_Respuesta) as DTO_Cliente[]),
+    const sub = clientesService
+      .obtenerClientes()
+      .pipe(
+        // transforma la respuesta
+        map(
+          (result) =>
+            procesarRespuesta(result as DTO_Respuesta) as DTO_Cliente[]
+        ),
 
-      // maneja error y evita romper la suscripción
-      catchError(err => {
-        errorHelpers.serverError(err);
-        return of([] as DTO_Cliente[]);
-      }),
+        // maneja error y evita romper la suscripción
+        catchError((err) => {
+          errorHelpers.serverError(err);
+          return of([] as DTO_Cliente[]);
+        }),
 
-      // SIEMPRE apaga el loading: éxito, error o cancelación
-      finalize(() => setLoading(false))
-    )
-    .subscribe(setClientes);
+        // SIEMPRE apaga el loading: éxito, error o cancelación
+        finalize(() => setLoadingTable(false))
+      )
+      .subscribe(setClientes);
 
-  // evita fugas al desmontar
-  return () => sub.unsubscribe();
-}, []);
+    // evita fugas al desmontar
+    return () => sub.unsubscribe();
+  }, []);
 
   //#endregion
 
@@ -101,13 +104,13 @@ useEffect(() => {
     if (result.resultado) {
       const msg = result.mensaje || "Operación realizada correctamente";
       if (type === "succes") notificationHelpers.successAlert(msg);
-      else if (type === "info"){
-        if(confirmContext == 'delete')
-        notificationHelpers.infoAlert(msg.replace("actualizados", "eliminados"));
-      else
-        notificationHelpers.infoAlert(msg);
-      } 
-      else notificationHelpers.warningAlert(msg);
+      else if (type === "info") {
+        if (confirmContext == "delete")
+          notificationHelpers.infoAlert(
+            msg.replace("actualizados", "eliminados")
+          );
+        else notificationHelpers.infoAlert(msg);
+      } else notificationHelpers.warningAlert(msg);
     } else {
       notificationHelpers.errorAlert(
         result.mensaje || "Error al procesar la solicitud"
@@ -123,6 +126,7 @@ useEffect(() => {
   };
 
   const handleSave = () => {
+    setLoadingForm(true);
     formData.estado = {
       iD_Estado: STATUS_TBL.CLIENT.ACTIVE,
       nombre: "activo",
@@ -130,24 +134,31 @@ useEffect(() => {
     };
 
     validacion = valida_DTO_Cliente.validar(formData, "C");
-    setErroresValidacion(validacion)
+    setErroresValidacion(validacion);
     if (validacion.length === 0) {
-
       clientesService.registrarClientes(formData).subscribe({
         next: (res) => {
           const nuevo = (
-            Array.isArray(res.resultado) ? res.resultado[0] : res.resultado
+        Array.isArray(res.resultado) ? res.resultado[0] : res.resultado
           ) as DTO_Cliente;
           setClientes((prev) => [...prev, nuevo]);
           handleNotification(res, "succes");
           setIsFormOpen(false);
         },
-        error: errorHelpers.serverError,
+        error: (err) => {
+          errorHelpers.serverError(err);
+          setLoadingForm(false);
+        },
+        complete: () => {
+          setLoadingForm(false);
+        }
       });
     } else {
-      notificationHelpers.warningAlert("Por favor valida los datos ingresados nuevamente");
+      setLoadingForm(false);
+      notificationHelpers.warningAlert(
+        "Por favor valida los datos ingresados nuevamente"
+      );
     }
-
   };
 
   const handleCancelAdd = () => {
@@ -165,24 +176,32 @@ useEffect(() => {
   };
 
   const handleSaveEdit = () => {
+    setLoadingForm(true);
     const updated = { ...editData };
 
     validacion = valida_DTO_Cliente.validar(updated, "U");
-    setErroresValidacion(validacion)
+    setErroresValidacion(validacion);
     if (validacion.length === 0) {
-
       clientesService.actualizarClientes(updated).subscribe({
         next: (res) => {
           setClientes((prev) => updateItemById(prev, updated, "iD_Cliente"));
           handleNotification(res, "succes");
           setShowEditForm(false);
+          setLoadingForm(false);
         },
-        error: errorHelpers.serverError,
+        error: (err) => {
+          errorHelpers.serverError(err);
+        },
+        complete: () => {
+          setLoadingForm(false);
+        }
       });
     } else {
-      notificationHelpers.warningAlert("Por favor valida los datos ingresados nuevamente");
+      setLoadingForm(false);
+      notificationHelpers.warningAlert(
+        "Por favor valida los datos ingresados nuevamente"
+      );
     }
-
   };
   //#endregion
 
@@ -229,7 +248,7 @@ useEffect(() => {
     }
     setIsConfirmOpen(false);
     setConfirmContext(null);
-    setErroresValidacion([])
+    setErroresValidacion([]);
   };
   //#endregion
 
@@ -242,7 +261,7 @@ useEffect(() => {
   //#region 🎨 Render
   return (
     <div className="row p-4 gx-0">
-      {loading ? (
+      {loadingTable ? (
         <LoadingPanel msj="Cargando clientes, por favor espere..." />
       ) : (
         <GenericDataTable<DTO_Cliente>
@@ -253,9 +272,8 @@ useEffect(() => {
           onAdd={handleAddNew}
           onEdit={handleEdit}
           onDelete={handleDelete}
-          includeEstadoColumn = {false}
+          includeEstadoColumn={false}
           onRowClick={(row) => setRowTableSelected(row)}
-        
         />
       )}
 
@@ -270,6 +288,7 @@ useEffect(() => {
         title="Registrar Cliente"
         show={isFormOpen}
         onHide={handleCancelAdd}
+        loading={loadingForm}
         data={formData}
         setData={setFormData}
         onSubmit={handleSave}
@@ -282,6 +301,7 @@ useEffect(() => {
         title="Editar Cliente"
         show={showEditForm}
         onHide={() => setShowEditForm(false)}
+        loading={loadingForm}
         data={editData}
         setData={setEditData}
         onSubmit={handleSaveEdit}
@@ -299,4 +319,3 @@ useEffect(() => {
   );
   //#endregion
 };
-

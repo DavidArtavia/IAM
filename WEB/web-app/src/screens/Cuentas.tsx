@@ -75,6 +75,10 @@ export const Cuentas = () => {
   );
   //#endregion
 
+  //#Region loadings
+  const [loadingForm, setLoadingForm] = useState<boolean>(false);
+  //#endregion
+
   //#region ✏️ Editar cuenta - Estados
   const [showEditModal, setShowEditModal] = useState(false);
   const [editData, setEditData] = useState<DTO_Cuenta | null>(null);
@@ -184,6 +188,7 @@ export const Cuentas = () => {
   };
 
   const handleSave = () => {
+    setLoadingForm(true);
     formData.iD_Negocio = selectedBusiness?.iD_Negocio || 0;
     const parsed = parseFloat(montoInput.replace(/[^0-9.]/g, ""));
     formData.monto = isNaN(parsed) ? 0 : parsed;
@@ -208,6 +213,7 @@ export const Cuentas = () => {
         complete: () => {
           setDetalleHabilitado(false);
           setMontoInput("");
+          setLoadingForm(false);
         },
       });
     } else {
@@ -242,8 +248,8 @@ export const Cuentas = () => {
 
   const handleSaveEdit = (updatedData: DTO_Cuenta) => {
 
-
     if (!rowEditSelected) return;
+    setLoadingForm(true);
     updatedData.iD_Cuenta = rowEditSelected.iD_Cuenta;
     updatedData.iD_Negocio = selectedBusiness?.iD_Negocio || 0;
 
@@ -272,6 +278,9 @@ export const Cuentas = () => {
           setShowEditModal(false);
         },
         error: (err) => errorHelpers.serverError(err),
+        complete: () => {
+          setLoadingForm(false);
+        },
       });
     } else {
       notificationHelpers.warningAlert(
@@ -294,6 +303,7 @@ export const Cuentas = () => {
 
   const handleConfirmDelete = (action: boolean | null) => {
     if (action && accountToDelete) {
+      setLoadingForm(true);
       const updatedData: DTO_Cuenta = {
         ...accountToDelete,
         estado: {
@@ -318,6 +328,7 @@ export const Cuentas = () => {
         },
         complete: () => {
           setShowEditModal(false);
+          setLoadingForm(false);
         },
       });
       setAccountToDelete(null);
@@ -637,9 +648,6 @@ export const Cuentas = () => {
             <>---</>
           );
         }
-
-
-
         return (
           <div className="d-flex flex-column gap-4">
             {filas.length > 0 && (
@@ -881,15 +889,14 @@ export const Cuentas = () => {
           <InfoPanel msj="Seleccione un negocio para ver sus cuentas." />
         ) : (
           <>
-
             <GenericDataTable<DTO_Cuenta>
               ref={tableRef}
               title="Cuentas"
               columnKeys={columnKeysCuenta}
               labelMap={labelMapCuenta}
-              data={accountsPayable}       // se carga 1 sola vez
-              independent                  // ⇦ clave para que NO escuche más cambios del padre
-              idField="iD_Cuenta"          // ⇦ campo ID que usa upsert/remove
+              data={accountsPayable} // se carga 1 sola vez
+              independent // ⇦ clave para que NO escuche más cambios del padre
+              idField="iD_Cuenta" // ⇦ campo ID que usa upsert/remove
               onAdd={handleAddNew}
               onEdit={handleEdit}
               onDelete={handleDelete}
@@ -898,13 +905,25 @@ export const Cuentas = () => {
               customRenderers={customRenderers}
               customColumns={[detalleJSONColumn]}
               dataTableButtons={dataTableButtons}
-              onRowClick={(row) => { setRowTableSelected(row); setIsInfoModalOpen(true); }}
-              nowrapColumns={['iD_Cuenta', 'monto', 'montoAbonado', 'saldoPendiente', "tipoCuenta"]}
+              onRowClick={(row) => {
+                setRowTableSelected(row);
+                setIsInfoModalOpen(true);
+              }}
+              nowrapColumns={[
+                "iD_Cuenta",
+                "monto",
+                "montoAbonado",
+                "saldoPendiente",
+                "tipoCuenta",
+              ]}
             />
 
             <InfoModal
               show={isInfoModalOpen}
-              onHide={() => { setIsInfoModalOpen(false); setRowTableSelected(undefined); }}
+              onHide={() => {
+                setIsInfoModalOpen(false);
+                setRowTableSelected(undefined);
+              }}
               data={rowTableSelected!}
               fields={infoModalFields}
               headerButtons={headerButtonsToInfo}
@@ -914,6 +933,7 @@ export const Cuentas = () => {
               title="Crear una Cuenta"
               show={isModalFormOpen}
               onHide={handleCancelAdd}
+              loading={loadingForm}
               data={formData}
               setData={setFormData}
               onSubmit={handleSave}
@@ -925,7 +945,11 @@ export const Cuentas = () => {
             <GenericFormModal<DTO_Cuenta>
               title="Editar Cuenta"
               show={showEditModal}
-              onHide={() => { setShowEditModal(false); setErroresValidacion([]); }}
+              onHide={() => {
+                setShowEditModal(false);
+                setErroresValidacion([]);
+                }}
+              loading={loadingForm}
               data={editData!}
               setData={(x) => setEditData(x as DTO_Cuenta)}
               onSubmit={() => {
@@ -947,10 +971,14 @@ export const Cuentas = () => {
 
             <TransaccionesPorCuentaModal
               open={isTransaccionesModalOpen}
-              onHide={() => { setIsTransaccionesModalOpen(false); }}
+              onHide={() => {
+                setIsTransaccionesModalOpen(false);
+              }}
               cuenta={accountTransactions || new DTO_Cuenta()}
               negocioId={selectedBusiness?.iD_Negocio || 0}
-              onChange={(cuenta) => { tableRef.current?.upsert(cuenta) }}
+              onChange={(cuenta) => {
+                tableRef.current?.upsert(cuenta);
+              }}
             />
           </>
         )}
