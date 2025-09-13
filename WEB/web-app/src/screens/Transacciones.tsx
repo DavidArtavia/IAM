@@ -285,7 +285,7 @@ export const Transacciones = () => {
 
   //#region 🖼️ Custom Renderers
   const customRenderers = {
-    monto: (val: unknown) => formatColones(Number(val) || 0),
+    monto: (val: unknown) => formatColones(Number(val) || ""),
     fechaTransaccion: (val: unknown) =>
       val ? new Date(String(val)).toLocaleDateString() : "",
   };

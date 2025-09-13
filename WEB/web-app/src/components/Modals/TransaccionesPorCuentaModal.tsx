@@ -165,7 +165,7 @@ export const TransaccionesPorCuentaModal = ({
           if (nueva) setTransacciones((prev) => [...prev, nueva]);
 
           //Lógica para sumar a los campos calculados
-          actualizarCamposCalculadosCuenta(transacciones.reduce((suma, t) => suma + (Number(t?.monto) || 0), 0) + nueva.monto);
+          actualizarCamposCalculadosCuenta(transacciones.reduce((suma, t) => suma + (Number(t?.monto) || 0), 0) + (Number(nueva.monto) || 0));
 
           notificationHelpers.successAlert(result.mensaje);
           setIsModalFormOpen(false);
@@ -265,7 +265,7 @@ export const TransaccionesPorCuentaModal = ({
       transaccionesService.actualizarTransaccion(updated).subscribe({
         next: () => {
           notificationHelpers.infoAlert("Transacción eliminada");
-          actualizarCamposCalculadosCuenta(transacciones.reduce((suma, t) => suma + (Number(t?.monto) || 0), 0) - updated.monto);
+          actualizarCamposCalculadosCuenta(transacciones.reduce((suma, t) => suma + (Number(t?.monto) || 0), 0) - (Number(updated.monto) || 0));
         },
         error: errorHelpers.serverError,
       });

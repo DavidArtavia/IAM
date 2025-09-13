@@ -1,7 +1,8 @@
 import React, { useEffect, useRef, useState } from "react";
 
 type Props = {
-  value: string;
+  id?: string;
+  value: string | number | null | undefined;
   onChange: (v: string) => void;
   min?: number;
   max?: number;
@@ -11,9 +12,11 @@ type Props = {
   className?: string;
   disabled?: boolean;
   readOnly?: boolean;
+  onBlur?: () => void;
 };
 
 export const DecimalInput = ({
+  id,
   value,
   onChange,
   min = 0,
@@ -24,15 +27,33 @@ export const DecimalInput = ({
   className,
   disabled = false,
   readOnly = false,
-
+  onBlur,
 }: Props) => {
   const ref = useRef<HTMLInputElement>(null);
   const [raw, setRaw] = useState("");
 
+  useEffect(() => {
+    // normaliza null, undefined y number
+    let normalizedValue = "";
+    if (value !== null && value !== undefined && value !== "") {
+      const num = typeof value === "number" ? value : parseFloat(String(value));
+      if (!isNaN(num)) {
+        let clamped = num;
+        if (min !== undefined && num < min) clamped = min;
+        if (max !== undefined && num > max) clamped = max;
+        normalizedValue = String(clamped);
+      }
+    }
+    setRaw(normalize(normalizedValue));
+  }, [value, min, max]);
+
+
   // Normaliza: quita espacios, convierte coma a punto, elimina duplicados de punto
-  const normalize = (s: string) => {
-    if (!s) return "";
-    let v = s.replace(/\s+/g, "").replace(/,/g, ".");
+  const normalize = (s: string | number | null | undefined) => {
+    if (s === null || s === undefined) return "";
+    const str = typeof s === "string" ? s : String(s);
+    if (!str) return "";
+    let v = str.replace(/\s+/g, "").replace(/,/g, ".");
     v = v.replace(/[^0-9.]/g, "");
     const i = v.indexOf(".");
     if (i >= 0) v = v.slice(0, i + 1) + v.slice(i + 1).replace(/\./g, "");
@@ -83,6 +104,7 @@ export const DecimalInput = ({
 
   const handleBlur = () => {
     if (!raw) return;
+    onBlur?.();
     let num = parseFloat(raw);
     if (!isNaN(num)) {
       if (min !== undefined && num < min) num = min;
@@ -100,6 +122,7 @@ export const DecimalInput = ({
   return (
     <input
       ref={ref}
+      id={id}
       type="text"
       inputMode="decimal"
       step={steps}
@@ -107,8 +130,8 @@ export const DecimalInput = ({
       required={required}
       disabled={disabled}
       placeholder={placeholder || "0.00"}
-      className={`form-control text-muted form-control-sm ${className || ""}`}
-      defaultValue={format(raw)}
+      className={`form-control text-muted ${className || ""}`}
+      value={format(raw)}
       onInput={handleInput}
       onBlur={handleBlur}
     />

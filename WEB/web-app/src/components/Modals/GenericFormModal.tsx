@@ -1,6 +1,6 @@
 import { useGenericForm } from "@/hooks/useGenericForm";
 import { FieldConfig } from "../../types/types";
-import { DynamicButtonConfig, ModalHeaderButtons } from "@/components";
+import { DecimalInput, DynamicButtonConfig, ModalHeaderButtons } from "@/components";
 import { DTO_Param } from "@/models";
 import { useScrollLockSmart } from "@/hooks/useScrollLockSmart";
 import { useEffect, useRef } from "react";
@@ -274,21 +274,31 @@ export const GenericFormModal = <T,>({
         <label htmlFor={String(key)} className={labelClass}>
           {label}
         </label>
-        <input
-          id={String(key)}
-          type={type}
-          className={inputClass}
-          value={
-            type === "number"
-              ? String(localVal ?? rawVal ?? "")
-              : String(rawVal ?? "")
-          }
-          onChange={(e) => {
-            onEliminarError(key.toString());
-            handleChange(key, e.target.value, type);
-          }}
-          onBlur={() => handleBlur(key)}
-        />
+        {type === "number" ? (
+          <DecimalInput
+            id={String(key)}
+            className={inputClass}
+            value={String(localVal ?? rawVal ?? "")}
+            onChange={(val: string) => {
+              onEliminarError(key.toString());
+              handleChange(key, val, type);
+            }}
+            onBlur={() => handleBlur(key)}
+          />
+        ) : (
+            // type text
+          <input
+            id={String(key)}
+            type={type}
+            className={inputClass}
+            value={String(rawVal ?? "")}
+            onChange={(e) => {
+              onEliminarError(key.toString());
+              handleChange(key, e.target.value, type);
+            }}
+            onBlur={() => handleBlur(key)}
+          />
+        )}
         {/* sección de errores personalizados */}
         {erroresValidacion
           .filter((error) => error.nombre === String(key))

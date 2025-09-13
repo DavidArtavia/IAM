@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from "react";
-import { ConfirmModal } from "../modals/ConfirmModal";
 import { DTO_DetalleCuentaJSON, DTO_Param } from "@/models";
 import { DTO_Fila_Detalle } from "@/models/DTO_Fila_Detalle";
 import { formatColones } from "@/utils";
+import { ConfirmModal } from "../modals";
+import { DecimalInput } from "./DecimalInput";
 
 interface Props {
   value?: DTO_DetalleCuentaJSON;
@@ -25,7 +26,7 @@ export const DetalleCuentaInput = ({
   const [filas, setFilas] = useState<DTO_Fila_Detalle[]>([]);
   const [nombreFila, setNombreFila] = useState("");
   const [valorFila, setValorFila] = useState("");
-  const [cantidadFila, setCantidadFila] = useState("");
+  const [cantidadFila, setCantidadFila] = useState<string>("1");
 
   const [descuento, setDescuento] = useState<DTO_Param>({
     nombre: "Monto",
@@ -114,17 +115,15 @@ export const DetalleCuentaInput = ({
     if (nombreFila && valorFila && !isNaN(parseFloat(valorFila))) {
       setFilas([
         ...filas,
-        { nombre: nombreFila, valor: valorFila, cantidad: cantidadFila || "1" },
+        { nombre: nombreFila, valor: valorFila, cantidad: (cantidadFila || "1").toString() },
       ]);
-      setNombreFila("");
-      setValorFila("");
-      setCantidadFila("");
+     limpiarCampos();
     }
   };
   const limpiarCampos = () => {
     setNombreFila("");
     setValorFila("");
-    setCantidadFila("");
+    setCantidadFila("1");
   };
 
   const eliminarFila = (index: number) => {
@@ -222,33 +221,6 @@ export const DetalleCuentaInput = ({
                 </span>
               </div>
             )}
-            {/* {filas.map((item, idx) => (
-              <div
-                key={idx}
-                className="d-flex justify-content-between align-items-center py-2 px-3 mb-2 rounded bg-light"
-              >
-                <div>
-                  <span className="">{item.nombre}</span>
-                  <span className="mx-2 text-secondary">|</span>
-                  <span className="text-success">
-                    ₡
-                    {parseFloat(item.valor).toLocaleString("en-US", {
-                      minimumFractionDigits: 2,
-                      maximumFractionDigits: 2,
-                    })}
-                  </span>
-                </div>
-                <button
-                  type="button"
-                  className="btn"
-                  onClick={() => eliminarFila(idx)}
-                  title="Eliminar"
-                >
-                  <i className="bi bi-trash" />
-                </button>
-              </div>
-            ))} */}
-
             {filas.length > 0 && (
               <div>
                 <table
@@ -381,23 +353,16 @@ export const DetalleCuentaInput = ({
             {/* Fila 2: Monto + Cantidad + Botones (misma línea, sin scroll) */}
             <div className="row g-2 align-items-end mt-1">
               {/* XS: 5/12 — SM: 4/12 — MD: 3/12 */}
-              <div className="col-5 col-sm-4 col-md-4">
-                <input
-                  type="text"
+                <div className="col-5 col-sm-4 col-md-4">
+                <DecimalInput
                   className="form-control"
                   placeholder="Monto"
                   value={valorFila}
-                  onChange={(e) => {
-                    const v = e.target.value
-                      .replace(/[^\d.,]/g, "") // deja dígitos y . ,
-                      .replace(",", ".") // normaliza coma a punto
-                      .replace(/(\..*)\./g, "$1"); // solo un punto decimal
-                    setValorFila(v);
+                  onChange={(v: string) => {                    
+                    setValorFila(v)
                   }}
-                  inputMode="numeric"
-                  pattern="^\d+$"
                 />
-              </div>
+                </div>
 
               {/* XS: 3/12 — SM: 2/12 — MD: 2/12 */}
               <div className="col-3 col-sm-2 col-md-4">
@@ -450,42 +415,51 @@ export const DetalleCuentaInput = ({
                   Descuento ({descuento.nombre === "Porcentaje" ? "%" : "₡"})
                 </label>
                 <div className="input-group">
-                  <input
-                    type="number"
-                    placeholder="0.00"
-                    className="form-control"
-                    value={descuento.valor}
-                    onChange={(e) => {
-                      let val = e.target.value;
-                      if (descuento.nombre === "Porcentaje") {
-                        if (parseFloat(val) > 100) val = "100";
-                        if (parseFloat(val) < 0) val = "0";
-                      } else {
-                        if (parseFloat(val) < 0) val = "0";
-                      }
-                      setDescuento({ ...descuento, valor: val });
-                    }}
-                    min="0"
-                    {...(descuento.nombre === "Porcentaje" ? { max: 100 } : {})}
+                  <DecimalInput
+                  placeholder="0.00"
+                  className="form-control"
+                  value={descuento.valor}
+                  onChange={(val: string) => {
+                    let v = val;
+                    // Limitar a 100 si es porcentaje
+                    if (descuento.nombre === "Porcentaje") {
+                    // Eliminar caracteres no numéricos excepto punto
+                    v = v.replace(/[^\d.]/g, "");
+                    // Solo un punto decimal
+                    v = v.replace(/(\..*)\./g, "$1");
+                    // Limitar a 100
+                    if (parseFloat(v) > 100) v = "100";
+                    if (parseFloat(v) < 0) v = "0";
+                    // Si hay más de 3 dígitos antes del punto, limitar a 100
+                    if (v.length > 0 && parseFloat(v) > 100) v = "100";
+                    // Si empieza con 0 y no es decimal, limpiar
+                    if (v.startsWith("0") && v.length > 1 && !v.startsWith("0.")) v = v.replace(/^0+/, "");
+                    } else {
+                    if (parseFloat(v) < 0) v = "0";
+                    }
+                    setDescuento({ ...descuento, valor: v });
+                  }}
+                  min={0}
+                  max={descuento.nombre === "Porcentaje" ? 100 : undefined}
                   />
                   <button
-                    type="button"
-                    className={`btn ${
-                      descuento.nombre === "Porcentaje"
-                        ? "btn-primary"
-                        : "btn-secondary"
-                    } btn-icon pulse`}
-                    onClick={() =>
-                      setDescuento((prev) => ({
-                        nombre:
-                          prev.nombre === "Porcentaje" ? "Monto" : "Porcentaje",
-                        valor: "0",
-                      }))
-                    }
-                    title="Cambiar tipo"
+                  type="button"
+                  className={`btn ${
+                    descuento.nombre === "Porcentaje"
+                    ? "btn-primary"
+                    : "btn-secondary"
+                  } btn-icon pulse`}
+                  onClick={() =>
+                    setDescuento((prev) => ({
+                    nombre:
+                      prev.nombre === "Porcentaje" ? "Monto" : "Porcentaje",
+                    valor: "",
+                    }))
+                  }
+                  title="Cambiar tipo"
                   >
-                    {descuento.nombre === "Porcentaje" ? "%" : "₡"}
-                    <span className="pulse-ring" />
+                  {descuento.nombre === "Porcentaje" ? "%" : "₡"}
+                  <span className="pulse-ring" />
                   </button>
                 </div>
               </div>

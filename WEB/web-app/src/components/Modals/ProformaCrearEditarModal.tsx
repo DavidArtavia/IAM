@@ -889,7 +889,6 @@ export const ProformaCrearEditarModal = (props: Props) => {
           return errs; // Si no hay ítems, no tiene sentido validar cada uno
         }
 
-       
         for (const it of itemsVigentes) {
           const dtoItem: DTO_ProformaItem = {
             iD_ProformaItem: Number(it.iD_ProformaItem ?? 0),
@@ -972,41 +971,36 @@ export const ProformaCrearEditarModal = (props: Props) => {
                     role="tabpanel"
                   >
                     <div
-                      className="px-4 mt-5 d-flex justify-content-between align-items-center pb-2 sticky-top bg-white border-0 shadow-sm-on-scroll"
+                      className="d-flex justify-content-between align-items-center border-bottom px-4 py-3"
                       style={{
                         position: "sticky",
-                        top: "0",
+                        top: 0,
                         background: "white",
+                        zIndex: 10,
                       }}
                     >
-                      <div
-                        className="d-flex align-items-center justify-content-between gap-2 text-muted small flex-wrap"
-                        style={{ width: "100%" }}
-                      >
-                        <div
-                          className="d-flex align-items-center gap-2 flex-grow-1"
-                          style={{ minWidth: 0 }}
+                      {/* Texto informativo */}
+                      <div className="d-flex align-items-start gap-2 flex-grow-1">
+                        <i className="fa fa-info-circle text-muted mt-1" />
+                        <span
+                          className="text-muted small"
+                          style={{ textAlign: "justify" }}
                         >
-                          <i className="fa fa-info-circle" />
-                          <span
-                            style={{ textAlign: "justify", display: "block" }}
-                          >
-                            El botón <strong>Agregar ítem</strong> crea filas
-                            vacías para que puedas llenarlas manualmente. Si
-                            deseas agregar ítems automáticamente, utiliza la
-                            pestaña <strong>Tarifario</strong>.
-                          </span>
-                        </div>
-                        <div>
-                          <button
-                            className="btn btn-light-primary btn-sm"
-                            onClick={addItemVacio}
-                            style={{ whiteSpace: "nowrap" }}
-                          >
-                            Agregar ítem
-                          </button>
-                        </div>
+                          El botón <strong>Agregar ítem</strong> crea filas
+                          vacías para que puedas llenarlas manualmente. Si
+                          deseas agregar ítems automáticamente, utiliza la
+                          pestaña <strong>Tarifario</strong>.
+                        </span>
                       </div>
+                    </div>
+                    {/* Botón a la derecha */}
+                    <div className="d-flex justify-content-end ms-auto mt-3 me-4">
+                      <button
+                        className="btn btn-sm btn-primary"
+                        onClick={addItemVacio}
+                      >
+                        Agregar ítem
+                      </button>
                     </div>
                   </div>
 
@@ -1032,11 +1026,7 @@ export const ProformaCrearEditarModal = (props: Props) => {
                       >
                         {negocio && (
                           <div
-                            style={{
-                              minWidth: 220,
-                              maxWidth: 320,
-                              width: "100%",
-                            }}
+                            className="d-flex row justify-content-end ms-auto"
                           >
                             <label className="form-label">
                               Seleccionar Tarifa
@@ -1184,26 +1174,23 @@ export const ProformaCrearEditarModal = (props: Props) => {
                               <div className="text-start">
                                 <DecimalInput
                                   required
-                                  value={
-                                    it.precioItemProforma === undefined || it.precioItemProforma === null
-                                      ? ""
-                                      : String(it.precioItemProforma)
-                                  }
+                                  value={it.precioItemProforma}
                                   min={0}
-                                  max={1000000}
                                   onChange={(num) => {
                                     patchItem(it.idTemp, {
-                                      precioItemProforma: typeof num === "string" ? parseFloat(num) : num,
+                                      precioItemProforma:
+                                        typeof num === "string"
+                                          ? parseFloat(num)
+                                          : num,
                                     });
                                   }}
-                                  className={
+                                  className={`form-control-sm ${
                                     getErrors(`${it.idTemp}.precioItemProforma`)
                                       .length
                                       ? "is-invalid"
                                       : ""
-                                  }
+                                  }`}
                                 />
-
                                 {getErrors(
                                   `${it.idTemp}.precioItemProforma`
                                 ).map((e, i) => (
@@ -1730,7 +1717,7 @@ export const ProformaCrearEditarModal = (props: Props) => {
       ),
     },
   ];
- //#endregion
+  //#endregion
   if (!show) return null;
 
   return (
