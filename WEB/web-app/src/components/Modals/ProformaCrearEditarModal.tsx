@@ -18,10 +18,17 @@ import {
   DTO_Estado,
   DTO_Param,
 } from "@/models";
-import { calcularTotales, TipoDescuento } from "@/utils/profromasHelpers";
-import { formatColones, notificationHelpers, procesarRespuesta } from "@/utils";
-import { proformaService } from "@/services/proformas.service";
-import { items_proformaService } from "@/services";
+import {
+  formatColones,
+  notificationHelpers,
+  procesarRespuesta,
+  calcularTotales,
+  TipoDescuento
+} from "@/utils";
+import {
+  items_proformaService,
+  proformaService
+} from "@/services";
 import { valida_DTO_Items_y_Proformas } from "@/validators/valida_DTO_Items_y_Proformas";
 import { useScrollLockSmart } from "@/hooks";
 
@@ -34,14 +41,8 @@ type Props = {
   show: boolean;
   mode: Mode;
   onClose: () => void;
-
-  /** Solo para edición: suficiente pasar la fila de proforma */
   proforma?: DTO_Proforma | null;
-
-  /** Opcional en edición: si ya tienes los items cargados en el padre, pásalos y se evita el fetch */
   itemsIniciales?: DTO_ProformaItem[] | null;
-
-  /** Callbacks */
   onRegistered?: (nuevaProforma: DTO_Proforma) => void;
   onUpdated?: (proformaActualizada: DTO_Proforma) => void;
 };
@@ -100,6 +101,8 @@ export const ProformaCrearEditarModal = (props: Props) => {
   const [fechaV, setFechaV] = useState<string>(
     dayjs().add(15, "day").format("YYYY-MM-DD")
   );
+
+  const [loadingForm, setLoadingForm] = useState(false);
 
   // #region Validaciones en los formularios
   const [erroresValidacion, setErroresValidacion] = useState<DTO_Param[]>([]);
@@ -574,6 +577,7 @@ export const ProformaCrearEditarModal = (props: Props) => {
       notificationHelpers.warningAlert("Agregue al menos un ítem.");
       return;
     }
+    setLoadingForm(true);
 
     const dtoCabecera: DTO_Proforma = {
       iD_Proforma: mode === "edit" ? Number(proforma?.iD_Proforma ?? 0) : 0,
@@ -599,6 +603,7 @@ export const ProformaCrearEditarModal = (props: Props) => {
     const errs = runValidations(dtoCabecera);
     setErroresValidacion(errs);
     if (errs.length > 0) {
+      setLoadingForm(false);
       notificationHelpers.warningAlert(
         "Por favor corrige los campos marcados."
       );
@@ -632,9 +637,10 @@ export const ProformaCrearEditarModal = (props: Props) => {
             .toPromise();
           if (!r2?.tipoRespuesta)
             throw new Error(r2?.mensaje ?? "Error al registrar item.");
+          setLoadingForm(false);
         }
-
         notificationHelpers.successAlert("Proforma registrada correctamente.");
+        setLoadingForm(false);
         const nuevaProforma = {
           ...parsed,
           cliente: { nombreCliente: clienteOpt?.label ?? "" } as any,
@@ -652,11 +658,14 @@ export const ProformaCrearEditarModal = (props: Props) => {
       }
 
       // ===== EDITAR =====
+      setLoadingForm(true);
       const r0 = await proformaService
         .actualizarProformas(dtoCabecera)
         .toPromise();
-      if (!r0?.tipoRespuesta)
+      if (!r0?.tipoRespuesta) {
+        setLoadingForm(false);
         throw new Error(r0?.mensaje ?? "Error al actualizar proforma.");
+      }
 
       const nuevos = items.filter((i) => i._isNew && !i._deleted);
       const modificados = items.filter(
@@ -734,8 +743,10 @@ export const ProformaCrearEditarModal = (props: Props) => {
       };
 
       notificationHelpers.successAlert("Proforma actualizada correctamente.");
+      setLoadingForm(false);
       onUpdated?.(proformaActualizadaParaTabla);
     } catch (err: any) {
+      setLoadingForm(false);
       notificationHelpers.errorAlert(
         err?.message ?? "Ocurrió un error al guardar."
       );
@@ -1025,9 +1036,7 @@ export const ProformaCrearEditarModal = (props: Props) => {
                         style={{ zIndex: 1061 }}
                       >
                         {negocio && (
-                          <div
-                            className="d-flex row justify-content-end ms-auto"
-                          >
+                          <div className="d-flex row justify-content-end ms-auto">
                             <label className="form-label">
                               Seleccionar Tarifa
                             </label>
@@ -1759,6 +1768,7 @@ export const ProformaCrearEditarModal = (props: Props) => {
               {/* Cabecera */}
               <Stepper
                 steps={steps}
+                loading={loadingForm}
                 onSubmit={handleGuardar}
                 setErroresValidacion={setErroresValidacion}
                 focusByErrKey={focusByErrKey}
