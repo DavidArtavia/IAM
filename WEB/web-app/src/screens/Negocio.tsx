@@ -7,6 +7,7 @@ import {
   InfoModal,
   ReferenciaCards,
   ReferenciasJsonInput,
+  Toolbar,
 } from "@/components";
 import ReactDOM from "react-dom/client";
 import { FILTER_STATUS, STATUS_TBL } from "@/constants";
@@ -165,7 +166,7 @@ export const Negocio = () => {
           setShowModalUpdateBusiness(false);
           //Actualizamos la lista de negocios con los nuevos datos
           setListaNegocios(state.listaNegocios.map((n: DTO_Negocio) => n.iD_Negocio === updatedData.iD_Negocio ? updatedData : n));
-          if(state.negocio?.iD_Negocio === updatedData.iD_Negocio){
+          if (state.negocio?.iD_Negocio === updatedData.iD_Negocio) {
             setNegocio(updatedData);
           }
         },
@@ -263,13 +264,13 @@ export const Negocio = () => {
       type: "custom",
       renderer: () => (
         <>
-         <p className=".text-gray-700">Cada referencia configurada se solicitará al momento de crear una orden de servicio para este negocio</p>
-        <ReferenciasJsonInput
-          value={formData.referenciaJSON}
-          onChange={(val) =>
-            setFormData((prev) => ({ ...prev, referenciaJSON: val }))
-          }
-        />
+          <p className=".text-gray-700">Cada referencia configurada se solicitará al momento de crear una orden de servicio para este negocio</p>
+          <ReferenciasJsonInput
+            value={formData.referenciaJSON}
+            onChange={(val) =>
+              setFormData((prev) => ({ ...prev, referenciaJSON: val }))
+            }
+          />
         </>
       ),
       validate: (val) => {
@@ -290,17 +291,17 @@ export const Negocio = () => {
       type: "custom",
       renderer: () => (
         <>
-        <p className=".text-gray-700">Cada referencia configurada se solicitará al momento de crear una orden de servicio para este negocio</p>
-        <ReferenciasJsonInput
-          hideCheckbox={true}
-          editable={false}
-          value={editData?.referenciaJSON || []}
-          onChange={(val) =>
-            setEditData((prev) =>
-              prev ? { ...prev, referenciaJSON: val } : null
-            )
-          }
-        />
+          <p className=".text-gray-700">Cada referencia configurada se solicitará al momento de crear una orden de servicio para este negocio</p>
+          <ReferenciasJsonInput
+            hideCheckbox={true}
+            editable={false}
+            value={editData?.referenciaJSON || []}
+            onChange={(val) =>
+              setEditData((prev) =>
+                prev ? { ...prev, referenciaJSON: val } : null
+              )
+            }
+          />
         </>
       ),
       validate: (val) => {
@@ -365,66 +366,69 @@ export const Negocio = () => {
 
   //#region 🎨 Render
   return (
-    <div className="row p-4 col-12 gx-0">
-      <GenericDataTable<DTO_Negocio>
-        title="Negocios"
-        columnKeys={columnKeysNegocio}
-        labelMap={labelMapNegocio}
-        data={business.filter(
-          (b) => b.estado?.iD_Estado !== STATUS_TBL.BUSINESS.DELETED
-        )}
-        onAdd={handleAddNewBusiness}
-        onEdit={handleEdit}
-        onDelete={handleDelete}
-        disableButtonAdd={disableButtonAdd}
-        includeEstadoColumn
-        customRenderers={{
-          fechaRegistro: (val: unknown) =>
-            val ? new Date(String(val)).toLocaleDateString() : "",
-        }}
-        customColumns={[referenciaJSONColumn]}
-        onRowClick={(rowData) => {
-          setRowTableSelected(rowData);
-        }}
-      />
+    <>
+      <Toolbar titulo="Negocios" addButton onAdd={handleAddNewBusiness} />
+      <div className="row p-4 col-12 gx-0">
+        <GenericDataTable<DTO_Negocio>
+          title="Negocios"
+          columnKeys={columnKeysNegocio}
+          labelMap={labelMapNegocio}
+          data={business.filter(
+            (b) => b.estado?.iD_Estado !== STATUS_TBL.BUSINESS.DELETED
+          )}
+          onAdd={handleAddNewBusiness}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+          disableButtonAdd={disableButtonAdd}
+          includeEstadoColumn
+          customRenderers={{
+            fechaRegistro: (val: unknown) =>
+              val ? new Date(String(val)).toLocaleDateString() : "",
+          }}
+          customColumns={[referenciaJSONColumn]}
+          onRowClick={(rowData) => {
+            setRowTableSelected(rowData);
+          }}
+        />
 
-      <InfoModal
-        show={!!rowTableSelected}
-        onHide={() => setRowTableSelected(undefined)}
-        data={rowTableSelected!}
-        fields={infoModalFields}
-      />
+        <InfoModal
+          show={!!rowTableSelected}
+          onHide={() => setRowTableSelected(undefined)}
+          data={rowTableSelected!}
+          fields={infoModalFields}
+        />
 
-      <GenericFormModal
-        title="Registrar Negocio"
-        show={isModalFormOpen}
-        onHide={handleCancel}
-        data={formData}
-        setData={setFormData}
-        onSubmit={handleSave}
-        fields={newFormFields}
-        erroresValidacion={erroresValidacion}
-        onEliminarError={eliminarError}
-      />
+        <GenericFormModal
+          title="Registrar Negocio"
+          show={isModalFormOpen}
+          onHide={handleCancel}
+          data={formData}
+          setData={setFormData}
+          onSubmit={handleSave}
+          fields={newFormFields}
+          erroresValidacion={erroresValidacion}
+          onEliminarError={eliminarError}
+        />
 
-      <GenericFormModal
-        title="Editar datos del Negocio"
-        show={showModalUpdateBusiness}
-        onHide={() => setShowModalUpdateBusiness(false)}
-        data={editData!}
-        setData={(x) => setEditData(x as DTO_Negocio)}
-        onSubmit={() => editData && handleSaveBusiness(editData)}
-        fields={editFormFields}
-        erroresValidacion={erroresValidacion}
-        onEliminarError={eliminarError}
-      />
+        <GenericFormModal
+          title="Editar datos del Negocio"
+          show={showModalUpdateBusiness}
+          onHide={() => setShowModalUpdateBusiness(false)}
+          data={editData!}
+          setData={(x) => setEditData(x as DTO_Negocio)}
+          onSubmit={() => editData && handleSaveBusiness(editData)}
+          fields={editFormFields}
+          erroresValidacion={erroresValidacion}
+          onEliminarError={eliminarError}
+        />
 
-      <ConfirmModal
-        show={isConfirmOpen}
-        confirmMessage={confirmModalMessage}
-        onAction={confirmModalAcion}
-      />
-    </div>
+        <ConfirmModal
+          show={isConfirmOpen}
+          confirmMessage={confirmModalMessage}
+          onAction={confirmModalAcion}
+        />
+      </div>
+    </>
   );
   //#endregion
 };

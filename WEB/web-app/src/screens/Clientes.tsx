@@ -5,6 +5,7 @@ import {
   GenericFormModal,
   InfoModal,
   LoadingPanel,
+  Toolbar,
 } from "@/components";
 import { DTO_Cliente, DTO_Param, DTO_Respuesta } from "@/models";
 import { clientesService } from "@/services";
@@ -67,29 +68,29 @@ export const Clientes = () => {
   //#endregion
 
   //#region 🚀 Carga inicial
-useEffect(() => {
-  setLoading(true);
+  useEffect(() => {
+    setLoading(true);
 
-  const sub = clientesService
-    .obtenerClientes()
-    .pipe(
-      // transforma la respuesta
-      map(result => procesarRespuesta(result as DTO_Respuesta) as DTO_Cliente[]),
+    const sub = clientesService
+      .obtenerClientes()
+      .pipe(
+        // transforma la respuesta
+        map(result => procesarRespuesta(result as DTO_Respuesta) as DTO_Cliente[]),
 
-      // maneja error y evita romper la suscripción
-      catchError(err => {
-        errorHelpers.serverError(err);
-        return of([] as DTO_Cliente[]);
-      }),
+        // maneja error y evita romper la suscripción
+        catchError(err => {
+          errorHelpers.serverError(err);
+          return of([] as DTO_Cliente[]);
+        }),
 
-      // SIEMPRE apaga el loading: éxito, error o cancelación
-      finalize(() => setLoading(false))
-    )
-    .subscribe(setClientes);
+        // SIEMPRE apaga el loading: éxito, error o cancelación
+        finalize(() => setLoading(false))
+      )
+      .subscribe(setClientes);
 
-  // evita fugas al desmontar
-  return () => sub.unsubscribe();
-}, []);
+    // evita fugas al desmontar
+    return () => sub.unsubscribe();
+  }, []);
 
   //#endregion
 
@@ -101,12 +102,12 @@ useEffect(() => {
     if (result.resultado) {
       const msg = result.mensaje || "Operación realizada correctamente";
       if (type === "succes") notificationHelpers.successAlert(msg);
-      else if (type === "info"){
-        if(confirmContext == 'delete')
-        notificationHelpers.infoAlert(msg.replace("actualizados", "eliminados"));
-      else
-        notificationHelpers.infoAlert(msg);
-      } 
+      else if (type === "info") {
+        if (confirmContext == 'delete')
+          notificationHelpers.infoAlert(msg.replace("actualizados", "eliminados"));
+        else
+          notificationHelpers.infoAlert(msg);
+      }
       else notificationHelpers.warningAlert(msg);
     } else {
       notificationHelpers.errorAlert(
@@ -241,61 +242,64 @@ useEffect(() => {
 
   //#region 🎨 Render
   return (
-    <div className="row p-4 gx-0">
-      {loading ? (
-        <LoadingPanel msj="Cargando clientes, por favor espere..." />
-      ) : (
-        <GenericDataTable<DTO_Cliente>
-          title="Clientes"
-          columnKeys={columnKeysCliente}
-          labelMap={labelMapCliente}
-          data={clientesActivos}
-          onAdd={handleAddNew}
-          onEdit={handleEdit}
-          onDelete={handleDelete}
-          includeEstadoColumn = {false}
-          onRowClick={(row) => setRowTableSelected(row)}
-        
+    <>
+      <Toolbar titulo="Clientes" addButton onAdd={handleAddNew} />
+      <div className="row p-4 gx-0">
+        {loading ? (
+          <LoadingPanel msj="Cargando clientes, por favor espere..." />
+        ) : (
+          <GenericDataTable<DTO_Cliente>
+            title="Clientes"
+            columnKeys={columnKeysCliente}
+            labelMap={labelMapCliente}
+            data={clientesActivos}
+            onAdd={handleAddNew}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+            includeEstadoColumn={false}
+            onRowClick={(row) => setRowTableSelected(row)}
+
+          />
+        )}
+
+        <InfoModal
+          show={!!rowTableSelected}
+          onHide={() => setRowTableSelected(undefined)}
+          data={rowTableSelected!}
+          fields={keysInfoModalCliente}
         />
-      )}
 
-      <InfoModal
-        show={!!rowTableSelected}
-        onHide={() => setRowTableSelected(undefined)}
-        data={rowTableSelected!}
-        fields={keysInfoModalCliente}
-      />
+        <GenericFormModal
+          title="Registrar Cliente"
+          show={isFormOpen}
+          onHide={handleCancelAdd}
+          data={formData}
+          setData={setFormData}
+          onSubmit={handleSave}
+          fields={clienteFormEditFields}
+          erroresValidacion={erroresValidacion}
+          onEliminarError={eliminarError}
+        />
 
-      <GenericFormModal
-        title="Registrar Cliente"
-        show={isFormOpen}
-        onHide={handleCancelAdd}
-        data={formData}
-        setData={setFormData}
-        onSubmit={handleSave}
-        fields={clienteFormEditFields}
-        erroresValidacion={erroresValidacion}
-        onEliminarError={eliminarError}
-      />
+        <GenericFormModal
+          title="Editar Cliente"
+          show={showEditForm}
+          onHide={() => setShowEditForm(false)}
+          data={editData}
+          setData={setEditData}
+          onSubmit={handleSaveEdit}
+          fields={clienteFormEditFields}
+          erroresValidacion={erroresValidacion}
+          onEliminarError={eliminarError}
+        />
 
-      <GenericFormModal
-        title="Editar Cliente"
-        show={showEditForm}
-        onHide={() => setShowEditForm(false)}
-        data={editData}
-        setData={setEditData}
-        onSubmit={handleSaveEdit}
-        fields={clienteFormEditFields}
-        erroresValidacion={erroresValidacion}
-        onEliminarError={eliminarError}
-      />
-
-      <ConfirmModal
-        show={isConfirmOpen}
-        confirmMessage={confirmModalMessage}
-        onAction={confirmModalAction}
-      />
-    </div>
+        <ConfirmModal
+          show={isConfirmOpen}
+          confirmMessage={confirmModalMessage}
+          onAction={confirmModalAction}
+        />
+      </div>
+    </>
   );
   //#endregion
 };

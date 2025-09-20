@@ -30,6 +30,7 @@ import {
   GenericFormModal,
   InfoModal,
   InfoPanel,
+  Toolbar,
   TransaccionesPorCuentaModal,
 } from "@/components";
 import { STATUS_TBL } from "@/constants";
@@ -223,8 +224,8 @@ export const Cuentas = () => {
 
       setConfirmModalMessage("¿Estás seguro de que deseas cancelar el registro?");
       setIsConfirmOpen(true);
-    }else{
-     setIsModalFormOpen(false);
+    } else {
+      setIsModalFormOpen(false);
     }
   };
   //#endregion
@@ -288,7 +289,7 @@ export const Cuentas = () => {
     setAccountToDelete(rowData);
     setConfirmContext("delete");
     setIsConfirmOpen(true);
-    
+
   };
 
   const handleConfirmDelete = (action: boolean | null) => {
@@ -720,7 +721,7 @@ export const Cuentas = () => {
                                 <div className="text-end col-2">
 
 
-              
+
 
 
 
@@ -750,7 +751,7 @@ export const Cuentas = () => {
                                 </div>
 
 
-              
+
                                 <div className="row p-0">
                                   <div className="text-start col-6"></div>
                                   <div className="text-end col-6"><span className="fs-7 text-gray-600 mt-2">Importe</span> <span className="fs-7 text-gray-600 mt-2 ">{formatColones((+it.cantidad || 1) * (+it.valor || 0))}</span></div>
@@ -914,6 +915,8 @@ export const Cuentas = () => {
   //#region 🧩 Renderizado
   return (
     <>
+
+      <Toolbar titulo="Cuentas" addButton onAdd={handleAddNew} />
       <div className="row p-4 col-12 gx-0">
         {state.negocio == null ? (
           <InfoPanel msj="Seleccione un negocio para ver sus cuentas." />

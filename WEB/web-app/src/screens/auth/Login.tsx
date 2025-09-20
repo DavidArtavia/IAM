@@ -13,7 +13,7 @@ import { usuarioValidator } from "@/validators/usuarioValidator";
 import { valida_DTO_Usuario } from "@/validators/valida_DTO_Usuario";
 import { usuarioService } from "@/services";
 
-     
+
 
 export const Login = () => {
   // #region Validaciones en los formularios
@@ -71,8 +71,7 @@ export const Login = () => {
       login(user);
 
       notificationHelpers.successAlert(
-        `Hola ${
-          user.nombreUsuario + " " + user.apellido
+        `Hola ${user.nombreUsuario + " " + user.apellido
         }, bienvenido de nuevo 👋`
       );
       const lastPath = localStorage.getItem(`lastPath:${user?.correoUsuario}`) || ROUTES.HOME;
@@ -89,7 +88,7 @@ export const Login = () => {
     <div className="d-flex flex-column flex-root">
       <div
         className="d-flex flex-column flex-column-fluid bgi-position-y-bottom position-x-center bgi-no-repeat bgi-size-contain bgi-attachment-fixed"
-      style={{ backgroundImage: `url(${imgBG})` }}
+        style={{ backgroundImage: `url(${imgBG})` }}
       >
         <div className="d-flex flex-center flex-column flex-column-fluid p-10 pb-lg-20">
           <a className="mb-12">
@@ -109,16 +108,12 @@ export const Login = () => {
               <div className="text-center mb-10">
                 <h1 className="text-dark mb-3">Iniciar Sesión</h1>
 
-                <div className="text-gray-400 fw-bold fs-4">
-                  <Link to={ROUTES.SIGNUP} className="link-primary fw-bolder">
-                    Crear una cuenta
-                  </Link>
-                </div>
+
               </div>
 
               <div className="fv-row mb-10 fv-plugins-icon-container">
                 <label className="form-label fs-6 fw-bolder text-dark">
-                  Email
+                  Correo
                 </label>
                 <input
                   value={usuario?.correoUsuario}
@@ -145,7 +140,7 @@ export const Login = () => {
               <div className="fv-row mb-10 fv-plugins-icon-container">
                 <div className="d-flex flex-stack mb-2">
                   <label className="form-label fw-bolder text-dark fs-6 mb-0">
-                    Password
+                    Contraseña
                   </label>
                 </div>
                 <div className="position-relative mb-3">
@@ -167,9 +162,8 @@ export const Login = () => {
                     style={{ cursor: "pointer" }}
                   >
                     <i
-                      className={`bi bi-eye-slash fs-2${
-                        showPass ? " d-none" : ""
-                      }`}
+                      className={`bi bi-eye-slash fs-2${showPass ? " d-none" : ""
+                        }`}
                     />
                     <i
                       className={`bi bi-eye fs-2${!showPass ? " d-none" : ""}`}
@@ -194,12 +188,25 @@ export const Login = () => {
               onClick={handleOnClick}
               data-kt-indicator={cargando ? "on" : "off"}
             >
-              <span className="indicator-label">Continuar</span>
+              <span className="indicator-label">Acceder</span>
               <span className="indicator-progress">
                 Por favor espere…
                 <span className="spinner-border spinner-border-sm align-middle ms-2" />
               </span>
             </button>
+            <div className="text-gray-400 d-flex justify-content-center fs-5 mb-2 mt-6">
+              ¿Aún no tienes una cuenta?
+            </div>
+
+            <div className="text-gray-400 d-flex justify-content-center">
+
+              <div className="text-gray-400 fs-4">
+                <Link to={ROUTES.SIGNUP} className="link-primary fw-bolder">
+                  Crear una cuenta
+                </Link>
+              </div>
+            </div>
+
           </div>
         </div>
 
