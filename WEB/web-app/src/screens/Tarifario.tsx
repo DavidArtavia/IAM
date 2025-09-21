@@ -341,30 +341,6 @@ export const Tarifario = () => {
               fields={infoModalFields}
             />
 
-            <GenericFormModal
-              title="Registrar Tarifa"
-              show={isRegisterFormOpen}
-              onHide={handleCancelAdd}
-              data={registerFormData}
-              setData={setRegisterFormData}
-              onSubmit={handleSave}
-              fields={tarifaFormAddFields}
-              erroresValidacion={erroresValidacion}
-              onEliminarError={eliminarError}
-            />
-            <GenericFormModal
-              title="Editar Tarifa"
-              show={showEditForm}
-              onHide={() => setShowEditForm(false)}
-              data={editData}
-              setData={setEditData}
-              onSubmit={handleSaveEdit}
-              fields={tarifaFormEditFields}
-              erroresValidacion={erroresValidacion}
-              onEliminarError={eliminarError}
-            />
-
-<<<<<<< HEAD
           <GenericFormModal
             title="Registrar Tarifa"
             show={isRegisterFormOpen}
@@ -397,16 +373,6 @@ export const Tarifario = () => {
         </>
       )}
     </div>
-=======
-            <ConfirmModal
-              show={isConfirmOpen}
-              confirmMessage={confirmModalMessage}
-              onAction={confirmModalAction}
-            />
-          </>
-        )}
-      </div>
     </>
->>>>>>> desarrollo-v1.0.6
   );
 };
