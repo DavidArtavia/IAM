@@ -31,6 +31,7 @@ import {
   GenericFormModal,
   InfoModal,
   InfoPanel,
+  Toolbar,
   TransaccionesPorCuentaModal,
 } from "@/components";
 import { STATUS_TBL } from "@/constants";
@@ -230,8 +231,8 @@ export const Cuentas = () => {
 
       setConfirmModalMessage("¿Estás seguro de que deseas cancelar el registro?");
       setIsConfirmOpen(true);
-    }else{
-     setIsModalFormOpen(false);
+    } else {
+      setIsModalFormOpen(false);
     }
   };
   //#endregion
@@ -298,7 +299,7 @@ export const Cuentas = () => {
     setAccountToDelete(rowData);
     setConfirmContext("delete");
     setIsConfirmOpen(true);
-    
+
   };
 
   const handleConfirmDelete = (action: boolean | null) => {
@@ -689,15 +690,28 @@ export const Cuentas = () => {
                         <tr className="d-table-row">
                           <td colSpan={4} className="pb-4">
                             <div className="p-2 py-4 pb-2 pt-1 border border-secoundary rounded-3 hoverElement">
+<<<<<<< HEAD
                               <div className="row py-2 pb-3">
                                 <div className="col-10">
                                   <span className="fs-7 text-gray-600 mt-2">
                                     {"#" + (idx + 1)}
                                   </span>
+=======
+                              <div className="row py-2 pb-5">
+                                <div className="col-10"><span className="fs-7 text-gray-600 mt-2">{'#' + (idx + 1)}</span></div>
+                                <div className="text-end col-2">
+
+
+
+
+
+
+>>>>>>> desarrollo-v1.0.6
                                 </div>
                                 <div className="text-end col-2"></div>
                               </div>
 
+<<<<<<< HEAD
                               {/* Tabla para Nombre, Monto, Cantidad */}
                               <table className="table table-bordered mb-2">
                                 <thead>
@@ -715,6 +729,34 @@ export const Cuentas = () => {
                                   </tr>
                                 </tbody>
                               </table>
+=======
+                              <div className="row g-1">
+
+                                <div className="col-6">
+                                  <label htmlFor={'txtNombre' + idx.toString()} className="fs-7 text-gray-600">Nombre</label>
+                                  <p>{it.nombre}</p>
+                                </div>
+
+                                <div className="col-3">
+                                  <label htmlFor={'txtPrecio' + idx.toString()} className="fs-7 text-gray-600">Monto</label>
+                                  <p>{formatColones(it.valor)}</p>
+                                </div>
+
+
+                                <div className="col-3">
+                                  <label htmlFor={'txtCantidad' + idx.toString()} className="fs-7 text-gray-600">Cantidad</label>
+                                  <p>{it.cantidad || 1}</p>
+
+                                </div>
+
+
+
+                                <div className="row p-0">
+                                  <div className="text-start col-6"></div>
+                                  <div className="text-end col-6"><span className="fs-7 text-gray-600 mt-2">Importe</span> <span className="fs-7 text-gray-600 mt-2 ">{formatColones((+it.cantidad || 1) * (+it.valor || 0))}</span></div>
+
+
+>>>>>>> desarrollo-v1.0.6
 
                               {/* Importe separado */}
                               <div className="row p-0">
@@ -884,6 +926,8 @@ export const Cuentas = () => {
   //#region 🧩 Renderizado
   return (
     <>
+
+      <Toolbar titulo="Cuentas" addButton onAdd={handleAddNew} />
       <div className="row p-4 col-12 gx-0">
         {state.negocio == null ? (
           <InfoPanel msj="Seleccione un negocio para ver sus cuentas." />

@@ -6,6 +6,7 @@ import {
   InfoModal,
   InfoPanel,
   LoadingPanel,
+  Toolbar,
 } from "@/components";
 import { STATUS_TBL } from "@/constants";
 import { useApp } from "@/hooks/useApp";
@@ -305,39 +306,65 @@ export const Tarifario = () => {
   //#endregion
 
   return (
-    <div className="row p-4 gx-0">
-      {state.negocio == null ? (
-        <InfoPanel msj="Seleccione un negocio para ver sus tarifas." />
-      ) : (
-        <>
-          {loading ? (
-            <LoadingPanel msj="Cargando Tarifario, por favor espere..." />
-          ) : (
-            <GenericDataTable<DTO_Tarifa>
-              ref={tableRef}
-              title="Tarifario"
-              columnKeys={columnKeysTarifa}
-              labelMap={labelMapTarifa}
-              data={tarifas}
-              independent
-              idField="iD_Tarifa"
-              onAdd={handleAddNew}
-              onEdit={handleEdit}
-              onDelete={handleDelete}
-              onRowClick={setRowTableSelected}
-              includeEstadoColumn={false}
-              customRenderers={customRenderers}
-              nowrapColumns={["precioTarifa"]}
+    <>
+      <Toolbar titulo="Tarifario" addButton onAdd={handleAddNew} />
+      <div className="row p-4 gx-0">
+        {state.negocio == null ? (
+          <InfoPanel msj="Seleccione un negocio para ver sus tarifas." />
+        ) : (
+          <>
+            {loading ? (
+              <LoadingPanel msj="Cargando Tarifario, por favor espere..." />
+            ) : (
+              <GenericDataTable<DTO_Tarifa>
+                ref={tableRef}
+                title="Tarifario"
+                columnKeys={columnKeysTarifa}
+                labelMap={labelMapTarifa}
+                data={tarifas}
+                independent
+                idField="iD_Tarifa"
+                onAdd={handleAddNew}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
+                onRowClick={setRowTableSelected}
+                includeEstadoColumn={false}
+                customRenderers={customRenderers}
+                nowrapColumns={["precioTarifa"]}
+              />
+            )}
+
+            <InfoModal
+              show={!!rowTableSelected}
+              onHide={() => setRowTableSelected(undefined)}
+              data={rowTableSelected!}
+              fields={infoModalFields}
             />
-          )}
 
-          <InfoModal
-            show={!!rowTableSelected}
-            onHide={() => setRowTableSelected(undefined)}
-            data={rowTableSelected!}
-            fields={infoModalFields}
-          />
+            <GenericFormModal
+              title="Registrar Tarifa"
+              show={isRegisterFormOpen}
+              onHide={handleCancelAdd}
+              data={registerFormData}
+              setData={setRegisterFormData}
+              onSubmit={handleSave}
+              fields={tarifaFormAddFields}
+              erroresValidacion={erroresValidacion}
+              onEliminarError={eliminarError}
+            />
+            <GenericFormModal
+              title="Editar Tarifa"
+              show={showEditForm}
+              onHide={() => setShowEditForm(false)}
+              data={editData}
+              setData={setEditData}
+              onSubmit={handleSaveEdit}
+              fields={tarifaFormEditFields}
+              erroresValidacion={erroresValidacion}
+              onEliminarError={eliminarError}
+            />
 
+<<<<<<< HEAD
           <GenericFormModal
             title="Registrar Tarifa"
             show={isRegisterFormOpen}
@@ -370,5 +397,16 @@ export const Tarifario = () => {
         </>
       )}
     </div>
+=======
+            <ConfirmModal
+              show={isConfirmOpen}
+              confirmMessage={confirmModalMessage}
+              onAction={confirmModalAction}
+            />
+          </>
+        )}
+      </div>
+    </>
+>>>>>>> desarrollo-v1.0.6
   );
 };
