@@ -28,14 +28,14 @@ export const Clientes = () => {
   const [erroresValidacion, setErroresValidacion] = useState<DTO_Param[]>([]);
   let validacion: Array<DTO_Param>;
   const eliminarError = (campo: string) => {
-    setErroresValidacion(prev => prev.filter(e => e.nombre !== campo));
+    setErroresValidacion((prev) => prev.filter((e) => e.nombre !== campo));
   };
   // #endregion
 
-
   //#region 🔄 Estado general
   const [clientes, setClientes] = useState<DTO_Cliente[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loadingTable, setLoadingTable] = useState(false);
+  const [loadingForm, setLoadingForm] = useState(false);
   //#endregion
 
   //#region ℹ️ info Modal estados;
@@ -69,22 +69,40 @@ export const Clientes = () => {
 
   //#region 🚀 Carga inicial
   useEffect(() => {
+<<<<<<< HEAD
+    setLoadingTable(true);
+=======
     setLoading(true);
+>>>>>>> desarrollo-v1.0.6
 
     const sub = clientesService
       .obtenerClientes()
       .pipe(
         // transforma la respuesta
+<<<<<<< HEAD
+        map(
+          (result) =>
+            procesarRespuesta(result as DTO_Respuesta) as DTO_Cliente[]
+        ),
+
+        // maneja error y evita romper la suscripción
+        catchError((err) => {
+=======
         map(result => procesarRespuesta(result as DTO_Respuesta) as DTO_Cliente[]),
 
         // maneja error y evita romper la suscripción
         catchError(err => {
+>>>>>>> desarrollo-v1.0.6
           errorHelpers.serverError(err);
           return of([] as DTO_Cliente[]);
         }),
 
         // SIEMPRE apaga el loading: éxito, error o cancelación
+<<<<<<< HEAD
+        finalize(() => setLoadingTable(false))
+=======
         finalize(() => setLoading(false))
+>>>>>>> desarrollo-v1.0.6
       )
       .subscribe(setClientes);
 
@@ -103,12 +121,21 @@ export const Clientes = () => {
       const msg = result.mensaje || "Operación realizada correctamente";
       if (type === "succes") notificationHelpers.successAlert(msg);
       else if (type === "info") {
+<<<<<<< HEAD
+        if (confirmContext == "delete")
+          notificationHelpers.infoAlert(
+            msg.replace("actualizados", "eliminados")
+          );
+        else notificationHelpers.infoAlert(msg);
+      } else notificationHelpers.warningAlert(msg);
+=======
         if (confirmContext == 'delete')
           notificationHelpers.infoAlert(msg.replace("actualizados", "eliminados"));
         else
           notificationHelpers.infoAlert(msg);
       }
       else notificationHelpers.warningAlert(msg);
+>>>>>>> desarrollo-v1.0.6
     } else {
       notificationHelpers.errorAlert(
         result.mensaje || "Error al procesar la solicitud"
@@ -124,6 +151,7 @@ export const Clientes = () => {
   };
 
   const handleSave = () => {
+    setLoadingForm(true);
     formData.estado = {
       iD_Estado: STATUS_TBL.CLIENT.ACTIVE,
       nombre: "activo",
@@ -131,24 +159,31 @@ export const Clientes = () => {
     };
 
     validacion = valida_DTO_Cliente.validar(formData, "C");
-    setErroresValidacion(validacion)
+    setErroresValidacion(validacion);
     if (validacion.length === 0) {
-
       clientesService.registrarClientes(formData).subscribe({
         next: (res) => {
           const nuevo = (
-            Array.isArray(res.resultado) ? res.resultado[0] : res.resultado
+        Array.isArray(res.resultado) ? res.resultado[0] : res.resultado
           ) as DTO_Cliente;
           setClientes((prev) => [...prev, nuevo]);
           handleNotification(res, "succes");
           setIsFormOpen(false);
         },
-        error: errorHelpers.serverError,
+        error: (err) => {
+          errorHelpers.serverError(err);
+          setLoadingForm(false);
+        },
+        complete: () => {
+          setLoadingForm(false);
+        }
       });
     } else {
-      notificationHelpers.warningAlert("Por favor valida los datos ingresados nuevamente");
+      setLoadingForm(false);
+      notificationHelpers.warningAlert(
+        "Por favor valida los datos ingresados nuevamente"
+      );
     }
-
   };
 
   const handleCancelAdd = () => {
@@ -166,24 +201,32 @@ export const Clientes = () => {
   };
 
   const handleSaveEdit = () => {
+    setLoadingForm(true);
     const updated = { ...editData };
 
     validacion = valida_DTO_Cliente.validar(updated, "U");
-    setErroresValidacion(validacion)
+    setErroresValidacion(validacion);
     if (validacion.length === 0) {
-
       clientesService.actualizarClientes(updated).subscribe({
         next: (res) => {
           setClientes((prev) => updateItemById(prev, updated, "iD_Cliente"));
           handleNotification(res, "succes");
           setShowEditForm(false);
+          setLoadingForm(false);
         },
-        error: errorHelpers.serverError,
+        error: (err) => {
+          errorHelpers.serverError(err);
+        },
+        complete: () => {
+          setLoadingForm(false);
+        }
       });
     } else {
-      notificationHelpers.warningAlert("Por favor valida los datos ingresados nuevamente");
+      setLoadingForm(false);
+      notificationHelpers.warningAlert(
+        "Por favor valida los datos ingresados nuevamente"
+      );
     }
-
   };
   //#endregion
 
@@ -230,7 +273,7 @@ export const Clientes = () => {
     }
     setIsConfirmOpen(false);
     setConfirmContext(null);
-    setErroresValidacion([])
+    setErroresValidacion([]);
   };
   //#endregion
 
@@ -242,6 +285,22 @@ export const Clientes = () => {
 
   //#region 🎨 Render
   return (
+<<<<<<< HEAD
+    <div className="row p-4 gx-0">
+      {loadingTable ? (
+        <LoadingPanel msj="Cargando clientes, por favor espere..." />
+      ) : (
+        <GenericDataTable<DTO_Cliente>
+          title="Clientes"
+          columnKeys={columnKeysCliente}
+          labelMap={labelMapCliente}
+          data={clientesActivos}
+          onAdd={handleAddNew}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+          includeEstadoColumn={false}
+          onRowClick={(row) => setRowTableSelected(row)}
+=======
     <>
       <Toolbar titulo="Clientes" addButton onAdd={handleAddNew} />
       <div className="row p-4 gx-0">
@@ -267,6 +326,7 @@ export const Clientes = () => {
           onHide={() => setRowTableSelected(undefined)}
           data={rowTableSelected!}
           fields={keysInfoModalCliente}
+>>>>>>> desarrollo-v1.0.6
         />
 
         <GenericFormModal
@@ -281,6 +341,40 @@ export const Clientes = () => {
           onEliminarError={eliminarError}
         />
 
+<<<<<<< HEAD
+      <GenericFormModal
+        title="Registrar Cliente"
+        show={isFormOpen}
+        onHide={handleCancelAdd}
+        loading={loadingForm}
+        data={formData}
+        setData={setFormData}
+        onSubmit={handleSave}
+        fields={clienteFormEditFields}
+        erroresValidacion={erroresValidacion}
+        onEliminarError={eliminarError}
+      />
+
+      <GenericFormModal
+        title="Editar Cliente"
+        show={showEditForm}
+        onHide={() => setShowEditForm(false)}
+        loading={loadingForm}
+        data={editData}
+        setData={setEditData}
+        onSubmit={handleSaveEdit}
+        fields={clienteFormEditFields}
+        erroresValidacion={erroresValidacion}
+        onEliminarError={eliminarError}
+      />
+
+      <ConfirmModal
+        show={isConfirmOpen}
+        confirmMessage={confirmModalMessage}
+        onAction={confirmModalAction}
+      />
+    </div>
+=======
         <GenericFormModal
           title="Editar Cliente"
           show={showEditForm}
@@ -300,7 +394,7 @@ export const Clientes = () => {
         />
       </div>
     </>
+>>>>>>> desarrollo-v1.0.6
   );
   //#endregion
 };
-
