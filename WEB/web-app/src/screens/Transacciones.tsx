@@ -373,7 +373,6 @@ export const Transacciones = () => {
           onEliminarError={eliminarError}
         />
 
-<<<<<<< HEAD
       <GenericFormModal<DTO_Transacciones>
         title="Registrar Transacción"
         show={isModalFormOpen}
@@ -399,25 +398,12 @@ export const Transacciones = () => {
         erroresValidacion={erroresValidacion}
         onEliminarError={eliminarError}
       />
-=======
-        <GenericFormModal<DTO_Transacciones>
-          title="Editar Transacción"
-          show={showEditModal}
-          onHide={() => setShowEditModal(false)}
-          data={editData!}
-          setData={(x) => setEditData(x as DTO_Transacciones)}
-          onSubmit={() => editData && handleSaveEdit(editData)}
-          fields={editFormFields}
-          erroresValidacion={erroresValidacion}
-          onEliminarError={eliminarError}
-        />
 
         <ConfirmModal
           show={isConfirmOpen}
           confirmMessage={confirmModalMessage}
           onAction={confirmModalAction}
         />
->>>>>>> desarrollo-v1.0.6
 
         <RestriccionModal
           modalTitle="Acción no permitida"

@@ -12,11 +12,8 @@ import { usuarioValidator } from "@/validators/usuarioValidator";
 import { valida_DTO_Usuario } from "@/validators/valida_DTO_Usuario";
 import { usuarioService } from "@/services";
 
-<<<<<<< HEAD
-=======
 
 
->>>>>>> desarrollo-v1.0.6
 export const Login = () => {
   // #region Validaciones en los formularios
   const [erroresValidacion, setErroresValidacion] = useState<DTO_Param[]>([]);
@@ -199,8 +196,6 @@ export const Login = () => {
                 </span>
               </button>
             </form>
-<<<<<<< HEAD
-=======
             <button
               id="kt_sign_in_submit"
               className="btn btn-lg btn-primary w-100 mb-5"
@@ -226,7 +221,6 @@ export const Login = () => {
               </div>
             </div>
 
->>>>>>> desarrollo-v1.0.6
           </div>
         </div>
 
