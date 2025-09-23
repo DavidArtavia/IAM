@@ -9,6 +9,7 @@
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
     "typewatch": "tsc --noEmit --watch",
+    "build:analyze": "cross-env ANALYZE=true npm run build",
     "deploy:qa": "npm run build && py deploy_iis.py --mirror --robocopy --backup --zip-backup --backup-dir C:\\temp\\Backups\\IAMWEB_QA --exclude config.js --exclude *.config"
   },
   "compilerOptions": {
@@ -64,10 +65,12 @@
     "@types/recorder-js": "^1.0.4",
     "@types/toastr": "^2.1.43",
     "@vitejs/plugin-react": "^4.3.4",
+    "cross-env": "^10.0.0",
     "eslint": "^9.22.0",
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.19",
     "globals": "^16.0.0",
+    "rollup-plugin-visualizer": "^6.0.3",
     "typescript": "~5.7.2",
     "typescript-eslint": "^8.26.1",
     "vite": "^6.3.1",
