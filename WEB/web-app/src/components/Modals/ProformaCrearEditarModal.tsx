@@ -1576,24 +1576,16 @@ export const ProformaCrearEditarModal = (props: Props) => {
           <div className="col-12 col-md-6">
             <label className="form-label">Descuento</label>
             <div className="input-group" data-err="montoDescuento">
-              <input
-                type="number"
-                placeholder={descuentoTipo === "Porcentaje" ? "0%" : "0.00"}
+              <DecimalInput
+                value={descuentoValor}
                 className="form-control text-muted"
-                value={descuentoValor ?? ""}
-                onChange={(e) => {
-                  const valStr = e.target.value;
-                  let valNum = Number(valStr);
-                  if (descuentoTipo === "Porcentaje") {
-                    if (valNum < 0) valNum = 0;
-                    if (valNum > 100) valNum = 100;
-                  }
-                  setDescuentoValor(valStr === "" ? undefined : valNum);
+                percentage={descuentoTipo === "Porcentaje"}
+                onChange={(val) => {
+                  setDescuentoValor(String(val) === "" ? undefined : Number(val));
                   eliminarError("montoDescuento");
                 }}
-                min={0}
-                max={descuentoTipo === "Porcentaje" ? 100 : undefined}
               />
+
               <button
                 type="button"
                 className={`btn ${
