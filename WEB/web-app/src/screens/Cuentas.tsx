@@ -218,6 +218,7 @@ export const Cuentas = () => {
         },
       });
     } else {
+      setLoadingForm(false);
       notificationHelpers.warningAlert(
         "Por favor valida los datos ingresados nuevamente"
       );
@@ -284,6 +285,7 @@ export const Cuentas = () => {
         },
       });
     } else {
+      setLoadingForm(false);
       notificationHelpers.warningAlert(
         "Por favor valida los datos ingresados nuevamente"
       );

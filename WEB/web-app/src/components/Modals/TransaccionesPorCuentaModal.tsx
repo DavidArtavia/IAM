@@ -59,10 +59,6 @@ export const TransaccionesPorCuentaModal = ({
   }, [open]);
   //#endregion Scroll del body
 
-
-
-
-
   // #region Validaciones en los formularios
   const [erroresValidacion, setErroresValidacion] = useState<DTO_Param[]>([]);
   let validacion: Array<DTO_Param>;
@@ -263,7 +259,6 @@ export const TransaccionesPorCuentaModal = ({
 
   const handleConfirmDelete = (action: boolean | null) => {
     if (action && transToDelete) {
-      setLoadingForm(true);
       const updated = {
         ...transToDelete,
         estado: {
@@ -280,7 +275,6 @@ export const TransaccionesPorCuentaModal = ({
           actualizarCamposCalculadosCuenta(transacciones.reduce((suma, t) => suma + (Number(t?.monto) || 0), 0) - (Number(updated.monto) || 0));
         },
         error: errorHelpers.serverError,
-        complete: () => setLoadingForm(false),
       });
       setTransToDelete(null);
     }

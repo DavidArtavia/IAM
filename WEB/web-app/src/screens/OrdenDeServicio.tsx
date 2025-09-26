@@ -2,6 +2,7 @@ import {
   AsyncClientSelect,
   ClientOption,
   ConfirmModal,
+  DecimalInput,
   DetalleCuentaInput,
   DynamicButtonConfig,
   GenericDataTable,
@@ -577,12 +578,13 @@ export const OrdenDeServicio = () => {
 
       ordenesService.actualizarOrdensDeServicio(sanitized).subscribe({
         next: (res) => {
-          if(res.resultado){
-            notificationHelpers.infoAlert(res?.mensaje.replace("actualizó", "eliminó"))
-          }else{
-           notificationHelpers.infoAlert(res?.mensaje)
+          if (res.resultado) {
+            notificationHelpers.infoAlert(
+              res?.mensaje.replace("actualizó", "eliminó")
+            );
+          } else {
+            notificationHelpers.infoAlert(res?.mensaje);
           }
-         
         },
         error: errorHelpers.serverError,
         complete: () => setLoadingForm(false),
@@ -852,44 +854,13 @@ export const OrdenDeServicio = () => {
         return (
           <div className="input-group">
             <span className="input-group-text">₡</span>
-            <input
-              type="text"
+            <DecimalInput
+              value={montoInput}
               className={`form-control fw-bold fs-5 text-start ${
                 detalleHabilitado ? "bg-light" : ""
               }`}
               readOnly={detalleHabilitado}
-              value={
-                montoInput !== ""
-                  ? montoInput
-                  : account?.monto !== undefined && account?.monto !== 0
-                  ? String(account.monto)
-                  : ""
-              }
-              onFocus={() => {
-                if ((account?.monto || 0) === 0) {
-                  setMontoInput("");
-                }
-              }}
-              onChange={(e) => {
-                const val = e.target.value.replace(/[^0-9.]/g, "");
-                setMontoInput(val);
-                const num = parseFloat(val);
-                setAccount((prev) =>
-                  prev ? { ...prev, monto: isNaN(num) ? 0 : num } : undefined
-                );
-              }}
-              onBlur={(e) => {
-                const val = e.target.value;
-                if (val === "" || isNaN(Number(val))) {
-                  setMontoInput("");
-                  setAccount((prev) =>
-                    prev ? { ...prev, monto: 0 } : undefined
-                  );
-                }
-              }}
-              placeholder="₡0.00"
-              min={0}
-              step={0.01}
+              onChange={setMontoInput}
             />
           </div>
         );
@@ -964,6 +935,7 @@ export const OrdenDeServicio = () => {
         complete: () => setLoadingForm(false),
       });
     } else {
+      setLoadingForm(false);
       notificationHelpers.warningAlert(
         "Por favor valida los datos ingresados nuevamente"
       );
@@ -1064,188 +1036,190 @@ export const OrdenDeServicio = () => {
   // #region 🧩 Render
   return (
     <>
-    <Toolbar titulo="Ordenes de servicio" addButton onAdd={handleAddNew}/>
+      <Toolbar titulo="Ordenes de servicio" addButton onAdd={handleAddNew} />
 
-    <div className="row p-4 gx-0">
-      {state.negocio == null ? (
-        <InfoPanel msj="Seleccione un negocio para ver sus órdenes de servicio." />
-      ) : (
-        <>
-          <GenericDataTable<DTO_OrdenServicio & Record<string, string>>
-            title="Órdenes de servicio"
-            columnKeys={columnKeysOrdenDeServicio}
-            labelMap={labelMapOrdenDeServicio}
-            data={data}
-            onAdd={handleAddNew}
-            onEdit={handleEdit}
-            onDelete={handleDelete}
-            disableButtonAdd={disableButtonAdd}
-            includeEstadoColumn
-            dataTableButtons={dataTableButtons}
-            onRowClick={(rowData) => {
-              setEditData(rowData as DTO_OrdenServicio);
-              setRowTableSelected(rowData as DTO_OrdenServicio);
-            }}
-            customColumns={[referenciaJSONColumn]}
-            customRenderers={customRenderers}
-          />
+      <div className="row p-4 gx-0">
+        {state.negocio == null ? (
+          <InfoPanel msj="Seleccione un negocio para ver sus órdenes de servicio." />
+        ) : (
+          <>
+            <GenericDataTable<DTO_OrdenServicio & Record<string, string>>
+              title="Órdenes de servicio"
+              columnKeys={columnKeysOrdenDeServicio}
+              labelMap={labelMapOrdenDeServicio}
+              data={data}
+              onAdd={handleAddNew}
+              onEdit={handleEdit}
+              onDelete={handleDelete}
+              disableButtonAdd={disableButtonAdd}
+              includeEstadoColumn
+              dataTableButtons={dataTableButtons}
+              onRowClick={(rowData) => {
+                setEditData(rowData as DTO_OrdenServicio);
+                setRowTableSelected(rowData as DTO_OrdenServicio);
+              }}
+              customColumns={[referenciaJSONColumn]}
+              customRenderers={customRenderers}
+            />
 
-          <InfoModal
-            show={!!rowTableSelected}
-            onHide={() => setRowTableSelected(undefined)}
-            data={rowTableSelected!}
-            fields={infoModalFields}
-            headerButtons={headerButtonsToInfo}
-          />
+            <InfoModal
+              show={!!rowTableSelected}
+              onHide={() => setRowTableSelected(undefined)}
+              data={rowTableSelected!}
+              fields={infoModalFields}
+              headerButtons={headerButtonsToInfo}
+            />
 
-          {/* Modal Registrar */}
-          <GenericFormModal<DTO_OrdenServicio>
-            title="Registrar orden"
-            show={isFormOpen}
+            {/* Modal Registrar */}
+            <GenericFormModal<DTO_OrdenServicio>
+              title="Registrar orden"
+              show={isFormOpen}
               onHide={handleCancelAdd}
               loading={loadingForm}
-            data={formData}
-            setData={setFormData}
-            onSubmit={handleSave}
-            fields={newFormFields}
-            erroresValidacion={erroresValidacion}
-            onEliminarError={eliminarError}
-          />
+              data={formData}
+              setData={setFormData}
+              onSubmit={handleSave}
+              fields={newFormFields}
+              erroresValidacion={erroresValidacion}
+              onEliminarError={eliminarError}
+            />
 
-          {/* Modal Registrar Cliente */}
-          <GenericFormModal
-            title="Registrar cliente"
-            show={isModalRegisterClientOpen}
+            {/* Modal Registrar Cliente */}
+            <GenericFormModal
+              title="Registrar cliente"
+              show={isModalRegisterClientOpen}
               onHide={() => setIsModalRegisterClientOpen(false)}
               loading={loadingForm}
-            data={newClientData}
-            setData={setNewClientData}
-            onSubmit={handleSaveNewClient}
-            fields={clienteFormEditFields}
-            erroresValidacion={erroresValidacion}
-            onEliminarError={eliminarError}
-          />
+              data={newClientData}
+              setData={setNewClientData}
+              onSubmit={handleSaveNewClient}
+              fields={clienteFormEditFields}
+              erroresValidacion={erroresValidacion}
+              onEliminarError={eliminarError}
+            />
 
-          {/* Modal Editar */}
-          <GenericFormModal<DTO_OrdenServicio>
-            title="Editar orden de servicio"
-            show={showEditForm}
+            {/* Modal Editar */}
+            <GenericFormModal<DTO_OrdenServicio>
+              title="Editar orden de servicio"
+              show={showEditForm}
               onHide={() => setShowEditForm(false)}
               loading={loadingForm}
-            data={editData}
-            setData={setEditData}
-            onSubmit={handleSaveEdit}
-            fields={editFormFields}
-            headerButtons={headerButtonsToEdit}
-            erroresValidacion={erroresValidacion}
-            onEliminarError={eliminarError}
-          />
+              data={editData}
+              setData={setEditData}
+              onSubmit={handleSaveEdit}
+              fields={editFormFields}
+              headerButtons={headerButtonsToEdit}
+              erroresValidacion={erroresValidacion}
+              onEliminarError={eliminarError}
+            />
 
-          {/* Modal Crear Cuenta */}
-          <GenericFormModal<DTO_Cuenta>
-            title="Crear cuenta"
-            show={showCreateAccount}
+            {/* Modal Crear Cuenta */}
+            <GenericFormModal<DTO_Cuenta>
+              title="Crear cuenta"
+              show={showCreateAccount}
               onHide={() => setShowCreateAccount(false)}
               loading={loadingForm}
-            data={account!}
-            setData={(x) => setAccount(x as DTO_Cuenta)}
-            onSubmit={() => {
-              if (account) {
-                handleCreateAccount(account);
-              }
-            }}
-            fields={formCreateAccountFields}
-            onEliminarError={eliminarError}
-            erroresValidacion={erroresValidacion}
-          />
+              data={account!}
+              setData={(x) => setAccount(x as DTO_Cuenta)}
+              onSubmit={() => {
+                if (account) {
+                  handleCreateAccount(account);
+                }
+              }}
+              fields={formCreateAccountFields}
+              onEliminarError={eliminarError}
+              erroresValidacion={erroresValidacion}
+            />
 
-          <ItemsOrdenDeServicioModal
-            open={showItemsOrdenFormModal}
-            onHide={() => setShowItemsOrdenFormModal(false)}
-            rowData={dataToItemsOrder || new DTO_OrdenServicio()}
-            negocio={state.negocio}
-          />
+            <ItemsOrdenDeServicioModal
+              open={showItemsOrdenFormModal}
+              onHide={() => setShowItemsOrdenFormModal(false)}
+              rowData={dataToItemsOrder || new DTO_OrdenServicio()}
+              negocio={state.negocio}
+            />
 
-          {/* === Modal Genérico: Confirmación === */}
-          <ConfirmModal
-            show={isConfirmOpen}
-            confirmMessage={confirmModalMessage}
-            onAction={confirmModalAcion}
-          />
+            {/* === Modal Genérico: Confirmación === */}
+            <ConfirmModal
+              show={isConfirmOpen}
+              confirmMessage={confirmModalMessage}
+              onAction={confirmModalAcion}
+            />
 
-          {/* Modal para advertir que no hay clientes registrados */}
-          {showNoClientsModal && (
-            <div
-              className="modal fade show d-block shadowDarkBackground"
-              tabIndex={-1}
-              role="dialog"
-              aria-modal="true"
-            >
-              <div className="modal-dialog" role="document">
-                <div className="modal-content">
-                  <div className="modal-header">
-                    <h5 className="modal-title">No hay clientes registrados</h5>
-                    <button
-                      type="button"
-                      className="btn-close"
-                      aria-label="Cerrar"
-                      onClick={() => setShowNoClientsModal(false)}
-                    />
-                  </div>
-                  <div className="modal-body">
-                    <div className="d-flex align-items-start">
-                      <span className="me-3">
-                        <i className="bi bi-exclamation-triangle-fill text-warning fs-3"></i>
-                      </span>
-                      <div>
-                        <p>
-                          Debes registrar al menos un cliente antes de crear una
-                          orden de servicio.
-                          <br />
-                          <Link
-                            to={ROUTES.CLIENTS}
-                            className="fw-semibold d-inline-flex align-items-center gap-2 ms-1"
-                            onClick={() => {
-                              setShowNoClientsModal(false);
-                            }}
-                          >
-                            Ir a registrar clientes
-                            <i className="bi bi-person-plus-fill"></i>
-                          </Link>
-                        </p>
+            {/* Modal para advertir que no hay clientes registrados */}
+            {showNoClientsModal && (
+              <div
+                className="modal fade show d-block shadowDarkBackground"
+                tabIndex={-1}
+                role="dialog"
+                aria-modal="true"
+              >
+                <div className="modal-dialog" role="document">
+                  <div className="modal-content">
+                    <div className="modal-header">
+                      <h5 className="modal-title">
+                        No hay clientes registrados
+                      </h5>
+                      <button
+                        type="button"
+                        className="btn-close"
+                        aria-label="Cerrar"
+                        onClick={() => setShowNoClientsModal(false)}
+                      />
+                    </div>
+                    <div className="modal-body">
+                      <div className="d-flex align-items-start">
+                        <span className="me-3">
+                          <i className="bi bi-exclamation-triangle-fill text-warning fs-3"></i>
+                        </span>
+                        <div>
+                          <p>
+                            Debes registrar al menos un cliente antes de crear
+                            una orden de servicio.
+                            <br />
+                            <Link
+                              to={ROUTES.CLIENTS}
+                              className="fw-semibold d-inline-flex align-items-center gap-2 ms-1"
+                              onClick={() => {
+                                setShowNoClientsModal(false);
+                              }}
+                            >
+                              Ir a registrar clientes
+                              <i className="bi bi-person-plus-fill"></i>
+                            </Link>
+                          </p>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                  <div className="modal-footer">
-                    <button
-                      type="button"
-                      className="btn btn-light"
-                      onClick={() => {
-                        setShowNoClientsModal(false);
-                      }}
-                    >
-                      Cerrar
-                    </button>
-                    <button
-                      type="button"
-                      className="btn btn-primary"
-                      onClick={() => {
-                        setShowNoClientsModal(false);
-                        navigate(ROUTES.CLIENTS);
-                      }}
-                    >
-                      {" "}
-                      <i className="bi bi-person-plus-fill"></i>
-                      Ir a registrar clientes
-                    </button>
+                    <div className="modal-footer">
+                      <button
+                        type="button"
+                        className="btn btn-light"
+                        onClick={() => {
+                          setShowNoClientsModal(false);
+                        }}
+                      >
+                        Cerrar
+                      </button>
+                      <button
+                        type="button"
+                        className="btn btn-primary"
+                        onClick={() => {
+                          setShowNoClientsModal(false);
+                          navigate(ROUTES.CLIENTS);
+                        }}
+                      >
+                        {" "}
+                        <i className="bi bi-person-plus-fill"></i>
+                        Ir a registrar clientes
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          )}
-        </>
-      )}
-    </div>
+            )}
+          </>
+        )}
+      </div>
     </>
   );
   // #endregion
