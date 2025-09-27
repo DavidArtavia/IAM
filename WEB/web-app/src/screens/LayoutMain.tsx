@@ -561,7 +561,7 @@ export const LayoutMain = () => {
                 rel="noreferrer"
                 className="text-gray-800 text-hover-primary"
               >
-                V1.0.5
+                V1.0.6
               </a>
             </div>
           </div>

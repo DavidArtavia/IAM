@@ -7,7 +7,7 @@ export const Info = () => {
   return (
 
     <>
- <Toolbar titulo="Información"/>
+      <Toolbar titulo="Información" />
 
       <div className="container py-5">
         <div
@@ -87,13 +87,80 @@ export const Info = () => {
                   </div>
                 </div>
                 <div className="accordion" id="kt_accordion_1">
+
                   <div className="accordion-item">
-                    <h2 className="accordion-header" id="kt_accordion_1_header_1">
-                      <button className="accordion-button fs-4 fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#kt_accordion_1_body_1" aria-expanded="true" aria-controls="kt_accordion_1_body_1">
-                        <span className="fs-4 py-2">Versión V1.0.5 {' --> '}</span> <span className="fs-4 text-muted px-4"> 01/09/2025</span>
+                    <h2 className="accordion-header" id="kt_accordion_1_header_0">
+                      <button
+                        className="accordion-button fs-4 fw-bold"
+                        type="button"
+                        data-bs-toggle="collapse"
+                        data-bs-target="#kt_accordion_1_body_0"
+                        aria-expanded="true"
+                        aria-controls="kt_accordion_1_body_0"
+                      >
+                        <span className="fs-4 py-2">Versión V1.0.6 {' --> '}</span>
+                        <span className="fs-4 text-muted px-4">28/09/2025</span>
                       </button>
                     </h2>
-                    <div id="kt_accordion_1_body_1" className="accordion-collapse collapse show" aria-labelledby="kt_accordion_1_header_1" data-bs-parent="#kt_accordion_1">
+
+                    <div
+                      id="kt_accordion_1_body_0"
+                      className="accordion-collapse collapse show"
+                      aria-labelledby="kt_accordion_1_header_0"
+                      data-bs-parent="#kt_accordion_1"
+                    >
+                      <div className="accordion-body">
+                        <table className="table table-striped gy-7 gs-7">
+                          <thead></thead>
+                          <tbody>
+                            <tr>
+                              <td>
+                                Rediseño de <strong>Proformas</strong>: nueva interfaz de <strong>3 pasos</strong> para completar la información de forma clara y ordenada.
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <strong>Formato monetario unificado</strong> en todos los campos: separador de miles y decimales.
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <strong>Barra superior persistente</strong> (toolbar) que indica en todo momento la sección actual del sistema.
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                Corrección del <strong>auto-zoom en iPhone</strong>; la interfaz mantiene escala al 100% en dispositivos iOS.
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <strong>Botones con spinner “Cargando…”</strong> y bloqueo anti-doble envío para prevenir duplicidad de datos.
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <strong>Login mejorado</strong>: ahora acepta la tecla <em>Enter</em>; se rediseñaron login y registro (etiquetas y botones) para mejorar la usabilidad.
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <strong>Optimización de consultas</strong> a base de datos: menos datos innecesarios y mayor velocidad en la plataforma.
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="accordion-item">
+                    <h2 className="accordion-header" id="kt_accordion_1_header_1">
+                      <button className="accordion-button fs-4 fw-bold collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#kt_accordion_1_body_1" aria-expanded="true" aria-controls="kt_accordion_1_body_1">
+                        <span className="fs-4 py-2">Versión V1.0.6 {' --> '}</span> <span className="fs-4 text-muted px-4"> 01/09/2025</span>
+                      </button>
+                    </h2>
+                    <div id="kt_accordion_1_body_1" className="accordion-collapse collapse" aria-labelledby="kt_accordion_1_header_1" data-bs-parent="#kt_accordion_1">
                       <div className="accordion-body">
 
                         <table className="table table-striped gy-7 gs-7">
