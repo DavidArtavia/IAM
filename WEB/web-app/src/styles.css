@@ -485,8 +485,16 @@ table.table.dataTable.table-hover>tbody>tr:hover>* {
 }
 
 /*Ajuste para que el header dinámico en dispositivos mobiles no quede tapado por el toolbar*/
-.dtfh-floatingparent{
-  top: 9vh !important
+/* Teléfono (por defecto) */
+.dtfh-floatingparent {
+  top: 88px !important;
+}
+
+/* Pantallas grandes */
+@media (min-width: 992px) { /* ajusta 992px al breakpoint que uses */
+  .dtfh-floatingparent {
+    top: 115px !important;
+  }
 }
 
 
