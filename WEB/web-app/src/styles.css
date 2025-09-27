@@ -483,3 +483,28 @@ table.table.dataTable.table-hover>tbody>tr:hover>* {
     transform: none;
   }
 }
+
+/*Ajuste para que el header dinámico en dispositivos mobiles no quede tapado por el toolbar*/
+.dtfh-floatingparent{
+  top: 9vh !important
+}
+
+
+/* iOS: evita auto-zoom en focus cuando la fuente < 16px */
+html { -webkit-text-size-adjust: 100%; }
+
+/* Targetea iOS Safari sin afectar desktop */
+@supports (-webkit-touch-callout: none) {
+  /* Todos los campos de formulario comunes (Metronic/Bootstrap/DataTables) */
+  input, select, textarea,
+  .form-control, .form-select,
+  .dataTables_filter input, .dt-search input {
+    font-size: 16px;           /* ← esto evita el zoom al enfocar */
+    line-height: 1.4;
+  }
+
+  /* Si usas inputs muy pequeños en toolbars/headers, dales altura táctil */
+  .form-control, .form-select {
+    min-height: 44px;          /* guía de usabilidad iOS */
+  }
+}
