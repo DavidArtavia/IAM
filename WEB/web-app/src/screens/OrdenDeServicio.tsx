@@ -299,8 +299,9 @@ export const OrdenDeServicio = () => {
         error: errorHelpers.serverError,
       });
     } else {
+      setLoadingForm(false);
       notificationHelpers.warningAlert(
-        "Por favor valida los datos ingresados nuevamente"
+        "Por favor verifique los datos ingresados"
       );
     }
   };
