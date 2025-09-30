@@ -217,9 +217,8 @@ export const Proformas = () => {
     cliente: (val: unknown) => {
       if (!val) {
         return (
-          <span className="d-flex align-items-center text-muted">
-            <i className="bi bi-person-x me-2"></i>
-            Sin cliente asignado
+          <span aria-hidden="true" className="text-muted">
+            —
           </span>
         );
       }
@@ -234,9 +233,8 @@ export const Proformas = () => {
         if (nombreCompleto) return nombreCompleto;
       }
       return (
-        <span className="d-flex align-items-center text-muted">
-          <i className="bi bi-person-x me-2"></i>
-          Sin cliente asignado
+        <span aria-hidden="true" className="text-muted">
+          —
         </span>
       );
     },

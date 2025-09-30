@@ -680,12 +680,7 @@ export const OrdenDeServicio = () => {
       });
     });
 
-    // ✅ Filtrar órdenes eliminadas
-    const ordenesActivas = ordenes.filter(
-      (o) => o.estado?.iD_Estado !== STATUS_TBL.ORDER_SERVICE.DELETED
-    );
-
-    const prepared = ordenesActivas.map((o) => {
+    const prepared = ordenes.map((o) => {
       const copy: any = { ...o };
       o.referenciaJSON?.forEach(
         (r) => (copy[referenceMap.get(r.nombre)!] = r.valor)

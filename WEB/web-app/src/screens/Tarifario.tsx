@@ -87,15 +87,19 @@ export const Tarifario = () => {
 
           // maneja error y evita romper la suscripción
           catchError((err) => {
+            setLoading(false);
             errorHelpers.serverError(err);
             return of([] as DTO_Tarifa[]);
           }),
           // SIEMPRE apaga el loading: éxito, error o cancelación
           finalize(() => setLoading(false))
         )
-        .subscribe(setTarifas);
+        .subscribe(
+          (valor) => {
+            setTarifas(valor);
+          }
+        );
 
-      //limpia la subscripción al desmontar
       return () => sub.unsubscribe();
     } else {
       setLoading(false);
