@@ -250,5 +250,147 @@ namespace DAL
                 this.Close();
             }
         }
+
+        public DTO_Respuesta GenerarCodigoVerificacion(DTO_Usuario usuario)
+        {
+            DTO_Respuesta respuesta = new DTO_Respuesta();
+
+            try
+            {
+                string query = "SECU.SP_GenerarCodigoVerificacion";
+
+                using (SqlCommand sqlcmd = new SqlCommand(query, this.GetObjConexion()))
+                {
+                    sqlcmd.CommandType = CommandType.StoredProcedure;
+                    sqlcmd.Parameters.Add("@ID_Usuario", SqlDbType.Int).Value = usuario.ID_Usuario;
+
+                    foreach (SqlParameter param in sqlcmd.Parameters)
+                        param.Direction = ParameterDirection.Input;
+
+                    this.Open();
+                    using (SqlDataReader reader = sqlcmd.ExecuteReader())
+                    {
+                        // 1) Alertas
+                        while (reader.Read())
+                        {
+                            respuesta = manejarRespuesta(reader);
+                        }
+                        // 2) Código + expiración (si lo hay)
+                        if (reader.NextResult())
+                        {
+                            while (reader.Read())
+                            {
+                                respuesta.Resultado.Add(new
+                                {
+                                    CODIGO_ALFA_NUM = UTL.UTL_DBHelper.ReadNullSafeString(reader["CODIGO_ALFA_NUM"]),
+                                    FECHA_EXPIRACION = UTL.UTL_DBHelper.ReadNullSafeDateTime(reader["FECHA_EXPIRACION"]),
+                                });
+                            }
+                        }
+                    }
+                }
+                return respuesta;
+            }
+            catch (Exception e)
+            {
+                this.Close();
+                throw e;
+            }
+            finally
+            {
+                this.Close();
+            }
+        }
+
+        public DTO_Respuesta ReenviarCodigoVerificacion(DTO_Usuario usuario)
+        {
+            DTO_Respuesta respuesta = new DTO_Respuesta();
+
+            try
+            {
+                string query = "SECU.SP_ReenviarCodigoVerificacion";
+
+                using (SqlCommand sqlcmd = new SqlCommand(query, this.GetObjConexion()))
+                {
+                    sqlcmd.CommandType = CommandType.StoredProcedure;
+                    sqlcmd.Parameters.Add("@ID_Usuario", SqlDbType.Int).Value = usuario.ID_Usuario;
+
+                    foreach (SqlParameter param in sqlcmd.Parameters)
+                        param.Direction = ParameterDirection.Input;
+
+                    this.Open();
+                    using (SqlDataReader reader = sqlcmd.ExecuteReader())
+                    {
+                        // 1) Alertas
+                        while (reader.Read())
+                        {
+                            respuesta = manejarRespuesta(reader);
+                        }
+                        // 2) Código + expiración
+                        if (reader.NextResult())
+                        {
+                            while (reader.Read())
+                            {
+                                respuesta.Resultado.Add(new
+                                {
+                                    CODIGO_ALFA_NUM = UTL.UTL_DBHelper.ReadNullSafeString(reader["CODIGO_ALFA_NUM"]),
+                                    FECHA_EXPIRACION = UTL.UTL_DBHelper.ReadNullSafeDateTime(reader["FECHA_EXPIRACION"]),
+                                });
+                            }
+                        }
+                    }
+                }
+                return respuesta;
+            }
+            catch (Exception e)
+            {
+                this.Close();
+                throw e;
+            }
+            finally
+            {
+                this.Close();
+            }
+        }
+
+        public DTO_Respuesta ValidarCodigoVerificacion(DTO_Usuario usuario)
+        {
+            DTO_Respuesta respuesta = new DTO_Respuesta();
+
+            try
+            {
+                string query = "SECU.SP_ValidarCodigoVerificacion";
+
+                using (SqlCommand sqlcmd = new SqlCommand(query, this.GetObjConexion()))
+                {
+                    sqlcmd.CommandType = CommandType.StoredProcedure;
+                    sqlcmd.Parameters.Add("@ID_Usuario", SqlDbType.Int).Value = usuario.ID_Usuario;
+                    sqlcmd.Parameters.Add("@Codigo", SqlDbType.VarChar).Value = (usuario.CodigoVerificacion ?? string.Empty).Trim();
+
+                    foreach (SqlParameter param in sqlcmd.Parameters)
+                        param.Direction = ParameterDirection.Input;
+
+                    this.Open();
+                    using (SqlDataReader reader = sqlcmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            respuesta = manejarRespuesta(reader);
+                        }
+                    }
+                }
+                return respuesta;
+            }
+            catch (Exception e)
+            {
+                this.Close();
+                throw e;
+            }
+            finally
+            {
+                this.Close();
+            }
+        }
     }
+}
 }

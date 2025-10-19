@@ -9,4 +9,5 @@ export class DTO_Usuario {
     pass: string = '';
     estado: DTO_Estado = new DTO_Estado();
     rol: DTO_Rol = new DTO_Rol();
+    codigoVerificacion?: string;
 }

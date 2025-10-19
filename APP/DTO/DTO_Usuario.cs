@@ -14,6 +14,7 @@ namespace DTO
         private String correoUsuario;
         private String pass;
         private DTO_Rol rol;
+        private String? codigoVerificacion;
 
         #endregion
 
@@ -31,6 +32,7 @@ namespace DTO
             Pass = String.Empty;
             Estado = new DTO_Estado();
             Rol = new DTO_Rol();
+            CodigoVerificacion = String.Empty;
 
         }
 
@@ -46,6 +48,7 @@ namespace DTO
         public string Pass { get => pass; set => pass = value; }
         public DTO_Estado Estado { get => estado; set => estado = value; }
         public DTO_Rol Rol { get => rol; set => rol = value; }
+        public string? CodigoVerificacion { get => codigoVerificacion; set => codigoVerificacion = value; }
 
 
         #endregion

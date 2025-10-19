@@ -70,6 +70,20 @@ namespace BLL
 
             return respuesta;
         }
+        public DTO_Respuesta GenerarCodigoVerificacion(DTO_Usuario usuario)
+        {
+            return dal_Usuario.GenerarCodigoVerificacion(usuario);
+        }
+
+        public DTO_Respuesta ReenviarCodigoVerificacion(DTO_Usuario usuario)
+        {
+            return dal_Usuario.ReenviarCodigoVerificacion(usuario);
+        }
+
+        public DTO_Respuesta ValidarCodigoVerificacion(DTO_Usuario usuario)
+        {
+            return dal_Usuario.ValidarCodigoVerificacion(usuario);
+        }
 
         public DTO_Respuesta obtenerUsuarioPorId(DTO_Usuario usuario)
         {

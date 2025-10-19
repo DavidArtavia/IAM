@@ -1,0 +1,10 @@
+USE [IAMDB]
+GO
+CREATE TABLE SECU.TBL_CODIGO_VERIFICACION (
+    ID_COD_Verificacion INT IDENTITY(1, 1) NOT NULL,--PK
+    ID_Usuario INT NOT NULL, --FK
+    COD_Alfa_Num VARCHAR(10) NOT NULL,
+    Fecha_Expiracion DATETIME,
+    ID_Estado INT NOT NULL 
+);
+
