@@ -9,3 +9,4 @@ export * from "./processResponse";
 export * from "./labelMap";
 export * from "./helpers";
 export * from "./proformasHelpers";
+export * from "./RequireVerified";

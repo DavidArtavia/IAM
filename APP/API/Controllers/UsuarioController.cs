@@ -140,5 +140,97 @@ namespace API.Controllers
             return respuesta;
         }
 
+        [Authorize]
+        [Produces("application/json")]
+        [HttpPost]
+        [Route("generarCodigoVerificacion")]
+        public DTO_Respuesta GenerarCodigoVerificacion([FromBody] DTO_Usuario usuario)
+        {
+            try
+            {
+                // Forzamos ID desde claims para evitar operar sobre otro usuario
+                var claimId = User?.Claims?.FirstOrDefault(c =>
+                    c.Type == ClaimTypes.NameIdentifier || c.Type == "id")?.Value;
+
+                if (int.TryParse(claimId, out var idFromClaims))
+                {
+                    usuario.ID_Usuario = idFromClaims;
+                }
+
+                respuesta = bLL_Usuario.GenerarCodigoVerificacion(usuario);
+            }
+            catch (Exception ex)
+            {
+                respuesta = manejoError.errorNoControlado(ex);
+            }
+            return respuesta;
+        }
+
+        [Authorize]
+        [Produces("application/json")]
+        [HttpPost]
+        [Route("reenviarCodigoVerificacion")]
+        public DTO_Respuesta ReenviarCodigoVerificacion([FromBody] DTO_Usuario usuario)
+        {
+            try
+            {
+                var claimId = User?.Claims?.FirstOrDefault(c =>
+                    c.Type == ClaimTypes.NameIdentifier || c.Type == "id")?.Value;
+
+                if (int.TryParse(claimId, out var idFromClaims))
+                {
+                    usuario.ID_Usuario = idFromClaims;
+                }
+
+                respuesta = bLL_Usuario.ReenviarCodigoVerificacion(usuario);
+            }
+            catch (Exception ex)
+            {
+                respuesta = manejoError.errorNoControlado(ex);
+            }
+            return respuesta;
+        }
+
+        [Authorize]
+        [Produces("application/json")]
+        [HttpPost]
+        [Route("validarCodigoVerificacion")]
+        public DTO_Respuesta ValidarCodigoVerificacion([FromBody] DTO_Usuario usuario)
+        {
+            try
+            {
+                var claimId = User?.Claims?.FirstOrDefault(c =>
+                    c.Type == ClaimTypes.NameIdentifier || c.Type == "id")?.Value;
+
+                if (int.TryParse(claimId, out var idFromClaims))
+                {
+                    usuario.ID_Usuario = idFromClaims;
+                }
+
+                respuesta = bLL_Usuario.ValidarCodigoVerificacion(usuario);
+
+                // Si fue exitoso (B052), emitir nuevo access token
+                if (respuesta.TipoRespuesta)
+                {
+                    // Obtener usuario actualizado (ya Activo)
+                    DTO_Usuario u = new DTO_Usuario() { ID_Usuario = usuario.ID_Usuario };
+                    var r2 = bLL_Usuario.obtenerUsuarioPorId(u);
+                    if (r2.TipoRespuesta && r2.Resultado.Count > 0)
+                    {
+                        var usuarioActual = (DTO_Usuario)r2.Resultado[0];
+                        var cipher = new UTL_Cipher();
+                        string accesToken = cipher.generarAccessToken(usuarioActual);
+                        respuesta.Resultado.Add(new { accesToken });
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                respuesta = manejoError.errorNoControlado(ex);
+            }
+            return respuesta;
+        }
     }
+
+}
 }

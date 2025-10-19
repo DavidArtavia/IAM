@@ -9,6 +9,12 @@ export const API_ENDPOINTS = {
         LOGOUT:          "/auth/logout",
         FORGOT_PASSWORD: "/auth/forgot-password",
         CHANGE_PASSWORD: "/Usuario/cambiarContrasena",
+        // Verificación de cuenta
+        VERIFY: {
+            GENERATE: "/Usuario/generarCodigoVerificacion",
+            RESEND: "/Usuario/reenviarCodigoVerificacion",
+            VALIDATE: "/Usuario/validarCodigoVerificacion",
+        },
     },
     BUSINESS: {
         GET_BUSINESS: "/Negocio/obtenerNegocios",
