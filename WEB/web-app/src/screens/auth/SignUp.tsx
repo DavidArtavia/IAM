@@ -47,7 +47,7 @@ export const SignUp = () => {
 
   const registrarUsuario = () => {
     setCargando(true);
-    usuarioService.registrarUsuario(usuario).subscribe({
+    usuarioService.registrarUsuario(usuario ?? new DTO_Usuario()).subscribe({
       next: (result) => procesarRespuesta(result as DTO_Respuesta),
       error: (err) => errorHelpers.serverError(err), //controlamos el error del servidor
       complete: () => {

@@ -1,18 +1,14 @@
-﻿using Azure;
-using BLL;
-using DAL;
+﻿using BLL;
 using DTO;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
+using System.Linq;
 using System.Security.Claims;
 using UTL;
 
-
 namespace API.Controllers
 {
-   
     [Route("api/[controller]")]
     [ApiController]
     public class UsuarioController : ControllerBase
@@ -21,26 +17,30 @@ namespace API.Controllers
         UTL_ManejoError manejoError = new UTL_ManejoError();
         BLL_Usuario bLL_Usuario = new BLL_Usuario();
 
+        private readonly IEmailSender _emailSender;
+
+        public UsuarioController(IEmailSender emailSender)
+        {
+            _emailSender = emailSender;
+        }
+
         [AllowAnonymous]
         [Produces("application/json")]
         [Route("registrarUsuario")]
         [HttpPost]
         public DTO_Respuesta registrarUsuario([FromBody] DTO_Usuario usuario)
         {
-
             try
             {
                 BLL_Usuario bLL_Usuario = new BLL_Usuario();
                 respuesta = bLL_Usuario.registrarUsuario(usuario);
             }
-            catch (Exception ex) 
+            catch (Exception ex)
             {
                 respuesta = manejoError.errorNoControlado(ex);
             }
-
             return respuesta;
         }
-   
 
         [AllowAnonymous]
         [Produces("application/json")]
@@ -51,30 +51,26 @@ namespace API.Controllers
             UTL_Cipher uTL_Cipher = new UTL_Cipher();
             DTO.DTO_Sesion sesion = new DTO_Sesion();
             BLL_Sesion bLL_Sesion = new BLL_Sesion();
-            
-                
+
             try
             {
-                //Validamos la cuestión
                 BLL_Usuario bLL_Usuario = new BLL_Usuario();
                 respuesta = bLL_Usuario.autenticarUsuario(usuario);
                 var ejemplo = JsonConvert.SerializeObject(new DTO_Respuesta());
 
-                //Si autentica correctamente procedemos
                 if (respuesta.TipoRespuesta)
                 {
                     usuario = (DTO_Usuario)respuesta.Resultado[0];
 
-                    //Creamos el accesToken
-                    String accesToken = uTL_Cipher.generarAccessToken(usuario);
+                    string accesToken = uTL_Cipher.generarAccessToken(usuario);
                     sesion.RefreshToken = Guid.NewGuid().ToString();
                     sesion.ID_Usuario = usuario.ID_Usuario;
+
                     respuesta.Resultado.Add(new { accesToken });
-                    //Guardar el refreshToken y obtenemos la respuesta
+
                     DTO_Respuesta respuestaRefreshToken = bLL_Sesion.guardarRefreshToken(sesion);
                     if (respuestaRefreshToken.TipoRespuesta)
                     {
-                        //Agregamos el refreshToken a una Cookie HttpOnly
                         var cookieOptions = uTL_Cipher.cookieOptions();
                         Response.Cookies.Append("refreshToken", sesion.RefreshToken, cookieOptions);
                     }
@@ -82,15 +78,12 @@ namespace API.Controllers
                     {
                         respuesta = respuestaRefreshToken;
                     }
-
                 }
             }
-            catch (Exception ex) 
+            catch (Exception ex)
             {
                 respuesta = manejoError.errorNoControlado(ex);
             }
-
-
             return respuesta;
         }
 
@@ -102,7 +95,6 @@ namespace API.Controllers
         {
             return new DTO_Respuesta();
         }
-
 
         [Authorize(Roles = "1")]
         [Produces("application/json")]
@@ -123,12 +115,8 @@ namespace API.Controllers
         {
             DTO_Respuesta respuesta;
             BLL_Usuario bLL_usuario;
-            //var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-
             try
             {
-                //if (userIdClaim == null) throw new UnauthorizedAccessException("El id del usuario es requerido.");
-                //usuario.ID_Usuario = Convert.ToInt32(userIdClaim.Value);
                 bLL_usuario = new();
                 respuesta = bLL_usuario.actualizarUsuario(usuario);
             }
@@ -136,7 +124,6 @@ namespace API.Controllers
             {
                 respuesta = manejoError.errorNoControlado(ex);
             }
-
             return respuesta;
         }
 
@@ -148,16 +135,44 @@ namespace API.Controllers
         {
             try
             {
-                // Forzamos ID desde claims para evitar operar sobre otro usuario
-                var claimId = User?.Claims?.FirstOrDefault(c =>
-                    c.Type == ClaimTypes.NameIdentifier || c.Type == "id")?.Value;
-
-                if (int.TryParse(claimId, out var idFromClaims))
-                {
-                    usuario.ID_Usuario = idFromClaims;
-                }
+                var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+                if (userIdClaim == null) throw new UnauthorizedAccessException("User ID claim is missing.");
+                usuario.ID_Usuario = Convert.ToInt32(userIdClaim.Value);
 
                 respuesta = bLL_Usuario.GenerarCodigoVerificacion(usuario);
+
+                if (respuesta.TipoRespuesta)
+                {
+                    var codeDto = respuesta.Resultado.OfType<DTO_CodigoVerificacion>().FirstOrDefault();
+                    if (codeDto != null)
+                    {
+                        var codigo = codeDto.CodigoAlfaNum;
+                        var expira = codeDto.FechaExpiracion;
+
+                        var email = User.FindFirst(ClaimTypes.Email)?.Value;
+                        string? nombre = null;
+
+                        if (string.IsNullOrWhiteSpace(email))
+                        {
+                            var r2 = bLL_Usuario.obtenerUsuarioPorId(new DTO_Usuario { ID_Usuario = usuario.ID_Usuario });
+                            if (r2.TipoRespuesta && r2.Resultado.Count > 0)
+                            {
+                                var u = (DTO_Usuario)r2.Resultado[0];
+                                email = u.CorreoUsuario;
+                                nombre = $"{u.NombreUsuario} {u.Apellido}".Trim();
+                            }
+                        }
+
+                        if (!string.IsNullOrWhiteSpace(email))
+                        {
+                            _ = Task.Run(async () =>
+                            {
+                                try { await _emailSender.SendVerificationCodeAsync(email!, nombre, codigo, expira); }
+                                catch { /* TODO: log si deseas */ }
+                            });
+                        }
+                    }
+                }
             }
             catch (Exception ex)
             {
@@ -174,15 +189,44 @@ namespace API.Controllers
         {
             try
             {
-                var claimId = User?.Claims?.FirstOrDefault(c =>
-                    c.Type == ClaimTypes.NameIdentifier || c.Type == "id")?.Value;
-
-                if (int.TryParse(claimId, out var idFromClaims))
-                {
-                    usuario.ID_Usuario = idFromClaims;
-                }
+                var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+                if (userIdClaim == null) throw new UnauthorizedAccessException("User ID claim is missing.");
+                usuario.ID_Usuario = Convert.ToInt32(userIdClaim.Value);
 
                 respuesta = bLL_Usuario.ReenviarCodigoVerificacion(usuario);
+
+                if (respuesta.TipoRespuesta)
+                {
+                    var codeDto = respuesta.Resultado.OfType<DTO_CodigoVerificacion>().FirstOrDefault();
+                    if (codeDto != null)
+                    {
+                        var codigo = codeDto.CodigoAlfaNum;
+                        var expira = codeDto.FechaExpiracion;
+
+                        var email = User.FindFirst(ClaimTypes.Email)?.Value;
+                        string? nombre = null;
+
+                        if (string.IsNullOrWhiteSpace(email))
+                        {
+                            var r2 = bLL_Usuario.obtenerUsuarioPorId(new DTO_Usuario { ID_Usuario = usuario.ID_Usuario });
+                            if (r2.TipoRespuesta && r2.Resultado.Count > 0)
+                            {
+                                var u = (DTO_Usuario)r2.Resultado[0];
+                                email = u.CorreoUsuario;
+                                nombre = $"{u.NombreUsuario} {u.Apellido}".Trim();
+                            }
+                        }
+
+                        if (!string.IsNullOrWhiteSpace(email))
+                        {
+                            _ = Task.Run(async () =>
+                            {
+                                try { await _emailSender.SendVerificationCodeAsync(email!, nombre, codigo, expira); }
+                                catch { /* TODO: log */ }
+                            });
+                        }
+                    }
+                }
             }
             catch (Exception ex)
             {
@@ -199,20 +243,13 @@ namespace API.Controllers
         {
             try
             {
-                var claimId = User?.Claims?.FirstOrDefault(c =>
-                    c.Type == ClaimTypes.NameIdentifier || c.Type == "id")?.Value;
-
-                if (int.TryParse(claimId, out var idFromClaims))
-                {
-                    usuario.ID_Usuario = idFromClaims;
-                }
-
+                var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+                if (userIdClaim == null) throw new UnauthorizedAccessException("User ID claim is missing.");
+                usuario.ID_Usuario = Convert.ToInt32(userIdClaim.Value);
                 respuesta = bLL_Usuario.ValidarCodigoVerificacion(usuario);
 
-                // Si fue exitoso (B052), emitir nuevo access token
                 if (respuesta.TipoRespuesta)
                 {
-                    // Obtener usuario actualizado (ya Activo)
                     DTO_Usuario u = new DTO_Usuario() { ID_Usuario = usuario.ID_Usuario };
                     var r2 = bLL_Usuario.obtenerUsuarioPorId(u);
                     if (r2.TipoRespuesta && r2.Resultado.Count > 0)
@@ -231,6 +268,4 @@ namespace API.Controllers
             return respuesta;
         }
     }
-
-}
 }
