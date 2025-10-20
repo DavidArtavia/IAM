@@ -3,18 +3,33 @@ using BLL;
 using BLL.Hubs;
 using DTO;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using API.Infrastructure.Email;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
+using Microsoft.OpenApi.Models;
 using System.Security.Claims;
-using System.Text;
 using System.Text.Json;
+using System.Text;
+using Resend;
 using UTL;
 
 var builder = WebApplication.CreateBuilder(args);
 
+#region Configuración
+// Reconstruimos la configuración para usar appsettings + user secrets (DEV)
+var configBuilder = new ConfigurationBuilder()
+    .SetBasePath(builder.Environment.ContentRootPath)
+    .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+    .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", optional: true, reloadOnChange: true);
 
-// Add services to the container.
+if (builder.Environment.IsDevelopment())
+{
+    builder.Configuration.AddUserSecrets<Program>();
+}
+#endregion
+
+#region Servicios de Autenticación JWT
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
@@ -36,7 +51,6 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             {
                 // ✅ Para SignalR: permitir token por query string
                 var accessToken = context.Request.Query["access_token"];
-
                 var path = context.HttpContext.Request.Path;
 
                 if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/hub/monitorOSHub"))
@@ -46,39 +60,54 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
                 return Task.CompletedTask;
             },
-
         };
-
-
     });
+#endregion
 
-// Personalizar respuestas de error
-
-
+#region Servicios Base
 builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSingleton<IUserIdProvider, EmailUserIdProvider>();
-
 builder.Services.AddSwaggerGen(options =>
 {
     // Definir el tipo de contenido para archivos binarios (para permitir cargar archivos con Swagger)
-    options.MapType<IFormFile>(() => new Microsoft.OpenApi.Models.OpenApiSchema
+    options.MapType<IFormFile>(() => new OpenApiSchema
     {
         Type = "string",
         Format = "binary"
     });
 });
+#endregion
 
-//SiganlR Notificador
+#region SignalR Configuration
+builder.Services.AddSingleton<IUserIdProvider, EmailUserIdProvider>();
+builder.Services.AddSignalR();
+#endregion
+
+#region Business Logic Layer (BLL) Services
 builder.Services.AddScoped<BLL_Notificador>();
 builder.Services.AddScoped<BLL_ChatIA>();
 builder.Services.AddScoped<BLL_ItemOrdenServicio>();
 builder.Services.AddScoped<BLL_OrdenServicio>();
+#endregion
 
+#region Email Service Configuration (Resend)
+// DI de Resend, leyendo desde appsettings/UserSecrets
+builder.Services.AddOptions();
+builder.Services.AddHttpClient<ResendClient>();
+builder.Services.Configure<ResendClientOptions>(o =>
+{
+    o.ApiToken = builder.Configuration["Resend:ApiKey"] ?? string.Empty;
+});
+builder.Services.AddTransient<IResend, ResendClient>();
+
+// wrapper para encapsular el HTML y el envío
+builder.Services.Configure<ResendSettings>(builder.Configuration.GetSection("Resend"));
+builder.Services.AddScoped<IEmailSender, ResendEmailSender>();
+#endregion
+
+#region CORS Configuration
 // Cambiar la referencia explícita para evitar la ambigüedad  
 var raw = System.Configuration.ConfigurationManager.AppSettings["ClientURLs"];
-
 
 // 3) Separar, limpiar y normalizar
 var clientUrls = raw?
@@ -108,18 +137,19 @@ builder.Services.AddCors(options =>
         }
     });
 });
-
-builder.Services.AddSignalR();
+#endregion
 
 var app = builder.Build();
 
+#region Middleware Pipeline Configuration
 app.UseSwagger();
 app.UseSwaggerUI();
-
 
 app.UseHttpsRedirection();
 
 app.UseCors("AllowFrontendDev");
+
+// Middleware personalizado para renovación de tokens
 app.Use(async (context, next) =>
 {
     await next();
@@ -159,10 +189,8 @@ app.Use(async (context, next) =>
 
             var nuevoToken = cipher.generarAccessToken(usuario);
 
-
             context.Response.StatusCode = 403;
             context.Response.ContentType = "application/json";
-            //context.Response.Headers["Access-Control-Allow-Origin"] = origin;
             context.Response.Headers["Access-Control-Allow-Credentials"] = "true";
             context.Response.Headers["Access-Control-Expose-Headers"] = "Content-Type, Authorization, accesToken";
 
@@ -177,11 +205,15 @@ app.Use(async (context, next) =>
         }
     }
 });
+
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseCookiePolicy();
+#endregion
 
+#region Endpoint Mapping
 app.MapHub<MonitorOSHub>("/hub/monitorOSHub");
 app.MapControllers();
+#endregion
 
 app.Run();

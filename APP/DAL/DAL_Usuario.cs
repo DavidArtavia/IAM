@@ -280,11 +280,13 @@ namespace DAL
                         {
                             while (reader.Read())
                             {
-                                respuesta.Resultado.Add(new
+                                var codigoDto = new DTO_CodigoVerificacion
                                 {
-                                    CODIGO_ALFA_NUM = UTL.UTL_DBHelper.ReadNullSafeString(reader["CODIGO_ALFA_NUM"]),
-                                    FECHA_EXPIRACION = UTL.UTL_DBHelper.ReadNullSafeDateTime(reader["FECHA_EXPIRACION"]),
-                                });
+                                    // OJO: estos nombres vienen del alias del SP, no de la tabla física
+                                    CodigoAlfaNum = UTL.UTL_DBHelper.ReadNullSafeString(reader["CODIGO_ALFA_NUM"]),
+                                    FechaExpiracion = UTL.UTL_DBHelper.ReadNullSafeDateTime(reader["FECHA_EXPIRACION"]),
+                                };
+                                respuesta.Resultado.Add(codigoDto);
                             }
                         }
                     }
@@ -331,11 +333,13 @@ namespace DAL
                         {
                             while (reader.Read())
                             {
-                                respuesta.Resultado.Add(new
+                                var codigoDto = new DTO_CodigoVerificacion
                                 {
-                                    CODIGO_ALFA_NUM = UTL.UTL_DBHelper.ReadNullSafeString(reader["CODIGO_ALFA_NUM"]),
-                                    FECHA_EXPIRACION = UTL.UTL_DBHelper.ReadNullSafeDateTime(reader["FECHA_EXPIRACION"]),
-                                });
+                                    // OJO: estos nombres vienen del alias del SP, no de la tabla física
+                                    CodigoAlfaNum = UTL.UTL_DBHelper.ReadNullSafeString(reader["CODIGO_ALFA_NUM"]),
+                                    FechaExpiracion = UTL.UTL_DBHelper.ReadNullSafeDateTime(reader["FECHA_EXPIRACION"]),
+                                };
+                                respuesta.Resultado.Add(codigoDto);
                             }
                         }
                     }
@@ -392,5 +396,5 @@ namespace DAL
             }
         }
     }
-}
+
 }

@@ -1,4 +1,4 @@
-import { useContext, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import { AuthContext } from "@/context";
 import { usuarioService } from "@/services";
 import { notificationHelpers } from "@/utils";
@@ -12,7 +12,23 @@ export const Verify = () => {
   const [codigo, setCodigo] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+   const didInit = useRef(false);
 
+   useEffect(() => {
+     if (!didInit.current) {
+       didInit.current = true;
+       if (user) {
+         firstValueFrom(usuarioService.generarCodigoVerificacion(user))
+           .then(() => {
+            notificationHelpers.successAlert("Código enviado a tu correo");
+           })
+           .catch((err: unknown) => {
+             console.error(err);
+             
+           });
+       }
+     }
+   }, [user]);
   const assertUser = (): DTO_Usuario | null => {
     if (!user || !user.iD_Usuario) {
       notificationHelpers.errorAlert(
