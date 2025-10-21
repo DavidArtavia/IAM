@@ -83,7 +83,7 @@ builder.Services.AddSingleton<IUserIdProvider, EmailUserIdProvider>();
 builder.Services.AddSignalR();
 #endregion
 
-#region Business Logic Layer (BLL) Services
+#region SiganlR Notificador Business Logic Layer (BLL) Services
 builder.Services.AddScoped<BLL_Notificador>();
 builder.Services.AddScoped<BLL_ChatIA>();
 builder.Services.AddScoped<BLL_ItemOrdenServicio>();

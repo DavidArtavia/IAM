@@ -4,11 +4,11 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Resend;
 using UTL;
+using System.Reflection;
+using System.Collections.Generic;
 
 namespace API.Infrastructure.Email
 {
-    // Compatible con paquete comunitario "Resend" v0.1.6:
-    // EmailMessage + EmailAddressList + EmailSendAsync
     public class ResendEmailSender : IEmailSender
     {
         private readonly IResend _resend;
@@ -34,7 +34,6 @@ namespace API.Infrastructure.Email
             var message = new EmailMessage
             {
                 From = from,
-                // EmailAddressList en Resend 0.1.6
                 To = EmailAddressList.From(toEmail),
                 Subject = subject,
                 HtmlBody = htmlBody ?? string.Empty,
@@ -46,6 +45,9 @@ namespace API.Infrastructure.Email
             {
                 message.ReplyTo = EmailAddressList.From(rt);
             }
+
+            // Intentar agregar headers de idioma si el modelo los soporta (Headers o CustomHeaders)
+            TrySetLanguageHeaders(message);
 
             try
             {
@@ -62,6 +64,43 @@ namespace API.Infrastructure.Email
             {
                 _logger.LogError(ex, "Error no controlado al enviar a {To}", toEmail);
                 throw;
+            }
+        }
+
+        private static void TrySetLanguageHeaders(object message)
+        {
+            try
+            {
+                var msgType = message.GetType();
+
+                var headersProp = msgType.GetProperty("Headers", BindingFlags.Public | BindingFlags.Instance);
+                if (headersProp != null && headersProp.CanWrite)
+                {
+                    var dict = new Dictionary<string, string>
+                    {
+                        ["Content-Language"] = "es-419",
+                        ["X-Content-Language"] = "es-419",
+                        ["X-Entity-Language"] = "es-419"
+                    };
+                    headersProp.SetValue(message, dict);
+                    return;
+                }
+
+                var customHeadersProp = msgType.GetProperty("CustomHeaders", BindingFlags.Public | BindingFlags.Instance);
+                if (customHeadersProp != null && customHeadersProp.CanWrite)
+                {
+                    var dict = new Dictionary<string, string>
+                    {
+                        ["Content-Language"] = "es-419",
+                        ["X-Content-Language"] = "es-419",
+                        ["X-Entity-Language"] = "es-419"
+                    };
+                    customHeadersProp.SetValue(message, dict);
+                }
+            }
+            catch
+            {
+                
             }
         }
 
