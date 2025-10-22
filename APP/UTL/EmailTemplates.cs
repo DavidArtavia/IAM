@@ -16,7 +16,7 @@ namespace UTL
         // Logo público. Si se deja vacío o null, se usará el fallback “IAM”
         private const string LogoUrl = "";
 
-        private const string AppName = "IAM Suit";
+        private const string AppName = "IAM ";
 
         public static (string Subject, string Html, string Text) VerificationCode(string? toName, string code, DateTime? expiresAt)
         {
@@ -40,8 +40,8 @@ namespace UTL
 <html lang=""es"" xml:lang=""es"">
   <head>
     <meta http-equiv=""Content-Type"" content=""text/html; charset=utf-8"">
-    <meta http-equiv=""Content-Language"" content=""es-419"">
-    <meta name=""language"" content=""es-419"">
+    <meta http-equiv=""Content-Language"" content=""es"">
+    <meta name=""language"" content=""es"">
     <meta name=""viewport"" content=""width=device-width, initial-scale=1.0"">
     <title>{subject}</title>
     <style>

@@ -47,7 +47,7 @@ namespace API.Infrastructure.Email
             }
 
             // Intentar agregar headers de idioma si el modelo los soporta (Headers o CustomHeaders)
-            TrySetLanguageHeaders(message);
+            TrySetLanguageHeaders(message, "es");
 
             try
             {
@@ -67,40 +67,39 @@ namespace API.Infrastructure.Email
             }
         }
 
-        private static void TrySetLanguageHeaders(object message)
+        private static void TrySetLanguageHeaders(object message, string lang)
         {
             try
             {
-                var msgType = message.GetType();
-
-                var headersProp = msgType.GetProperty("Headers", BindingFlags.Public | BindingFlags.Instance);
-                if (headersProp != null && headersProp.CanWrite)
+                var dict = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
                 {
-                    var dict = new Dictionary<string, string>
+                    ["Content-Language"] = lang,   // RFC 3282
+                    ["X-Content-Language"] = lang,
+                    ["X-Entity-Language"] = lang
+                };
+
+                var type = message.GetType();
+                foreach (var propName in new[] { "Headers", "CustomHeaders", "AdditionalHeaders", "ExtraHeaders" })
+                {
+                    var p = type.GetProperty(propName, BindingFlags.Public | BindingFlags.Instance);
+                    if (p != null && p.CanWrite)
                     {
-                        ["Content-Language"] = "es-419",
-                        ["X-Content-Language"] = "es-419",
-                        ["X-Entity-Language"] = "es-419"
-                    };
-                    headersProp.SetValue(message, dict);
-                    return;
+                        p.SetValue(message, dict);
+                        return;
+                    }
                 }
 
-                var customHeadersProp = msgType.GetProperty("CustomHeaders", BindingFlags.Public | BindingFlags.Instance);
-                if (customHeadersProp != null && customHeadersProp.CanWrite)
+                // Algunos modelos exponen AddHeader(string,string)
+                var addHeader = type.GetMethod("AddHeader", BindingFlags.Public | BindingFlags.Instance);
+                if (addHeader != null)
                 {
-                    var dict = new Dictionary<string, string>
-                    {
-                        ["Content-Language"] = "es-419",
-                        ["X-Content-Language"] = "es-419",
-                        ["X-Entity-Language"] = "es-419"
-                    };
-                    customHeadersProp.SetValue(message, dict);
+                    foreach (var kv in dict)
+                        addHeader.Invoke(message, new object[] { kv.Key, kv.Value });
                 }
             }
             catch
             {
-                
+                // Si no soporta headers, se ignora silenciosamente.
             }
         }
 
