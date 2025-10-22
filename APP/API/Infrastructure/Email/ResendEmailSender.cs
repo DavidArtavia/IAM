@@ -4,11 +4,11 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Resend;
 using UTL;
+using System.Reflection;
+using System.Collections.Generic;
 
 namespace API.Infrastructure.Email
 {
-    // Compatible con paquete comunitario "Resend" v0.1.6:
-    // EmailMessage + EmailAddressList + EmailSendAsync
     public class ResendEmailSender : IEmailSender
     {
         private readonly IResend _resend;
@@ -34,7 +34,6 @@ namespace API.Infrastructure.Email
             var message = new EmailMessage
             {
                 From = from,
-                // EmailAddressList en Resend 0.1.6
                 To = EmailAddressList.From(toEmail),
                 Subject = subject,
                 HtmlBody = htmlBody ?? string.Empty,
@@ -46,6 +45,9 @@ namespace API.Infrastructure.Email
             {
                 message.ReplyTo = EmailAddressList.From(rt);
             }
+
+            // Intentar agregar headers de idioma si el modelo los soporta (Headers o CustomHeaders)
+            TrySetLanguageHeaders(message, "es");
 
             try
             {
@@ -62,6 +64,42 @@ namespace API.Infrastructure.Email
             {
                 _logger.LogError(ex, "Error no controlado al enviar a {To}", toEmail);
                 throw;
+            }
+        }
+
+        private static void TrySetLanguageHeaders(object message, string lang)
+        {
+            try
+            {
+                var dict = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+                {
+                    ["Content-Language"] = lang,   // RFC 3282
+                    ["X-Content-Language"] = lang,
+                    ["X-Entity-Language"] = lang
+                };
+
+                var type = message.GetType();
+                foreach (var propName in new[] { "Headers", "CustomHeaders", "AdditionalHeaders", "ExtraHeaders" })
+                {
+                    var p = type.GetProperty(propName, BindingFlags.Public | BindingFlags.Instance);
+                    if (p != null && p.CanWrite)
+                    {
+                        p.SetValue(message, dict);
+                        return;
+                    }
+                }
+
+                // Algunos modelos exponen AddHeader(string,string)
+                var addHeader = type.GetMethod("AddHeader", BindingFlags.Public | BindingFlags.Instance);
+                if (addHeader != null)
+                {
+                    foreach (var kv in dict)
+                        addHeader.Invoke(message, new object[] { kv.Key, kv.Value });
+                }
+            }
+            catch
+            {
+                // Si no soporta headers, se ignora silenciosamente.
             }
         }
 

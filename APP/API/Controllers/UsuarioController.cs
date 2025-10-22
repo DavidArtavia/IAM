@@ -1,11 +1,14 @@
-﻿using BLL;
+﻿using Azure;
+using BLL;
+using DAL;
 using DTO;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
-using System.Linq;
 using System.Security.Claims;
 using UTL;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace API.Controllers
 {
@@ -141,6 +144,8 @@ namespace API.Controllers
 
                 respuesta = bLL_Usuario.GenerarCodigoVerificacion(usuario);
 
+                bool emailEnviado = false;
+
                 if (respuesta.TipoRespuesta)
                 {
                     var codeDto = respuesta.Resultado.OfType<DTO_CodigoVerificacion>().FirstOrDefault();
@@ -163,16 +168,23 @@ namespace API.Controllers
                             }
                         }
 
-                        if (!string.IsNullOrWhiteSpace(email))
+                        if (!string.IsNullOrEmpty(usuario.NombreUsuario))
                         {
-                            _ = Task.Run(async () =>
-                            {
-                                try { await _emailSender.SendVerificationCodeAsync(email!, nombre, codigo, expira); }
-                                catch { /* TODO: log si deseas */ }
-                            });
+                            nombre = $"{usuario.NombreUsuario} {usuario?.Apellido}".Trim();
+                        }
+
+
+                            if (!string.IsNullOrWhiteSpace(email))
+                        {
+                            // Hacer await para no perder errores ni el envío
+                            _emailSender.SendVerificationCodeAsync(email!, nombre, codigo, expira).GetAwaiter().GetResult();
+                            emailEnviado = true;
                         }
                     }
                 }
+
+                // Añadir un resultado con el flag emailEnviado para que el FE muestre el mensaje correcto
+                respuesta.Resultado.Add(new { emailEnviado });
             }
             catch (Exception ex)
             {
@@ -195,6 +207,8 @@ namespace API.Controllers
 
                 respuesta = bLL_Usuario.ReenviarCodigoVerificacion(usuario);
 
+                bool emailEnviado = false;
+
                 if (respuesta.TipoRespuesta)
                 {
                     var codeDto = respuesta.Resultado.OfType<DTO_CodigoVerificacion>().FirstOrDefault();
@@ -217,16 +231,21 @@ namespace API.Controllers
                             }
                         }
 
+
+                        if (!string.IsNullOrEmpty(usuario.NombreUsuario))
+                        {
+                            nombre = $"{usuario.NombreUsuario} {usuario?.Apellido}".Trim();
+                        }
+
                         if (!string.IsNullOrWhiteSpace(email))
                         {
-                            _ = Task.Run(async () =>
-                            {
-                                try { await _emailSender.SendVerificationCodeAsync(email!, nombre, codigo, expira); }
-                                catch { /* TODO: log */ }
-                            });
+                            _emailSender.SendVerificationCodeAsync(email!, nombre, codigo, expira).GetAwaiter().GetResult();
+                            emailEnviado = true;
                         }
                     }
                 }
+
+                respuesta.Resultado.Add(new { emailEnviado });
             }
             catch (Exception ex)
             {

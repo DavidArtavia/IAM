@@ -10,6 +10,7 @@ import { ROUTES } from "@/constants";
 import imgLogo from "@/assets/media/logos/logo-1.svg";
 import imgBG from "@/assets/media/illustrations/unitedpalms-1/14-1.png";
 import { valida_DTO_Usuario } from "@/validators/valida_DTO_Usuario";
+import { log } from "console";
 
 
 export const SignUp = () => {
@@ -71,6 +72,8 @@ export const SignUp = () => {
   // actualiza sólo el campo dinámicamente
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
+    console.log(name, value);
+    
     setUsuario((prev) => (prev ? { ...prev, [name]: value } : null));
   };
 
@@ -78,15 +81,11 @@ export const SignUp = () => {
     <div className="d-flex flex-column flex-root">
       <div
         className="d-flex flex-column flex-column-fluid bgi-position-y-bottom position-x-center bgi-no-repeat bgi-size-contain bgi-attachment-fixed"
-          style={{ backgroundImage: `url(${imgBG})` }}
+        style={{ backgroundImage: `url(${imgBG})` }}
       >
         <div className="d-flex flex-center flex-column flex-column-fluid p-10 pb-lg-20">
           <a className="mb-12">
-            <img
-              alt="Logo"
-              src={imgLogo}
-              className="h-40px"
-            />
+            <img alt="Logo" src={imgLogo} className="h-40px" />
           </a>
 
           <div className="w-lg-600px bg-body rounded shadow-sm p-10 p-lg-15 mx-auto">
@@ -138,7 +137,6 @@ export const SignUp = () => {
                     Apellido(s)
                   </label>
                   <input
-                  
                     value={usuario?.apellido}
                     onChange={(e) => {
                       eliminarError(e.target.name);
@@ -200,7 +198,7 @@ export const SignUp = () => {
                   }}
                   className="form-control form-control-lg form-control-solid"
                   type="text"
-                  name="txtCorreoUsuario"
+                  name="correoUsuario"
                   placeholder="ejemplo@gmail.com"
                 />
                 {erroresValidacion
@@ -231,7 +229,7 @@ export const SignUp = () => {
                       }}
                       className="form-control form-control-lg form-control-solid"
                       type={showPass ? "text" : "password"}
-                      name="txtpass"
+                      name="pass"
                       autoComplete="new-password"
                     />
                     <span

@@ -25,13 +25,10 @@ namespace API.Controllers
             var to = dto?.To ?? User.FindFirst(ClaimTypes.Email)?.Value;
             if (string.IsNullOrWhiteSpace(to)) return BadRequest("No hay correo destino.");
 
-            await _emailSender.SendAsync(
-                to,
-                "Prueba de correo IAM Suit",
-                "<strong>Funciona</strong>: prueba de HTML desde Resend.",
-                "Funciona: prueba de texto plano.",
-                null
-            );
+            var fecha = DateTime.UtcNow;
+
+            await _emailSender.SendVerificationCodeAsync(to!, "Danny", "1a2b", fecha);
+
             return Ok(new { ok = true, to });
         }
     }

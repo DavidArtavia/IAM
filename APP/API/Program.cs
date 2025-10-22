@@ -16,17 +16,11 @@ using UTL;
 
 var builder = WebApplication.CreateBuilder(args);
 
-#region Configuración
-// Reconstruimos la configuración para usar appsettings + user secrets (DEV)
+#region Configuración para usar appsettings
 var configBuilder = new ConfigurationBuilder()
     .SetBasePath(builder.Environment.ContentRootPath)
     .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
     .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", optional: true, reloadOnChange: true);
-
-if (builder.Environment.IsDevelopment())
-{
-    builder.Configuration.AddUserSecrets<Program>();
-}
 #endregion
 
 #region Servicios de Autenticación JWT
@@ -83,25 +77,36 @@ builder.Services.AddSingleton<IUserIdProvider, EmailUserIdProvider>();
 builder.Services.AddSignalR();
 #endregion
 
-#region Business Logic Layer (BLL) Services
+#region SiganlR Notificador Business Logic Layer (BLL) Services
 builder.Services.AddScoped<BLL_Notificador>();
 builder.Services.AddScoped<BLL_ChatIA>();
 builder.Services.AddScoped<BLL_ItemOrdenServicio>();
 builder.Services.AddScoped<BLL_OrdenServicio>();
 #endregion
 
-#region Email Service Configuration (Resend)
-// DI de Resend, leyendo desde appsettings/UserSecrets
+#region Email Service Configuration (Resend) usando App.config
+// Tomar credenciales de AppSettings (App.config)
+var resendApiKey = System.Configuration.ConfigurationManager.AppSettings["Resend.ApiKey"];
+var resendFrom = System.Configuration.ConfigurationManager.AppSettings["Resend.From"];
+var resendFromName = System.Configuration.ConfigurationManager.AppSettings["Resend.FromName"];
+
+// Cliente Resend
 builder.Services.AddOptions();
 builder.Services.AddHttpClient<ResendClient>();
 builder.Services.Configure<ResendClientOptions>(o =>
 {
-    o.ApiToken = builder.Configuration["Resend:ApiKey"] ?? string.Empty;
+    o.ApiToken = resendApiKey ?? string.Empty;
 });
 builder.Services.AddTransient<IResend, ResendClient>();
 
-// wrapper para encapsular el HTML y el envío
-builder.Services.Configure<ResendSettings>(builder.Configuration.GetSection("Resend"));
+// Nuestro wrapper (IEmailSender) y settings tipados
+builder.Services.Configure<ResendSettings>(o =>
+{
+    o.ApiKey = resendApiKey ?? string.Empty;
+    o.From = resendFrom ?? string.Empty;
+    o.FromName = string.IsNullOrWhiteSpace(resendFromName) ? "IAM Suit" : resendFromName;
+    o.ReplyTo = null; // no incluir ReplyTo
+});
 builder.Services.AddScoped<IEmailSender, ResendEmailSender>();
 #endregion
 
