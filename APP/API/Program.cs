@@ -24,6 +24,10 @@ var configBuilder = new ConfigurationBuilder()
 #endregion
 
 #region Servicios de Autenticación JWT
+var jwtIssuer = System.Configuration.ConfigurationManager.AppSettings["JwtIssuer"] ?? builder.Configuration["JwtIssuer"];
+var jwtAudience = System.Configuration.ConfigurationManager.AppSettings["JwtAudience"] ?? builder.Configuration["JwtAudience"];
+var jwtKey = System.Configuration.ConfigurationManager.AppSettings["JwtKey"] ?? builder.Configuration["JwtKey"];
+
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
